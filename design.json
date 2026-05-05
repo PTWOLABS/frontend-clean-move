@@ -1,211 +1,228 @@
 {
   "brand": {
     "name": "CleanMove",
-    "description": "Plataforma SaaS premium para gestão de lava-rápidos, estéticas automotivas e studios automotivos.",
+    "description": "Plataforma SaaS para gestao de esteticas automotivas, lava-rapidos e studios de detalhamento.",
     "personality": [
-      "sofisticada",
-      "minimalista",
-      "confiável",
-      "tecnológica",
-      "organizada",
-      "profissional"
+      "tecnologica",
+      "precisa",
+      "premium",
+      "operacional",
+      "confiavel",
+      "moderna"
     ],
-    "visualTone": "premium operational SaaS",
+    "visualTone": "dark premium operational SaaS",
+    "sourceOfTruth": "Landing page publicada em https://asset-manager--fehpereira237.replit.app/",
     "keywords": [
-      "automotive care",
-      "clean management",
-      "premium dashboard",
-      "operational clarity",
-      "minimal luxury",
-      "high trust"
+      "dark dashboard",
+      "electric blue",
+      "cyan accent",
+      "automotive operations",
+      "professional workflow",
+      "clean management"
     ],
     "principles": {
-      "clarity": "Toda tela deve deixar clara a ação principal e o estado atual da operação.",
-      "precision": "Espaçamentos, bordas, cards e tabelas devem transmitir organização e maturidade.",
-      "premiumMinimalism": "Evitar excesso de cores, ícones automotivos clichês e interfaces visualmente carregadas.",
-      "consistency": "Landing page e sistema interno devem parecer partes do mesmo produto."
+      "landingParity": "O produto interno deve parecer uma continuacao direta da landing page publicada.",
+      "darkFirst": "A experiencia principal e escura, com fundo navy, paineis discretos e contraste alto.",
+      "precision": "Cards, tabelas e formularios devem usar bordas sutis, raios consistentes e espacamento em escala de 4px.",
+      "focusedAccent": "Azul eletrico e ciano devem destacar a acao principal, estados ativos, metricas e chamadas criticas.",
+      "operationalClarity": "Fluxos de agenda, orcamento e caixa devem priorizar leitura rapida e hierarquia clara."
     }
   },
   "themes": {
+    "default": "dark",
     "light": {
-      "background": "#F7F5EF",
-      "foreground": "#141816",
+      "background": "#F8FAFC",
+      "foreground": "#0B0F19",
       "surface": "#FFFFFF",
-      "surfaceElevated": "#FAFAF7",
-      "surfaceMuted": "#EFEEE8",
-      "border": "#DDD8CD",
-      "borderSubtle": "#ECE8DD",
-      "primary": "#063F34",
-      "primaryHover": "#052F28",
-      "primaryActive": "#03241F",
-      "primaryForeground": "#F7F5EF",
-      "secondary": "#C5A46D",
-      "secondaryHover": "#B48F55",
-      "secondaryForeground": "#191612",
-      "accent": "#D6B878",
-      "accentSoft": "#EFE3C5",
-      "muted": "#E9E5DA",
-      "mutedForeground": "#6B6A63",
-      "disabled": "#C9C5B8",
-      "focusRing": "#C5A46D"
+      "surfaceElevated": "#F1F5F9",
+      "surfaceMuted": "#E2E8F0",
+      "border": "#CBD5E1",
+      "borderSubtle": "#E2E8F0",
+      "primary": "#2563EB",
+      "primaryHover": "#1D4ED8",
+      "primaryActive": "#1E40AF",
+      "primaryForeground": "#FFFFFF",
+      "secondary": "#E2E8F0",
+      "secondaryHover": "#CBD5E1",
+      "secondaryForeground": "#0B0F19",
+      "accent": "#06B6D4",
+      "accentHover": "#0891B2",
+      "accentForeground": "#0B0F19",
+      "accentSoft": "#CFFAFE",
+      "muted": "#F1F5F9",
+      "mutedForeground": "#64748B",
+      "disabled": "#94A3B8",
+      "focusRing": "#2563EB"
     },
     "dark": {
-      "background": "#061411",
-      "foreground": "#F4F0E7",
-      "surface": "#0B211C",
-      "surfaceElevated": "#102B25",
-      "surfaceMuted": "#15352D",
-      "border": "#24463D",
-      "borderSubtle": "#18372F",
-      "primary": "#D6B878",
-      "primaryHover": "#E0C98F",
-      "primaryActive": "#C5A46D",
-      "primaryForeground": "#061411",
-      "secondary": "#0F5A4B",
-      "secondaryHover": "#126B59",
-      "secondaryForeground": "#F4F0E7",
-      "accent": "#E8D7A7",
-      "accentSoft": "#243A31",
-      "muted": "#17372F",
-      "mutedForeground": "#B7B0A3",
-      "disabled": "#526057",
-      "focusRing": "#D6B878"
+      "background": "#0B0F19",
+      "foreground": "#F8FAFC",
+      "surface": "#141B24",
+      "surfaceElevated": "#192333",
+      "surfaceMuted": "#1D2734",
+      "border": "#1D2734",
+      "borderSubtle": "#17202C",
+      "primary": "#2563EB",
+      "primaryHover": "#1D4ED8",
+      "primaryActive": "#1E40AF",
+      "primaryForeground": "#F8FAFC",
+      "secondary": "#1D2734",
+      "secondaryHover": "#263241",
+      "secondaryForeground": "#F8FAFC",
+      "accent": "#06B6D4",
+      "accentHover": "#0891B2",
+      "accentForeground": "#F8FAFC",
+      "accentSoft": "#082F3A",
+      "muted": "#1D2734",
+      "mutedForeground": "#94A3B8",
+      "disabled": "#475569",
+      "focusRing": "#2563EB"
     }
   },
   "colors": {
     "base": {
-      "deepForest": "#063F34",
-      "midForest": "#0F5A4B",
-      "darkForest": "#03241F",
-      "softIvory": "#F7F5EF",
-      "warmWhite": "#FFFFFF",
-      "sand": "#E9E5DA",
-      "stone": "#DDD8CD",
-      "graphite": "#141816",
-      "mutedGraphite": "#3D443F",
-      "gold": "#C5A46D",
-      "champagne": "#D6B878",
-      "paleGold": "#EFE3C5"
+      "midnight": "#0B0F19",
+      "panel": "#141B24",
+      "panelElevated": "#192333",
+      "panelMuted": "#1D2734",
+      "borderNavy": "#1D2734",
+      "borderSubtle": "#17202C",
+      "slateText": "#94A3B8",
+      "white": "#F8FAFC",
+      "electricBlue": "#2563EB",
+      "blueHover": "#1D4ED8",
+      "blueActive": "#1E40AF",
+      "cyan": "#06B6D4",
+      "cyanHover": "#0891B2",
+      "green": "#22C55E",
+      "greenBright": "#4ADE80",
+      "yellow": "#EAB308",
+      "red": "#EF4444"
     },
     "semantic": {
-      "success": "#2F8A5B",
-      "successSoft": "#E6F4ED",
-      "warning": "#B9822D",
-      "warningSoft": "#FFF2D8",
-      "danger": "#B84A3A",
-      "dangerSoft": "#FBE7E3",
-      "info": "#3C6E71",
-      "infoSoft": "#E4F0F1"
+      "success": "#22C55E",
+      "successSoft": "#062C1A",
+      "successForeground": "#BBF7D0",
+      "warning": "#EAB308",
+      "warningSoft": "#33260A",
+      "warningForeground": "#FEF08A",
+      "danger": "#EF4444",
+      "dangerSoft": "#3A1214",
+      "dangerForeground": "#FECACA",
+      "info": "#06B6D4",
+      "infoSoft": "#082F3A",
+      "infoForeground": "#CFFAFE"
     },
     "status": {
       "appointmentScheduled": {
-        "background": "#E8F2EE",
-        "foreground": "#0F5A4B",
-        "border": "#BFD8CE"
+        "background": "#33260A",
+        "foreground": "#FACC15",
+        "border": "#6A520B"
       },
       "appointmentInProgress": {
-        "background": "#FFF2D8",
-        "foreground": "#8A5B16",
-        "border": "#E5C178"
+        "background": "#0B2C55",
+        "foreground": "#60A5FA",
+        "border": "#1D4ED8"
       },
       "appointmentCompleted": {
-        "background": "#E6F4ED",
-        "foreground": "#2F8A5B",
-        "border": "#B8DFC9"
+        "background": "#062C1A",
+        "foreground": "#4ADE80",
+        "border": "#166534"
       },
       "appointmentCanceled": {
-        "background": "#FBE7E3",
-        "foreground": "#B84A3A",
-        "border": "#E7B8AF"
+        "background": "#3A1214",
+        "foreground": "#F87171",
+        "border": "#991B1B"
       },
       "budgetDraft": {
-        "background": "#EFEEE8",
-        "foreground": "#6B6A63",
-        "border": "#DDD8CD"
+        "background": "#1D2734",
+        "foreground": "#94A3B8",
+        "border": "#334155"
       },
       "budgetSent": {
-        "background": "#E4F0F1",
-        "foreground": "#3C6E71",
-        "border": "#B8D4D6"
+        "background": "#082F3A",
+        "foreground": "#67E8F9",
+        "border": "#0E7490"
       },
       "budgetApproved": {
-        "background": "#E6F4ED",
-        "foreground": "#2F8A5B",
-        "border": "#B8DFC9"
+        "background": "#062C1A",
+        "foreground": "#4ADE80",
+        "border": "#166534"
       },
       "budgetRejected": {
-        "background": "#FBE7E3",
-        "foreground": "#B84A3A",
-        "border": "#E7B8AF"
+        "background": "#3A1214",
+        "foreground": "#F87171",
+        "border": "#991B1B"
       },
       "budgetExpired": {
-        "background": "#F4EEE1",
-        "foreground": "#8A6A2F",
-        "border": "#DED0A8"
+        "background": "#33260A",
+        "foreground": "#FACC15",
+        "border": "#854D0E"
       },
       "budgetConverted": {
-        "background": "#EFE3C5",
-        "foreground": "#6E5018",
-        "border": "#D6B878"
+        "background": "#0B2C55",
+        "foreground": "#93C5FD",
+        "border": "#2563EB"
       },
       "cashIn": {
-        "background": "#E6F4ED",
-        "foreground": "#2F8A5B",
-        "border": "#B8DFC9"
+        "background": "#062C1A",
+        "foreground": "#4ADE80",
+        "border": "#166534"
       },
       "cashOut": {
-        "background": "#FBE7E3",
-        "foreground": "#B84A3A",
-        "border": "#E7B8AF"
+        "background": "#3A1214",
+        "foreground": "#F87171",
+        "border": "#991B1B"
       }
     }
   },
   "typography": {
     "fontFamily": {
-      "sans": "Inter, Manrope, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      "display": "Manrope, Inter, system-ui, sans-serif",
-      "mono": "JetBrains Mono, ui-monospace, SFMono-Regular, monospace"
+      "sans": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "display": "Outfit, Inter, system-ui, sans-serif",
+      "mono": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace"
     },
     "weights": {
       "regular": 400,
       "medium": 500,
       "semibold": 600,
-      "bold": 700
+      "bold": 700,
+      "extrabold": 800
     },
     "scale": {
       "display": {
-        "fontSize": "56px",
-        "lineHeight": "64px",
-        "letterSpacing": "-0.04em",
-        "fontWeight": 700
+        "fontSize": "72px",
+        "lineHeight": "76px",
+        "letterSpacing": "0px",
+        "fontWeight": 800
       },
       "h1": {
-        "fontSize": "44px",
-        "lineHeight": "52px",
-        "letterSpacing": "-0.035em",
-        "fontWeight": 700
+        "fontSize": "56px",
+        "lineHeight": "64px",
+        "letterSpacing": "0px",
+        "fontWeight": 800
       },
       "h2": {
-        "fontSize": "34px",
-        "lineHeight": "42px",
-        "letterSpacing": "-0.03em",
+        "fontSize": "36px",
+        "lineHeight": "44px",
+        "letterSpacing": "0px",
         "fontWeight": 700
       },
       "h3": {
-        "fontSize": "26px",
-        "lineHeight": "34px",
-        "letterSpacing": "-0.02em",
+        "fontSize": "24px",
+        "lineHeight": "32px",
+        "letterSpacing": "0px",
         "fontWeight": 600
       },
       "h4": {
         "fontSize": "20px",
         "lineHeight": "28px",
-        "letterSpacing": "-0.015em",
+        "letterSpacing": "0px",
         "fontWeight": 600
       },
       "bodyLg": {
-        "fontSize": "18px",
-        "lineHeight": "30px",
+        "fontSize": "20px",
+        "lineHeight": "32px",
         "fontWeight": 400
       },
       "body": {
@@ -227,93 +244,107 @@
         "fontSize": "12px",
         "lineHeight": "16px",
         "fontWeight": 500
+      },
+      "eyebrow": {
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "letterSpacing": "0.08em",
+        "fontWeight": 600,
+        "textTransform": "uppercase"
       }
     }
   },
   "spacing": {
     "0": "0px",
-    "1": "2px",
-    "2": "4px",
-    "3": "8px",
-    "4": "12px",
-    "5": "16px",
-    "6": "20px",
-    "7": "24px",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "7": "28px",
     "8": "32px",
-    "9": "40px",
-    "10": "48px",
-    "11": "64px",
-    "12": "80px",
+    "9": "36px",
+    "10": "40px",
+    "11": "44px",
+    "12": "48px",
+    "14": "56px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px",
+    "32": "128px",
     "pageX": {
-      "mobile": "20px",
-      "tablet": "32px",
-      "desktop": "48px"
+      "mobile": "24px",
+      "tablet": "24px",
+      "desktop": "24px"
     },
     "sectionY": {
-      "compact": "48px",
-      "default": "80px",
-      "large": "112px"
+      "compact": "64px",
+      "default": "96px",
+      "large": "128px"
     }
   },
   "radius": {
     "none": "0px",
     "xs": "4px",
-    "sm": "8px",
-    "md": "12px",
-    "lg": "16px",
-    "xl": "20px",
-    "2xl": "28px",
+    "sm": "6px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px",
+    "2xl": "24px",
     "full": "999px",
-    "button": "999px",
+    "button": "12px",
     "input": "12px",
-    "card": "20px",
+    "card": "16px",
     "modal": "24px",
     "sidebarItem": "12px",
     "badge": "999px",
-    "calendarEvent": "10px"
+    "calendarEvent": "12px"
   },
   "shadows": {
     "none": "none",
-    "xs": "0 1px 2px rgba(20, 24, 22, 0.05)",
-    "sm": "0 4px 12px rgba(20, 24, 22, 0.06)",
-    "md": "0 10px 30px rgba(20, 24, 22, 0.08)",
-    "lg": "0 18px 50px rgba(20, 24, 22, 0.12)",
-    "card": "0 8px 24px rgba(20, 24, 22, 0.06)",
-    "modal": "0 24px 80px rgba(6, 20, 17, 0.24)",
-    "sidebar": "12px 0 32px rgba(6, 20, 17, 0.16)",
-    "focus": "0 0 0 3px rgba(197, 164, 109, 0.28)"
+    "xs": "0 1px 2px rgba(0, 0, 0, 0.22)",
+    "sm": "0 8px 20px rgba(2, 6, 23, 0.18)",
+    "md": "0 16px 40px rgba(2, 6, 23, 0.24)",
+    "lg": "0 24px 70px rgba(2, 6, 23, 0.34)",
+    "card": "0 20px 60px rgba(2, 6, 23, 0.28)",
+    "modal": "0 28px 90px rgba(2, 6, 23, 0.46)",
+    "sidebar": "12px 0 40px rgba(2, 6, 23, 0.32)",
+    "focus": "0 0 0 3px rgba(37, 99, 235, 0.35)",
+    "primaryGlow": "0 0 30px rgba(37, 99, 235, 0.4)",
+    "stepGlow": "0 0 15px rgba(37, 99, 235, 0.2)"
   },
   "layout": {
     "landing": {
-      "maxWidth": "1200px",
-      "heroAlignment": "centered with strong editorial spacing",
-      "sectionSpacing": "large",
-      "cardStyle": "white or ivory cards with soft border and subtle elevation",
-      "visualDensity": "comfortable"
+      "maxWidth": "1280px",
+      "heroAlignment": "centered with dark atmospheric glow",
+      "sectionSpacing": "96px vertical rhythm",
+      "cardStyle": "dark navy cards with subtle border, backdrop blur, and occasional blue/cyan glow",
+      "visualDensity": "comfortable editorial SaaS"
     },
     "app": {
       "sidebarWidth": "280px",
       "sidebarCollapsedWidth": "84px",
-      "topbarHeight": "72px",
+      "topbarHeight": "64px",
       "contentMaxWidth": "1440px",
-      "contentPadding": "32px",
-      "background": "warm neutral, never pure cold gray",
+      "contentPadding": "24px",
+      "background": "dark navy surface, never beige or cold gray",
       "gridGap": "24px"
     },
     "sidebar": {
-      "background": "#063F34",
-      "foreground": "#F4F0E7",
-      "activeBackground": "#0F5A4B",
-      "activeForeground": "#FFFFFF",
-      "hoverBackground": "rgba(255,255,255,0.08)",
-      "border": "rgba(255,255,255,0.12)"
+      "background": "#0B0F19",
+      "foreground": "#F8FAFC",
+      "activeBackground": "#2563EB",
+      "activeForeground": "#F8FAFC",
+      "hoverBackground": "#1D2734",
+      "border": "#1D2734"
     },
     "tables": {
       "rowHeight": "56px",
       "headerHeight": "44px",
       "cellPadding": "16px",
       "borderStyle": "subtle horizontal dividers",
-      "hover": "soft ivory highlight"
+      "hover": "muted navy highlight"
     },
     "forms": {
       "sectionGap": "24px",
@@ -326,45 +357,49 @@
     "button": {
       "base": {
         "height": "44px",
-        "paddingX": "18px",
-        "radius": "999px",
+        "largeHeight": "56px",
+        "paddingX": "24px",
+        "largePaddingX": "32px",
+        "radius": "12px",
         "fontSize": "14px",
         "fontWeight": 600,
-        "transition": "180ms ease"
+        "transition": "150ms ease-in-out"
       },
       "variants": {
         "primary": {
           "background": "primary",
           "foreground": "primaryForeground",
           "hover": "primaryHover",
-          "active": "primaryActive"
+          "active": "primaryActive",
+          "shadow": "primaryGlow"
         },
         "secondary": {
-          "background": "accentSoft",
-          "foreground": "graphite",
-          "hover": "#E6D5AA"
+          "background": "secondary",
+          "foreground": "secondaryForeground",
+          "hover": "secondaryHover"
         },
         "outline": {
-          "background": "transparent",
+          "background": "rgba(20, 27, 36, 0.5)",
           "foreground": "foreground",
           "border": "border",
-          "hoverBackground": "surfaceMuted"
+          "hoverBackground": "surface"
         },
         "ghost": {
           "background": "transparent",
           "foreground": "mutedForeground",
-          "hoverBackground": "surfaceMuted"
+          "hoverBackground": "surfaceMuted",
+          "hoverForeground": "foreground"
         },
         "destructive": {
           "background": "danger",
-          "foreground": "#FFFFFF",
-          "hover": "#9F3E31"
+          "foreground": "#F8FAFC",
+          "hover": "#DC2626"
         }
       }
     },
     "input": {
       "height": "44px",
-      "background": "surface",
+      "background": "rgba(11, 15, 25, 0.5)",
       "foreground": "foreground",
       "border": "border",
       "radius": "12px",
@@ -374,30 +409,30 @@
     },
     "card": {
       "background": "surface",
-      "border": "borderSubtle",
-      "radius": "20px",
+      "border": "border",
+      "radius": "16px",
       "shadow": "card",
       "padding": "24px"
     },
     "badge": {
       "height": "24px",
       "radius": "999px",
-      "paddingX": "10px",
+      "paddingX": "8px",
       "fontSize": "12px",
-      "fontWeight": 600
+      "fontWeight": 500
     },
     "table": {
       "background": "surface",
       "headerBackground": "surfaceMuted",
-      "border": "borderSubtle",
-      "rowHover": "surfaceElevated",
+      "border": "border",
+      "rowHover": "surfaceMuted",
       "radius": "16px"
     },
     "modal": {
       "background": "surface",
       "radius": "24px",
       "shadow": "modal",
-      "overlay": "rgba(6, 20, 17, 0.48)"
+      "overlay": "rgba(0, 0, 0, 0.8)"
     },
     "toast": {
       "background": "surface",
@@ -407,18 +442,18 @@
     },
     "calendar": {
       "background": "surface",
-      "border": "borderSubtle",
-      "todayBackground": "accentSoft",
+      "border": "border",
+      "todayBackground": "surfaceMuted",
       "selectedBackground": "primary",
       "selectedForeground": "primaryForeground",
-      "eventRadius": "10px",
-      "eventBackground": "surfaceElevated",
-      "eventBorder": "borderSubtle"
+      "eventRadius": "12px",
+      "eventBackground": "background",
+      "eventBorder": "border"
     },
     "kpiCard": {
-      "background": "surface",
-      "border": "borderSubtle",
-      "radius": "20px",
+      "background": "linear-gradient(180deg, #141B24 0%, #0B0F19 100%)",
+      "border": "border",
+      "radius": "12px",
       "padding": "20px",
       "titleColor": "mutedForeground",
       "valueColor": "foreground",
@@ -427,9 +462,9 @@
     },
     "emptyState": {
       "background": "surface",
-      "border": "borderSubtle",
-      "radius": "20px",
-      "iconBackground": "accentSoft",
+      "border": "border",
+      "radius": "16px",
+      "iconBackground": "rgba(37, 99, 235, 0.1)",
       "titleColor": "foreground",
       "descriptionColor": "mutedForeground"
     }
@@ -441,52 +476,53 @@
     "sizes": {
       "sidebar": "18px",
       "button": "16px",
-      "card": "20px",
+      "card": "24px",
       "emptyState": "32px"
     },
-    "usage": "Ícones devem apoiar a leitura, não dominar a interface. Evitar excesso de ícones automotivos óbvios."
+    "usage": "Icones devem seguir o uso da landing: pequenos, lineares, azuis quando reforcam acao ou categoria."
   },
   "motion": {
     "duration": {
       "fast": "120ms",
-      "default": "180ms",
-      "slow": "260ms"
+      "default": "150ms",
+      "slow": "300ms",
+      "reveal": "500ms"
     },
     "easing": {
-      "default": "cubic-bezier(0.22, 1, 0.36, 1)",
-      "inOut": "cubic-bezier(0.65, 0, 0.35, 1)"
+      "default": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "inOut": "cubic-bezier(0.4, 0, 0.2, 1)"
     },
     "patterns": {
-      "hover": "Elevação sutil ou mudança de background.",
-      "modal": "Fade overlay + scale 0.98 para 1.",
-      "drawer": "Slide suave com overlay discreto.",
-      "pageTransition": "Fade curto sem animações exageradas.",
-      "loading": "Skeletons com brilho sutil em superfícies neutras."
+      "hover": "Mudanca de cor ou borda; elevacao deve ser sutil.",
+      "modal": "Overlay preto 80% + entrada curta.",
+      "drawer": "Slide com fundo card e borda border.",
+      "pageTransition": "Fade curto com deslocamento vertical leve.",
+      "loading": "Skeleton em surfaceMuted sobre background dark."
     }
   },
   "dataVisualization": {
     "palette": [
-      "#063F34",
-      "#C5A46D",
-      "#3C6E71",
-      "#2F8A5B",
-      "#B9822D",
-      "#8E6F45"
+      "#2563EB",
+      "#06B6D4",
+      "#22C55E",
+      "#EAB308",
+      "#EF4444",
+      "#94A3B8"
     ],
-    "gridColor": "#ECE8DD",
-    "axisColor": "#6B6A63",
-    "tooltipBackground": "#FFFFFF",
-    "tooltipBorder": "#DDD8CD",
-    "positive": "#2F8A5B",
-    "negative": "#B84A3A",
-    "neutral": "#6B6A63"
+    "gridColor": "#1D2734",
+    "axisColor": "#94A3B8",
+    "tooltipBackground": "#141B24",
+    "tooltipBorder": "#1D2734",
+    "positive": "#22C55E",
+    "negative": "#EF4444",
+    "neutral": "#94A3B8"
   },
   "accessibility": {
     "minimumContrast": "4.5:1 for normal text",
-    "focusVisible": "Sempre usar ring visível em elementos interativos.",
-    "touchTarget": "44px mínimo",
+    "focusVisible": "Sempre usar ring azul visivel em elementos interativos.",
+    "touchTarget": "44px minimo",
     "keyboardNavigation": true,
-    "colorOnlyWarning": "Nunca depender apenas de cor para status; usar texto e ícone quando necessário.",
+    "colorOnlyWarning": "Nunca depender apenas de cor para status; usar texto e icone quando necessario.",
     "reducedMotion": "Respeitar prefers-reduced-motion."
   }
 }

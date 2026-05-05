@@ -6,7 +6,7 @@ Configure the technical design foundation for the internal CleanMove SaaS UI bef
 
 ## Source Of Truth
 
-`design.json` defines the brand direction, light and dark themes, semantic colors, spacing, radii, shadows, component primitives, sidebar styling, typography stacks, motion timing, and accessibility requirements.
+`design.json` defines the brand direction, light and dark themes, semantic colors, spacing, radii, shadows, component primitives, sidebar styling, typography stacks, motion timing, and accessibility requirements. Its visual source of truth is the published CleanMove landing page at `https://asset-manager--fehpereira237.replit.app/`.
 
 ## Approved Scope
 
@@ -26,7 +26,7 @@ Configure the technical design foundation for the internal CleanMove SaaS UI bef
 
 ## Design Direction
 
-The internal app should feel like a premium operational SaaS for automotive aesthetics: deep forest navigation, warm ivory application background, white or warm elevated surfaces, champagne/gold accents, subtle borders, restrained shadows, strong focus states, and clear status colors.
+The internal app should feel like the published CleanMove landing page: dark navy background, dark elevated cards, subtle slate borders, Inter for interface text, Outfit for display headings, electric blue primary actions, cyan accent highlights, restrained glow treatments, rounded-xl/rounded-2xl components, and 96px section rhythm on marketing-style surfaces.
 
 ## Validation
 
