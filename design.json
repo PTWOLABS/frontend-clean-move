@@ -1,0 +1,492 @@
+{
+  "brand": {
+    "name": "CleanMove",
+    "description": "Plataforma SaaS premium para gestão de lava-rápidos, estéticas automotivas e studios automotivos.",
+    "personality": [
+      "sofisticada",
+      "minimalista",
+      "confiável",
+      "tecnológica",
+      "organizada",
+      "profissional"
+    ],
+    "visualTone": "premium operational SaaS",
+    "keywords": [
+      "automotive care",
+      "clean management",
+      "premium dashboard",
+      "operational clarity",
+      "minimal luxury",
+      "high trust"
+    ],
+    "principles": {
+      "clarity": "Toda tela deve deixar clara a ação principal e o estado atual da operação.",
+      "precision": "Espaçamentos, bordas, cards e tabelas devem transmitir organização e maturidade.",
+      "premiumMinimalism": "Evitar excesso de cores, ícones automotivos clichês e interfaces visualmente carregadas.",
+      "consistency": "Landing page e sistema interno devem parecer partes do mesmo produto."
+    }
+  },
+  "themes": {
+    "light": {
+      "background": "#F7F5EF",
+      "foreground": "#141816",
+      "surface": "#FFFFFF",
+      "surfaceElevated": "#FAFAF7",
+      "surfaceMuted": "#EFEEE8",
+      "border": "#DDD8CD",
+      "borderSubtle": "#ECE8DD",
+      "primary": "#063F34",
+      "primaryHover": "#052F28",
+      "primaryActive": "#03241F",
+      "primaryForeground": "#F7F5EF",
+      "secondary": "#C5A46D",
+      "secondaryHover": "#B48F55",
+      "secondaryForeground": "#191612",
+      "accent": "#D6B878",
+      "accentSoft": "#EFE3C5",
+      "muted": "#E9E5DA",
+      "mutedForeground": "#6B6A63",
+      "disabled": "#C9C5B8",
+      "focusRing": "#C5A46D"
+    },
+    "dark": {
+      "background": "#061411",
+      "foreground": "#F4F0E7",
+      "surface": "#0B211C",
+      "surfaceElevated": "#102B25",
+      "surfaceMuted": "#15352D",
+      "border": "#24463D",
+      "borderSubtle": "#18372F",
+      "primary": "#D6B878",
+      "primaryHover": "#E0C98F",
+      "primaryActive": "#C5A46D",
+      "primaryForeground": "#061411",
+      "secondary": "#0F5A4B",
+      "secondaryHover": "#126B59",
+      "secondaryForeground": "#F4F0E7",
+      "accent": "#E8D7A7",
+      "accentSoft": "#243A31",
+      "muted": "#17372F",
+      "mutedForeground": "#B7B0A3",
+      "disabled": "#526057",
+      "focusRing": "#D6B878"
+    }
+  },
+  "colors": {
+    "base": {
+      "deepForest": "#063F34",
+      "midForest": "#0F5A4B",
+      "darkForest": "#03241F",
+      "softIvory": "#F7F5EF",
+      "warmWhite": "#FFFFFF",
+      "sand": "#E9E5DA",
+      "stone": "#DDD8CD",
+      "graphite": "#141816",
+      "mutedGraphite": "#3D443F",
+      "gold": "#C5A46D",
+      "champagne": "#D6B878",
+      "paleGold": "#EFE3C5"
+    },
+    "semantic": {
+      "success": "#2F8A5B",
+      "successSoft": "#E6F4ED",
+      "warning": "#B9822D",
+      "warningSoft": "#FFF2D8",
+      "danger": "#B84A3A",
+      "dangerSoft": "#FBE7E3",
+      "info": "#3C6E71",
+      "infoSoft": "#E4F0F1"
+    },
+    "status": {
+      "appointmentScheduled": {
+        "background": "#E8F2EE",
+        "foreground": "#0F5A4B",
+        "border": "#BFD8CE"
+      },
+      "appointmentInProgress": {
+        "background": "#FFF2D8",
+        "foreground": "#8A5B16",
+        "border": "#E5C178"
+      },
+      "appointmentCompleted": {
+        "background": "#E6F4ED",
+        "foreground": "#2F8A5B",
+        "border": "#B8DFC9"
+      },
+      "appointmentCanceled": {
+        "background": "#FBE7E3",
+        "foreground": "#B84A3A",
+        "border": "#E7B8AF"
+      },
+      "budgetDraft": {
+        "background": "#EFEEE8",
+        "foreground": "#6B6A63",
+        "border": "#DDD8CD"
+      },
+      "budgetSent": {
+        "background": "#E4F0F1",
+        "foreground": "#3C6E71",
+        "border": "#B8D4D6"
+      },
+      "budgetApproved": {
+        "background": "#E6F4ED",
+        "foreground": "#2F8A5B",
+        "border": "#B8DFC9"
+      },
+      "budgetRejected": {
+        "background": "#FBE7E3",
+        "foreground": "#B84A3A",
+        "border": "#E7B8AF"
+      },
+      "budgetExpired": {
+        "background": "#F4EEE1",
+        "foreground": "#8A6A2F",
+        "border": "#DED0A8"
+      },
+      "budgetConverted": {
+        "background": "#EFE3C5",
+        "foreground": "#6E5018",
+        "border": "#D6B878"
+      },
+      "cashIn": {
+        "background": "#E6F4ED",
+        "foreground": "#2F8A5B",
+        "border": "#B8DFC9"
+      },
+      "cashOut": {
+        "background": "#FBE7E3",
+        "foreground": "#B84A3A",
+        "border": "#E7B8AF"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": "Inter, Manrope, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "display": "Manrope, Inter, system-ui, sans-serif",
+      "mono": "JetBrains Mono, ui-monospace, SFMono-Regular, monospace"
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "scale": {
+      "display": {
+        "fontSize": "56px",
+        "lineHeight": "64px",
+        "letterSpacing": "-0.04em",
+        "fontWeight": 700
+      },
+      "h1": {
+        "fontSize": "44px",
+        "lineHeight": "52px",
+        "letterSpacing": "-0.035em",
+        "fontWeight": 700
+      },
+      "h2": {
+        "fontSize": "34px",
+        "lineHeight": "42px",
+        "letterSpacing": "-0.03em",
+        "fontWeight": 700
+      },
+      "h3": {
+        "fontSize": "26px",
+        "lineHeight": "34px",
+        "letterSpacing": "-0.02em",
+        "fontWeight": 600
+      },
+      "h4": {
+        "fontSize": "20px",
+        "lineHeight": "28px",
+        "letterSpacing": "-0.015em",
+        "fontWeight": 600
+      },
+      "bodyLg": {
+        "fontSize": "18px",
+        "lineHeight": "30px",
+        "fontWeight": 400
+      },
+      "body": {
+        "fontSize": "16px",
+        "lineHeight": "26px",
+        "fontWeight": 400
+      },
+      "bodySm": {
+        "fontSize": "14px",
+        "lineHeight": "22px",
+        "fontWeight": 400
+      },
+      "label": {
+        "fontSize": "13px",
+        "lineHeight": "18px",
+        "fontWeight": 500
+      },
+      "caption": {
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "fontWeight": 500
+      }
+    }
+  },
+  "spacing": {
+    "0": "0px",
+    "1": "2px",
+    "2": "4px",
+    "3": "8px",
+    "4": "12px",
+    "5": "16px",
+    "6": "20px",
+    "7": "24px",
+    "8": "32px",
+    "9": "40px",
+    "10": "48px",
+    "11": "64px",
+    "12": "80px",
+    "pageX": {
+      "mobile": "20px",
+      "tablet": "32px",
+      "desktop": "48px"
+    },
+    "sectionY": {
+      "compact": "48px",
+      "default": "80px",
+      "large": "112px"
+    }
+  },
+  "radius": {
+    "none": "0px",
+    "xs": "4px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "20px",
+    "2xl": "28px",
+    "full": "999px",
+    "button": "999px",
+    "input": "12px",
+    "card": "20px",
+    "modal": "24px",
+    "sidebarItem": "12px",
+    "badge": "999px",
+    "calendarEvent": "10px"
+  },
+  "shadows": {
+    "none": "none",
+    "xs": "0 1px 2px rgba(20, 24, 22, 0.05)",
+    "sm": "0 4px 12px rgba(20, 24, 22, 0.06)",
+    "md": "0 10px 30px rgba(20, 24, 22, 0.08)",
+    "lg": "0 18px 50px rgba(20, 24, 22, 0.12)",
+    "card": "0 8px 24px rgba(20, 24, 22, 0.06)",
+    "modal": "0 24px 80px rgba(6, 20, 17, 0.24)",
+    "sidebar": "12px 0 32px rgba(6, 20, 17, 0.16)",
+    "focus": "0 0 0 3px rgba(197, 164, 109, 0.28)"
+  },
+  "layout": {
+    "landing": {
+      "maxWidth": "1200px",
+      "heroAlignment": "centered with strong editorial spacing",
+      "sectionSpacing": "large",
+      "cardStyle": "white or ivory cards with soft border and subtle elevation",
+      "visualDensity": "comfortable"
+    },
+    "app": {
+      "sidebarWidth": "280px",
+      "sidebarCollapsedWidth": "84px",
+      "topbarHeight": "72px",
+      "contentMaxWidth": "1440px",
+      "contentPadding": "32px",
+      "background": "warm neutral, never pure cold gray",
+      "gridGap": "24px"
+    },
+    "sidebar": {
+      "background": "#063F34",
+      "foreground": "#F4F0E7",
+      "activeBackground": "#0F5A4B",
+      "activeForeground": "#FFFFFF",
+      "hoverBackground": "rgba(255,255,255,0.08)",
+      "border": "rgba(255,255,255,0.12)"
+    },
+    "tables": {
+      "rowHeight": "56px",
+      "headerHeight": "44px",
+      "cellPadding": "16px",
+      "borderStyle": "subtle horizontal dividers",
+      "hover": "soft ivory highlight"
+    },
+    "forms": {
+      "sectionGap": "24px",
+      "fieldGap": "16px",
+      "labelSpacing": "8px",
+      "footerActions": "sticky when forms are long"
+    }
+  },
+  "components": {
+    "button": {
+      "base": {
+        "height": "44px",
+        "paddingX": "18px",
+        "radius": "999px",
+        "fontSize": "14px",
+        "fontWeight": 600,
+        "transition": "180ms ease"
+      },
+      "variants": {
+        "primary": {
+          "background": "primary",
+          "foreground": "primaryForeground",
+          "hover": "primaryHover",
+          "active": "primaryActive"
+        },
+        "secondary": {
+          "background": "accentSoft",
+          "foreground": "graphite",
+          "hover": "#E6D5AA"
+        },
+        "outline": {
+          "background": "transparent",
+          "foreground": "foreground",
+          "border": "border",
+          "hoverBackground": "surfaceMuted"
+        },
+        "ghost": {
+          "background": "transparent",
+          "foreground": "mutedForeground",
+          "hoverBackground": "surfaceMuted"
+        },
+        "destructive": {
+          "background": "danger",
+          "foreground": "#FFFFFF",
+          "hover": "#9F3E31"
+        }
+      }
+    },
+    "input": {
+      "height": "44px",
+      "background": "surface",
+      "foreground": "foreground",
+      "border": "border",
+      "radius": "12px",
+      "placeholder": "mutedForeground",
+      "focusBorder": "primary",
+      "focusRing": "focusRing"
+    },
+    "card": {
+      "background": "surface",
+      "border": "borderSubtle",
+      "radius": "20px",
+      "shadow": "card",
+      "padding": "24px"
+    },
+    "badge": {
+      "height": "24px",
+      "radius": "999px",
+      "paddingX": "10px",
+      "fontSize": "12px",
+      "fontWeight": 600
+    },
+    "table": {
+      "background": "surface",
+      "headerBackground": "surfaceMuted",
+      "border": "borderSubtle",
+      "rowHover": "surfaceElevated",
+      "radius": "16px"
+    },
+    "modal": {
+      "background": "surface",
+      "radius": "24px",
+      "shadow": "modal",
+      "overlay": "rgba(6, 20, 17, 0.48)"
+    },
+    "toast": {
+      "background": "surface",
+      "border": "border",
+      "radius": "16px",
+      "shadow": "md"
+    },
+    "calendar": {
+      "background": "surface",
+      "border": "borderSubtle",
+      "todayBackground": "accentSoft",
+      "selectedBackground": "primary",
+      "selectedForeground": "primaryForeground",
+      "eventRadius": "10px",
+      "eventBackground": "surfaceElevated",
+      "eventBorder": "borderSubtle"
+    },
+    "kpiCard": {
+      "background": "surface",
+      "border": "borderSubtle",
+      "radius": "20px",
+      "padding": "20px",
+      "titleColor": "mutedForeground",
+      "valueColor": "foreground",
+      "trendPositive": "success",
+      "trendNegative": "danger"
+    },
+    "emptyState": {
+      "background": "surface",
+      "border": "borderSubtle",
+      "radius": "20px",
+      "iconBackground": "accentSoft",
+      "titleColor": "foreground",
+      "descriptionColor": "mutedForeground"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "linear",
+    "strokeWidth": 1.75,
+    "sizes": {
+      "sidebar": "18px",
+      "button": "16px",
+      "card": "20px",
+      "emptyState": "32px"
+    },
+    "usage": "Ícones devem apoiar a leitura, não dominar a interface. Evitar excesso de ícones automotivos óbvios."
+  },
+  "motion": {
+    "duration": {
+      "fast": "120ms",
+      "default": "180ms",
+      "slow": "260ms"
+    },
+    "easing": {
+      "default": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "inOut": "cubic-bezier(0.65, 0, 0.35, 1)"
+    },
+    "patterns": {
+      "hover": "Elevação sutil ou mudança de background.",
+      "modal": "Fade overlay + scale 0.98 para 1.",
+      "drawer": "Slide suave com overlay discreto.",
+      "pageTransition": "Fade curto sem animações exageradas.",
+      "loading": "Skeletons com brilho sutil em superfícies neutras."
+    }
+  },
+  "dataVisualization": {
+    "palette": [
+      "#063F34",
+      "#C5A46D",
+      "#3C6E71",
+      "#2F8A5B",
+      "#B9822D",
+      "#8E6F45"
+    ],
+    "gridColor": "#ECE8DD",
+    "axisColor": "#6B6A63",
+    "tooltipBackground": "#FFFFFF",
+    "tooltipBorder": "#DDD8CD",
+    "positive": "#2F8A5B",
+    "negative": "#B84A3A",
+    "neutral": "#6B6A63"
+  },
+  "accessibility": {
+    "minimumContrast": "4.5:1 for normal text",
+    "focusVisible": "Sempre usar ring visível em elementos interativos.",
+    "touchTarget": "44px mínimo",
+    "keyboardNavigation": true,
+    "colorOnlyWarning": "Nunca depender apenas de cor para status; usar texto e ícone quando necessário.",
+    "reducedMotion": "Respeitar prefers-reduced-motion."
+  }
+}

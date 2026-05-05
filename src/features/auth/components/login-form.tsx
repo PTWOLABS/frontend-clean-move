@@ -18,7 +18,6 @@ export function LoginForm() {
       await mutation.mutateAsync(values);
       router.push("/user");
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error(error);
     }
   };
@@ -49,4 +48,3 @@ export function LoginForm() {
     </Form>
   );
 }
-

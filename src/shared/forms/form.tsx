@@ -4,6 +4,7 @@ import {
   FormProvider,
   useForm,
   type FieldValues,
+  type Resolver,
   type SubmitHandler,
   type UseFormProps,
 } from "react-hook-form";
@@ -38,20 +39,20 @@ export function Form<TValues extends FieldValues>({
   options,
   className,
 }: FormProps<TValues>) {
+  const resolveSchema = zodResolver as unknown as (
+    schema: ZodTypeAny,
+  ) => Resolver<TValues>;
+
   const methods = useForm<TValues>({
-    ...(schema ? { resolver: (zodResolver as any)(schema) } : {}),
+    ...(schema ? { resolver: resolveSchema(schema) } : {}),
     ...(options ?? ({} as UseFormProps<TValues>)),
   });
 
   return (
     <FormProvider {...methods}>
-      <form
-        className={className}
-        onSubmit={methods.handleSubmit(onSubmit as any)}
-      >
+      <form className={className} onSubmit={methods.handleSubmit(onSubmit)}>
         {children}
       </form>
     </FormProvider>
   );
 }
-
