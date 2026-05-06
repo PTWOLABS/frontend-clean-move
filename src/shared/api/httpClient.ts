@@ -1,7 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 if (!BASE_URL) {
-  // eslint-disable-next-line no-console
   console.warn(
     "NEXT_PUBLIC_API_BASE_URL não está definido. Configure o arquivo .env.local.",
   );
@@ -52,4 +51,3 @@ async function safeParseJson(response: Response) {
     return text;
   }
 }
-
