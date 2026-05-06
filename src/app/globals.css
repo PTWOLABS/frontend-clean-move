@@ -300,3 +300,47 @@
     }
   }
 }
+
+@layer utilities {
+  .landing-mobile-menu-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .animate-clean-reveal {
+    animation: clean-reveal-up 700ms var(--ease-clean-default) both;
+  }
+
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  @keyframes clean-reveal-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-clean-reveal {
+      animation: none;
+    }
+  }
+}
