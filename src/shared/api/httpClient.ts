@@ -15,11 +15,6 @@ type RequestOptions = {
   signal?: AbortSignal;
 };
 
-type ErrorResponse = {
-  message: string;
-  statusCode: number;
-};
-
 type ApiErrorProps = {
   cause?: string;
   message?: string;
@@ -41,19 +36,32 @@ export class ApiError extends Error {
   }
 }
 
+let accessToken: string | null = null;
+
+export function setAccessToken(token: string | null) {
+  accessToken = token;
+}
+
 export async function httpClient<TResponse>(
   path: string,
   { method = 'GET', headers, body, signal }: RequestOptions = {},
-): Promise<TResponse | ErrorResponse> {
+): Promise<TResponse> {
   const url = `${BASE_URL ?? ''}${path}`;
+  const requestHeaders = new Headers(headers);
+
+  if (!requestHeaders.has('Content-Type')) {
+    requestHeaders.set('Content-Type', 'application/json');
+  }
+
+  if (accessToken && !requestHeaders.has('Authorization')) {
+    requestHeaders.set('Authorization', `Bearer ${accessToken}`);
+  }
 
   const response = await fetch(url, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
+    credentials: 'include',
     signal,
   });
 

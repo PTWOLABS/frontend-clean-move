@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Check, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+import {
+  Check,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LockKeyhole,
+  Mail,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/utils/cn';
@@ -10,13 +17,17 @@ import { GoogleIcon } from '@/components/google-icon';
 import { Form } from '@/shared/forms/form';
 import { BrandLogo } from './brand-logo';
 import { InputField } from '@/components/ui/form/input-field';
+import { LoginFormValues, loginSchema } from '../schemas/login-schema';
+import { useLogin } from '../hooks/use-login';
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  const handleSubmit = () => {
-    // TODO: conectar este submit ao fluxo de autenticação quando a integração for definida.
+  const { mutate: login, isPending: isLoading } = useLogin();
+
+  const onSubmit = (data: LoginFormValues) => {
+    login(data);
   };
 
   return (
@@ -32,7 +43,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <Form className="mt-9 space-y-6" onSubmit={handleSubmit}>
+      <Form className="mt-9 space-y-6" onSubmit={onSubmit} schema={loginSchema}>
         <div className="space-y-2.5">
           <InputField
             id="login-email"
@@ -120,9 +131,14 @@ export function LoginForm() {
         </div>
 
         <Button
+          disabled={isLoading}
+          aria-busy={isLoading}
           type="submit"
           className="h-[52px] w-full rounded-[12px] bg-[#2563EB] text-base font-semibold text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-colors hover:bg-[#1D4ED8] active:bg-[#1E40AF]"
         >
+          {isLoading ? (
+            <LoaderCircle aria-hidden className="size-5 animate-spin" />
+          ) : null}
           Entrar
         </Button>
 
