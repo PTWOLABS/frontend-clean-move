@@ -10,9 +10,9 @@ export function BrandLogo() {
         aria-hidden
         width={50}
         height={44}
-        className="h-11 w-[50px]"
+        className="h-11 w-[40px]"
       />
-      <div className="font-display text-[28px] font-semibold leading-none tracking-normal text-[#F8FAFC]">
+      <div className="font-display text-[24px] font-semibold leading-none tracking-normal text-[#F8FAFC]">
         Clean<span className="text-[#2563EB]">Move</span>
       </div>
     </div>
