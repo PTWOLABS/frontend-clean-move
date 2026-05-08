@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/utils/cn';
 import { GoogleIcon } from '@/components/google-icon';
 import { Form } from '@/shared/forms/form';
-import { BrandLogo } from './brand-logo';
 import { InputField } from '@/components/ui/form/input-field';
 import { LoginFormValues, loginSchema } from '../schemas/login-schema';
 import { useLogin } from '../hooks/use-login';
@@ -32,17 +31,6 @@ export function LoginForm() {
 
   return (
     <div className="relative z-10 w-full max-w-[420px]">
-      <BrandLogo />
-
-      <div className="mt-10 space-y-3">
-        <h1 className="font-display text-[34px] font-bold leading-tight tracking-normal text-[#F8FAFC] sm:text-[38px]">
-          Bem-vindo de volta
-        </h1>
-        <p className="max-w-[360px] text-base leading-7 text-[#94A3B8]">
-          Acesse sua conta para gerenciar seu negócio com eficiência.
-        </p>
-      </div>
-
       <Form className="mt-9 space-y-6" onSubmit={onSubmit} schema={loginSchema}>
         <div className="space-y-2.5">
           <InputField
@@ -161,7 +149,7 @@ export function LoginForm() {
       <p className="mt-9 text-center text-sm text-[#94A3B8]">
         Não tem conta?{' '}
         <Link
-          href="/cadastro"
+          href="/register"
           className="font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
         >
           Cadastrar-se
