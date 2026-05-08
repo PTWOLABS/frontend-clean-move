@@ -5,6 +5,38 @@ const onlyDigits = (value: string) => value.replace(/\D/g, '');
 const requiredText = (field: string) =>
   z.string().trim().min(1, `Informe ${field}.`);
 
+export enum BrazilianState {
+  AC = 'AC',
+  AL = 'AL',
+  AP = 'AP',
+  AM = 'AM',
+  BA = 'BA',
+  CE = 'CE',
+  DF = 'DF',
+  ES = 'ES',
+  GO = 'GO',
+  MA = 'MA',
+  MT = 'MT',
+  MS = 'MS',
+  MG = 'MG',
+  PA = 'PA',
+  PB = 'PB',
+  PR = 'PR',
+  PE = 'PE',
+  PI = 'PI',
+  RJ = 'RJ',
+  RN = 'RN',
+  RS = 'RS',
+  RO = 'RO',
+  RR = 'RR',
+  SC = 'SC',
+  SP = 'SP',
+  SE = 'SE',
+  TO = 'TO',
+}
+
+const brazilianStateValues = Object.values(BrazilianState);
+
 export const accountStepSchema = z.object({
   fullName: requiredText('seu nome completo').min(
     3,
@@ -47,7 +79,11 @@ export const addressStepSchema = z.object({
   state: z
     .string()
     .trim()
-    .regex(/^[A-Za-z]{2}$/, 'Informe a UF com 2 letras.'),
+    .transform((value) => value.toUpperCase())
+    .refine(
+      (value) => brazilianStateValues.includes(value as BrazilianState),
+      'Informe uma UF válida.',
+    ),
   complement: requiredText('o complemento'),
 });
 

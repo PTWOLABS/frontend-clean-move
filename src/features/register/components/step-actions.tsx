@@ -12,21 +12,24 @@ import { cn } from '@/shared/utils/cn';
 type StepActionsProps<TValues extends FieldValues> = {
   submitLabel: string;
   schema: ZodType;
+  disabled?: boolean;
   onBack?: (values: TValues) => void;
 };
 
 export function StepActions<TValues extends FieldValues>({
   submitLabel,
   schema,
+  disabled = false,
   onBack,
 }: StepActionsProps<TValues>) {
   const {
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
     control,
     getValues,
   } = useFormContext<TValues>();
   const values = useWatch({ control });
   const isStepValid = schema.safeParse(values).success;
+  const hasErrors = Object.keys(errors).length > 0;
 
   return (
     <div
@@ -37,7 +40,7 @@ export function StepActions<TValues extends FieldValues>({
     >
       {onBack ? (
         <Button
-          disabled={isSubmitting}
+          disabled={disabled || isSubmitting}
           type="button"
           variant="outline"
           onClick={() => onBack(getValues())}
@@ -49,7 +52,7 @@ export function StepActions<TValues extends FieldValues>({
       ) : null}
 
       <Button
-        disabled={!isStepValid || isSubmitting}
+        disabled={disabled || !isStepValid || hasErrors || isSubmitting}
         type="submit"
         className="h-[52px] w-full rounded-[12px] bg-[#2563EB] text-base font-semibold text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-colors hover:bg-[#1D4ED8] active:bg-[#1E40AF]"
       >
