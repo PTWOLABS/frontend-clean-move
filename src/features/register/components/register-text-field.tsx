@@ -25,7 +25,7 @@ export function RegisterTextField({
       {...props}
       image={image}
       imageClassName={cn('right-3 pointer-events-auto', imageClassName)}
-      fieldClassName={cn('space-y-2.5', fieldClassName)}
+      fieldClassName={cn('space-y-1.5', fieldClassName)}
       icon={
         Icon ? (
           <Icon

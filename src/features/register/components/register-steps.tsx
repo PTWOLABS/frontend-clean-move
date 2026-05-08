@@ -12,7 +12,7 @@ type RegisterStepsProps = {
 
 export function RegisterSteps({ steps, activatedStep }: RegisterStepsProps) {
   return (
-    <ol aria-label="Etapas do cadastro" className="mt-5 flex items-start">
+    <ol aria-label="Etapas do cadastro" className="mt-4 flex items-start">
       {steps.map((step, index) => {
         const isStepActive = activatedStep === index;
         const isStepCompleted = index < activatedStep;
@@ -41,7 +41,7 @@ export function RegisterSteps({ steps, activatedStep }: RegisterStepsProps) {
               </span>
               <p
                 className={cn(
-                  'mt-2 max-w-20 text-center text-[12px] font-medium leading-tight sm:text-sm',
+                  'mt-1.5 max-w-20 text-center text-[12px] font-medium leading-tight sm:text-sm',
                   isStepActive || isStepCompleted
                     ? 'text-[#F8FAFC]'
                     : 'text-[#94A3B8]',

@@ -2,7 +2,10 @@ import { Building2, FileText, Store } from 'lucide-react';
 
 import { RegisterTextField } from './register-text-field';
 import { StepActions } from './step-actions';
-import { type CompanyStepValues } from '../schemas/register-schema';
+import {
+  companyStepSchema,
+  type CompanyStepValues,
+} from '../schemas/register-schema';
 
 type CompanyStepProps = {
   onBack: (values: CompanyStepValues) => void;
@@ -11,7 +14,7 @@ type CompanyStepProps = {
 export function CompanyStep({ onBack }: CompanyStepProps) {
   return (
     <>
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         <RegisterTextField
           id="register-cnpj"
           name="cnpj"
@@ -44,7 +47,11 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
         />
       </div>
 
-      <StepActions<CompanyStepValues> onBack={onBack} submitLabel="Continuar" />
+      <StepActions<CompanyStepValues>
+        schema={companyStepSchema}
+        onBack={onBack}
+        submitLabel="Continuar"
+      />
     </>
   );
 }

@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { GoogleIcon } from '@/components/google-icon';
 import { RegisterTextField } from './register-text-field';
 import { StepActions } from './step-actions';
-import { type AccountStepValues } from '../schemas/register-schema';
+import {
+  accountStepSchema,
+  type AccountStepValues,
+} from '../schemas/register-schema';
 
 export function AccountStep() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +30,7 @@ export function AccountStep() {
         <div className="h-px flex-1 bg-[#243244]" />
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3 sm:grid-cols-2">
         <RegisterTextField
           id="register-full-name"
           name="fullName"
@@ -58,6 +61,7 @@ export function AccountStep() {
           placeholder="seu@email.com"
           label="E-mail"
           icon={Mail}
+          fieldClassName="sm:col-span-2"
         />
 
         <RegisterTextField
@@ -68,6 +72,7 @@ export function AccountStep() {
           label="Senha"
           placeholder="Mínimo de 8 caracteres"
           icon={LockKeyhole}
+          fieldClassName="sm:col-span-2"
           image={
             <button
               type="button"
@@ -85,7 +90,10 @@ export function AccountStep() {
         />
       </div>
 
-      <StepActions<AccountStepValues> submitLabel="Continuar" />
+      <StepActions<AccountStepValues>
+        schema={accountStepSchema}
+        submitLabel="Continuar"
+      />
     </>
   );
 }

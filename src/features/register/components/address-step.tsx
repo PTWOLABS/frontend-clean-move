@@ -9,7 +9,10 @@ import {
 
 import { RegisterTextField } from './register-text-field';
 import { StepActions } from './step-actions';
-import { type AddressStepValues } from '../schemas/register-schema';
+import {
+  addressStepSchema,
+  type AddressStepValues,
+} from '../schemas/register-schema';
 
 type AddressStepProps = {
   onBack: (values: AddressStepValues) => void;
@@ -18,7 +21,7 @@ type AddressStepProps = {
 export function AddressStep({ onBack }: AddressStepProps) {
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-[0.78fr_1.22fr]">
+      <div className="grid gap-3 sm:grid-cols-[0.78fr_1.22fr]">
         <RegisterTextField
           id="register-zip-code"
           name="zipCode"
@@ -80,6 +83,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
       </div>
 
       <StepActions<AddressStepValues>
+        schema={addressStepSchema}
         onBack={onBack}
         submitLabel="Finalizar cadastro"
       />

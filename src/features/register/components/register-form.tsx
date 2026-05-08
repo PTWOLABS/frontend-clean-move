@@ -64,6 +64,11 @@ const getAddressValues = (data: RegisterFormValues): AddressStepValues => ({
   complement: data.complement,
 });
 
+const stepFormOptions = {
+  mode: 'onBlur',
+  reValidateMode: 'onChange',
+} as const;
+
 export function RegisterForm() {
   const [stepOrder, setStepOrder] = useState(0);
   const [registerData, setRegisterData] = useState<RegisterFormValues>(
@@ -121,10 +126,11 @@ export function RegisterForm() {
       {stepOrder === 0 ? (
         <Form<AccountStepValues>
           key="account-step"
-          className="mt-9 space-y-6"
+          className="mt-6 space-y-5"
           onSubmit={handleAccountSubmit}
           schema={accountStepSchema}
           options={{
+            ...stepFormOptions,
             defaultValues: getAccountValues(registerData),
           }}
         >
@@ -135,10 +141,11 @@ export function RegisterForm() {
       {stepOrder === 1 ? (
         <Form<CompanyStepValues>
           key="company-step"
-          className="mt-9 space-y-6"
+          className="mt-6 space-y-5"
           onSubmit={handleCompanySubmit}
           schema={companyStepSchema}
           options={{
+            ...stepFormOptions,
             defaultValues: getCompanyValues(registerData),
           }}
         >
@@ -149,10 +156,11 @@ export function RegisterForm() {
       {stepOrder === 2 ? (
         <Form<AddressStepValues>
           key="address-step"
-          className="mt-9 space-y-6"
+          className="mt-6 space-y-5"
           onSubmit={handleAddressSubmit}
           schema={addressStepSchema}
           options={{
+            ...stepFormOptions,
             defaultValues: getAddressValues(registerData),
           }}
         >
@@ -160,7 +168,7 @@ export function RegisterForm() {
         </Form>
       ) : null}
 
-      <p className="mt-9 text-center text-sm text-[#94A3B8]">
+      <p className="mt-6 text-center text-sm text-[#94A3B8]">
         Já possui uma conta?{' '}
         <Link
           href="/login"
