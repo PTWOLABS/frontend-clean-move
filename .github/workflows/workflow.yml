@@ -1,0 +1,21 @@
+name : Continuous Integration
+
+on: [pull_request, push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - name: install dependencies, typecheck, format check, lint, build and test
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test
+
