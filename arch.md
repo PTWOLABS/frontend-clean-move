@@ -249,7 +249,7 @@ Uso no projeto:
 
 Uso no projeto:
 
-- Configuração em `vitest.config.ts`:
+- Configuração em `vitest.config.mjs`:
   - Ambiente `jsdom`.
   - `setupFiles` com `src/test/setup-tests.ts`.
 

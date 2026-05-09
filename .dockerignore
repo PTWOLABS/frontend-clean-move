@@ -1,0 +1,8 @@
+.git
+.next
+.next-build
+.vite
+node_modules
+coverage
+npm-debug.log*
+.env*
