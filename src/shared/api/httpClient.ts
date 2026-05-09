@@ -1,8 +1,15 @@
+import axios, { type AxiosRequestConfig } from "axios";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 if (!BASE_URL) {
   console.warn("NEXT_PUBLIC_API_BASE_URL não está definido. Configure o arquivo .env.local.");
 }
+
+const api = axios.create({
+  baseURL: BASE_URL ?? "",
+  withCredentials: true,
+});
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -40,47 +47,74 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+function headersInitToRecord(headers?: HeadersInit): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!headers) return out;
+  const h = new Headers(headers);
+  h.forEach((value, key) => {
+    out[key] = value;
+  });
+  return out;
+}
+
+function hasHeaderCaseInsensitive(headers: Record<string, string>, name: string): boolean {
+  const lower = name.toLowerCase();
+  return Object.keys(headers).some((k) => k.toLowerCase() === lower);
+}
+
+function normalizeParsedBody(data: unknown): unknown {
+  if (data === "" || data === undefined) return null;
+  return data;
+}
+
+function parseErrorPayload(data: unknown): unknown {
+  if (data == null || data === "") return null;
+  if (typeof data === "object") return data;
+  if (typeof data === "string") {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}
+
 export async function httpClient<TResponse>(
   path: string,
   { method = "GET", headers, body, signal }: RequestOptions = {},
 ): Promise<TResponse> {
-  const url = `${BASE_URL ?? ""}${path}`;
-  const requestHeaders = new Headers(headers);
+  const requestHeaders = headersInitToRecord(headers);
 
-  if (!requestHeaders.has("Content-Type")) {
-    requestHeaders.set("Content-Type", "application/json");
+  if (!hasHeaderCaseInsensitive(requestHeaders, "Content-Type")) {
+    requestHeaders["Content-Type"] = "application/json";
   }
 
-  if (accessToken && !requestHeaders.has("Authorization")) {
-    requestHeaders.set("Authorization", `Bearer ${accessToken}`);
+  if (accessToken && !hasHeaderCaseInsensitive(requestHeaders, "Authorization")) {
+    requestHeaders.Authorization = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(url, {
+  const config: AxiosRequestConfig = {
+    url: path,
     method,
     headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-    credentials: "include",
+    data: body !== undefined && body !== null ? body : undefined,
     signal,
-  });
+  };
 
-  if (!response.ok) {
-    const errorBody = await safeParseJson(response);
-    const message =
-      (errorBody as { message?: string })?.message ??
-      `Erro na requisição: ${response.status} ${response.statusText}`;
-
-    throw new ApiError({ message, statusCode: response.status });
-  }
-
-  return (await safeParseJson(response)) as TResponse;
-}
-
-async function safeParseJson(response: Response) {
-  const text = await response.text();
-  if (!text) return null;
   try {
-    return JSON.parse(text);
-  } catch {
-    return text;
+    const response = await api.request<TResponse>(config);
+    return normalizeParsedBody(response.data) as TResponse;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      const { status, statusText, data } = error.response;
+      const errorBody = parseErrorPayload(data);
+      const message =
+        (errorBody as { message?: string })?.message ??
+        `Erro na requisição: ${status} ${statusText}`;
+
+      throw new ApiError({ message, statusCode: status });
+    }
+    throw error;
   }
 }

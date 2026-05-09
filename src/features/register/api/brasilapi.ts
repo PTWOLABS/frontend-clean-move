@@ -1,3 +1,5 @@
+import axios from "axios";
+
 type BrasilApiCnpjResponse = {
   cnpj: string;
   razao_social: string;
@@ -17,22 +19,24 @@ export async function fetchCompanyByCnpj(
 ): Promise<BrasilApiCompany | null> {
   const normalizedCnpj = onlyDigits(cnpj);
 
-  const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${normalizedCnpj}`, {
-    signal,
-  });
+  const { data, status } = await axios.get<BrasilApiCnpjResponse>(
+    `https://brasilapi.com.br/api/cnpj/v1/${normalizedCnpj}`,
+    {
+      signal,
+      validateStatus: () => true,
+    },
+  );
 
-  if (response.status === 404) {
+  if (status === 404) {
     return null;
   }
 
-  if (!response.ok) {
+  if (status < 200 || status >= 300) {
     throw new Error("Failed to fetch company by CNPJ.");
   }
 
-  const company = (await response.json()) as BrasilApiCnpjResponse;
-
   return {
-    legalName: company.razao_social,
-    tradeName: company.nome_fantasia || company.razao_social,
+    legalName: data.razao_social,
+    tradeName: data.nome_fantasia || data.razao_social,
   };
 }

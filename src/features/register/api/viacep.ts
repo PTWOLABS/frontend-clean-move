@@ -1,3 +1,5 @@
+import axios from "axios";
+
 type ViaCepResponse = {
   cep: string;
   logradouro: string;
@@ -23,22 +25,23 @@ export async function fetchAddressByZipCode(
 ): Promise<ViaCepAddress | null> {
   const normalizedZipCode = onlyDigits(zipCode);
 
-  const response = await fetch(`https://viacep.com.br/ws/${normalizedZipCode}/json/`, { signal });
+  try {
+    const { data } = await axios.get<ViaCepResponse>(
+      `https://viacep.com.br/ws/${normalizedZipCode}/json/`,
+      { signal },
+    );
 
-  if (!response.ok) {
+    if (data.erro) {
+      return null;
+    }
+
+    return {
+      street: data.logradouro,
+      city: data.localidade,
+      state: data.uf,
+      complement: data.complemento,
+    };
+  } catch {
     throw new Error("Failed to fetch address by zip code.");
   }
-
-  const data = (await response.json()) as ViaCepResponse;
-
-  if (data.erro) {
-    return null;
-  }
-
-  return {
-    street: data.logradouro,
-    city: data.localidade,
-    state: data.uf,
-    complement: data.complemento,
-  };
 }
