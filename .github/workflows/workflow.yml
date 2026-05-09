@@ -27,7 +27,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
 
-        - name: Build Next.js
+      - name: Build Next.js
         run: npm run build
 
       - name: Tests
