@@ -1,8 +1,8 @@
- # Clean-move
+# Clean-move
 
 Plataforma de agendamento para lava-rápido (**Clean-move**), focada em experiência do usuário e organização clara por domínios de negócio.
 
-Este repositório contém o **frontend** da solução, alinhado à especificação funcional da *“Plataforma de Agendamento para Lava-Rápido”* (UC-01 a UC-16), disponível em `public/especificacao_funcional_lava_rapido.pdf`.
+Este repositório contém o **frontend** da solução, alinhado à especificação funcional da _“Plataforma de Agendamento para Lava-Rápido”_ (UC-01 a UC-16), disponível em `public/especificacao_funcional_lava_rapido.pdf`.
 
 ---
 
@@ -119,4 +119,3 @@ Status macro do frontend Clean-move em relação à especificação funcional:
   - Infra de testes pronta; será ampliada por fluxo (unitário + E2E) conforme cada UC for implementado.
 
 > Em resumo: **o planejamento técnico está pronto e a base do frontend foi montada**. Agora o foco é **UI/UX no Figma** e, em seguida, a implementação incremental dos casos de uso do Clean-move seguindo a especificação funcional.
-

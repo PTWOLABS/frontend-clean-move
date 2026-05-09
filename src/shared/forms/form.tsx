@@ -28,9 +28,7 @@ type WithoutSchema<TValues extends FieldValues> = BaseFormProps<TValues> & {
   options?: UseFormProps<TValues>;
 };
 
-type FormProps<TValues extends FieldValues> =
-  | WithSchema<TValues>
-  | WithoutSchema<TValues>;
+type FormProps<TValues extends FieldValues> = WithSchema<TValues> | WithoutSchema<TValues>;
 
 export function Form<TValues extends FieldValues>({
   children,
@@ -39,9 +37,7 @@ export function Form<TValues extends FieldValues>({
   options,
   className,
 }: FormProps<TValues>) {
-  const resolveSchema = zodResolver as unknown as (
-    schema: ZodTypeAny,
-  ) => Resolver<TValues>;
+  const resolveSchema = zodResolver as unknown as (schema: ZodTypeAny) => Resolver<TValues>;
 
   const methods = useForm<TValues>({
     ...(schema ? { resolver: resolveSchema(schema) } : {}),

@@ -1,14 +1,11 @@
-import { useState } from 'react';
-import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react';
+import { useState } from "react";
+import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { GoogleIcon } from '@/components/google-icon';
-import { RegisterTextField } from './register-text-field';
-import { StepActions } from './step-actions';
-import {
-  accountStepSchema,
-  type AccountStepValues,
-} from '../schemas/register-schema';
+import { Button } from "@/components/ui/button";
+import { GoogleIcon } from "@/components/google-icon";
+import { RegisterTextField } from "./register-text-field";
+import { StepActions } from "./step-actions";
+import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
 
 export function AccountStep() {
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +64,7 @@ export function AccountStep() {
         <RegisterTextField
           id="register-password"
           name="password"
-          type={showPassword ? 'text' : 'password'}
+          type={showPassword ? "text" : "password"}
           autoComplete="new-password"
           label="Senha"
           placeholder="Mínimo de 8 caracteres"
@@ -76,7 +73,7 @@ export function AccountStep() {
           image={
             <button
               type="button"
-              aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+              aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
               onClick={() => setShowPassword((current) => !current)}
               className="inline-flex size-9 items-center justify-center rounded-lg text-[#94A3B8] transition-colors hover:bg-[#192333] hover:text-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
             >
@@ -90,10 +87,7 @@ export function AccountStep() {
         />
       </div>
 
-      <StepActions<AccountStepValues>
-        schema={accountStepSchema}
-        submitLabel="Continuar"
-      />
+      <StepActions<AccountStepValues> schema={accountStepSchema} submitLabel="Continuar" />
     </>
   );
 }

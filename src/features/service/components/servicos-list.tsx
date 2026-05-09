@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useServicos } from "../hooks/use-servicos";
 
@@ -19,13 +19,10 @@ export function ServicosList() {
         <li key={servico.id} className="space-y-1 rounded-lg border p-4">
           <h3 className="font-semibold">{servico.titulo}</h3>
           {servico.descricao ? (
-            <p className="text-sm text-muted-foreground">
-              {servico.descricao}
-            </p>
+            <p className="text-sm text-muted-foreground">{servico.descricao}</p>
           ) : null}
         </li>
       ))}
     </ul>
   );
 }
-

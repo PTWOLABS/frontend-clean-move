@@ -1,7 +1,7 @@
-import { AppQueryClientProvider } from '@/shared/providers/query-client-provider';
-import Image from 'next/image';
-import authHeroImage from '@/assets/auth-page-image.png';
-import { ReactNode } from 'react';
+import { AppQueryClientProvider } from "@/shared/providers/query-client-provider";
+import Image from "next/image";
+import authHeroImage from "@/assets/auth-page-image.png";
+import { ReactNode } from "react";
 
 export default function AuthLayout({
   children,
@@ -38,9 +38,7 @@ export default function AuthLayout({
                 aria-hidden
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_16%,rgba(37,99,235,0.12),transparent_30%)]"
               />
-              <div className="relative z-10 w-full max-w-[420px]">
-                {children}
-              </div>
+              <div className="relative z-10 w-full max-w-[420px]">{children}</div>
             </div>
           </div>
         </section>

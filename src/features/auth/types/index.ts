@@ -13,4 +13,3 @@ export type LoginResponse = {
   user: AuthUser;
   accessToken: string;
 };
-

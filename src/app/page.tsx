@@ -256,9 +256,7 @@ export default function Home() {
 function Navbar() {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
-      <div
-        className={`${containerClass} flex h-16 items-center justify-between gap-4`}
-      >
+      <div className={`${containerClass} flex h-16 items-center justify-between gap-4`}>
         <Link
           href="/"
           className="flex min-w-0 items-center gap-2.5"
@@ -331,16 +329,28 @@ function Navbar() {
             aria-label="Menu mobile"
           >
             <div className="flex flex-col gap-1">
-              <a href="#recursos" className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted">
+              <a
+                href="#recursos"
+                className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted"
+              >
                 Recursos
               </a>
-              <a href="#como-funciona" className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted">
+              <a
+                href="#como-funciona"
+                className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted"
+              >
                 Como funciona
               </a>
-              <a href="#precos" className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted">
+              <a
+                href="#precos"
+                className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted"
+              >
                 Preços
               </a>
-              <a href="#depoimentos" className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted">
+              <a
+                href="#depoimentos"
+                className="rounded-lg px-3 py-3 text-base font-medium hover:bg-muted"
+              >
                 Depoimentos
               </a>
               <div className="my-3 h-px bg-border" />
@@ -384,9 +394,8 @@ function HeroSection() {
           </h1>
 
           <p className="animate-clean-reveal animation-delay-200 mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Substitua a bagunça do WhatsApp e os orçamentos de papel por um
-            fluxo profissional único. Agendamentos, clientes, orçamentos e caixa
-            em um só lugar.
+            Substitua a bagunça do WhatsApp e os orçamentos de papel por um fluxo profissional
+            único. Agendamentos, clientes, orçamentos e caixa em um só lugar.
           </p>
 
           <div className="animate-clean-reveal animation-delay-300 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -420,9 +429,7 @@ function HeroSection() {
             <div className="relative z-0 grid grid-cols-1 gap-4 p-3 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
               <div className="min-w-0 space-y-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <h3 className="font-display text-lg font-semibold">
-                    Agenda de Hoje
-                  </h3>
+                  <h3 className="font-display text-lg font-semibold">Agenda de Hoje</h3>
                   <a
                     href="#como-funciona"
                     className="inline-flex min-h-8 w-full items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted sm:w-auto"
@@ -443,9 +450,7 @@ function HeroSection() {
                         </div>
                         <div className="h-10 w-px shrink-0 bg-border" />
                         <div className="min-w-0">
-                          <div className="truncate font-medium">
-                            {apt.client}
-                          </div>
+                          <div className="truncate font-medium">{apt.client}</div>
                           <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
                             <span className="truncate">{apt.car}</span>
                             <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-normal">
@@ -455,9 +460,7 @@ function HeroSection() {
                         </div>
                       </div>
                       <div className="flex flex-col items-start gap-2 sm:items-end">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${apt.color}`}
-                        >
+                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${apt.color}`}>
                           {apt.status}
                         </span>
                         <span className="text-sm text-muted-foreground sm:text-foreground">
@@ -472,31 +475,22 @@ function HeroSection() {
               <aside className="min-w-0 space-y-4 sm:space-y-6">
                 <div className="rounded-xl border border-border bg-gradient-to-b from-card to-background p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-medium text-muted-foreground">
-                      Caixa de Hoje
-                    </h3>
+                    <h3 className="font-medium text-muted-foreground">Caixa de Hoje</h3>
                     <LineChart className="h-4 w-4 text-accent" aria-hidden />
                   </div>
-                  <div className="mb-1 font-display text-3xl font-bold">
-                    R$ 2.450,00
-                  </div>
+                  <div className="mb-1 font-display text-3xl font-bold">R$ 2.450,00</div>
                   <div className="flex items-center gap-1 text-sm text-green-300">
-                    <Activity className="h-3 w-3" aria-hidden /> +15% vs.
-                    ontem
+                    <Activity className="h-3 w-3" aria-hidden /> +15% vs. ontem
                   </div>
 
                   <div className="mt-6 space-y-3">
                     <div className="flex justify-between gap-4 text-sm">
                       <span className="text-muted-foreground">Entradas</span>
-                      <span className="font-medium text-green-300">
-                        R$ 2.800,00
-                      </span>
+                      <span className="font-medium text-green-300">R$ 2.800,00</span>
                     </div>
                     <div className="flex justify-between gap-4 text-sm">
                       <span className="text-muted-foreground">Saídas</span>
-                      <span className="font-medium text-red-300">
-                        R$ 350,00
-                      </span>
+                      <span className="font-medium text-red-300">R$ 350,00</span>
                     </div>
                   </div>
                 </div>
@@ -547,10 +541,7 @@ function BudgetItem({
 
 function FeaturesSection() {
   return (
-    <section
-      id="recursos"
-      className="border-y border-border bg-muted/20 py-16 sm:py-20 lg:py-24"
-    >
+    <section id="recursos" className="border-y border-border bg-muted/20 py-16 sm:py-20 lg:py-24">
       <div className={containerClass}>
         <SectionHeading
           title="Tudo que uma estética moderna precisa"
@@ -566,12 +557,8 @@ function FeaturesSection() {
               <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <feature.icon className="h-6 w-6 text-primary" aria-hidden />
               </div>
-              <h3 className="mb-2 font-display text-xl font-semibold">
-                {feature.title}
-              </h3>
-              <p className="leading-relaxed text-muted-foreground">
-                {feature.description}
-              </p>
+              <h3 className="mb-2 font-display text-xl font-semibold">{feature.title}</h3>
+              <p className="leading-relaxed text-muted-foreground">{feature.description}</p>
             </article>
           ))}
         </div>
@@ -590,9 +577,9 @@ function MockupSection() {
               Orçamentos que vendem por você
             </h2>
             <p className="mb-8 text-lg leading-relaxed text-muted-foreground">
-              Apresentação é tudo. Seus clientes vão receber um orçamento
-              detalhado, profissional e claro, diretamente no WhatsApp. Quando
-              eles aprovam, vira um agendamento com um clique.
+              Apresentação é tudo. Seus clientes vão receber um orçamento detalhado, profissional e
+              claro, diretamente no WhatsApp. Quando eles aprovam, vira um agendamento com um
+              clique.
             </p>
 
             <ul className="space-y-4">
@@ -612,9 +599,7 @@ function MockupSection() {
             <article className="relative rounded-2xl border border-border bg-card p-4 shadow-xl sm:p-6">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Orçamento #4082
-                  </div>
+                  <div className="text-sm font-medium text-muted-foreground">Orçamento #4082</div>
                   <h3 className="mt-1 truncate font-display text-xl font-semibold">
                     Roberto Costa
                   </h3>
@@ -625,9 +610,7 @@ function MockupSection() {
               </div>
 
               <div className="mb-6 rounded-xl border border-border bg-background p-4">
-                <div className="mb-1 text-sm text-muted-foreground">
-                  Veículo
-                </div>
+                <div className="mb-1 text-sm text-muted-foreground">Veículo</div>
                 <div className="flex flex-wrap items-center gap-2 font-medium">
                   Porsche Macan
                   <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-normal">
@@ -678,15 +661,7 @@ function MockupSection() {
   );
 }
 
-function QuoteLine({
-  title,
-  subtitle,
-  value,
-}: {
-  title: string;
-  subtitle: string;
-  value: string;
-}) {
+function QuoteLine({ title, subtitle, value }: { title: string; subtitle: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-border pb-3 text-sm">
       <div className="min-w-0">
@@ -716,16 +691,13 @@ function BrandShowcaseSection() {
             </div>
             <div className="absolute -bottom-4 -right-4 hidden items-center gap-3 rounded-xl border border-border bg-card/90 px-4 py-3 shadow-xl backdrop-blur md:flex">
               <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-sm font-medium">
-                Estética operando agora
-              </span>
+              <span className="text-sm font-medium">Estética operando agora</span>
             </div>
           </div>
 
           <div className="animate-clean-reveal animation-delay-100 lg:col-span-2">
             <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-normal text-primary">
-              <Shield className="h-3 w-3" aria-hidden /> Seu negócio, em outro
-              patamar
+              <Shield className="h-3 w-3" aria-hidden /> Seu negócio, em outro patamar
             </span>
             <h2 className="mb-6 font-display text-3xl font-bold leading-tight sm:text-4xl">
               Profissionalismo que o cliente{" "}
@@ -734,10 +706,9 @@ function BrandShowcaseSection() {
               </span>
             </h2>
             <p className="mb-8 text-lg leading-relaxed text-muted-foreground">
-              Da recepção do carro à entrega das chaves, a CleanMove dá ao seu
-              negócio a estrutura de uma operação séria. Tablet no balcão,
-              agenda na tela e orçamento no celular do cliente, tudo conectado,
-              tudo com a sua marca.
+              Da recepção do carro à entrega das chaves, a CleanMove dá ao seu negócio a estrutura
+              de uma operação séria. Tablet no balcão, agenda na tela e orçamento no celular do
+              cliente, tudo conectado, tudo com a sua marca.
             </p>
             <ul className="space-y-3">
               {showcaseBenefits.map((item) => (
@@ -777,9 +748,7 @@ function HowItWorksSection() {
               <h3 className="mb-2 text-center font-display text-lg font-semibold md:text-left">
                 {step.title}
               </h3>
-              <p className="text-center text-sm text-muted-foreground md:text-left">
-                {step.desc}
-              </p>
+              <p className="text-center text-sm text-muted-foreground md:text-left">{step.desc}</p>
             </article>
           ))}
         </div>
@@ -808,25 +777,15 @@ function TestimonialsSection() {
               <div>
                 <div className="mb-6 flex gap-1" aria-label="5 estrelas">
                   {Array.from({ length: 5 }).map((_, index) => (
-                    <Star
-                      key={index}
-                      className="h-4 w-4 fill-primary text-primary"
-                      aria-hidden
-                    />
+                    <Star key={index} className="h-4 w-4 fill-primary text-primary" aria-hidden />
                   ))}
                 </div>
-                <p className="mb-8 text-muted-foreground">
-                  “{testimonial.text}”
-                </p>
+                <p className="mb-8 text-muted-foreground">“{testimonial.text}”</p>
               </div>
               <footer>
                 <div className="font-medium">{testimonial.author}</div>
-                <div className="text-sm text-muted-foreground">
-                  {testimonial.role}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {testimonial.location}
-                </div>
+                <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{testimonial.location}</div>
               </footer>
             </article>
           ))}
@@ -899,11 +858,7 @@ function PricingCard({
           MAIS ESCOLHIDO
         </div>
       )}
-      <h3
-        className={`mb-2 font-display text-xl font-semibold ${
-          featured ? "text-primary" : ""
-        }`}
-      >
+      <h3 className={`mb-2 font-display text-xl font-semibold ${featured ? "text-primary" : ""}`}>
         {title}
       </h3>
       <p className="mb-6 text-sm text-muted-foreground">{description}</p>
@@ -944,8 +899,8 @@ function CtaSection() {
           Pronto para acelerar seu negócio?
         </h2>
         <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          Junte-se a centenas de estéticas automotivas que já revolucionaram sua
-          gestão com a CleanMove.
+          Junte-se a centenas de estéticas automotivas que já revolucionaram sua gestão com a
+          CleanMove.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a href="/login" className={primaryCtaClass}>
@@ -964,21 +919,11 @@ function CtaSection() {
   );
 }
 
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
+function SectionHeading({ title, description }: { title: string; description: string }) {
   return (
     <div className="mx-auto mb-12 max-w-2xl text-center sm:mb-16">
-      <h2 className="mb-4 font-display text-3xl font-bold leading-tight sm:text-4xl">
-        {title}
-      </h2>
-      <p className="text-lg leading-relaxed text-muted-foreground">
-        {description}
-      </p>
+      <h2 className="mb-4 font-display text-3xl font-bold leading-tight sm:text-4xl">{title}</h2>
+      <p className="text-lg leading-relaxed text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -1006,8 +951,8 @@ function Footer() {
               </span>
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              A plataforma definitiva para gestão de estéticas automotivas.
-              Controle sua agenda, orçamentos e caixa em um só lugar.
+              A plataforma definitiva para gestão de estéticas automotivas. Controle sua agenda,
+              orçamentos e caixa em um só lugar.
             </p>
           </div>
 
@@ -1049,13 +994,7 @@ function Footer() {
   );
 }
 
-function FooterNav({
-  title,
-  links,
-}: {
-  title: string;
-  links: Array<[string, string]>;
-}) {
+function FooterNav({ title, links }: { title: string; links: Array<[string, string]> }) {
   return (
     <nav aria-label={title}>
       <h3 className="mb-4 font-semibold text-foreground">{title}</h3>

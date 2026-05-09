@@ -16,4 +16,3 @@ describe("Fluxo principal", () => {
     cy.url().should("include", "/servicos");
   });
 });
-

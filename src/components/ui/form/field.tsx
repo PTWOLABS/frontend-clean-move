@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 import {
   Control,
   ControllerFieldState,
   ControllerRenderProps,
   FieldPath,
   FieldValues,
-} from 'react-hook-form';
+} from "react-hook-form";
 
 import {
   FormControl,
@@ -15,8 +15,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from './form-primitives';
-import { Input } from '../input';
+} from "./form-primitives";
+import { Input } from "../input";
 
 export type FormFieldProps<
   TFieldValues extends FieldValues = FieldValues,

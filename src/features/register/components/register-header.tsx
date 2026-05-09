@@ -1,4 +1,4 @@
-import { BrandLogo } from '@/components/brand-logo';
+import { BrandLogo } from "@/components/brand-logo";
 
 type RegisterHeaderProps = {
   title: string;
@@ -14,9 +14,7 @@ export function RegisterHeader({ title, description }: RegisterHeaderProps) {
         <h1 className="font-display text-[34px] font-bold leading-tight tracking-normal text-[#F8FAFC] sm:text-[38px]">
           {title}
         </h1>
-        <p className="max-w-[380px] text-base leading-6 text-[#94A3B8]">
-          {description}
-        </p>
+        <p className="max-w-[380px] text-base leading-6 text-[#94A3B8]">{description}</p>
       </div>
     </>
   );

@@ -128,4 +128,3 @@ docker compose up --build
 ```
 
 O app ficará disponível em `http://localhost:3000`.
-

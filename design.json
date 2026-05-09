@@ -2,14 +2,7 @@
   "brand": {
     "name": "CleanMove",
     "description": "Plataforma SaaS para gestao de esteticas automotivas, lava-rapidos e studios de detalhamento.",
-    "personality": [
-      "tecnologica",
-      "precisa",
-      "premium",
-      "operacional",
-      "confiavel",
-      "moderna"
-    ],
+    "personality": ["tecnologica", "precisa", "premium", "operacional", "confiavel", "moderna"],
     "visualTone": "dark premium operational SaaS",
     "sourceOfTruth": "Landing page publicada em https://asset-manager--fehpereira237.replit.app/",
     "keywords": [
@@ -501,14 +494,7 @@
     }
   },
   "dataVisualization": {
-    "palette": [
-      "#2563EB",
-      "#06B6D4",
-      "#22C55E",
-      "#EAB308",
-      "#EF4444",
-      "#94A3B8"
-    ],
+    "palette": ["#2563EB", "#06B6D4", "#22C55E", "#EAB308", "#EF4444", "#94A3B8"],
     "gridColor": "#1D2734",
     "axisColor": "#94A3B8",
     "tooltipBackground": "#141B24",

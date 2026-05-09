@@ -1,15 +1,12 @@
-import { ComponentProps, ReactNode } from 'react';
-import { Input } from '../input';
-import { InputMask } from '@react-input/mask';
-import { FormControl } from './form-primitives';
-import { FormField } from './field';
-import { cn } from '@/shared/utils/cn';
+import { ComponentProps, ReactNode } from "react";
+import { Input } from "../input";
+import { InputMask } from "@react-input/mask";
+import { FormControl } from "./form-primitives";
+import { FormField } from "./field";
+import { cn } from "@/shared/utils/cn";
 
-type InputFieldProps = Omit<
-  ComponentProps<typeof FormField>,
-  'children' | 'className'
-> &
-  Omit<ComponentProps<typeof Input>, 'className' | 'name'> & {
+type InputFieldProps = Omit<ComponentProps<typeof FormField>, "children" | "className"> &
+  Omit<ComponentProps<typeof Input>, "className" | "name"> & {
     mask?: string;
     icon?: ReactNode;
     image?: ReactNode;
@@ -33,7 +30,7 @@ export const InputField = ({
   image,
   ...props
 }: InputFieldProps) => {
-  const inputClassName = cn(className, image && 'pr-12');
+  const inputClassName = cn(className, image && "pr-12");
   const inputId = props.id ?? name;
 
   return (
@@ -48,7 +45,7 @@ export const InputField = ({
     >
       {({ field }) =>
         mask ? (
-          <div className={cn((icon || image) && 'relative', wrapperClassName)}>
+          <div className={cn((icon || image) && "relative", wrapperClassName)}>
             <FormControl>
               <InputMask
                 mask={mask}
@@ -65,7 +62,7 @@ export const InputField = ({
             {image && (
               <span
                 className={cn(
-                  'pointer-events-none absolute right-4 top-1/2 flex -translate-y-1/2 items-center',
+                  "pointer-events-none absolute right-4 top-1/2 flex -translate-y-1/2 items-center",
                   imageClassName,
                 )}
               >
@@ -74,7 +71,7 @@ export const InputField = ({
             )}
           </div>
         ) : (
-          <div className={cn((icon || image) && 'relative', wrapperClassName)}>
+          <div className={cn((icon || image) && "relative", wrapperClassName)}>
             <FormControl>
               <Input
                 {...field}
@@ -88,7 +85,7 @@ export const InputField = ({
             {image && (
               <span
                 className={cn(
-                  'pointer-events-none absolute right-4 top-1/2 flex -translate-y-1/2 items-center',
+                  "pointer-events-none absolute right-4 top-1/2 flex -translate-y-1/2 items-center",
                   imageClassName,
                 )}
               >

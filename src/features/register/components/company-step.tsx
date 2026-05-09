@@ -1,12 +1,9 @@
-import { Building2, FileText, LoaderCircle, Store } from 'lucide-react';
+import { Building2, FileText, LoaderCircle, Store } from "lucide-react";
 
-import { RegisterTextField } from './register-text-field';
-import { StepActions } from './step-actions';
-import {
-  companyStepSchema,
-  type CompanyStepValues,
-} from '../schemas/register-schema';
-import { useCnpjAutofill } from '../hooks/use-cnpj-autofill';
+import { RegisterTextField } from "./register-text-field";
+import { StepActions } from "./step-actions";
+import { companyStepSchema, type CompanyStepValues } from "../schemas/register-schema";
+import { useCnpjAutofill } from "../hooks/use-cnpj-autofill";
 
 type CompanyStepProps = {
   onBack: (values: CompanyStepValues) => void;
@@ -30,10 +27,7 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
           disabled={isFetchingCompany}
           image={
             isFetchingCompany ? (
-              <LoaderCircle
-                aria-hidden
-                className="size-5 animate-spin text-[#94A3B8]"
-              />
+              <LoaderCircle aria-hidden className="size-5 animate-spin text-[#94A3B8]" />
             ) : undefined
           }
         />
@@ -41,8 +35,8 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
         {isFetchingCompany || hasCompanyFetchError ? (
           <p className="-mt-1 text-[11px] font-medium leading-4 text-[#94A3B8]">
             {isFetchingCompany
-              ? 'Buscando dados da empresa pelo CNPJ...'
-              : 'Não foi possível consultar o CNPJ. Preencha os dados manualmente.'}
+              ? "Buscando dados da empresa pelo CNPJ..."
+              : "Não foi possível consultar o CNPJ. Preencha os dados manualmente."}
           </p>
         ) : null}
 
