@@ -1,21 +1,34 @@
-name : Continuous Integration
+name: Continuous Integration
 
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.x
-      - name: install dependencies, typecheck, format check, lint, build and test
-      - run: npm install
-      - run: npm run typecheck
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run build
-      - run: npm run test
+          node-version-file: ".nvmrc"
+          cache: npm
 
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Prettie
+        run: npm run format:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
+
+        - name: Build Next.js
+        run: npm run build
+
+      - name: Tests
+        run: npm run test:run
