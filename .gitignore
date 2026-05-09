@@ -1,45 +1,72 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
+# Dependências
+/node_modules/
+.pnp
+.pnp.js
+.pnp.loader.mjs
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
+!.yarn/sdks
 !.yarn/versions
-package-lock.json
+
+# Outros gestores de pacotes (projeto usa npm — não commitar locks alternativos)
 yarn.lock
 pnpm-lock.yaml
 bun.lockb
 
-# testing
-/coverage
+# Testes & cobertura
+coverage/
+*.lcov
+.nyc_output/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
 
-# next.js
-/.next/
-/out/
+# Vitest / Vite
+.vite/
 
-# production
-/build
+# Next.js
+.next/
+.next-build/
+out/
+.vercel/
 
-# misc
-.DS_Store
-*.pem
+# Build genérico (CRA etc.)
+build/
+dist/
 
-# debug
+# Variáveis de ambiente (manter exemplos versionados)
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# Logs & debug
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# TypeScript
 *.tsbuildinfo
-next-env.d.ts
+
+# ESLint
+.eslintcache
+
+# SO & editores
+.DS_Store
+Thumbs.db
+*.sw?
+*.swo
+.idea/
+*.sublime-*
+
+# Cursor / VS Code — opcional: descomente para ignorar settings locais
+# .vscode/
+# *.code-workspace
+
+# Certificados locais
+*.pem
