@@ -5,9 +5,7 @@ describe("Login flow", () => {
 
   it("should display the login page with form, links and main buttons", () => {
     cy.contains("h1", "Bem-vindo de volta").should("be.visible");
-    cy.contains(
-      "Acesse sua conta para gerenciar seu negócio com eficiência.",
-    ).should("be.visible");
+    cy.contains("Acesse sua conta para gerenciar seu negócio com eficiência.").should("be.visible");
 
     cy.get('input[name="email"]').should("be.visible");
     cy.get('input[name="password"]').should("be.visible");

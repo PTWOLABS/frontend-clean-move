@@ -24,9 +24,7 @@ describe("RegisterPage", () => {
   it("should render the registerform starting at the account step", () => {
     renderWithProviders(<RegisterPage />);
 
-    expect(
-      screen.getByRole("heading", { name: /crie sua conta/i, level: 1 }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /crie sua conta/i, level: 1 })).toBeInTheDocument();
     expect(screen.getByLabelText("Nome completo")).toBeInTheDocument();
     expect(screen.getByLabelText("Telefone")).toBeInTheDocument();
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();

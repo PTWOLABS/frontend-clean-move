@@ -39,7 +39,10 @@ describe("LoginForm", () => {
       "href",
       "/recuperar-senha",
     );
-    expect(screen.getByRole("link", { name: /cadastrar-se/i })).toHaveAttribute("href", "/register");
+    expect(screen.getByRole("link", { name: /cadastrar-se/i })).toHaveAttribute(
+      "href",
+      "/register",
+    );
   });
 
   it("should start with remember-me checked and toggle on click", async () => {

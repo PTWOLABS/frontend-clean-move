@@ -62,21 +62,18 @@ Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" 
   }).as(alias);
 });
 
-Cypress.Commands.add(
-  "stubCnpjLookup",
-  ({ status = 200, body, alias = "cnpjLookup" } = {}) => {
-    const responseBody = body ?? {
-      cnpj: "12345678000190",
-      razao_social: "Empresa LTDA",
-      nome_fantasia: "Empresa",
-    };
+Cypress.Commands.add("stubCnpjLookup", ({ status = 200, body, alias = "cnpjLookup" } = {}) => {
+  const responseBody = body ?? {
+    cnpj: "12345678000190",
+    razao_social: "Empresa LTDA",
+    nome_fantasia: "Empresa",
+  };
 
-    cy.intercept("GET", "https://brasilapi.com.br/api/cnpj/v1/*", {
-      statusCode: status,
-      body: responseBody as Record<string, unknown>,
-    }).as(alias);
-  },
-);
+  cy.intercept("GET", "https://brasilapi.com.br/api/cnpj/v1/*", {
+    statusCode: status,
+    body: responseBody as Record<string, unknown>,
+  }).as(alias);
+});
 
 Cypress.Commands.add(
   "stubZipCodeLookup",

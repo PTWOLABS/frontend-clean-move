@@ -32,7 +32,9 @@ describe("Registration flow", () => {
   it("should advance to the company step after filling valid account data", () => {
     cy.fillAccountStep();
 
-    cy.contains("button", /^continuar$/i).should("be.enabled").click();
+    cy.contains("button", /^continuar$/i)
+      .should("be.enabled")
+      .click();
 
     cy.contains("h1", /dados da empresa/i).should("be.visible");
     cy.get('input[name="cnpj"]').should("be.visible");
@@ -83,7 +85,9 @@ describe("Registration flow", () => {
     cy.get('input[name="cnpj"]').type("12345678000190");
     cy.wait("@cnpjLookup");
 
-    cy.contains("button", /^continuar$/i).should("be.enabled").click();
+    cy.contains("button", /^continuar$/i)
+      .should("be.enabled")
+      .click();
     cy.contains("h1", /endereço da empresa/i).should("be.visible");
     cy.get('input[name="zipCode"]').should("be.visible");
   });
@@ -137,7 +141,9 @@ describe("Registration flow", () => {
     cy.wait("@zipCodeLookup");
     cy.get('input[name="number"]').type("1000");
 
-    cy.contains("button", /finalizar cadastro/i).should("be.enabled").click();
+    cy.contains("button", /finalizar cadastro/i)
+      .should("be.enabled")
+      .click();
 
     cy.contains("h1", /endereço da empresa/i).should("be.visible");
   });
