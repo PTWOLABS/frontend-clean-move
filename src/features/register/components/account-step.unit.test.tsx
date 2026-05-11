@@ -1,12 +1,9 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Form } from "@/shared/forms/form";
 import { renderWithProviders } from "@/test/test-utils";
-
-import { AccountStep } from "./account-step";
-import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
 
 vi.mock("next/image", () => ({
   __esModule: true,
@@ -15,6 +12,16 @@ vi.mock("next/image", () => ({
     return <img {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />;
   },
 }));
+
+vi.mock("@/features/auth/hooks/use-google-login", () => ({
+  useGoogleLogin: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}));
+
+import { AccountStep } from "./account-step";
+import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
 
 const defaultValues: AccountStepValues = {
   fullName: "",
@@ -37,6 +44,14 @@ function renderAccountStep(onSubmit = vi.fn()) {
 }
 
 describe("AccountStep", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_GOOGLE_CLIENT_ID", "test-google-client-id");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("should render all the account step fields", () => {
     renderAccountStep();
 
