@@ -33,9 +33,7 @@ describe("RegisterForm", () => {
   it("should start at the account step and show the login link", () => {
     renderWithProviders(<RegisterForm />);
 
-    expect(
-      screen.getByRole("heading", { name: /crie sua conta/i, level: 1 }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /crie sua conta/i, level: 1 })).toBeInTheDocument();
     expect(screen.getByLabelText("Nome completo")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /fazer login/i })).toHaveAttribute("href", "/login");
   });

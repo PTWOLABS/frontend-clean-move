@@ -85,9 +85,7 @@ describe("CompanyStep", () => {
 
     await user.type(screen.getByLabelText("CNPJ"), "12345678000190");
 
-    expect(
-      await screen.findByText(/não foi possível consultar o cnpj/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/não foi possível consultar o cnpj/i)).toBeInTheDocument();
   });
 
   it("should call onback with the current values when 'voltar' is clicked", async () => {

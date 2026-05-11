@@ -91,8 +91,6 @@ describe("AddressStep", () => {
 
     await user.type(screen.getByLabelText("CEP"), "01310100");
 
-    expect(
-      await screen.findByText(/não foi possível consultar o cep/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/não foi possível consultar o cep/i)).toBeInTheDocument();
   });
 });
