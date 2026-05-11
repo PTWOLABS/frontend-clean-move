@@ -5,18 +5,20 @@ import Link from "next/link";
 import { Check, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 import { cn } from "@/shared/utils/cn";
-import { GoogleIcon } from "@/components/google-icon";
 import { Form } from "@/shared/forms/form";
 import { InputField } from "@/components/ui/form/input-field";
 import { LoginFormValues, loginSchema } from "../schemas/login-schema";
 import { useLogin } from "../hooks/use-login";
+import { useGoogleLogin } from "../hooks/use-google-login";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  const { mutate: login, isPending: isLoading } = useLogin();
+  const { mutate: login, isPending: isLoginLoading } = useLogin();
+  const { mutate: googleLogin, isPending: isGoogleLoading } = useGoogleLogin();
 
   const onSubmit = (data: LoginFormValues) => {
     login(data);
@@ -112,12 +114,12 @@ export function LoginForm() {
         </div>
 
         <Button
-          disabled={isLoading}
-          aria-busy={isLoading}
+          disabled={isLoginLoading}
+          aria-busy={isLoginLoading}
           type="submit"
           className="h-[52px] w-full rounded-[12px] bg-[#2563EB] text-base font-semibold text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-colors hover:bg-[#1D4ED8] active:bg-[#1E40AF]"
         >
-          {isLoading ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : null}
+          {isLoginLoading ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : null}
           Entrar
         </Button>
 
@@ -127,14 +129,12 @@ export function LoginForm() {
           <div className="h-px flex-1 bg-[#243244]" />
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="h-[52px] w-full rounded-[12px] border-[#243244] bg-[#111B28]/65 text-base font-semibold text-[#F8FAFC] shadow-none transition-colors hover:bg-[#192333] hover:text-[#F8FAFC]"
-        >
-          <GoogleIcon />
-          Entrar com Google
-        </Button>
+        <GoogleSignInButton
+          label="Entrar com Google"
+          testId="google-signin-slot"
+          isLoading={isGoogleLoading}
+          onCredential={(credential) => googleLogin({ idToken: credential })}
+        />
       </Form>
 
       <p className="mt-9 text-center text-sm text-[#94A3B8]">
