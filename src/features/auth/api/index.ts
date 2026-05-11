@@ -1,9 +1,16 @@
 import { httpClient } from "@/shared/api/httpClient";
 
-import type { AuthUser, LoginPayload, LoginResponse } from "../types";
+import type { AuthSessionResponse, AuthUser, GoogleLoginPayload, LoginPayload } from "../types";
 
 export async function login(payload: LoginPayload) {
-  return httpClient<LoginResponse>("/auth/login", {
+  return httpClient<AuthSessionResponse>("/auth/login", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function loginWithGoogle(payload: GoogleLoginPayload) {
+  return httpClient<AuthSessionResponse>("/auth/google", {
     method: "POST",
     body: payload,
   });
