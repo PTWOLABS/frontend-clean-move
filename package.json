@@ -21,7 +21,8 @@
     "test:ui": "vitest --ui --configLoader runner",
     "test:watch": "vitest --watch --configLoader runner",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "test:docker:all": "bash ./scripts/run-docker-tests.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -121,10 +121,25 @@ docker build -t clean-move-web .
 docker run -p 3000:3000 --env-file .env.local clean-move-web
 ```
 
-### Usando Docker Compose
+### Usando Docker Compose (app)
 
 ```bash
 docker compose up --build
 ```
 
 O app ficará disponível em `http://localhost:3000`.
+
+### Rodar E2E com Docker Compose
+
+Com a app rodando via compose, execute:
+
+```bash
+docker compose --profile e2e up --build --abort-on-container-exit --exit-code-from e2e e2e
+```
+
+Esse comando:
+
+- sobe o serviço `web`;
+- espera o healthcheck da aplicação;
+- roda o Cypress no serviço `e2e`;
+- retorna o exit code dos testes.

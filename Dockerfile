@@ -1,4 +1,4 @@
-FROM node:22-alpine AS base
+FROM node:22-bookworm-slim AS base
 
 WORKDIR /app
 
@@ -18,6 +18,12 @@ COPY --chown=node:node . .
 
 RUN npm run build
 
+FROM deps AS test
+
+COPY --chown=node:node . .
+
+CMD ["npm", "run", "test:run"]
+
 FROM base AS runner
 
 ENV NODE_ENV=production
@@ -31,6 +37,7 @@ USER node
 COPY --chown=node:node --from=build /app/public ./public
 COPY --chown=node:node --from=build /app/.next-build ./.next-build
 COPY --chown=node:node --from=build /app/package.json ./package.json
+COPY --chown=node:node --from=build /app/next.config.ts ./next.config.ts
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 
 EXPOSE 3000
