@@ -53,6 +53,7 @@ export const InputField = ({
                 replacement={{ _: /\d/ }}
                 {...field}
                 {...props}
+                value={field.value ?? ""}
                 id={inputId}
                 required={required}
                 className={inputClassName}
@@ -76,6 +77,7 @@ export const InputField = ({
               <Input
                 {...field}
                 {...props}
+                value={field.value ?? ""}
                 id={inputId}
                 required={required}
                 className={inputClassName}

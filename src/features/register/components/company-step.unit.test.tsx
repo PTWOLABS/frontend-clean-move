@@ -44,6 +44,7 @@ function renderCompanyStep({
 describe("CompanyStep", () => {
   beforeEach(() => {
     fetchCompanyByCnpjMock.mockReset();
+    fetchCompanyByCnpjMock.mockResolvedValue(null);
   });
 
   it("should render the company step fields and buttons", () => {
