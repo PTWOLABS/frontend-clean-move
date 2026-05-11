@@ -11,7 +11,7 @@ describe("Login flow", () => {
     cy.get('input[name="password"]').should("be.visible");
 
     cy.contains("button", /^entrar$/i).should("be.visible");
-    cy.contains("button", /entrar com google/i).should("be.visible");
+    cy.get('[data-testid="google-signin-slot"]').should("be.visible");
 
     cy.contains("a", /esqueci minha senha/i).should("have.attr", "href", "/recuperar-senha");
     cy.contains("a", /cadastrar-se/i).should("have.attr", "href", "/register");
