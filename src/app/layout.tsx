@@ -8,8 +8,7 @@ export const metadata: Metadata = {
     template: "%s | CleanMove",
   },
   applicationName: "CleanMove",
-  description:
-    "Plataforma SaaS para gestão de estéticas automotivas.",
+  description: "Plataforma SaaS para gestão de estéticas automotivas.",
 };
 
 export default function RootLayout({

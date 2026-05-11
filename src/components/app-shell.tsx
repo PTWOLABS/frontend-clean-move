@@ -17,9 +17,7 @@ export function AppShell({
             <div className="font-display text-lg font-bold">CleanMove</div>
             <ThemeToggle />
           </header>
-          <main className="container mx-auto flex-1 px-6 py-8">
-            {children}
-          </main>
+          <main className="container mx-auto flex-1 px-6 py-8">{children}</main>
         </div>
       </AppQueryClientProvider>
     </ThemeProvider>

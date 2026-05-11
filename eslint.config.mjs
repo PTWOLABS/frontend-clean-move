@@ -1,4 +1,5 @@
 import { defineConfig, globalIgnores } from "eslint/config";
+import eslintConfigPrettier from "eslint-config-prettier";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
@@ -9,6 +10,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-build/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
@@ -16,6 +18,7 @@ const eslintConfig = defineConfig([
     ".codex/**",
     "docs/superpowers/**",
   ]),
+  eslintConfigPrettier,
 ]);
 
 export default eslintConfig;

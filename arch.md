@@ -249,7 +249,7 @@ Uso no projeto:
 
 Uso no projeto:
 
-- Configuração em `vitest.config.ts`:
+- Configuração em `vitest.config.mjs`:
   - Ambiente `jsdom`.
   - `setupFiles` com `src/test/setup-tests.ts`.
 
@@ -298,4 +298,3 @@ Suponha uma nova feature de **agendamentos** (`booking`):
 
 **Princípio geral**: cada feature deve conter tudo o que é específico daquele domínio (UI, hooks, tipos, schemas, API).  
 Infraestrutura, estilos e helpers mais genéricos ficam em `shared` ou `components/ui`.
-

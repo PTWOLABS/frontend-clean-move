@@ -1,13 +1,9 @@
-import { ArrowLeft } from 'lucide-react';
-import {
-  type FieldValues,
-  useFormContext,
-  useWatch,
-} from 'react-hook-form';
-import { type ZodType } from 'zod';
+import { ArrowLeft } from "lucide-react";
+import { type FieldValues, useFormContext, useWatch } from "react-hook-form";
+import { type ZodType } from "zod";
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/shared/utils/cn';
+import { Button } from "@/components/ui/button";
+import { cn } from "@/shared/utils/cn";
 
 type StepActionsProps<TValues extends FieldValues> = {
   submitLabel: string;
@@ -34,8 +30,8 @@ export function StepActions<TValues extends FieldValues>({
   return (
     <div
       className={cn(
-        'grid gap-3',
-        onBack && 'flex flex-col-reverse sm:grid sm:grid-cols-[0.82fr_1.18fr]',
+        "grid gap-3",
+        onBack && "flex flex-col-reverse sm:grid sm:grid-cols-[0.82fr_1.18fr]",
       )}
     >
       {onBack ? (

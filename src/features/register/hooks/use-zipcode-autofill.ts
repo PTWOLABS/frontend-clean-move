@@ -1,22 +1,17 @@
-import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useFormContext, useWatch } from "react-hook-form";
 
-import { fetchAddressByZipCode } from '../api/viacep';
-import { type AddressStepValues } from '../schemas/register-schema';
+import { fetchAddressByZipCode } from "../api/viacep";
+import { type AddressStepValues } from "../schemas/register-schema";
 
-const onlyDigits = (value: string) => value.replace(/\D/g, '');
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
 export function useZipCodeAutofill() {
-  const {
-    clearErrors,
-    control,
-    getValues,
-    setError,
-    setValue,
-  } = useFormContext<AddressStepValues>();
-  const zipCode = useWatch({ control, name: 'zipCode' });
-  const normalizedZipCode = onlyDigits(zipCode ?? '');
+  const { clearErrors, control, getValues, setError, setValue } =
+    useFormContext<AddressStepValues>();
+  const zipCode = useWatch({ control, name: "zipCode" });
+  const normalizedZipCode = onlyDigits(zipCode ?? "");
 
   const {
     data: address,
@@ -25,7 +20,7 @@ export function useZipCodeAutofill() {
     isSuccess,
   } = useQuery({
     enabled: normalizedZipCode.length === 8,
-    queryKey: ['viacep', normalizedZipCode],
+    queryKey: ["viacep", normalizedZipCode],
     queryFn: ({ signal }) => fetchAddressByZipCode(normalizedZipCode, signal),
     retry: false,
     staleTime: 1000 * 60 * 10,
@@ -37,30 +32,30 @@ export function useZipCodeAutofill() {
     }
 
     if (!address) {
-      setError('zipCode', {
-        type: 'manual',
-        message: 'CEP não encontrado.',
+      setError("zipCode", {
+        type: "manual",
+        message: "CEP não encontrado.",
       });
       return;
     }
 
-    clearErrors('zipCode');
+    clearErrors("zipCode");
 
-    setValue('street', address.street, {
+    setValue("street", address.street, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue('city', address.city, {
+    setValue("city", address.city, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue('state', address.state, {
+    setValue("state", address.state, {
       shouldDirty: true,
       shouldValidate: true,
     });
 
-    if (address.complement && !getValues('complement')) {
-      setValue('complement', address.complement, {
+    if (address.complement && !getValues("complement")) {
+      setValue("complement", address.complement, {
         shouldDirty: true,
         shouldValidate: true,
       });

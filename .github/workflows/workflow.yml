@@ -1,0 +1,86 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+
+jobs:
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:run
+
+  # E2E desativado por agora — para voltar a correr no CI, remove as duas linhas seguintes (`if` + comentário).
+  e2e-tests:
+    if: false
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Subir Next.js e correr Cypress
+        run: |
+          npm run start &
+          npx --yes wait-on@8 http://127.0.0.1:3000 --timeout 120000
+          npm run cypress:run
+        env:
+          CI: true
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - run: npm ci
+      - run: npm run build

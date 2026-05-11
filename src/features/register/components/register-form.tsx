@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useMemo, useState } from "react";
+import Link from "next/link";
 
-import { RegisterSteps } from './register-steps';
-import { Form } from '@/shared/forms/form';
-import { AccountStep } from './account-step';
-import { CompanyStep } from './company-step';
-import { AddressStep } from './address-step';
-import { RegisterHeader } from './register-header';
+import { RegisterSteps } from "./register-steps";
+import { Form } from "@/shared/forms/form";
+import { AccountStep } from "./account-step";
+import { CompanyStep } from "./company-step";
+import { AddressStep } from "./address-step";
+import { RegisterHeader } from "./register-header";
 import {
   accountStepSchema,
   addressStepSchema,
@@ -19,26 +19,23 @@ import {
   type AddressStepValues,
   type CompanyStepValues,
   type RegisterFormValues,
-} from '../schemas/register-schema';
+} from "../schemas/register-schema";
 
 const stepHeaders = [
   {
-    label: 'Conta',
-    title: 'Crie sua conta',
-    description:
-      'Comece a configurar sua plataforma de gestão com poucos passos.',
+    label: "Conta",
+    title: "Crie sua conta",
+    description: "Comece a configurar sua plataforma de gestão com poucos passos.",
   },
   {
-    label: 'Empresa',
-    title: 'Dados da empresa',
-    description:
-      'Agora informe os dados principais da sua empresa para continuar o cadastro.',
+    label: "Empresa",
+    title: "Dados da empresa",
+    description: "Agora informe os dados principais da sua empresa para continuar o cadastro.",
   },
   {
-    label: 'Endereço',
-    title: 'Endereço da empresa',
-    description:
-      'Agora informe o endereço completo da empresa para finalizar o cadastro.',
+    label: "Endereço",
+    title: "Endereço da empresa",
+    description: "Agora informe o endereço completo da empresa para finalizar o cadastro.",
   },
 ] as const;
 
@@ -65,15 +62,13 @@ const getAddressValues = (data: RegisterFormValues): AddressStepValues => ({
 });
 
 const stepFormOptions = {
-  mode: 'onBlur',
-  reValidateMode: 'onChange',
+  mode: "onBlur",
+  reValidateMode: "onChange",
 } as const;
 
 export function RegisterForm() {
   const [stepOrder, setStepOrder] = useState(0);
-  const [registerData, setRegisterData] = useState<RegisterFormValues>(
-    registerDefaultValues,
-  );
+  const [registerData, setRegisterData] = useState<RegisterFormValues>(registerDefaultValues);
 
   const steps = useMemo(() => stepHeaders.map(({ label }) => ({ label })), []);
   const currentHeader = stepHeaders[stepOrder];
@@ -116,10 +111,7 @@ export function RegisterForm() {
 
   return (
     <div className="relative z-10 w-full max-w-[420px]">
-      <RegisterHeader
-        title={currentHeader.title}
-        description={currentHeader.description}
-      />
+      <RegisterHeader title={currentHeader.title} description={currentHeader.description} />
 
       <RegisterSteps steps={steps} activatedStep={stepOrder} />
 
@@ -169,7 +161,7 @@ export function RegisterForm() {
       ) : null}
 
       <p className="mt-6 text-center text-sm text-[#94A3B8]">
-        Já possui uma conta?{' '}
+        Já possui uma conta?{" "}
         <Link
           href="/login"
           className="font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"

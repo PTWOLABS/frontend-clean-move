@@ -3,4 +3,3 @@ export type Servico = {
   titulo: string;
   descricao?: string;
 };
-

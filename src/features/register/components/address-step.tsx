@@ -1,20 +1,9 @@
-import {
-  Building2,
-  Hash,
-  Home,
-  LoaderCircle,
-  MapPin,
-  MapPinned,
-  Navigation,
-} from 'lucide-react';
+import { Building2, Hash, Home, LoaderCircle, MapPin, MapPinned, Navigation } from "lucide-react";
 
-import { RegisterTextField } from './register-text-field';
-import { StepActions } from './step-actions';
-import {
-  addressStepSchema,
-  type AddressStepValues,
-} from '../schemas/register-schema';
-import { useZipCodeAutofill } from '../hooks/use-zipcode-autofill';
+import { RegisterTextField } from "./register-text-field";
+import { StepActions } from "./step-actions";
+import { addressStepSchema, type AddressStepValues } from "../schemas/register-schema";
+import { useZipCodeAutofill } from "../hooks/use-zipcode-autofill";
 
 type AddressStepProps = {
   onBack: (values: AddressStepValues) => void;
@@ -39,10 +28,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
           disabled={isFetchingAddress}
           image={
             isFetchingAddress ? (
-              <LoaderCircle
-                aria-hidden
-                className="size-5 animate-spin text-[#94A3B8]"
-              />
+              <LoaderCircle aria-hidden className="size-5 animate-spin text-[#94A3B8]" />
             ) : undefined
           }
         />
@@ -50,8 +36,8 @@ export function AddressStep({ onBack }: AddressStepProps) {
         {isFetchingAddress || hasAddressFetchError ? (
           <p className="-mt-1 text-[11px] font-medium leading-4 text-[#94A3B8] sm:col-span-2">
             {isFetchingAddress
-              ? 'Buscando endereço pelo CEP...'
-              : 'Não foi possível consultar o CEP. Preencha o endereço manualmente.'}
+              ? "Buscando endereço pelo CEP..."
+              : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
           </p>
         ) : null}
 

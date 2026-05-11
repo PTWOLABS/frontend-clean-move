@@ -1,0 +1,11 @@
+.next
+.next-build
+out
+build
+coverage
+node_modules
+.agents/**
+docs/superpowers/**
+package-lock.json
+*.min.js
+next-env.d.ts

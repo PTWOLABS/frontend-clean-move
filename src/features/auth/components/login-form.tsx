@@ -1,23 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import {
-  Check,
-  Eye,
-  EyeOff,
-  LoaderCircle,
-  LockKeyhole,
-  Mail,
-} from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { Check, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/shared/utils/cn';
-import { GoogleIcon } from '@/components/google-icon';
-import { Form } from '@/shared/forms/form';
-import { InputField } from '@/components/ui/form/input-field';
-import { LoginFormValues, loginSchema } from '../schemas/login-schema';
-import { useLogin } from '../hooks/use-login';
+import { Button } from "@/components/ui/button";
+import { cn } from "@/shared/utils/cn";
+import { GoogleIcon } from "@/components/google-icon";
+import { Form } from "@/shared/forms/form";
+import { InputField } from "@/components/ui/form/input-field";
+import { LoginFormValues, loginSchema } from "../schemas/login-schema";
+import { useLogin } from "../hooks/use-login";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +47,7 @@ export function LoginForm() {
           <InputField
             id="login-password"
             name="password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             label="Senha"
             placeholder="••••••••"
@@ -67,7 +60,7 @@ export function LoginForm() {
             image={
               <button
                 type="button"
-                aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
                 onClick={() => setShowPassword((current) => !current)}
                 className="inline-flex size-9 items-center justify-center rounded-lg text-[#94A3B8] transition-colors hover:bg-[#192333] hover:text-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
               >
@@ -99,10 +92,10 @@ export function LoginForm() {
             <span
               aria-hidden
               className={cn(
-                'flex size-5 items-center justify-center rounded-[5px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[#2563EB]/35',
+                "flex size-5 items-center justify-center rounded-[5px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[#2563EB]/35",
                 rememberMe
-                  ? 'border-[#2563EB] bg-[#2563EB]/20 text-[#38BDF8]'
-                  : 'border-[#334155] bg-[#0E1622]',
+                  ? "border-[#2563EB] bg-[#2563EB]/20 text-[#38BDF8]"
+                  : "border-[#334155] bg-[#0E1622]",
               )}
             >
               {rememberMe ? <Check className="size-4" /> : null}
@@ -124,9 +117,7 @@ export function LoginForm() {
           type="submit"
           className="h-[52px] w-full rounded-[12px] bg-[#2563EB] text-base font-semibold text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-colors hover:bg-[#1D4ED8] active:bg-[#1E40AF]"
         >
-          {isLoading ? (
-            <LoaderCircle aria-hidden className="size-5 animate-spin" />
-          ) : null}
+          {isLoading ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : null}
           Entrar
         </Button>
 
@@ -147,7 +138,7 @@ export function LoginForm() {
       </Form>
 
       <p className="mt-9 text-center text-sm text-[#94A3B8]">
-        Não tem conta?{' '}
+        Não tem conta?{" "}
         <Link
           href="/register"
           className="font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
