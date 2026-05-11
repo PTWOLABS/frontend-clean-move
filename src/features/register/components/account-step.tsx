@@ -1,25 +1,23 @@
 import { useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { GoogleIcon } from "@/components/google-icon";
+import { GoogleSignInButton } from "@/components/google-signin-button";
+import { useGoogleLogin } from "@/features/auth/hooks/use-google-login";
 import { RegisterTextField } from "./register-text-field";
 import { StepActions } from "./step-actions";
 import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
 
 export function AccountStep() {
   const [showPassword, setShowPassword] = useState(false);
+  const { mutate: googleLogin, isPending: isGoogleLoading } = useGoogleLogin();
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        className="h-[52px] w-full rounded-[12px] border-[#243244] bg-[#111B28]/65 text-base font-semibold text-[#F8FAFC] shadow-none transition-colors hover:bg-[#192333] hover:text-[#F8FAFC]"
-      >
-        <GoogleIcon />
-        Continuar com Google
-      </Button>
+      <GoogleSignInButton
+        label="Continuar com Google"
+        isLoading={isGoogleLoading}
+        onCredential={(credential) => googleLogin({ idToken: credential })}
+      />
 
       <div className="flex items-center gap-5 text-sm text-[#94A3B8]">
         <div className="h-px flex-1 bg-[#243244]" />
