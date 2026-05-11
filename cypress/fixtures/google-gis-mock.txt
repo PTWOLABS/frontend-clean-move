@@ -1,0 +1,22 @@
+(function () {
+  window.google = window.google || {};
+  window.google.accounts = window.google.accounts || {};
+  window.google.accounts.id = {
+    initialize: function (config) {
+      window.__E2E_GSI_CONFIG = config;
+    },
+    renderButton: function (parent) {
+      parent.innerHTML = "";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("data-e2e", "mock-google-submit");
+      btn.textContent = "E2E: enviar credencial Google";
+      btn.addEventListener("click", function () {
+        if (window.__E2E_GSI_CONFIG && typeof window.__E2E_GSI_CONFIG.callback === "function") {
+          window.__E2E_GSI_CONFIG.callback({ credential: "e2e-mock-google-jwt" });
+        }
+      });
+      parent.appendChild(btn);
+    },
+  };
+})();
