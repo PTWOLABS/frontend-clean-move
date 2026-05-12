@@ -19,7 +19,23 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+
+function LogoutMenuItem() {
+  const { mutate, isPending } = useLogout();
+
+  return (
+    <DropdownMenuItem
+      className="text-destructive focus:text-destructive"
+      disabled={isPending}
+      onSelect={() => mutate()}
+    >
+      <LogOut aria-hidden />
+      <span>Sair</span>
+    </DropdownMenuItem>
+  );
+}
 
 const fallbackUser = {
   name: "Usuário CleanMove",
@@ -112,10 +128,7 @@ export function AppSidebarFooter() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                <LogOut aria-hidden />
-                <span>Sair</span>
-              </DropdownMenuItem>
+              <LogoutMenuItem />
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>

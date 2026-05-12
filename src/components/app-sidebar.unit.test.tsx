@@ -12,6 +12,10 @@ const mockNavigation = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => mockNavigation.pathname,
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  }),
 }));
 
 vi.mock("@/shared/hooks/use-mobile", () => ({

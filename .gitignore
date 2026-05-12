@@ -67,7 +67,7 @@ Thumbs.db
 # Cursor / VS Code — opcional: descomente para ignorar settings locais
 # .vscode/
 # *.code-workspace
-.cursor/
+# .cursor/
 
 # Certificados locais
 *.pem

@@ -83,7 +83,7 @@ const fromFiles = loadMergedFromFiles();
 const apiBase = effective("NEXT_PUBLIC_API_BASE_URL", fromFiles);
 if (!apiBase.trim()) {
   fail(
-    "NEXT_PUBLIC_API_BASE_URL é obrigatória (URL da API, ex.: http://localhost:3333). Defina no .env.local ou no ambiente.",
+    "NEXT_PUBLIC_API_BASE_URL é obrigatória (URL da API, ex.: http://localhost:8080). Defina no .env.local ou no ambiente.",
   );
 }
 if (!isHttpUrl(apiBase)) {

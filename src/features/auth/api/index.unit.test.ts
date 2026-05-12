@@ -8,7 +8,7 @@ vi.mock("@/shared/api/httpClient", () => ({
   httpClient: (...args: unknown[]) => httpClientMock(...args),
 }));
 
-import { getCurrentUser, login, loginWithGoogle } from "./index";
+import { getCurrentUser, login, loginWithGoogle, signOut } from "./index";
 
 describe("auth/api", () => {
   beforeEach(() => {
@@ -59,5 +59,15 @@ describe("auth/api", () => {
 
     expect(httpClientMock).toHaveBeenCalledWith("/auth/me");
     expect(response).toEqual({ id: "1", name: "Fulano", email: "fulano@email.com" });
+  });
+
+  it("should send a post to /auth/sign-out", async () => {
+    httpClientMock.mockResolvedValueOnce(null);
+
+    await signOut();
+
+    expect(httpClientMock).toHaveBeenCalledWith("/auth/sign-out", {
+      method: "POST",
+    });
   });
 });
