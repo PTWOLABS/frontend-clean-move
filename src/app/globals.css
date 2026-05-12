@@ -209,6 +209,13 @@
     --border-subtle: 214 31.8% 91.4%;
     --input: 213 26.8% 83.9%;
     --ring: 221 83% 53%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-hover: 214 32% 91%;
+    --sidebar-foreground: 222 38% 7%;
+    --sidebar-active: 221 83% 53%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-border: 213 26.8% 83.9%;
   }
 
   .dark {
@@ -322,6 +329,106 @@
 
   .animation-delay-400 {
     animation-delay: 400ms;
+  }
+
+  @keyframes sheet-overlay-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes sheet-overlay-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheet-in-from-top {
+    from {
+      transform: translateY(-100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sheet-out-to-top {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(-100%);
+    }
+  }
+
+  @keyframes sheet-in-from-bottom {
+    from {
+      transform: translateY(100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sheet-out-to-bottom {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes sheet-in-from-left {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes sheet-out-to-left {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes sheet-in-from-right {
+    from {
+      transform: translateX(100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes sheet-out-to-right {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(100%);
+    }
   }
 
   @keyframes clean-reveal-up {
