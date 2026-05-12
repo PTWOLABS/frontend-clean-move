@@ -1,4 +1,3 @@
-import { AppQueryClientProvider } from "@/shared/providers/query-client-provider";
 import Image from "next/image";
 import authHeroImage from "@/assets/auth-page-image.png";
 import { ReactNode } from "react";
@@ -9,8 +8,7 @@ export default function AuthLayout({
   children: ReactNode;
 }>) {
   return (
-    <AppQueryClientProvider>
-      <main className="relative min-h-dvh overflow-x-hidden bg-[#0B0F19] text-[#F8FAFC] lg:h-dvh lg:overflow-hidden">
+    <main className="relative min-h-dvh overflow-x-hidden bg-[#0B0F19] text-[#F8FAFC] lg:h-dvh lg:overflow-hidden">
         <div
           aria-hidden
           className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_78%_5%,rgba(6,182,212,0.1),transparent_28%),linear-gradient(180deg,#0B0F19_0%,#07101D_100%)]"
@@ -42,7 +40,6 @@ export default function AuthLayout({
             </div>
           </div>
         </section>
-      </main>
-    </AppQueryClientProvider>
+    </main>
   );
 }
