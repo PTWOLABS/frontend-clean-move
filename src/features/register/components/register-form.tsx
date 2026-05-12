@@ -20,6 +20,7 @@ import {
   type CompanyStepValues,
   type RegisterFormValues,
 } from "../schemas/register-schema";
+import { useRegisterEstablishment } from "../hooks/use-register-establishment";
 
 const stepHeaders = [
   {
@@ -69,6 +70,8 @@ const stepFormOptions = {
 export function RegisterForm() {
   const [stepOrder, setStepOrder] = useState(0);
   const [registerData, setRegisterData] = useState<RegisterFormValues>(registerDefaultValues);
+  const { mutateAsync: registerEstablishmentAsync, isPending: isRegistering } =
+    useRegisterEstablishment();
 
   const steps = useMemo(() => stepHeaders.map(({ label }) => ({ label })), []);
   const currentHeader = stepHeaders[stepOrder];
@@ -83,7 +86,7 @@ export function RegisterForm() {
     setStepOrder(2);
   };
 
-  const handleAddressSubmit = (data: AddressStepValues) => {
+  const handleAddressSubmit = async (data: AddressStepValues) => {
     const nextRegisterData = {
       ...registerData,
       ...data,
@@ -96,7 +99,12 @@ export function RegisterForm() {
     }
 
     setRegisterData(result.data);
-    // TODO: enviar result.data para a chamada de cadastro quando a API existir.
+
+    try {
+      await registerEstablishmentAsync(result.data);
+    } catch {
+      // Feedback em `useRegisterEstablishment` (toast).
+    }
   };
 
   const handleCompanyBack = (data: CompanyStepValues) => {
@@ -156,7 +164,7 @@ export function RegisterForm() {
             defaultValues: getAddressValues(registerData),
           }}
         >
-          <AddressStep onBack={handleAddressBack} />
+          <AddressStep onBack={handleAddressBack} registrationPending={isRegistering} />
         </Form>
       ) : null}
 

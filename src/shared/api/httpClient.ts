@@ -11,8 +11,13 @@ const api = axios.create({
   withCredentials: true,
 });
 
-/** Não tentar refresh em 401 nestes paths (login/google/refresh). */
-const AUTH_PATHS_SKIP_REFRESH = new Set(["/auth/login", "/auth/google", "/auth/refresh"]);
+/** Não tentar refresh em 401 nestes paths (login/google/refresh/cadastro público). */
+const AUTH_PATHS_SKIP_REFRESH = new Set([
+  "/auth/login",
+  "/auth/google",
+  "/auth/refresh",
+  "/register/establishment",
+]);
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -45,16 +50,23 @@ export class ApiError extends Error {
   }
 }
 
+/** Corpo de `POST /auth/refresh` (mesmo formato da sessão após login). */
+type AuthRefreshResponse = {
+  userId: string;
+  accessToken: string;
+};
+
 let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+/** Renova o access token via cookie de sessão (`/auth/refresh`). */
 async function tryRefreshAccessToken(): Promise<boolean> {
   if (!BASE_URL) return false;
   try {
-    const res = await axios.post<{ accessToken?: string }>(
+    const res = await axios.post<AuthRefreshResponse>(
       `${BASE_URL}/auth/refresh`,
       {},
       {

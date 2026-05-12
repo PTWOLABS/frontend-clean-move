@@ -9,7 +9,7 @@ export type LoginPayload = {
   password: string;
 };
 
-/** Resposta de `POST /auth/login` e `POST /auth/google` (DTO da API). */
+/** Resposta de `POST /auth/login`, `POST /auth/google` e `POST /auth/refresh` (DTO da API). */
 export type AuthSessionResponse = {
   userId: string;
   accessToken: string;
