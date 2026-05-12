@@ -99,6 +99,7 @@ export function AddressStep({ onBack, registrationPending = false }: AddressStep
       <StepActions<AddressStepValues>
         schema={addressStepSchema}
         disabled={stepDisabled}
+        submitBusy={registrationPending}
         onBack={onBack}
         submitLabel="Finalizar cadastro"
       />

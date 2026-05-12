@@ -90,4 +90,20 @@ describe("StepActions", () => {
     expect(screen.getByRole("button", { name: /continuar/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /voltar/i })).toBeDisabled();
   });
+
+  it("should show submit spinner and disable submit when submitBusy is true", () => {
+    render(
+      <FormWrapper defaultValues={{ name: "Maria" }}>
+        <StepActions<SampleValues>
+          schema={sampleSchema}
+          submitLabel="Finalizar cadastro"
+          submitBusy
+          onBack={() => undefined}
+        />
+      </FormWrapper>,
+    );
+
+    expect(screen.getByRole("status", { name: /a enviar/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /finalizar cadastro/i })).toBeDisabled();
+  });
 });

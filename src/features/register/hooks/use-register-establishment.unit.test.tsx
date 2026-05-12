@@ -91,6 +91,22 @@ describe("useRegisterEstablishment", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
+  it("should show conflict toast on 409", async () => {
+    registerEstablishmentApiMock.mockRejectedValueOnce(
+      new ApiError({ message: "Conflict", statusCode: 409 }),
+    );
+
+    const { result } = renderHook(() => useRegisterEstablishment(), { wrapper });
+    result.current.mutate({ ...sampleForm });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(toastErrorMock).toHaveBeenCalledWith("Usuário já cadastrado.");
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
   it("should show generic toast for other api errors", async () => {
     registerEstablishmentApiMock.mockRejectedValueOnce(
       new ApiError({ message: "Boom", statusCode: 500 }),

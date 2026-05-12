@@ -22,6 +22,9 @@ export function useRegisterEstablishment() {
     },
     onError: (error) => {
       if (error instanceof ApiError) {
+        if (error.statusCode === 409) {
+          return toast.error("Usuário já cadastrado.");
+        }
         if (error.statusCode === 400) {
           return toast.error(
             error.message || "Não foi possível concluir o cadastro. Verifique os dados.",
