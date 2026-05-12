@@ -1,6 +1,14 @@
 describe("Fluxo principal", () => {
   it("navega entre as páginas de domínio", () => {
-    cy.visit("/home");
+    cy.stubLogin();
+
+    cy.visit("/login");
+    cy.get('input[name="email"]').type("joao@email.com");
+    cy.get('input[name="password"]').type("supersenha");
+    cy.contains("button", /^entrar$/i).click();
+    cy.wait("@loginRequest");
+
+    cy.url().should("include", "/home");
 
     cy.contains("Domínio Auth / Login").click();
     cy.url().should("include", "/login");
