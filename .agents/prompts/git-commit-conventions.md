@@ -26,6 +26,8 @@ Apaga as linhas `Co-authored-by: ...`, guarda e fecha o editor. Em alternativa, 
 - **Corpo:** parágrafos curtos após linha em branco, se o commit precisar de contexto.
 - **Granularidade:** preferir **um commit por ficheiro** (ou por mudança mínima coerente) com mensagem específica em vez de um único commit vago.
 
+**Fluxo (um ficheiro de cada vez, ordem lógica para revisão):** regra do projeto em `.cursor/rules/git-commit-flow.mdc`.
+
 ## Exemplo bom
 
 ```text
