@@ -7,10 +7,12 @@ import { useZipCodeAutofill } from "../hooks/use-zipcode-autofill";
 
 type AddressStepProps = {
   onBack: (values: AddressStepValues) => void;
+  registrationPending?: boolean;
 };
 
-export function AddressStep({ onBack }: AddressStepProps) {
+export function AddressStep({ onBack, registrationPending = false }: AddressStepProps) {
   const { hasAddressFetchError, isFetchingAddress } = useZipCodeAutofill();
+  const stepDisabled = isFetchingAddress || registrationPending;
 
   return (
     <>
@@ -25,7 +27,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
           label="CEP"
           icon={MapPin}
           fieldClassName="sm:col-span-2"
-          disabled={isFetchingAddress}
+          disabled={stepDisabled}
           image={
             isFetchingAddress ? (
               <LoaderCircle aria-hidden className="size-5 animate-spin text-[#94A3B8]" />
@@ -49,7 +51,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
           label="Rua"
           icon={Navigation}
           fieldClassName="sm:col-span-2"
-          disabled={isFetchingAddress}
+          disabled={stepDisabled}
         />
 
         <RegisterTextField
@@ -59,7 +61,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
           placeholder="123"
           label="Número"
           icon={Hash}
-          disabled={isFetchingAddress}
+          disabled={stepDisabled}
         />
 
         <RegisterTextField
@@ -69,7 +71,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
           placeholder="Cidade"
           label="Cidade"
           icon={Building2}
-          disabled={isFetchingAddress}
+          disabled={stepDisabled}
         />
 
         <RegisterTextField
@@ -80,7 +82,7 @@ export function AddressStep({ onBack }: AddressStepProps) {
           label="Estado"
           icon={MapPinned}
           maxLength={2}
-          disabled={isFetchingAddress}
+          disabled={stepDisabled}
         />
 
         <RegisterTextField
@@ -90,13 +92,13 @@ export function AddressStep({ onBack }: AddressStepProps) {
           placeholder="Sala, bloco ou referência"
           label="Complemento"
           icon={Home}
-          disabled={isFetchingAddress}
+          disabled={stepDisabled}
         />
       </div>
 
       <StepActions<AddressStepValues>
         schema={addressStepSchema}
-        disabled={isFetchingAddress}
+        disabled={stepDisabled}
         onBack={onBack}
         submitLabel="Finalizar cadastro"
       />
