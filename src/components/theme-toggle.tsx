@@ -5,8 +5,9 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/shared/utils/cn";
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -28,6 +29,7 @@ export function ThemeToggle() {
       size="icon"
       aria-label="Alternar tema"
       onClick={() => setTheme(isDark ? "light" : "dark")}
+      className={cn("shrink-0", className)}
     >
       {isDark ? <Moon aria-hidden className="size-4" /> : <Sun aria-hidden className="size-4" />}
     </Button>
