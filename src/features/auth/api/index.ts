@@ -19,3 +19,9 @@ export async function loginWithGoogle(payload: GoogleLoginPayload) {
 export async function getCurrentUser() {
   return httpClient<AuthUser>("/auth/me");
 }
+
+export async function signOut() {
+  return httpClient<unknown>("/auth/sign-out", {
+    method: "POST",
+  });
+}
