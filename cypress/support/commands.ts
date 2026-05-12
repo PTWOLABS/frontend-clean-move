@@ -71,6 +71,20 @@ Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" 
     userId: "1",
   };
 
+  if (status === 200) {
+    cy.intercept("POST", "**/auth/refresh", {
+      statusCode: 200,
+      body: {
+        accessToken: String(responseBody.accessToken),
+        userId: String(responseBody.userId ?? "1"),
+      },
+    });
+    cy.intercept("GET", "**/auth/me", {
+      statusCode: 200,
+      body: { id: "1", name: "João da Silva", email: "joao@email.com" },
+    });
+  }
+
   cy.intercept("POST", "**/auth/login", {
     statusCode: status,
     body: responseBody,
@@ -94,6 +108,20 @@ Cypress.Commands.add(
       accessToken: "fake-google-access-token",
       userId: "google-user-1",
     };
+
+    if (status === 200) {
+      cy.intercept("POST", "**/auth/refresh", {
+        statusCode: 200,
+        body: {
+          accessToken: String(responseBody.accessToken),
+          userId: String(responseBody.userId ?? "google-user-1"),
+        },
+      });
+      cy.intercept("GET", "**/auth/me", {
+        statusCode: 200,
+        body: { id: "google-user-1", name: "João Google", email: "joao@email.com" },
+      });
+    }
 
     cy.intercept("POST", "**/auth/google", {
       statusCode: status,
