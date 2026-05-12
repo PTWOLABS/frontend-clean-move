@@ -4,9 +4,11 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { renderWithProviders } from "@/test/test-utils";
 
+const pushMock = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: pushMock,
     replace: vi.fn(),
     prefetch: vi.fn(),
     back: vi.fn(),
@@ -15,12 +17,16 @@ vi.mock("next/navigation", () => ({
 
 const fetchCompanyByCnpjMock = vi.fn();
 const fetchAddressByZipCodeMock = vi.fn();
+const registerEstablishmentMock = vi.fn();
 
 vi.mock("../api/brasilapi", () => ({
   fetchCompanyByCnpj: (...args: unknown[]) => fetchCompanyByCnpjMock(...args),
 }));
 vi.mock("../api/viacep", () => ({
   fetchAddressByZipCode: (...args: unknown[]) => fetchAddressByZipCodeMock(...args),
+}));
+vi.mock("../api/establishment", () => ({
+  registerEstablishment: (...args: unknown[]) => registerEstablishmentMock(...args),
 }));
 
 vi.mock("next/image", () => ({
@@ -37,6 +43,8 @@ describe("RegisterForm", () => {
   beforeEach(() => {
     fetchCompanyByCnpjMock.mockReset();
     fetchAddressByZipCodeMock.mockReset();
+    registerEstablishmentMock.mockReset();
+    pushMock.mockReset();
   });
 
   it("should start at the account step and show the login link", () => {
@@ -103,6 +111,9 @@ describe("RegisterForm", () => {
       state: "SP",
       complement: "Sala 1",
     });
+    registerEstablishmentMock.mockResolvedValue({
+      establishmentId: "b2955e61-179f-40a4-8852-ef185e4ab671",
+    });
 
     renderWithProviders(<RegisterForm />);
 
@@ -143,8 +154,27 @@ describe("RegisterForm", () => {
     await waitFor(() => expect(finalizar).toBeEnabled());
     await user.click(finalizar);
 
-    expect(
-      screen.getByRole("heading", { name: /endereço da empresa/i, level: 1 }),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(registerEstablishmentMock).toHaveBeenCalledTimes(1));
+
+    expect(registerEstablishmentMock).toHaveBeenCalledWith({
+      name: "João da Silva",
+      tradeName: "Empresa",
+      legalBusinessName: "Empresa LTDA",
+      email: "joao@email.com",
+      password: "supersenha",
+      cnpj: "12345678000190",
+      phone: "11999991234",
+      address: {
+        street: "Av. Paulista, 1000",
+        complement: "Sala 1",
+        country: "Brasil",
+        state: "SP",
+        zipCode: "01310-100",
+        city: "São Paulo",
+      },
+      slug: "empresa",
+    });
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/login"));
   });
 });
