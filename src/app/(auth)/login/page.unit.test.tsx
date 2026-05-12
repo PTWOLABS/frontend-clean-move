@@ -3,6 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "@/test/test-utils";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
+
 vi.mock("next/image", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => {

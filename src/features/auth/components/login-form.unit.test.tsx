@@ -5,10 +5,18 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderWithProviders } from "@/test/test-utils";
 
 const loginMock = vi.fn();
+const googleLoginMock = vi.fn();
 
 vi.mock("../hooks/use-login", () => ({
   useLogin: () => ({
     mutate: loginMock,
+    isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-google-login", () => ({
+  useGoogleLogin: () => ({
+    mutate: googleLoginMock,
     isPending: false,
   }),
 }));
@@ -26,6 +34,7 @@ import { LoginForm } from "./login-form";
 describe("LoginForm", () => {
   beforeEach(() => {
     loginMock.mockReset();
+    googleLoginMock.mockReset();
   });
 
   it("should render the main fields and buttons", () => {
@@ -34,7 +43,7 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
     expect(screen.getByLabelText("Senha")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^entrar$/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /entrar com google/i })).toBeInTheDocument();
+    expect(screen.getByTestId("google-signin-slot")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /esqueci minha senha/i })).toHaveAttribute(
       "href",
       "/recuperar-senha",

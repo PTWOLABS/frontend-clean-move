@@ -4,8 +4,9 @@ services:
       context: .
       target: runner
     container_name: clean-move-web
+    # Host:container — padrão 3450; script de testes escolhe porta livre. Override: DOCKER_WEB_HOST_PORT
     ports:
-      - "3000:3000"
+      - "${DOCKER_WEB_HOST_PORT:-3450}:3000"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://host.docker.internal:3333}

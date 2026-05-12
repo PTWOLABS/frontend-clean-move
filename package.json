@@ -2,14 +2,15 @@
   "name": "clean-move",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
     "clean": "rm -rf .next .next-build",
-    "dev": "next dev",
+    "dev": "tsx scripts/validate-env.ts development && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "tsx scripts/validate-env.ts production && next start",
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -72,10 +73,11 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jest-dom": "^5.5.0",
     "eslint-plugin-testing-library": "^7.16.0",
-    "jsdom": "^29.0.0",
+    "jsdom": "^26.1.0",
     "postcss": "^8.5.8",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.0"
   }

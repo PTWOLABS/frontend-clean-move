@@ -15,8 +15,39 @@ cleanup() {
 
 trap cleanup EXIT
 
+# Porta publicada no host (container continua em 3000). Padrão: 3450; se ocupada, próxima livre.
+port_in_use() {
+  local port=$1
+  (echo >/dev/tcp/127.0.0.1/"$port") &>/dev/null
+}
+
+pick_web_host_port() {
+  local start=3450
+  local end=3550
+  local p
+  for ((p = start; p <= end; p++)); do
+    if ! port_in_use "$p"; then
+      echo "$p"
+      return 0
+    fi
+  done
+  echo ">> ERRO: nenhuma porta livre no host entre ${start} e ${end}." >&2
+  return 1
+}
+
+if [[ -z "${DOCKER_WEB_HOST_PORT:-}" ]]; then
+  DOCKER_WEB_HOST_PORT="$(pick_web_host_port)" || exit 1
+  export DOCKER_WEB_HOST_PORT
+fi
+echo ">> Porta no host: ${DOCKER_WEB_HOST_PORT} → container :3000"
+
 echo ">> Subindo app (web) no Docker..."
-docker compose up -d --build web
+if ! docker compose up -d --build web; then
+  echo ""
+  echo ">> Falha ao subir o compose. Se for conflito de porta, defina manualmente, por exemplo:"
+  echo "   DOCKER_WEB_HOST_PORT=3451 npm run test:docker:all"
+  exit 1
+fi
 
 echo ">> Aguardando healthcheck do web..."
 for _ in {1..60}; do

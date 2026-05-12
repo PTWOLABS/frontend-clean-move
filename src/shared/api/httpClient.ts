@@ -1,15 +1,18 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
 
 if (!BASE_URL) {
   console.warn("NEXT_PUBLIC_API_BASE_URL não está definido. Configure o arquivo .env.local.");
 }
 
 const api = axios.create({
-  baseURL: BASE_URL ?? "",
+  baseURL: BASE_URL || undefined,
   withCredentials: true,
 });
+
+/** Não tentar refresh em 401 nestes paths (login/google/refresh). */
+const AUTH_PATHS_SKIP_REFRESH = new Set(["/auth/login", "/auth/google", "/auth/refresh"]);
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -18,6 +21,7 @@ type RequestOptions = {
   headers?: HeadersInit;
   body?: unknown;
   signal?: AbortSignal;
+  _retry?: boolean;
 };
 
 type ApiErrorProps = {
@@ -45,6 +49,28 @@ let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
+}
+
+async function tryRefreshAccessToken(): Promise<boolean> {
+  if (!BASE_URL) return false;
+  try {
+    const res = await axios.post<{ accessToken?: string }>(
+      `${BASE_URL}/auth/refresh`,
+      {},
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+    const token = res.data?.accessToken;
+    if (token) {
+      accessToken = token;
+      return true;
+    }
+  } catch {
+    // sessão inválida ou rede — deixa o 401 original propagar
+  }
+  return false;
 }
 
 function headersInitToRecord(headers?: HeadersInit): Record<string, string> {
@@ -82,7 +108,7 @@ function parseErrorPayload(data: unknown): unknown {
 
 export async function httpClient<TResponse>(
   path: string,
-  { method = "GET", headers, body, signal }: RequestOptions = {},
+  { method = "GET", headers, body, signal, _retry }: RequestOptions = {},
 ): Promise<TResponse> {
   const requestHeaders = headersInitToRecord(headers);
 
@@ -106,6 +132,18 @@ export async function httpClient<TResponse>(
     const response = await api.request<TResponse>(config);
     return normalizeParsedBody(response.data) as TResponse;
   } catch (error) {
+    if (
+      !_retry &&
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      !AUTH_PATHS_SKIP_REFRESH.has(path)
+    ) {
+      const refreshed = await tryRefreshAccessToken();
+      if (refreshed) {
+        return httpClient<TResponse>(path, { method, headers, body, signal, _retry: true });
+      }
+    }
+
     if (axios.isAxiosError(error) && error.response) {
       const { status, statusText, data } = error.response;
       const errorBody = parseErrorPayload(data);

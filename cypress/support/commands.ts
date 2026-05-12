@@ -16,6 +16,21 @@ declare global {
         alias?: string;
       }): Chainable<void>;
 
+      /**
+       * Substitui o script GIS da Google por um mock que chama o callback com JWT fictício.
+       * Deve ser chamado antes de `cy.visit` na página de login.
+       */
+      stubGoogleIdentityScript(): Chainable<void>;
+
+      /**
+       * Stub do POST /auth/google (alias `@googleLoginRequest`).
+       */
+      stubGoogleLogin(options?: {
+        status?: number;
+        body?: Record<string, unknown>;
+        alias?: string;
+      }): Chainable<void>;
+
       /** Stub the BrasilAPI CNPJ lookup endpoint. */
       stubCnpjLookup(options?: {
         status?: number;
@@ -53,7 +68,7 @@ const defaultAccount: AccountStepValues = {
 Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" } = {}) => {
   const responseBody = body ?? {
     accessToken: "fake-access-token",
-    user: { id: "1", name: "João da Silva", email: "joao@email.com" },
+    userId: "1",
   };
 
   cy.intercept("POST", "**/auth/login", {
@@ -61,6 +76,31 @@ Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" 
     body: responseBody,
   }).as(alias);
 });
+
+Cypress.Commands.add("stubGoogleIdentityScript", () => {
+  cy.fixture("google-gis-mock.txt").then((js: string) => {
+    cy.intercept("GET", "https://accounts.google.com/gsi/client*", {
+      statusCode: 200,
+      headers: { "content-type": "application/javascript; charset=utf-8" },
+      body: js,
+    }).as("googleGisScript");
+  });
+});
+
+Cypress.Commands.add(
+  "stubGoogleLogin",
+  ({ status = 200, body, alias = "googleLoginRequest" } = {}) => {
+    const responseBody = body ?? {
+      accessToken: "fake-google-access-token",
+      userId: "google-user-1",
+    };
+
+    cy.intercept("POST", "**/auth/google", {
+      statusCode: status,
+      body: responseBody,
+    }).as(alias);
+  },
+);
 
 Cypress.Commands.add("stubCnpjLookup", ({ status = 200, body, alias = "cnpjLookup" } = {}) => {
   const responseBody = body ?? {

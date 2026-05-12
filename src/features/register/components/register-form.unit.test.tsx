@@ -4,6 +4,15 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { renderWithProviders } from "@/test/test-utils";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
+
 const fetchCompanyByCnpjMock = vi.fn();
 const fetchAddressByZipCodeMock = vi.fn();
 

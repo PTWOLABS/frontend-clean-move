@@ -54,7 +54,7 @@ describe("useLogin", () => {
   it("should persist the access token and redirect to /home on success", async () => {
     loginApiMock.mockResolvedValueOnce({
       accessToken: "token-de-acesso",
-      user: { id: "1", name: "Fulano", email: "fulano@email.com" },
+      userId: "1",
     });
 
     const { result } = renderHook(() => useLogin(), { wrapper });

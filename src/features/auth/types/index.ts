@@ -9,7 +9,15 @@ export type LoginPayload = {
   password: string;
 };
 
-export type LoginResponse = {
-  user: AuthUser;
+/** Resposta de `POST /auth/login` e `POST /auth/google` (DTO da API). */
+export type AuthSessionResponse = {
+  userId: string;
   accessToken: string;
 };
+
+export type GoogleLoginPayload = {
+  idToken: string;
+};
+
+/** @deprecated Preferir AuthSessionResponse. */
+export type LoginResponse = AuthSessionResponse;
