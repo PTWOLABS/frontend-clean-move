@@ -9,37 +9,37 @@ export default function AuthLayout({
 }>) {
   return (
     <main className="relative min-h-dvh overflow-x-hidden bg-[#0B0F19] text-[#F8FAFC] lg:h-dvh lg:overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_78%_5%,rgba(6,182,212,0.1),transparent_28%),linear-gradient(180deg,#0B0F19_0%,#07101D_100%)]"
-        />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_78%_5%,rgba(6,182,212,0.1),transparent_28%),linear-gradient(180deg,#0B0F19_0%,#07101D_100%)]"
+      />
 
-        <section className="relative flex min-h-dvh items-center justify-center px-4 py-4 sm:px-6 lg:h-dvh lg:px-8 lg:py-4">
-          <div className="grid min-h-[calc(100dvh-2rem)] w-full max-w-[1600px] overflow-hidden rounded-[24px] border border-[#1D2734] bg-[#141B24] shadow-[0_30px_120px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.03)] lg:h-[calc(100dvh-2rem)] lg:max-h-[900px] lg:min-h-0 lg:grid-cols-[1.12fr_0.88fr]">
-            <div className="relative hidden min-h-0 overflow-hidden border-r border-[#1D2734] lg:block">
-              <Image
-                src={authHeroImage}
-                alt="Painel visual da CleanMove para gestão de estética automotiva"
-                fill
-                priority
-                sizes="(min-width: 1024px) 56vw, 0vw"
-                className="object-cover object-center"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,16,29,0.12)_0%,rgba(7,16,29,0)_45%,rgba(7,16,29,0.2)_100%)]"
-              />
-            </div>
-
-            <div className="relative flex min-h-0 items-center justify-center bg-[linear-gradient(135deg,rgba(20,27,36,0.98)_0%,rgba(11,15,25,0.96)_100%)] px-6 py-8 sm:px-10 lg:overflow-hidden lg:px-12 lg:py-5 xl:px-16">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_16%,rgba(37,99,235,0.12),transparent_30%)]"
-              />
-              <div className="relative z-10 w-full max-w-[420px]">{children}</div>
-            </div>
+      <section className="relative flex min-h-dvh items-center justify-center px-4 py-4 sm:px-6 lg:h-dvh lg:px-8 lg:py-4">
+        <div className="grid min-h-[calc(100dvh-2rem)] w-full max-w-[1600px] overflow-hidden rounded-[24px] border border-[#1D2734] bg-[#141B24] shadow-[0_30px_120px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.03)] lg:h-[calc(100dvh-2rem)] lg:max-h-[900px] lg:min-h-0 lg:grid-cols-[1.12fr_0.88fr]">
+          <div className="relative hidden min-h-0 overflow-hidden border-r border-[#1D2734] lg:block">
+            <Image
+              src={authHeroImage}
+              alt="Painel visual da CleanMove para gestão de estética automotiva"
+              fill
+              priority
+              sizes="(min-width: 1024px) 56vw, 0vw"
+              className="object-cover object-center"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,16,29,0.12)_0%,rgba(7,16,29,0)_45%,rgba(7,16,29,0.2)_100%)]"
+            />
           </div>
-        </section>
+
+          <div className="relative flex min-h-0 items-center justify-center bg-[linear-gradient(135deg,rgba(20,27,36,0.98)_0%,rgba(11,15,25,0.96)_100%)] px-6 py-8 sm:px-10 lg:overflow-hidden lg:px-12 lg:py-5 xl:px-16">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_16%,rgba(37,99,235,0.12),transparent_30%)]"
+            />
+            <div className="relative z-10 w-full max-w-[420px]">{children}</div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

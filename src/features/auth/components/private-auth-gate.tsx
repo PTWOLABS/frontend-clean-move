@@ -29,7 +29,11 @@ export function PrivateAuthGate({ children }: Props) {
 
   if (isPending) {
     return (
-      <div className="flex min-h-[50vh] w-full flex-col gap-4 p-6" aria-busy="true" aria-label="A carregar sessão">
+      <div
+        className="flex min-h-[50vh] w-full flex-col gap-4 p-6"
+        aria-busy="true"
+        aria-label="A carregar sessão"
+      >
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-32 w-full max-w-xl" />
         <Skeleton className="h-8 w-3/4 max-w-md" />
