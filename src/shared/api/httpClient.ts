@@ -11,11 +11,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
-/** Não tentar refresh em 401 nestes paths (login/google/refresh/cadastro público). */
+/** Não tentar refresh em 401 nestes paths (login/google/refresh/sign-out/cadastro público). */
 const AUTH_PATHS_SKIP_REFRESH = new Set([
   "/auth/login",
   "/auth/google",
   "/auth/refresh",
+  "/auth/sign-out",
   "/register/establishment",
 ]);
 
@@ -58,12 +59,14 @@ type AuthRefreshResponse = {
 
 let accessToken: string | null = null;
 
+/** Pedido de refresh em curso (mutex para bootstrap pós-F5 e vários 401). */
+let refreshInFlight: Promise<boolean> | null = null;
+
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
-/** Renova o access token via cookie de sessão (`/auth/refresh`). */
-async function tryRefreshAccessToken(): Promise<boolean> {
+async function performRefreshAccessToken(): Promise<boolean> {
   if (!BASE_URL) return false;
   try {
     const res = await axios.post<AuthRefreshResponse>(
@@ -83,6 +86,26 @@ async function tryRefreshAccessToken(): Promise<boolean> {
     // sessão inválida ou rede — deixa o 401 original propagar
   }
   return false;
+}
+
+/** Renova o access token via cookie de sessão (`/auth/refresh`), com mutex. */
+async function tryRefreshAccessToken(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = performRefreshAccessToken().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+/**
+ * Garante access token em memória a partir do cookie de sessão (pós-F5 ou tab novo).
+ * Se já existir token, não chama a rede.
+ */
+export async function ensureSessionFromCookie(): Promise<boolean> {
+  if (accessToken) return true;
+  if (!BASE_URL) return false;
+  return tryRefreshAccessToken();
 }
 
 function headersInitToRecord(headers?: HeadersInit): Record<string, string> {
