@@ -2,7 +2,7 @@ import * as React from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { MetricCardSparkline } from "@/components/dashboard/metric-card-sparkline";
+import { MetricCardSparkline } from "@/features/dashboard/components/metric-card-sparkline";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/shared/utils/cn";
 
