@@ -66,7 +66,7 @@ Cada domínio deve, idealmente, seguir um padrão de subpastas:
   - Funções de integração com a **API REST externa**.
   - Encapsulam o `httpClient` compartilhado.
   - Exemplos:
-    - `auth/api/index.ts`: `login`, `getCurrentUser`.
+    - `auth/api/index.ts`: `login`, `getCurrentUser` (delega em `getCurrentUserProfile`, `GET /user/me`).
     - `user/api/index.ts`: `getCurrentUserProfile`.
     - `service/api/index.ts`: `listServicos`.
 - `components/`

@@ -28,6 +28,7 @@ cypress/downloads/
 
 # Next.js
 .next/
+# Pasta legada (ex-distDir); mantida para clones com artefactos antigos
 .next-build/
 out/
 .vercel/

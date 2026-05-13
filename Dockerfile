@@ -35,7 +35,7 @@ RUN chown node:node /app
 USER node
 
 COPY --chown=node:node --from=build /app/public ./public
-COPY --chown=node:node --from=build /app/.next-build ./.next-build
+COPY --chown=node:node --from=build /app/.next ./.next
 COPY --chown=node:node --from=build /app/package.json ./package.json
 COPY --chown=node:node --from=build /app/next.config.ts ./next.config.ts
 COPY --chown=node:node --from=build /app/scripts ./scripts
