@@ -1,7 +1,8 @@
 import { httpClient } from "@/shared/api/httpClient";
 
-import type { User } from "../types";
+import type { GetCurrentUserResponse, User } from "../types";
 
-export async function getCurrentUserProfile() {
-  return httpClient<User>("/users/me");
+export async function getCurrentUserProfile(): Promise<User> {
+  const res = await httpClient<GetCurrentUserResponse>("/user/me");
+  return res.user;
 }
