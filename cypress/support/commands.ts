@@ -65,6 +65,34 @@ const defaultAccount: AccountStepValues = {
   password: "supersenha",
 };
 
+/** Corpo de `GET /user/me` para stubs E2E (alinhado ao contrato da API). */
+function buildUserMeResponse(overrides: { id?: string; name?: string; email?: string } = {}) {
+  const id = overrides.id ?? "1";
+  const name = overrides.name ?? "João da Silva";
+  const email = overrides.email ?? "joao@email.com";
+  return {
+    user: {
+      id,
+      name,
+      email,
+      role: "CUSTOMER",
+      phone: "",
+      address: {
+        street: "",
+        complement: "",
+        country: "",
+        state: "",
+        zipCode: "",
+        city: "",
+      },
+      socialAccounts: [],
+      profileComplete: true,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
+  };
+}
+
 Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" } = {}) => {
   const responseBody = body ?? {
     accessToken: "fake-access-token",
@@ -79,9 +107,9 @@ Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" 
         userId: String(responseBody.userId ?? "1"),
       },
     });
-    cy.intercept("GET", "**/auth/me", {
+    cy.intercept("GET", "**/user/me", {
       statusCode: 200,
-      body: { id: "1", name: "João da Silva", email: "joao@email.com" },
+      body: buildUserMeResponse(),
     });
   }
 
@@ -117,9 +145,13 @@ Cypress.Commands.add(
           userId: String(responseBody.userId ?? "google-user-1"),
         },
       });
-      cy.intercept("GET", "**/auth/me", {
+      cy.intercept("GET", "**/user/me", {
         statusCode: 200,
-        body: { id: "google-user-1", name: "João Google", email: "joao@email.com" },
+        body: buildUserMeResponse({
+          id: "google-user-1",
+          name: "João Google",
+          email: "joao@email.com",
+        }),
       });
     }
 
