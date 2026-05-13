@@ -1,3 +1,4 @@
+import { getCurrentUserProfile } from "@/features/user/api";
 import { httpClient } from "@/shared/api/httpClient";
 
 import type { AuthSessionResponse, AuthUser, GoogleLoginPayload, LoginPayload } from "../types";
@@ -16,6 +17,13 @@ export async function loginWithGoogle(payload: GoogleLoginPayload) {
   });
 }
 
-export async function getCurrentUser() {
-  return httpClient<AuthUser>("/auth/me");
+export async function getCurrentUser(): Promise<AuthUser> {
+  const user = await getCurrentUserProfile();
+  return { id: user.id, name: user.name, email: user.email };
+}
+
+export async function signOut() {
+  return httpClient<unknown>("/auth/sign-out", {
+    method: "POST",
+  });
 }

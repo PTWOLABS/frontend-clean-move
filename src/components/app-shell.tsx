@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { AppSidebar, AppSidebarMobileTrigger } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppQueryClientProvider } from "@/shared/providers/query-client-provider";
+import { PrivateAuthGate } from "@/features/auth/components/private-auth-gate";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
 
 export function AppShell({
@@ -13,8 +13,8 @@ export function AppShell({
 }>) {
   return (
     <ThemeProvider>
-      <AppQueryClientProvider>
-        <SidebarProvider>
+      <SidebarProvider>
+        <PrivateAuthGate>
           <div className="flex min-h-screen w-full bg-background">
             <AppSidebar />
 
@@ -30,8 +30,8 @@ export function AppShell({
               <main className="w-full px-4 py-6 md:px-8 md:py-8">{children}</main>
             </SidebarInset>
           </div>
-        </SidebarProvider>
-      </AppQueryClientProvider>
+        </PrivateAuthGate>
+      </SidebarProvider>
     </ThemeProvider>
   );
 }

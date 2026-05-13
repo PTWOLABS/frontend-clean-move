@@ -7,7 +7,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "clean": "rm -rf .next .next-build",
+    "clean": "rm -rf .next",
     "dev": "tsx scripts/validate-env.ts development && next dev",
     "build": "next build",
     "start": "tsx scripts/validate-env.ts production && next start",

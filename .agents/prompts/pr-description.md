@@ -10,6 +10,7 @@ LANGUAGE RULES (MANDATORY):
 - Use correct grammar and proper accentuation (acentuação correta)
 - Do NOT mix languages
 - Do NOT use English except for code, commands, or file names
+- Do NOT use Portuguese from Portugal except for code, commands, or file names
 
 You MUST inspect:
 

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+
+import { AppRootProviders } from "@/shared/providers/app-root-providers";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
-        {children}
+        <AppRootProviders>{children}</AppRootProviders>
       </body>
     </html>
   );

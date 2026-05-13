@@ -19,7 +19,24 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import { ApiError } from "@/shared/api/httpClient";
+
+function LogoutMenuItem() {
+  const { mutate, isPending } = useLogout();
+
+  return (
+    <DropdownMenuItem
+      className="text-destructive focus:text-destructive"
+      disabled={isPending}
+      onSelect={() => mutate()}
+    >
+      <LogOut aria-hidden />
+      <span>Sair</span>
+    </DropdownMenuItem>
+  );
+}
 
 const fallbackUser = {
   name: "Usuário CleanMove",
@@ -38,11 +55,17 @@ function getInitials(name: string) {
 }
 
 export function AppSidebarFooter() {
-  const { data, isLoading, isError } = useCurrentUser();
+  const { data, isLoading, isError, error } = useCurrentUser();
   const { isMobile } = useSidebar();
   const user = data ?? fallbackUser;
   const name = isLoading ? "Carregando perfil" : user.name;
-  const email = isLoading || isError ? fallbackUser.email : user.email;
+  const isUserNotFound = error instanceof ApiError && error.statusCode === 404;
+  const email =
+    isLoading || isError
+      ? isUserNotFound
+        ? "Conta não encontrada."
+        : fallbackUser.email
+      : user.email;
   const initials = getInitials(name).toUpperCase();
 
   return (
@@ -112,10 +135,7 @@ export function AppSidebarFooter() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                <LogOut aria-hidden />
-                <span>Sair</span>
-              </DropdownMenuItem>
+              <LogoutMenuItem />
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
