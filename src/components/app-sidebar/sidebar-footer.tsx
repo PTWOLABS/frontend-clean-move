@@ -63,7 +63,7 @@ export function AppSidebarFooter() {
   const email =
     isLoading || isError
       ? isUserNotFound
-        ? "Conta já não existe"
+        ? "Conta não encontrada."
         : fallbackUser.email
       : user.email;
   const initials = getInitials(name).toUpperCase();

@@ -16,7 +16,7 @@ export function UserSummary() {
     return (
       <p>
         {isNotFound
-          ? "Esta conta já não existe para a sessão atual. A redirecionar para o login…"
+          ? "Esta conta não existe. Direcionando para o login…"
           : "Não foi possível carregar os dados do usuário."}
       </p>
     );
