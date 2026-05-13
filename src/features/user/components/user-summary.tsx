@@ -12,8 +12,7 @@ export function UserSummary() {
   }
 
   if (isError || !data) {
-    const isNotFound =
-      error instanceof ApiError && error.statusCode === 404;
+    const isNotFound = error instanceof ApiError && error.statusCode === 404;
     return (
       <p>
         {isNotFound
