@@ -2,23 +2,35 @@
 
 import { useEffect, useState } from "react";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { ApiError } from "@/shared/api/httpClient";
 
-import { useDebouncedValue } from "../hooks/use-debounced-value";
+import { useDebounce } from "../hooks/use-debounced-value";
+import { useDeleteService } from "../hooks/use-delete-service";
 import { useEstablishmentServices } from "../hooks/use-establishment-services";
+import type { EstablishmentServiceItem } from "../types";
 
 import { ServiceCatalogHeader } from "./service-catalog-header";
+import { ServiceCatalogListSkeleton } from "./service-catalog-list-skeleton";
 import { ServiceCatalogMobileCards } from "./service-catalog-mobile-cards";
+import { ServiceCatalogPagination } from "./service-catalog-pagination";
 import { ServiceCatalogToolbar, type ServiceActiveFilter } from "./service-catalog-toolbar";
 import { ServiceCatalogTable } from "./service-catalog-table";
+import { ServiceFormSheet } from "./service-form-sheet";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 5;
 const SEARCH_DEBOUNCE_MS = 350;
 
 function filterToIsActive(filter: ServiceActiveFilter): boolean | undefined {
@@ -34,7 +46,14 @@ export function ServiceCatalog() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ServiceActiveFilter>("all");
 
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
+  const [editingService, setEditingService] = useState<EstablishmentServiceItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<EstablishmentServiceItem | null>(null);
+
+  const deleteMutation = useDeleteService(ownerId ?? "");
+
+  // Debounce alinhado ao query param `name` (match parcial, case-insensitive no backend).
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
   useEffect(() => {
     // Ao mudar filtros enviados ao servidor, a página deve voltar a 1 (evita página vazia).
@@ -53,12 +72,12 @@ export function ServiceCatalog() {
     isActive: isActiveParam,
   });
 
-  const { data, isLoading, isRefetching, isError, error, refetch } = servicesQuery;
+  const { data, isLoading, isFetching, isError, error, refetch } = servicesQuery;
   const total = data?.total ?? 0;
   const items = data?.items ?? [];
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const canPrev = page > 1;
-  const canNext = page < totalPages;
+  /** Página alinhada aos dados mostrados (com `keepPreviousData` evita desincronizar lista vs paginação). */
+  const displayedPage = data?.page ?? page;
 
   if (userLoading) {
     return (
@@ -103,15 +122,69 @@ export function ServiceCatalog() {
     );
   }
 
-  const showSkeleton = isLoading && !data;
+  const showListSkeleton = isLoading && !data;
+
+  const handleServiceSheetOpenChange = (open: boolean) => {
+    setServiceSheetOpen(open);
+    if (!open) setEditingService(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    const id = deleteTarget?.id;
+    if (!id) return;
+    try {
+      await deleteMutation.mutateAsync(id);
+      setDeleteTarget(null);
+    } catch {
+      // Erro tratado em `useDeleteService` (toast).
+    }
+  };
 
   return (
     <div className="space-y-6">
       <ServiceCatalogHeader
         totalCount={total}
-        isRefreshing={isRefetching}
-        onRefresh={() => void refetch()}
+        onAddService={() => {
+          setEditingService(null);
+          setServiceSheetOpen(true);
+        }}
       />
+
+      <ServiceFormSheet
+        open={serviceSheetOpen}
+        onOpenChange={handleServiceSheetOpenChange}
+        ownerId={ownerId}
+        editingService={editingService}
+      />
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar serviço?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser anulada. O serviço{" "}
+              <span className="font-medium text-foreground">{deleteTarget?.serviceName ?? ""}</span>{" "}
+              será removido permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancelar</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteMutation.isPending || !deleteTarget?.id}
+              onClick={() => void handleConfirmDelete()}
+            >
+              {deleteMutation.isPending ? "A eliminar…" : "Eliminar"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Card>
         <CardContent className="space-y-6 p-4 sm:p-6 bg-card/80 rounded-lg">
@@ -122,53 +195,41 @@ export function ServiceCatalog() {
             onActiveFilterChange={setActiveFilter}
           />
 
-          {showSkeleton ? (
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-full rounded-md" />
-              <Skeleton className="h-12 w-full rounded-md" />
-              <Skeleton className="h-12 w-full rounded-md" />
-            </div>
+          {showListSkeleton ? (
+            <ServiceCatalogListSkeleton count={PAGE_SIZE} />
           ) : items.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
               Nenhum serviço encontrado para os filtros atuais.
             </p>
           ) : (
             <>
-              <ServiceCatalogTable items={items} />
-              <ServiceCatalogMobileCards items={items} />
+              <ServiceCatalogTable
+                items={items}
+                onEdit={(item) => {
+                  setEditingService(item);
+                  setServiceSheetOpen(true);
+                }}
+                onDelete={(item) => setDeleteTarget(item)}
+              />
+              <ServiceCatalogMobileCards
+                items={items}
+                onEdit={(item) => {
+                  setEditingService(item);
+                  setServiceSheetOpen(true);
+                }}
+                onDelete={(item) => setDeleteTarget(item)}
+              />
             </>
           )}
 
-          {!showSkeleton && total > 0 ? (
-            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                Página {page} de {totalPages}
-                <span className="mx-2 hidden sm:inline">·</span>
-                <span className="block sm:inline">{total} resultado(s)</span>
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!canPrev}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <ChevronLeft className="size-4" aria-hidden />
-                  Anterior
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!canNext}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Seguinte
-                  <ChevronRight className="size-4" aria-hidden />
-                </Button>
-              </div>
-            </div>
+          {!showListSkeleton && total > 0 ? (
+            <ServiceCatalogPagination
+              page={displayedPage}
+              totalPages={totalPages}
+              total={total}
+              isFetching={isFetching}
+              onPageChange={setPage}
+            />
           ) : null}
         </CardContent>
       </Card>
