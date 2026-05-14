@@ -1,6 +1,6 @@
 "use client";
 
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import type {
@@ -142,12 +142,27 @@ export function RevenueAppointmentsChartCard({
           aria-label="Gráfico de receita e agendamentos ao longo do tempo"
           className="h-72 w-full aspect-auto"
         >
-          <LineChart
+          <AreaChart
             accessibilityLayer
             data={data}
             margin={{ top: 12, right: 8, bottom: 0, left: 0 }}
           >
+            <defs>
+              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-revenueInCents)" stopOpacity={0.28} />
+                <stop offset="55%" stopColor="var(--color-revenueInCents)" stopOpacity={0.08} />
+                <stop offset="100%" stopColor="var(--color-revenueInCents)" stopOpacity={0} />
+              </linearGradient>
+
+              <linearGradient id="appointmentsGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-appointments)" stopOpacity={0.22} />
+                <stop offset="60%" stopColor="var(--color-appointments)" stopOpacity={0.06} />
+                <stop offset="100%" stopColor="var(--color-appointments)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+
             <CartesianGrid vertical={false} strokeDasharray="4 4" />
+
             <XAxis
               dataKey="label"
               tickLine={false}
@@ -155,6 +170,7 @@ export function RevenueAppointmentsChartCard({
               tickMargin={10}
               interval="preserveStartEnd"
             />
+
             <YAxis
               yAxisId="revenue"
               width={56}
@@ -162,6 +178,7 @@ export function RevenueAppointmentsChartCard({
               axisLine={false}
               tickFormatter={formatCompactCurrency}
             />
+
             <YAxis
               yAxisId="appointments"
               orientation="right"
@@ -169,31 +186,36 @@ export function RevenueAppointmentsChartCard({
               tickLine={false}
               axisLine={false}
             />
+
             <ChartTooltip
               cursor={{ stroke: "hsl(var(--border))", strokeDasharray: "4 4" }}
               content={<RevenueAppointmentsTooltip />}
             />
-            <Line
+
+            <Area
               yAxisId="revenue"
               type="monotone"
               dataKey="revenueInCents"
               stroke="var(--color-revenueInCents)"
+              fill="url(#revenueGradient)"
               strokeWidth={2.5}
               dot={{ r: 3, fill: "var(--color-revenueInCents)", strokeWidth: 0 }}
               activeDot={{ r: 5 }}
               isAnimationActive={false}
             />
-            <Line
+
+            <Area
               yAxisId="appointments"
               type="monotone"
               dataKey="appointments"
               stroke="var(--color-appointments)"
+              fill="url(#appointmentsGradient)"
               strokeWidth={2.5}
               dot={{ r: 3, fill: "var(--color-appointments)", strokeWidth: 0 }}
               activeDot={{ r: 5 }}
               isAnimationActive={false}
             />
-          </LineChart>
+          </AreaChart>
         </ChartContainer>
       ) : (
         <div className="flex min-h-72 items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/20 px-4 text-center text-sm text-muted-foreground">
