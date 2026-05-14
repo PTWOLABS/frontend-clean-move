@@ -4,4 +4,5 @@ export const QUERY_KEYS = {
   googleLogin: ["googleLogin"],
   logout: ["logout"],
   registerEstablishment: ["registerEstablishment"],
+  metricsOverview: (establishmentId: string) => ["metrics-overview", establishmentId],
 };
