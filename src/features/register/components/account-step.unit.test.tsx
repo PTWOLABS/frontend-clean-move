@@ -1,27 +1,41 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Form } from "@/shared/forms/form";
 import { renderWithProviders } from "@/test/test-utils";
 
-vi.mock("next/image", () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    return <img {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />;
-  },
-}));
+import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
+
+type MockGoogleSignInButtonProps = {
+  label: string;
+  isLoading?: boolean;
+  onCredential: (credential: string) => void;
+};
+
+const googleLoginMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/features/auth/hooks/use-google-login", () => ({
   useGoogleLogin: () => ({
-    mutate: vi.fn(),
+    mutate: googleLoginMock,
     isPending: false,
   }),
 }));
 
+vi.mock("@/components/google-signin-button", () => ({
+  GoogleSignInButton: ({ label, isLoading, onCredential }: MockGoogleSignInButtonProps) => (
+    <button
+      type="button"
+      disabled={isLoading}
+      onClick={() => onCredential("test-google-credential")}
+    >
+      {label}
+    </button>
+  ),
+}));
+
 import { AccountStep } from "./account-step";
-import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
 
 const defaultValues: AccountStepValues = {
   fullName: "",
@@ -40,11 +54,13 @@ function renderAccountStep(onSubmit = vi.fn()) {
       <AccountStep />
     </Form>,
   );
+
   return onSubmit;
 }
 
 describe("AccountStep", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.stubEnv("NEXT_PUBLIC_GOOGLE_CLIENT_ID", "test-google-client-id");
   });
 
@@ -52,7 +68,7 @@ describe("AccountStep", () => {
     vi.unstubAllEnvs();
   });
 
-  it("should render all the account step fields", () => {
+  it("should render all the account step fields", async () => {
     renderAccountStep();
 
     expect(screen.getByLabelText("Nome completo")).toBeInTheDocument();
@@ -61,21 +77,41 @@ describe("AccountStep", () => {
     expect(screen.getByLabelText("Senha")).toBeInTheDocument();
 
     expect(screen.getByRole("button", { name: /continuar com google/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^continuar$/i })).toBeDisabled();
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^continuar$/i })).toBeDisabled();
+    });
+  });
+
+  it("should trigger google login when google button receives a credential", async () => {
+    const user = userEvent.setup();
+
+    renderAccountStep();
+
+    await user.click(screen.getByRole("button", { name: /continuar com google/i }));
+
+    expect(googleLoginMock).toHaveBeenCalledTimes(1);
+    expect(googleLoginMock).toHaveBeenCalledWith({
+      idToken: "test-google-credential",
+    });
   });
 
   it("should toggle the password visibility", async () => {
     const user = userEvent.setup();
+
     renderAccountStep();
 
     const password = screen.getByLabelText("Senha") as HTMLInputElement;
-    expect(password.type).toBe("password");
+
+    expect(password).toHaveAttribute("type", "password");
 
     await user.click(screen.getByRole("button", { name: /exibir senha/i }));
-    expect(password.type).toBe("text");
+
+    expect(password).toHaveAttribute("type", "text");
 
     await user.click(screen.getByRole("button", { name: /ocultar senha/i }));
-    expect(password.type).toBe("password");
+
+    expect(password).toHaveAttribute("type", "password");
   });
 
   it("should enable continue and submit the data when the step is valid", async () => {
@@ -88,10 +124,17 @@ describe("AccountStep", () => {
     await user.type(screen.getByLabelText("Senha"), "supersenha");
 
     const submit = screen.getByRole("button", { name: /^continuar$/i });
-    await waitFor(() => expect(submit).toBeEnabled());
+
+    await waitFor(() => {
+      expect(submit).toBeEnabled();
+    });
+
     await user.click(submit);
 
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
         fullName: "João da Silva",
