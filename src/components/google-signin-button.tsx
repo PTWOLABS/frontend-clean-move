@@ -159,7 +159,7 @@ export function GoogleSignInButton({
       <button
         type="button"
         tabIndex={-1}
-        aria-label={label}
+        aria-hidden="true"
         disabled={!interactive}
         className={cn(
           "pointer-events-none flex h-full w-full items-center justify-center gap-3 rounded-[12px] border border-[#243244] bg-[#111B28]/65 text-base font-semibold text-[#F8FAFC] transition-colors",
@@ -175,9 +175,9 @@ export function GoogleSignInButton({
           </>
         )}
       </button>
+
       <div
         ref={overlayRef}
-        aria-hidden
         className={cn(
           "absolute inset-0 z-10 flex items-center justify-center opacity-0 [&>div]:w-full",
           !interactive && "pointer-events-none",
