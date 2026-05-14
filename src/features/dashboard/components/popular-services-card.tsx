@@ -69,7 +69,7 @@ export function PopularServicesCard({
       }
     >
       {visibleServices.length ? (
-        <div className="space-y-4">
+        <div className="mt-15 space-y-4">
           {visibleServices.map((service) => {
             const percentage = getPercentage(service.completedCount, totalServices);
 
