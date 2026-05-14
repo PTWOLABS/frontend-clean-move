@@ -1,3 +1,5 @@
+import { formatBrlFromCents } from "@/shared/money/format-brl-money";
+
 const categoryLabels: Record<string, string> = {
   WASH: "Lavagem",
   ESTETICA: "Estética",
@@ -5,19 +7,13 @@ const categoryLabels: Record<string, string> = {
   INTERIOR: "Interior",
 };
 
-const priceFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
 /**
  * Formata preço em BRL. Assume `amount` em **centavos** inteiros (ex.: 3000 → R$ 30,00).
  * Valores inválidos ou ausentes mostram R$ 0,00.
+ * @see formatBrlFromCents em `@/shared/money/format-brl-money`
  */
 export function formatServicePriceBrl(amount: unknown): string {
-  const n = typeof amount === "number" ? amount : Number(amount);
-  const cents = Number.isFinite(n) ? n : 0;
-  return priceFormatter.format(cents / 100);
+  return formatBrlFromCents(amount);
 }
 
 export function formatEstimatedDuration(minInMinutes: number, maxInMinutes: number): string {
