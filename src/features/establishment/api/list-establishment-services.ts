@@ -34,7 +34,7 @@ export async function listEstablishmentServices(
   signal?: AbortSignal,
 ): Promise<EstablishmentServicesPage> {
   const page = params.page ?? 1;
-  const size = params.size ?? 20;
+  const size = params.size ?? 5;
   const path = `${LIST_PATH}/${ownerId}${buildQuery({ ...params, page, size })}`;
   const raw = await httpClient<EstablishmentServicesListApiResponse | EstablishmentServiceItem[]>(
     path,
