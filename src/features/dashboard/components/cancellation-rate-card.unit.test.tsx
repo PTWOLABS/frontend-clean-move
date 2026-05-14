@@ -16,14 +16,27 @@ type MockRadialBarChartProps = {
     value: number;
   }>;
   children: React.ReactNode;
+  startAngle?: number;
+  endAngle?: number;
+  cx?: string;
+  cy?: string;
+  innerRadius?: string | number;
+  outerRadius?: string | number;
+  barSize?: number;
 };
 
 type MockPolarAngleAxisProps = {
+  type?: string;
   domain: [number, number];
+  tick?: boolean;
 };
 
 type MockRadialBarProps = {
   dataKey: string;
+  background?: unknown;
+  cornerRadius?: number;
+  fill?: string;
+  isAnimationActive?: boolean;
 };
 
 const rechartsMocks = vi.hoisted(() => ({
@@ -69,20 +82,25 @@ describe("CancellationRateCard", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the current rate, target, comparison, and chart label", () => {
+  it("renders the current rate, target, legend, and chart label", () => {
     render(<CancellationRateCard data={dashboardCancellationRateMock} />);
 
     expect(screen.getByRole("heading", { name: /taxa de cancelamento/i })).toBeInTheDocument();
+
     expect(screen.getAllByText("4,2%")).toHaveLength(2);
     expect(screen.getByText("Cancelamentos")).toBeInTheDocument();
+
     expect(screen.getByText("Atual")).toBeInTheDocument();
     expect(screen.getByText("5,8%")).toBeInTheDocument();
     expect(screen.getByText("Meta")).toBeInTheDocument();
-    expect(screen.getByText("1,6 p.p. abaixo da meta")).toBeInTheDocument();
+
+    expect(screen.queryByText("1,6 p.p. abaixo da meta")).not.toBeInTheDocument();
+
     expect(screen.getByTestId("chart-container")).toHaveAttribute(
       "aria-label",
       "Taxa de cancelamento atual de 4,2%",
     );
+
     expect(rechartsMocks.RadialBarChart).toHaveBeenCalledWith(
       expect.objectContaining({
         data: [
@@ -94,16 +112,30 @@ describe("CancellationRateCard", () => {
               100,
           },
         ],
+        startAngle: 190,
+        endAngle: -10,
+        cx: "50%",
+        cy: "50%",
+        innerRadius: "80%",
+        outerRadius: "100%",
+        barSize: 16,
       }),
     );
+
     expect(rechartsMocks.PolarAngleAxis).toHaveBeenCalledWith(
       expect.objectContaining({
+        type: "number",
         domain: [0, 100],
+        tick: false,
       }),
     );
+
     expect(rechartsMocks.RadialBar).toHaveBeenCalledWith(
       expect.objectContaining({
         dataKey: "value",
+        cornerRadius: 999,
+        fill: "url(#cancellationGradient)",
+        isAnimationActive: false,
       }),
     );
   });
