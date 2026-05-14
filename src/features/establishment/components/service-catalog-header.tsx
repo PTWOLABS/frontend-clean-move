@@ -1,19 +1,13 @@
-import { Plus, RotateCcw } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type ServiceCatalogHeaderProps = {
   totalCount: number;
-  isRefreshing: boolean;
-  onRefresh: () => void;
+  onAddService: () => void;
 };
 
-export function ServiceCatalogHeader({
-  totalCount,
-  isRefreshing,
-  onRefresh,
-}: ServiceCatalogHeaderProps) {
+export function ServiceCatalogHeader({ totalCount, onAddService }: ServiceCatalogHeaderProps) {
   const countLabel =
     totalCount === 1 ? "1 serviço cadastrado" : `${totalCount} serviços cadastrados`;
 
@@ -26,30 +20,10 @@ export function ServiceCatalogHeader({
         <p className="text-sm text-muted-foreground">{countLabel}</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-        >
-          <RotateCcw className={isRefreshing ? "animate-spin" : ""} aria-hidden />
-          Restaurar
+        <Button type="button" size="sm" className="gap-2" onClick={onAddService}>
+          <Plus aria-hidden />
+          Adicionar serviço
         </Button>
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-flex">
-                <Button type="button" size="sm" className="gap-2" disabled>
-                  <Plus aria-hidden />
-                  Adicionar serviço
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Em breve</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
     </div>
   );
