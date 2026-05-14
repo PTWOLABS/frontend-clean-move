@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { listEstablishmentServices } from "../api/list-establishment-services";
 import type { ListEstablishmentServicesQuery } from "../types";
@@ -14,12 +14,13 @@ export function useEstablishmentServices({
   ownerId,
   enabled = true,
   page = 1,
-  size = 20,
+  size = 5,
   name,
   isActive,
 }: UseEstablishmentServicesArgs) {
   return useQuery({
     queryKey: ["establishments", ownerId, "services", { page, size, name, isActive }],
+    placeholderData: keepPreviousData,
     queryFn: ({ signal }) =>
       listEstablishmentServices(
         ownerId,
