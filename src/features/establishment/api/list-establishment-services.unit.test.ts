@@ -36,8 +36,16 @@ describe("establishment/api/list-establishment-services", () => {
 
   it("omits isActive when undefined", async () => {
     httpClientMock.mockResolvedValueOnce({ items: [], total: 0 });
-    await listEstablishmentServices("id-1", { page: 1, size: 20 });
-    expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=20", {
+    await listEstablishmentServices("id-1", { page: 1, size: 5 });
+    expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=5", {
+      signal: undefined,
+    });
+  });
+
+  it("uses default size 5 when size is omitted", async () => {
+    httpClientMock.mockResolvedValueOnce({ items: [], total: 0 });
+    await listEstablishmentServices("id-1", { page: 1 });
+    expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=5", {
       signal: undefined,
     });
   });
