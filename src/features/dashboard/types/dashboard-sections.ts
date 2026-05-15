@@ -1,3 +1,5 @@
+import { AppointmentCategories, AppointmentStatus } from "@/shared/types/appointments";
+
 export type RevenueAppointmentsPoint = {
   date: string;
   label: string;
@@ -28,3 +30,14 @@ export type DashboardPeriodOption = {
   value: string;
   label: string;
 };
+
+export type DashboardMetricsFiltersBase = {
+  startsAt?: Date;
+  endsAt?: Date;
+  categories?: AppointmentCategories;
+  status?: AppointmentStatus;
+};
+
+export type DashboardMetricsOverviewFilters = DashboardMetricsFiltersBase;
+
+export type DashboardMetricsAppointments = DashboardMetricsFiltersBase;
