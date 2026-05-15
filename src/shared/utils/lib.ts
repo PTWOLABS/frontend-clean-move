@@ -12,3 +12,23 @@ export function formatCompactCurrency(valueInCents: number) {
 export function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
+
+export function buildQueryParamsFilters(
+  filters?: Record<string, string | number>,
+): string | undefined {
+  if (!filters) return;
+
+  const params = new URLSearchParams();
+
+  for (const [filterName, filterValue] of Object.entries(filters)) {
+    const value = filterValue.toString().trim();
+
+    if (value) {
+      params.append(filterName, value);
+    }
+  }
+
+  const queryString = params.toString();
+
+  return queryString ? `?${queryString}` : undefined;
+}
