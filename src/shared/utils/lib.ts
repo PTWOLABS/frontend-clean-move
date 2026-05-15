@@ -13,9 +13,7 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
 
-export function buildQueryParamsFilters(
-  filters?: Record<string, string | number>,
-): string | undefined {
+export function buildQueryParamsFilters(filters?: Record<string, string | number>): string | void {
   if (!filters) return;
 
   const params = new URLSearchParams();
@@ -30,7 +28,7 @@ export function buildQueryParamsFilters(
 
   const queryString = params.toString();
 
-  return queryString ? `?${queryString}` : undefined;
+  return queryString && `?${queryString}`;
 }
 export function normalizeQueryParamsFilters<T extends object>(
   filters?: T,
