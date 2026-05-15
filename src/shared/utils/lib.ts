@@ -32,3 +32,18 @@ export function buildQueryParamsFilters(
 
   return queryString ? `?${queryString}` : undefined;
 }
+export function normalizeQueryParamsFilters<T extends object>(
+  filters?: T,
+): Partial<Record<keyof T, string>> {
+  if (!filters) return {};
+
+  const normalizedFilters = {} as Partial<Record<keyof T, string>>;
+
+  for (const [filterName, filterValue] of Object.entries(filters) as [keyof T, T[keyof T]][]) {
+    if (filterValue !== undefined && filterValue !== null) {
+      normalizedFilters[filterName] = String(filterValue).trim();
+    }
+  }
+
+  return normalizedFilters;
+}
