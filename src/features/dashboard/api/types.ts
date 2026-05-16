@@ -33,7 +33,7 @@ export type DashboardMetricsRevenueAndAppointments = {
   summary: {
     revenueInCents: number;
     appointments: number;
-    revenueTrendPercent: number;
-    appointmentsTrendPercent: number;
+    revenueTrendPercent: number | null;
+    appointmentsTrendPercent: number | null;
   };
 };
