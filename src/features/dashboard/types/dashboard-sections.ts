@@ -38,7 +38,7 @@ export type DashboardGranularity = "auto" | "daily" | "weekly" | "monthly";
 export type DashboardMetricsFiltersBase = {
   startsAt?: Date;
   endsAt?: Date;
-  categories?: AppointmentCategories;
+  categories?: AppointmentCategories[];
   status?: AppointmentStatus;
   period?: DashboardPeriod;
   granularity?: DashboardGranularity;
@@ -48,10 +48,4 @@ export type DashboardMetricsOverviewFilters = DashboardMetricsFiltersBase & Pagi
 
 export type DashboardMetricsAppointmentsFilters = DashboardMetricsFiltersBase;
 
-export type DashboardMetricsAppointment = {
-  appointmentsCount: number;
-  cancellationRate: {
-    currentPercent: number;
-    comparisonPercentPoints: number;
-  };
-};
+export type DashboardPopularServicesFilters = DashboardMetricsFiltersBase & PaginationParams;
