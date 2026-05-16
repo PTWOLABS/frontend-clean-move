@@ -49,3 +49,6 @@ export type DashboardMetricsOverviewFilters = DashboardMetricsFiltersBase & Pagi
 export type DashboardMetricsAppointmentsFilters = DashboardMetricsFiltersBase;
 
 export type DashboardPopularServicesFilters = DashboardMetricsFiltersBase & PaginationParams;
+
+export type DashboardMetricsRevenueAndAppointmentsFilters = DashboardMetricsFiltersBase &
+  PaginationParams;

@@ -7,4 +7,5 @@ export const QUERY_KEYS = {
   metricsOverview: ["metrics-overview"],
   metricsAppointment: ["metrics-appointment"],
   popularServices: ["popular-services"],
+  revenueAndAppointments: ["revenue-and-appointments"],
 };
