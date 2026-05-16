@@ -6,6 +6,7 @@ import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 import type { CancellationRateData } from "@/features/dashboard/types/dashboard-sections";
 
 import { DashboardPanel } from "./dashboard-panel";
+import { useFetchMetricsAppointment } from "../hooks/use-fetch-metrics-appointments";
 
 type CancellationRateCardProps = {
   data: CancellationRateData | null;
@@ -26,12 +27,10 @@ function formatPercent(value: number) {
   }).format(value)}%`;
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
+export function CancellationRateCard({ className }: CancellationRateCardProps) {
+  const { data: appointmentsData } = useFetchMetricsAppointment({});
 
-export function CancellationRateCard({ data, className }: CancellationRateCardProps) {
-  if (!data) {
+  if (!appointmentsData) {
     return (
       <DashboardPanel title="Taxa de cancelamento" className={className}>
         <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/20 px-4 text-center text-sm text-muted-foreground">
@@ -41,11 +40,12 @@ export function CancellationRateCard({ data, className }: CancellationRateCardPr
     );
   }
 
-  const gaugeValue =
-    data.targetPercent > 0 ? clamp((data.currentPercent / data.targetPercent) * 100, 0, 100) : 0;
+  const gaugeValue = appointmentsData.cancellationRate.currentPercent;
 
-  const currentPercent = formatPercent(data.currentPercent);
-  const targetPercent = formatPercent(data.targetPercent);
+  const currentPercent = formatPercent(appointmentsData.cancellationRate.currentPercent);
+  const targetPercent = formatPercent(
+    appointmentsData.cancellationRate.comparisonPercentPoints || 0,
+  );
 
   return (
     <DashboardPanel title="Taxa de cancelamento" className={className}>

@@ -9,22 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type {
-  DashboardPeriodOption,
-  PopularService,
-} from "@/features/dashboard/types/dashboard-sections";
+import type { DashboardPeriodOption } from "@/features/dashboard/types/dashboard-sections";
 
 import { DashboardPanel } from "./dashboard-panel";
 import { formatNumber } from "@/shared/utils/lib";
+import { useFetchPopularServices } from "../hooks/use-fetch-popular-services";
 
 type PopularServicesCardProps = {
-  items: PopularService[];
   periodOptions: DashboardPeriodOption[];
   defaultPeriod: string;
   className?: string;
 };
-
-const MAX_VISIBLE_SERVICES = 5;
 
 function getPercentage(value: number, total: number) {
   if (total <= 0) {
@@ -35,17 +30,18 @@ function getPercentage(value: number, total: number) {
 }
 
 export function PopularServicesCard({
-  items,
   periodOptions,
   defaultPeriod,
   className,
 }: PopularServicesCardProps) {
+  const { data } = useFetchPopularServices();
+
   const [period, setPeriod] = React.useState(defaultPeriod);
   const selectedPeriod = periodOptions.some((option) => option.value === period)
     ? period
     : periodOptions[0]?.value;
-  const totalServices = items.reduce((total, item) => total + item.completedCount, 0);
-  const visibleServices = items.slice(0, MAX_VISIBLE_SERVICES);
+  const totalServices = data?.totalServices || 0;
+  const visibleServices = data?.popularServices || [];
 
   return (
     <DashboardPanel
