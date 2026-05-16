@@ -28,21 +28,41 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
 
+type QueryParamPrimitive = string | number | boolean;
+type QueryParamValue =
+  | QueryParamPrimitive
+  | null
+  | undefined
+  | readonly (QueryParamPrimitive | null | undefined)[];
+type NormalizedQueryParamValue = string | string[];
+
+function appendQueryParam(params: URLSearchParams, name: string, rawValue: unknown) {
+  if (rawValue === undefined || rawValue === null) return;
+
+  const value = String(rawValue).trim();
+
+  if (value) {
+    params.append(name, value);
+  }
+}
+
 export function buildQueryParamsFilters(
-  filters?: Record<string, string | number | undefined>,
+  filters?: Record<string, QueryParamValue | NormalizedQueryParamValue>,
 ): string | undefined {
   if (!filters) return;
 
   const params = new URLSearchParams();
 
   for (const [filterName, filterValue] of Object.entries(filters)) {
-    if (filterValue === undefined) continue;
+    if (Array.isArray(filterValue)) {
+      for (const item of filterValue) {
+        appendQueryParam(params, filterName, item);
+      }
 
-    const value = filterValue.toString().trim();
-
-    if (value) {
-      params.append(filterName, value);
+      continue;
     }
+
+    appendQueryParam(params, filterName, filterValue);
   }
 
   const queryString = params.toString();
@@ -50,15 +70,25 @@ export function buildQueryParamsFilters(
   return queryString && `?${queryString}`;
 }
 
-export function normalizeQueryParamsFilters<T extends object>(filters?: T): Record<string, string> {
+export function normalizeQueryParamsFilters<T extends object>(
+  filters?: T,
+): Record<string, NormalizedQueryParamValue> {
   if (!filters) return {};
 
-  const normalizedFilters: Record<string, string> = {};
+  const normalizedFilters: Record<string, NormalizedQueryParamValue> = {};
 
   for (const [filterName, filterValue] of Object.entries(filters)) {
-    if (filterValue !== undefined && filterValue !== null) {
-      normalizedFilters[filterName] = String(filterValue).trim();
+    if (filterValue === undefined || filterValue === null) continue;
+
+    if (Array.isArray(filterValue)) {
+      normalizedFilters[filterName] = filterValue
+        .filter((item) => item !== undefined && item !== null)
+        .map((item) => String(item).trim());
+
+      continue;
     }
+
+    normalizedFilters[filterName] = String(filterValue).trim();
   }
 
   return normalizedFilters;
