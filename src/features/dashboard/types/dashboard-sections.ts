@@ -1,4 +1,5 @@
 import { AppointmentCategories, AppointmentStatus } from "@/shared/types/appointments";
+import { PaginationParams } from "@/shared/types/pagination";
 
 export type RevenueAppointmentsPoint = {
   date: string;
@@ -31,13 +32,26 @@ export type DashboardPeriodOption = {
   label: string;
 };
 
+export type DashboardPeriod = "this-month" | "last-7-days" | "last-30-days";
+export type DashboardGranularity = "auto" | "daily" | "weekly" | "monthly";
+
 export type DashboardMetricsFiltersBase = {
   startsAt?: Date;
   endsAt?: Date;
   categories?: AppointmentCategories;
   status?: AppointmentStatus;
+  period?: DashboardPeriod;
+  granularity?: DashboardGranularity;
 };
 
-export type DashboardMetricsOverviewFilters = DashboardMetricsFiltersBase;
+export type DashboardMetricsOverviewFilters = DashboardMetricsFiltersBase & PaginationParams;
 
-export type DashboardMetricsAppointments = DashboardMetricsFiltersBase;
+export type DashboardMetricsAppointmentsFilters = DashboardMetricsFiltersBase;
+
+export type DashboardMetricsAppointment = {
+  appointmentsCount: number;
+  cancellationRate: {
+    currentPercent: number;
+    comparisonPercentPoints: number;
+  };
+};
