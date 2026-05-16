@@ -107,7 +107,20 @@ vi.mock("recharts", () => ({
   },
 }));
 
+vi.mock("../hooks/use-fetch-metrics-revenue-and-appointments", () => ({
+  useFetchMetricsRevenueAndAppointment: vi.fn(),
+}));
+
+import { useFetchMetricsRevenueAndAppointment } from "../hooks/use-fetch-metrics-revenue-and-appointments";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
+
+function mockRevenueAppointmentsQuery(
+  data: ReturnType<typeof useFetchMetricsRevenueAndAppointment>["data"],
+) {
+  vi.mocked(useFetchMetricsRevenueAndAppointment).mockReturnValue({
+    data,
+  } as ReturnType<typeof useFetchMetricsRevenueAndAppointment>);
+}
 
 describe("RevenueAppointmentsChartCard", () => {
   beforeEach(() => {
@@ -115,13 +128,12 @@ describe("RevenueAppointmentsChartCard", () => {
   });
 
   it("renders title, legend, chart label, and period summary", () => {
-    render(
-      <RevenueAppointmentsChartCard
-        data={dashboardRevenueAppointmentsMock}
-        summary={dashboardRevenueAppointmentsSummaryMock}
-        periodLabel="Diário"
-      />,
-    );
+    mockRevenueAppointmentsQuery({
+      points: dashboardRevenueAppointmentsMock,
+      summary: dashboardRevenueAppointmentsSummaryMock,
+    });
+
+    render(<RevenueAppointmentsChartCard periodLabel="Diário" />);
 
     expect(
       screen.getByRole("heading", {
@@ -188,6 +200,17 @@ describe("RevenueAppointmentsChartCard", () => {
       }),
     );
 
+    const revenueAxisProps = vi
+      .mocked(rechartsMocks.YAxis)
+      .mock.calls.find(([props]) => props.yAxisId === "revenue")?.[0];
+
+    expect(revenueAxisProps?.tickFormatter).toBeInstanceOf(Function);
+    const formattedSmallRevenue = (revenueAxisProps?.tickFormatter as (value: number) => string)(
+      27000,
+    );
+    expect(formattedSmallRevenue).toContain("270");
+    expect(formattedSmallRevenue).not.toBe("R$ 0k");
+
     expect(rechartsMocks.YAxis).toHaveBeenCalledWith(
       expect.objectContaining({
         yAxisId: "appointments",
@@ -224,9 +247,12 @@ describe("RevenueAppointmentsChartCard", () => {
   });
 
   it("renders an empty state when there is no chart data", () => {
-    render(
-      <RevenueAppointmentsChartCard data={[]} summary={dashboardRevenueAppointmentsSummaryMock} />,
-    );
+    mockRevenueAppointmentsQuery({
+      points: [],
+      summary: dashboardRevenueAppointmentsSummaryMock,
+    });
+
+    render(<RevenueAppointmentsChartCard />);
 
     expect(
       screen.getByText("Sem dados de receita e agendamentos para o período."),
@@ -234,5 +260,20 @@ describe("RevenueAppointmentsChartCard", () => {
 
     expect(screen.queryByTestId("area-chart")).not.toBeInTheDocument();
     expect(screen.queryByTestId("line-chart")).not.toBeInTheDocument();
+  });
+
+  it("renders a neutral comparison label when trend values are null", () => {
+    mockRevenueAppointmentsQuery({
+      points: dashboardRevenueAppointmentsMock,
+      summary: {
+        ...dashboardRevenueAppointmentsSummaryMock,
+        revenueTrendPercent: null,
+        appointmentsTrendPercent: null,
+      },
+    });
+
+    render(<RevenueAppointmentsChartCard />);
+
+    expect(screen.getAllByText("Sem comparação")).toHaveLength(2);
   });
 });

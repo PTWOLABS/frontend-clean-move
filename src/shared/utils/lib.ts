@@ -6,7 +6,22 @@ export function formatCurrency(valueInCents: number) {
 }
 
 export function formatCompactCurrency(valueInCents: number) {
-  return `R$ ${Math.round(valueInCents / 100000)}k`;
+  const value = valueInCents / 100;
+
+  if (Math.abs(value) >= 1000) {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 export function formatNumber(value: number) {
@@ -34,6 +49,7 @@ export function buildQueryParamsFilters(
 
   return queryString && `?${queryString}`;
 }
+
 export function normalizeQueryParamsFilters<T extends object>(filters?: T): Record<string, string> {
   if (!filters) return {};
 

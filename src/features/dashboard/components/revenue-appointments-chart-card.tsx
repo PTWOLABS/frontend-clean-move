@@ -3,21 +3,20 @@
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import type {
-  RevenueAppointmentsPoint,
-  RevenueAppointmentsSummary,
-} from "@/features/dashboard/types/dashboard-sections";
+import type { DashboardMetricsRevenueAndAppointments } from "@/features/dashboard/api/types";
 import { cn } from "@/shared/utils/cn";
 
 import { DashboardPanel } from "./dashboard-panel";
 import { formatCompactCurrency, formatCurrency, formatNumber } from "@/shared/utils/lib";
+import { useFetchMetricsRevenueAndAppointment } from "../hooks/use-fetch-metrics-revenue-and-appointments";
 
 type RevenueAppointmentsChartCardProps = {
-  data: RevenueAppointmentsPoint[];
-  summary: RevenueAppointmentsSummary;
   periodLabel?: string;
   className?: string;
 };
+
+type RevenueAppointmentsPoint = DashboardMetricsRevenueAndAppointments["points"][number];
+type RevenueAppointmentsSummary = DashboardMetricsRevenueAndAppointments["summary"];
 
 type RevenueTooltipPayload = {
   color?: string;
@@ -92,7 +91,17 @@ function RevenueAppointmentsTooltip({ active, payload }: RevenueTooltipProps) {
   );
 }
 
-function SummaryMetric({ label, value, trend }: { label: string; value: string; trend: number }) {
+function SummaryMetric({
+  label,
+  value,
+  trend,
+}: {
+  label: string;
+  value: string;
+  trend: RevenueAppointmentsSummary["revenueTrendPercent"];
+}) {
+  const hasTrend = trend !== null;
+
   return (
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -100,8 +109,13 @@ function SummaryMetric({ label, value, trend }: { label: string; value: string; 
         <p className="font-display text-xl font-semibold leading-none text-card-foreground">
           {value}
         </p>
-        <span className={cn("text-xs font-semibold", trend >= 0 ? "text-success" : "text-danger")}>
-          {formatTrend(trend)}
+        <span
+          className={cn(
+            "text-xs font-semibold",
+            hasTrend ? (trend >= 0 ? "text-success" : "text-danger") : "text-muted-foreground",
+          )}
+        >
+          {hasTrend ? formatTrend(trend) : "Sem comparação"}
         </span>
       </div>
     </div>
@@ -109,11 +123,13 @@ function SummaryMetric({ label, value, trend }: { label: string; value: string; 
 }
 
 export function RevenueAppointmentsChartCard({
-  data,
-  summary,
   periodLabel = "Diário",
   className,
 }: RevenueAppointmentsChartCardProps) {
+  const { data } = useFetchMetricsRevenueAndAppointment();
+  const points = data?.points ?? [];
+  const summary = data?.summary;
+
   return (
     <DashboardPanel
       title="Receita e agendamentos ao longo do tempo"
@@ -135,7 +151,7 @@ export function RevenueAppointmentsChartCard({
         </span>
       </div>
 
-      {data.length ? (
+      {points.length ? (
         <ChartContainer
           config={chartConfig}
           role="img"
@@ -144,7 +160,7 @@ export function RevenueAppointmentsChartCard({
         >
           <AreaChart
             accessibilityLayer
-            data={data}
+            data={points}
             margin={{ top: 12, right: 8, bottom: 0, left: 0 }}
           >
             <defs>
@@ -223,18 +239,20 @@ export function RevenueAppointmentsChartCard({
         </div>
       )}
 
-      <div className="mt-4 grid gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2">
-        <SummaryMetric
-          label="Receita no período"
-          value={formatCurrency(summary.revenueInCents)}
-          trend={summary.revenueTrendPercent}
-        />
-        <SummaryMetric
-          label="Agendamentos no período"
-          value={formatNumber(summary.appointments)}
-          trend={summary.appointmentsTrendPercent}
-        />
-      </div>
+      {summary ? (
+        <div className="mt-4 grid gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2">
+          <SummaryMetric
+            label="Receita no período"
+            value={formatCurrency(summary.revenueInCents)}
+            trend={summary.revenueTrendPercent}
+          />
+          <SummaryMetric
+            label="Agendamentos no período"
+            value={formatNumber(summary.appointments)}
+            trend={summary.appointmentsTrendPercent}
+          />
+        </div>
+      ) : null}
     </DashboardPanel>
   );
 }
