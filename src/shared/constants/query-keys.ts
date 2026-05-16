@@ -5,4 +5,5 @@ export const QUERY_KEYS = {
   logout: ["logout"],
   registerEstablishment: ["registerEstablishment"],
   metricsOverview: ["metrics-overview"],
+  metricsAppointment: ["metrics-appointment"],
 };
