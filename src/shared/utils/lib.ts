@@ -13,12 +13,16 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
 
-export function buildQueryParamsFilters(filters?: Record<string, string | number>): string | void {
+export function buildQueryParamsFilters(
+  filters?: Record<string, string | number | undefined>,
+): string | undefined {
   if (!filters) return;
 
   const params = new URLSearchParams();
 
   for (const [filterName, filterValue] of Object.entries(filters)) {
+    if (filterValue === undefined) continue;
+
     const value = filterValue.toString().trim();
 
     if (value) {
@@ -30,14 +34,12 @@ export function buildQueryParamsFilters(filters?: Record<string, string | number
 
   return queryString && `?${queryString}`;
 }
-export function normalizeQueryParamsFilters<T extends object>(
-  filters?: T,
-): Partial<Record<keyof T, string>> {
+export function normalizeQueryParamsFilters<T extends object>(filters?: T): Record<string, string> {
   if (!filters) return {};
 
-  const normalizedFilters = {} as Partial<Record<keyof T, string>>;
+  const normalizedFilters: Record<string, string> = {};
 
-  for (const [filterName, filterValue] of Object.entries(filters) as [keyof T, T[keyof T]][]) {
+  for (const [filterName, filterValue] of Object.entries(filters)) {
     if (filterValue !== undefined && filterValue !== null) {
       normalizedFilters[filterName] = String(filterValue).trim();
     }
