@@ -21,14 +21,14 @@ export function useDeleteService(ownerId: string) {
     onError: (error) => {
       if (error instanceof ApiError) {
         if (error.statusCode === 400) {
-          toast.error(error.message || "Não foi possível eliminar. Tente novamente.");
+          toast.error(error.message || "Não foi possível apagar. Tente novamente.");
           return;
         }
         if (error.statusCode === 404) {
           toast.error("Serviço não encontrado.");
           return;
         }
-        toast.error("Não foi possível eliminar o serviço. Tente novamente mais tarde.");
+        toast.error("Não foi possível apagar o serviço. Tente novamente mais tarde.");
       }
     },
   });
