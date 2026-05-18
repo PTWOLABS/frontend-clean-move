@@ -33,10 +33,7 @@ export function buildUpstreamUrl(
   return search ? `${base}${search}` : base;
 }
 
-export function buildForwardRequestHeaders(
-  incoming: Headers,
-  forwardedFor: string,
-): Headers {
+export function buildForwardRequestHeaders(incoming: Headers, forwardedFor: string): Headers {
   const headers = new Headers();
 
   for (const name of FORWARD_REQUEST_HEADERS) {
@@ -65,8 +62,7 @@ export function buildProxyResponseHeaders(upstream: Headers): Headers {
     headers.append(key, value);
   });
 
-  const setCookies =
-    typeof upstream.getSetCookie === "function" ? upstream.getSetCookie() : [];
+  const setCookies = typeof upstream.getSetCookie === "function" ? upstream.getSetCookie() : [];
 
   if (setCookies.length > 0) {
     for (const cookie of setCookies) {

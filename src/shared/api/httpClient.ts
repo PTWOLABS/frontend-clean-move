@@ -71,9 +71,13 @@ export function setAccessToken(token: string | null) {
 async function performRefreshAccessToken(): Promise<boolean> {
   if (!BASE_URL) return false;
   try {
-    const res = await api.post<AuthRefreshResponse>("/auth/refresh", {}, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const res = await api.post<AuthRefreshResponse>(
+      "/auth/refresh",
+      {},
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
     const token = res.data?.accessToken;
     if (token) {
       accessToken = token;

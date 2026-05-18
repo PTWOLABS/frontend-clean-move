@@ -11,9 +11,9 @@ describe("api-proxy", () => {
     expect(buildUpstreamUrl("https://api.example.com", ["auth", "login"], "")).toBe(
       "https://api.example.com/auth/login",
     );
-    expect(
-      buildUpstreamUrl("https://api.example.com", ["user", "me"], "?foo=1"),
-    ).toBe("https://api.example.com/user/me?foo=1");
+    expect(buildUpstreamUrl("https://api.example.com", ["user", "me"], "?foo=1")).toBe(
+      "https://api.example.com/user/me?foo=1",
+    );
   });
 
   it("buildUpstreamUrl handles empty path", () => {
