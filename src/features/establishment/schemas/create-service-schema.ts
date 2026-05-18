@@ -97,6 +97,22 @@ export function establishmentServiceItemToFormDefaults(
   };
 }
 
+const DUPLICATE_NAME_PREFIX = "Cópia de ";
+
+/**
+ * Valores iniciais do formulário para duplicar um serviço (criação com dados copiados).
+ */
+export function establishmentServiceItemToDuplicateFormDefaults(
+  item: EstablishmentServiceItem,
+): CreateServiceFormInput {
+  const base = establishmentServiceItemToFormDefaults(item);
+  const name = (base.serviceName ?? "").trim();
+  const duplicatedName = name.startsWith(DUPLICATE_NAME_PREFIX)
+    ? name
+    : `${DUPLICATE_NAME_PREFIX}${name}`;
+  return { ...base, serviceName: duplicatedName };
+}
+
 export function mapCreateServiceFormToPayload(
   values: CreateServiceFormValues,
 ): CreateServicePayload {

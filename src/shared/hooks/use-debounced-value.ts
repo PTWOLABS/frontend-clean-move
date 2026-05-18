@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-/** Valor `value` só actualiza no estado local após `delayMs` sem novas mudanças. */
+/** Valor devolvido só atualiza após `delayMs` milissegundos sem novas mudanças em `value`. */
 export function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
 
@@ -12,7 +12,7 @@ export function useDebouncedValue<T>(value: T, delayMs: number): T {
   return debounced;
 }
 
-/** Alias de {@link useDebouncedValue} — útil para debounce do query param `name` na API. */
+/** Alias de {@link useDebouncedValue}. */
 export function useDebounce<T>(value: T, delayMs: number): T {
   return useDebouncedValue(value, delayMs);
 }

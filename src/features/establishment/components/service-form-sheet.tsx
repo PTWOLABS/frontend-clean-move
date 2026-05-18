@@ -43,6 +43,7 @@ import { useUpdateService } from "../hooks/use-update-service";
 import {
   createServiceDefaultValues,
   createServiceFormSchema,
+  establishmentServiceItemToDuplicateFormDefaults,
   establishmentServiceItemToFormDefaults,
   type CreateServiceFormInput,
   type CreateServiceFormValues,
@@ -54,6 +55,8 @@ type ServiceFormSheetProps = {
   ownerId: string;
   /** `null` = criar; com item (e `id`) = editar. */
   editingService: EstablishmentServiceItem | null;
+  /** Item de origem ao duplicar (abre formulário de criação pré-preenchido). */
+  duplicateSource: EstablishmentServiceItem | null;
 };
 
 export function ServiceFormSheet({
@@ -61,12 +64,14 @@ export function ServiceFormSheet({
   onOpenChange,
   ownerId,
   editingService,
+  duplicateSource,
 }: ServiceFormSheetProps) {
   const { mutateAsync: createMutateAsync, isPending: isCreatePending } = useCreateService(ownerId);
   const { mutateAsync: updateMutateAsync, isPending: isUpdatePending } = useUpdateService(ownerId);
   const money = useFormatBrlMoney();
 
   const isEditMode = Boolean(editingService?.id);
+  const isDuplicateMode = Boolean(duplicateSource) && !isEditMode;
   const isPending = isCreatePending || isUpdatePending;
 
   const methods = useForm<CreateServiceFormInput, undefined, CreateServiceFormValues>({
@@ -87,11 +92,13 @@ export function ServiceFormSheet({
     if (!open) return;
     if (editingService?.id) {
       reset(establishmentServiceItemToFormDefaults(editingService));
+    } else if (duplicateSource) {
+      reset(establishmentServiceItemToDuplicateFormDefaults(duplicateSource));
     } else {
       reset(createServiceDefaultValues);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- redefinir ao abrir ou ao mudar o serviço em edição (por id)
-  }, [open, editingService?.id, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- redefinir ao abrir ou ao mudar modo (editar / duplicar / criar)
+  }, [open, editingService?.id, duplicateSource, reset]);
 
   const onSubmit = async (values: CreateServiceFormValues) => {
     try {
@@ -116,11 +123,15 @@ export function ServiceFormSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg">
         <SheetHeader className="text-left">
-          <SheetTitle>{isEditMode ? "Editar serviço" : "Novo serviço"}</SheetTitle>
+          <SheetTitle>
+            {isEditMode ? "Editar serviço" : isDuplicateMode ? "Duplicar serviço" : "Novo serviço"}
+          </SheetTitle>
           <SheetDescription>
             {isEditMode
               ? "Altere os campos abaixo. O preço usa formato brasileiro (ex.: 30,00); o sistema guarda o valor em centavos."
-              : "Preencha os dados abaixo. Para o preço use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda o valor em centavos."}
+              : isDuplicateMode
+                ? "Revise os dados copiados do serviço original. Ao guardar, será criado um novo serviço no catálogo."
+                : "Preencha os dados abaixo. Para o preço use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda o valor em centavos."}
           </SheetDescription>
         </SheetHeader>
 
@@ -246,7 +257,13 @@ export function ServiceFormSheet({
                 Cancelar
               </Button>
               <Button type="submit" className="w-full sm:w-auto" disabled={isPending}>
-                {isPending ? "A guardar…" : isEditMode ? "Guardar alterações" : "Criar serviço"}
+                {isPending
+                  ? "A guardar…"
+                  : isEditMode
+                    ? "Guardar alterações"
+                    : isDuplicateMode
+                      ? "Criar cópia"
+                      : "Criar serviço"}
               </Button>
             </SheetFooter>
           </form>
