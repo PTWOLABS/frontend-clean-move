@@ -1,8 +1,36 @@
-export type DashboardMetrics = {
-  totalRevenueInCents: number;
-  averageTicketInCents: number;
-  appointmentsCount: number;
-  cancellationRate: number;
+type MetricPoint = {
+  date: string;
+  label: string;
+  value: number;
+};
+
+type MoneyMetricPoint = {
+  date: string;
+  label: string;
+  valueInCents: number;
+};
+
+export type DashboardMetricsOverview = {
+  appointments: {
+    value: number;
+    variationPercentage: number | null;
+    points: MetricPoint[];
+  };
+  averageTicket: {
+    value: number;
+    variationPercentage: number | null;
+    points: MoneyMetricPoint[];
+  };
+  cancellationRate: {
+    value: number;
+    variationPercentage: number | null;
+    points: MetricPoint[];
+  };
+  totalRevenue: {
+    value: number;
+    variationPercentage: number | null;
+    points: MoneyMetricPoint[];
+  };
 };
 
 export type DashboardMetricsAppointment = {

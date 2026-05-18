@@ -4,14 +4,14 @@ import {
 } from "@/features/dashboard/mocks/dashboard-sections.mock";
 
 import { CancellationRateCard } from "./cancellation-rate-card";
-import { MetricsCardList } from "./metric-cards-list";
+import { MetricsOverview } from "./metrics-overview";
 import { PopularServicesCard } from "./popular-services-card";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
 
 export function MetricsSections() {
   return (
     <>
-      <MetricsCardList />
+      <MetricsOverview />
 
       <RevenueAppointmentsChartCard className="md:col-span-2 lg:col-span-2" periodLabel="Diário" />
 
