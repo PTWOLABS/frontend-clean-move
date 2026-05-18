@@ -1,11 +1,17 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type * as React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  dashboardRevenueAppointmentsMock,
-  dashboardRevenueAppointmentsSummaryMock,
-} from "@/features/dashboard/mocks/dashboard-sections.mock";
+type MockSelectProps = {
+  options: Array<{
+    label: string;
+    value: string;
+  }>;
+  value?: string;
+  onChange: (value: string) => void;
+  className?: string;
+};
 
 type MockChartContainerProps = React.HTMLAttributes<HTMLDivElement> & {
   config: unknown;
@@ -66,6 +72,60 @@ const rechartsMocks = vi.hoisted(() => ({
   YAxis: vi.fn(),
 }));
 
+const revenueAppointmentsPointsMock = [
+  {
+    date: "2026-05-01",
+    label: "01/05",
+    revenueInCents: 2100000,
+    appointments: 120,
+  },
+  {
+    date: "2026-05-02",
+    label: "02/05",
+    revenueInCents: 2638900,
+    appointments: 136,
+  },
+];
+
+const revenueAppointmentsSummaryMock = {
+  revenueInCents: 4738900,
+  appointments: 256,
+  revenueTrendPercent: 21,
+  appointmentsTrendPercent: 18,
+};
+
+const granularityOptionsMock = [
+  {
+    label: "Diário",
+    value: "daily",
+  },
+  {
+    label: "Semanal",
+    value: "weekly",
+  },
+  {
+    label: "Mensal",
+    value: "monthly",
+  },
+] as const;
+
+vi.mock("@/components/ui/select/select", () => ({
+  Select: ({ options, value, onChange, className }: MockSelectProps) => (
+    <select
+      aria-label="Granularidade"
+      className={className}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  ),
+}));
+
 vi.mock("@/components/ui/chart", () => ({
   ChartContainer: ({ children, config, ...props }: MockChartContainerProps) => {
     void config;
@@ -111,29 +171,54 @@ vi.mock("../hooks/use-fetch-metrics-revenue-and-appointments", () => ({
   useFetchMetricsRevenueAndAppointment: vi.fn(),
 }));
 
+vi.mock("../hooks/use-dashboard-query-error-feedback", () => ({
+  useDashboardQueryErrorFeedback: vi.fn(),
+}));
+
+import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
 import { useFetchMetricsRevenueAndAppointment } from "../hooks/use-fetch-metrics-revenue-and-appointments";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
 
 function mockRevenueAppointmentsQuery(
-  data: ReturnType<typeof useFetchMetricsRevenueAndAppointment>["data"],
+  overrides: Partial<ReturnType<typeof useFetchMetricsRevenueAndAppointment>> = {},
 ) {
+  const refetch = vi.fn();
+
   vi.mocked(useFetchMetricsRevenueAndAppointment).mockReturnValue({
-    data,
+    data: undefined,
+    error: null,
+    isLoading: false,
+    refetch,
+    ...overrides,
   } as ReturnType<typeof useFetchMetricsRevenueAndAppointment>);
+
+  return refetch;
+}
+
+function mockErrorFeedback(feedback: ReturnType<typeof useDashboardQueryErrorFeedback> = null) {
+  vi.mocked(useDashboardQueryErrorFeedback).mockReturnValue(feedback);
 }
 
 describe("RevenueAppointmentsChartCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockErrorFeedback();
   });
 
   it("renders title, legend, chart label, and period summary", () => {
     mockRevenueAppointmentsQuery({
-      points: dashboardRevenueAppointmentsMock,
-      summary: dashboardRevenueAppointmentsSummaryMock,
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
     });
 
-    render(<RevenueAppointmentsChartCard periodLabel="Diário" />);
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+      />,
+    );
 
     expect(
       screen.getByRole("heading", {
@@ -141,7 +226,7 @@ describe("RevenueAppointmentsChartCard", () => {
       }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText("Diário")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
     expect(screen.getByText("Receita (R$)")).toBeInTheDocument();
     expect(screen.getByText("Agendamentos")).toBeInTheDocument();
 
@@ -164,7 +249,7 @@ describe("RevenueAppointmentsChartCard", () => {
     expect(rechartsMocks.AreaChart).toHaveBeenCalledWith(
       expect.objectContaining({
         accessibilityLayer: true,
-        data: dashboardRevenueAppointmentsMock,
+        data: revenueAppointmentsPointsMock,
         margin: {
           top: 12,
           right: 8,
@@ -248,32 +333,144 @@ describe("RevenueAppointmentsChartCard", () => {
 
   it("renders an empty state when there is no chart data", () => {
     mockRevenueAppointmentsQuery({
-      points: [],
-      summary: dashboardRevenueAppointmentsSummaryMock,
+      data: {
+        points: [],
+        summary: revenueAppointmentsSummaryMock,
+      },
     });
 
-    render(<RevenueAppointmentsChartCard />);
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+      />,
+    );
 
     expect(
       screen.getByText("Sem dados de receita e agendamentos para o período."),
     ).toBeInTheDocument();
-
     expect(screen.queryByTestId("area-chart")).not.toBeInTheDocument();
     expect(screen.queryByTestId("line-chart")).not.toBeInTheDocument();
   });
 
+  it("renders loading skeletons while the first request is pending", () => {
+    mockRevenueAppointmentsQuery({
+      isLoading: true,
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="monthly"
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: /receita e agendamentos ao longo do tempo/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("monthly");
+    expect(document.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("area-chart")).not.toBeInTheDocument();
+  });
+
+  it("renders an inline error state and retries when the first request fails", async () => {
+    const user = userEvent.setup();
+    const refetch = mockRevenueAppointmentsQuery({
+      error: new Error("boom"),
+    });
+
+    mockErrorFeedback({
+      title: "Falha ao carregar receita e agendamentos.",
+      description: "Tente novamente em instantes.",
+      statusCode: 500,
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+      />,
+    );
+
+    expect(screen.getByText("Falha ao carregar receita e agendamentos.")).toBeInTheDocument();
+    expect(screen.getByText("Tente novamente em instantes.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the current chart visible when a refetch fails after data is loaded", () => {
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+      error: new Error("boom"),
+    });
+
+    mockErrorFeedback({
+      title: "Falha ao carregar receita e agendamentos.",
+      description: "Tente novamente em instantes.",
+      statusCode: 500,
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+      />,
+    );
+
+    expect(screen.getByTestId("chart-container")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /tentar novamente/i })).not.toBeInTheDocument();
+  });
+
   it("renders a neutral comparison label when trend values are null", () => {
     mockRevenueAppointmentsQuery({
-      points: dashboardRevenueAppointmentsMock,
-      summary: {
-        ...dashboardRevenueAppointmentsSummaryMock,
-        revenueTrendPercent: null,
-        appointmentsTrendPercent: null,
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: {
+          ...revenueAppointmentsSummaryMock,
+          revenueTrendPercent: null,
+          appointmentsTrendPercent: null,
+        },
       },
     });
 
-    render(<RevenueAppointmentsChartCard />);
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+      />,
+    );
 
     expect(screen.getAllByText("Sem comparação")).toHaveLength(2);
+  });
+
+  it("updates the query input when the granularity action changes", async () => {
+    const user = userEvent.setup();
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+      />,
+    );
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /granularidade/i }), "weekly");
+
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      granularity: "weekly",
+    });
   });
 });

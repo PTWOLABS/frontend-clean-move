@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type * as React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { dashboardCancellationRateMock } from "@/features/dashboard/mocks/dashboard-sections.mock";
 import type { CancellationRateData } from "@/features/dashboard/types/dashboard-sections";
 
 type MockChartContainerProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -45,6 +45,12 @@ const rechartsMocks = vi.hoisted(() => ({
   RadialBarChart: vi.fn(),
 }));
 
+const cancellationRateMock: CancellationRateData = {
+  currentPercent: 4.2,
+  targetPercent: 5.8,
+  comparisonPercentPoints: -1.6,
+};
+
 vi.mock("@/components/ui/chart", () => ({
   ChartContainer: ({ children, config, ...props }: MockChartContainerProps) => {
     void config;
@@ -75,26 +81,55 @@ vi.mock("recharts", () => ({
   },
 }));
 
+vi.mock("../hooks/use-fetch-metrics-appointments", () => ({
+  useFetchMetricsAppointment: vi.fn(),
+}));
+
+vi.mock("../hooks/use-dashboard-query-error-feedback", () => ({
+  useDashboardQueryErrorFeedback: vi.fn(),
+}));
+
+import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
+import { useFetchMetricsAppointment } from "../hooks/use-fetch-metrics-appointments";
 import { CancellationRateCard } from "./cancellation-rate-card";
+
+function mockMetricsAppointmentQuery(
+  overrides: Partial<ReturnType<typeof useFetchMetricsAppointment>> = {},
+) {
+  const refetch = vi.fn();
+
+  vi.mocked(useFetchMetricsAppointment).mockReturnValue({
+    data: undefined,
+    error: null,
+    isLoading: false,
+    refetch,
+    ...overrides,
+  } as ReturnType<typeof useFetchMetricsAppointment>);
+
+  return refetch;
+}
+
+function mockErrorFeedback(feedback: ReturnType<typeof useDashboardQueryErrorFeedback> = null) {
+  vi.mocked(useDashboardQueryErrorFeedback).mockReturnValue(feedback);
+}
 
 describe("CancellationRateCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockMetricsAppointmentQuery();
+    mockErrorFeedback();
   });
 
   it("renders the current rate, target, legend, and chart label", () => {
-    render(<CancellationRateCard data={dashboardCancellationRateMock} />);
+    render(<CancellationRateCard data={cancellationRateMock} />);
 
     expect(screen.getByRole("heading", { name: /taxa de cancelamento/i })).toBeInTheDocument();
 
     expect(screen.getAllByText("4,2%")).toHaveLength(2);
     expect(screen.getByText("Cancelamentos")).toBeInTheDocument();
-
     expect(screen.getByText("Atual")).toBeInTheDocument();
     expect(screen.getByText("5,8%")).toBeInTheDocument();
     expect(screen.getByText("Meta")).toBeInTheDocument();
-
-    expect(screen.queryByText("1,6 p.p. abaixo da meta")).not.toBeInTheDocument();
 
     expect(screen.getByTestId("chart-container")).toHaveAttribute(
       "aria-label",
@@ -106,10 +141,7 @@ describe("CancellationRateCard", () => {
         data: [
           {
             name: "Atual",
-            value:
-              (dashboardCancellationRateMock.currentPercent /
-                dashboardCancellationRateMock.targetPercent) *
-              100,
+            value: (cancellationRateMock.currentPercent / cancellationRateMock.targetPercent) * 100,
           },
         ],
         startAngle: 190,
@@ -166,5 +198,39 @@ describe("CancellationRateCard", () => {
 
     expect(screen.getByText("Sem dados de cancelamento para o período.")).toBeInTheDocument();
     expect(screen.queryByTestId("radial-bar-chart")).not.toBeInTheDocument();
+  });
+
+  it("renders a loading skeleton while the first request is pending", () => {
+    mockMetricsAppointmentQuery({
+      isLoading: true,
+    });
+
+    render(<CancellationRateCard />);
+
+    expect(screen.getByRole("heading", { name: /taxa de cancelamento/i })).toBeInTheDocument();
+    expect(document.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("radial-bar-chart")).not.toBeInTheDocument();
+  });
+
+  it("renders an inline error state and retries when the first request fails", async () => {
+    const user = userEvent.setup();
+    const refetch = mockMetricsAppointmentQuery({
+      error: new Error("boom"),
+    });
+
+    mockErrorFeedback({
+      title: "Falha ao carregar a taxa de cancelamento.",
+      description: "Tente novamente em alguns instantes.",
+      statusCode: 500,
+    });
+
+    render(<CancellationRateCard />);
+
+    expect(screen.getByText("Falha ao carregar a taxa de cancelamento.")).toBeInTheDocument();
+    expect(screen.getByText("Tente novamente em alguns instantes.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 });
