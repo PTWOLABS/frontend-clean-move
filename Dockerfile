@@ -14,6 +14,9 @@ RUN npm ci
 
 FROM deps AS build
 
+ARG NEXT_PUBLIC_API_BASE_URL=/api
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
 COPY --chown=node:node . .
 
 RUN npm run build
