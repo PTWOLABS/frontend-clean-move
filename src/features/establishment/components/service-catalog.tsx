@@ -17,9 +17,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { ApiError } from "@/shared/api/httpClient";
 
-import { useDebounce } from "../hooks/use-debounced-value";
+import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useDeleteService } from "../hooks/use-delete-service";
 import { useEstablishmentServices } from "../hooks/use-establishment-services";
+import { useToggleServiceActive } from "../hooks/use-toggle-service-active";
 import type { EstablishmentServiceItem } from "../types";
 
 import { ServiceCatalogHeader } from "./service-catalog-header";
@@ -48,9 +49,22 @@ export function ServiceCatalog() {
 
   const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
   const [editingService, setEditingService] = useState<EstablishmentServiceItem | null>(null);
+  const [duplicateSource, setDuplicateSource] = useState<EstablishmentServiceItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EstablishmentServiceItem | null>(null);
 
   const deleteMutation = useDeleteService(ownerId ?? "");
+  const toggleActiveMutation = useToggleServiceActive(ownerId ?? "");
+
+  const togglingServiceId =
+    toggleActiveMutation.isPending && toggleActiveMutation.variables?.id
+      ? toggleActiveMutation.variables.id
+      : null;
+
+  const handleToggleActive = (item: EstablishmentServiceItem) => {
+    void toggleActiveMutation.mutateAsync(item).catch(() => {
+      // Erro tratado em `useToggleServiceActive` (toast).
+    });
+  };
 
   // Debounce alinhado ao query param `name` (match parcial, case-insensitive no backend).
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
@@ -126,7 +140,16 @@ export function ServiceCatalog() {
 
   const handleServiceSheetOpenChange = (open: boolean) => {
     setServiceSheetOpen(open);
-    if (!open) setEditingService(null);
+    if (!open) {
+      setEditingService(null);
+      setDuplicateSource(null);
+    }
+  };
+
+  const handleDuplicate = (item: EstablishmentServiceItem) => {
+    setDuplicateSource(item);
+    setEditingService(null);
+    setServiceSheetOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -146,6 +169,7 @@ export function ServiceCatalog() {
         totalCount={total}
         onAddService={() => {
           setEditingService(null);
+          setDuplicateSource(null);
           setServiceSheetOpen(true);
         }}
       />
@@ -155,6 +179,7 @@ export function ServiceCatalog() {
         onOpenChange={handleServiceSheetOpenChange}
         ownerId={ownerId}
         editingService={editingService}
+        duplicateSource={duplicateSource}
       />
 
       <AlertDialog
@@ -165,7 +190,7 @@ export function ServiceCatalog() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar serviço?</AlertDialogTitle>
+            <AlertDialogTitle>Apagar serviço?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser anulada. O serviço{" "}
               <span className="font-medium text-foreground">{deleteTarget?.serviceName ?? ""}</span>{" "}
@@ -180,7 +205,7 @@ export function ServiceCatalog() {
               disabled={deleteMutation.isPending || !deleteTarget?.id}
               onClick={() => void handleConfirmDelete()}
             >
-              {deleteMutation.isPending ? "A eliminar…" : "Eliminar"}
+              {deleteMutation.isPending ? "A confirmar…" : "Confirmar"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -206,18 +231,26 @@ export function ServiceCatalog() {
               <ServiceCatalogTable
                 items={items}
                 onEdit={(item) => {
+                  setDuplicateSource(null);
                   setEditingService(item);
                   setServiceSheetOpen(true);
                 }}
+                onDuplicate={handleDuplicate}
+                onToggleActive={handleToggleActive}
                 onDelete={(item) => setDeleteTarget(item)}
+                togglingServiceId={togglingServiceId}
               />
               <ServiceCatalogMobileCards
                 items={items}
                 onEdit={(item) => {
+                  setDuplicateSource(null);
                   setEditingService(item);
                   setServiceSheetOpen(true);
                 }}
+                onDuplicate={handleDuplicate}
+                onToggleActive={handleToggleActive}
                 onDelete={(item) => setDeleteTarget(item)}
+                togglingServiceId={togglingServiceId}
               />
             </>
           )}

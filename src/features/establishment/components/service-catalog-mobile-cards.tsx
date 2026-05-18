@@ -31,7 +31,14 @@ type CardActionsProps = {
   isToggling: boolean;
 };
 
-function CardActions({ item, onEdit, onDuplicate, onToggleActive, onDelete, isToggling }: CardActionsProps) {
+function CardActions({
+  item,
+  onEdit,
+  onDuplicate,
+  onToggleActive,
+  onDelete,
+  isToggling,
+}: CardActionsProps) {
   const canMutate = Boolean(item.id);
   const toggleLabel = item.isActive ? "Desativar serviço" : "Ativar serviço";
 
@@ -69,9 +76,7 @@ function CardActions({ item, onEdit, onDuplicate, onToggleActive, onDelete, isTo
 
         <HintTooltip
           label={
-            canMutate
-              ? toggleLabel
-              : "Identificador em falta — não é possível alterar o estado."
+            canMutate ? toggleLabel : "Identificador em falta — não é possível alterar o estado."
           }
         >
           <Button

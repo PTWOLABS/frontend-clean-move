@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Copy, Pencil, Power, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
+import { cn } from "@/shared/utils/cn";
 
 import {
   formatEstimatedDuration,
@@ -18,7 +19,6 @@ import {
 } from "../lib/format-catalog";
 import type { EstablishmentServiceItem } from "../types";
 
-import { ServiceCatalogItemThumb } from "./service-catalog-item-thumb";
 import { ServiceStatusBadge } from "./service-status-badge";
 
 function serviceRowKey(item: EstablishmentServiceItem, index: number): string {
@@ -28,68 +28,114 @@ function serviceRowKey(item: EstablishmentServiceItem, index: number): string {
 type RowActionsProps = {
   item: EstablishmentServiceItem;
   onEdit: (item: EstablishmentServiceItem) => void;
+  onDuplicate: (item: EstablishmentServiceItem) => void;
+  onToggleActive: (item: EstablishmentServiceItem) => void;
   onDelete: (item: EstablishmentServiceItem) => void;
+  isToggling: boolean;
 };
 
-function RowActions({ item, onEdit, onDelete }: RowActionsProps) {
+function RowActions({
+  item,
+  onEdit,
+  onDuplicate,
+  onToggleActive,
+  onDelete,
+  isToggling,
+}: RowActionsProps) {
   const canMutate = Boolean(item.id);
+  const toggleLabel = item.isActive ? "Desativar serviço" : "Ativar serviço";
 
   return (
-    <TooltipProvider delayDuration={200}>
+    <HintTooltipProvider>
       <div className="flex items-center justify-end gap-1">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="inline-flex">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="text-foreground hover:bg-accent hover:text-foreground"
-                disabled={!canMutate}
-                aria-label="Editar serviço"
-                onClick={() => onEdit(item)}
-              >
-                <Pencil className="size-4" />
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            {canMutate ? "Editar" : "Identificador em falta — não é possível editar."}
-          </TooltipContent>
-        </Tooltip>
+        <HintTooltip
+          label={canMutate ? "Editar" : "Identificador em falta — não é possível editar."}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-foreground hover:bg-accent hover:text-foreground"
+            disabled={!canMutate}
+            aria-label="Editar serviço"
+            onClick={() => onEdit(item)}
+          >
+            <Pencil className="size-4" />
+          </Button>
+        </HintTooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="inline-flex">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                disabled={!canMutate}
-                aria-label="Eliminar serviço"
-                onClick={() => onDelete(item)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            {canMutate ? "Eliminar" : "Identificador em falta — não é possível eliminar."}
-          </TooltipContent>
-        </Tooltip>
+        <HintTooltip label="Duplicar serviço">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-foreground hover:bg-accent hover:text-foreground"
+            aria-label="Duplicar serviço"
+            onClick={() => onDuplicate(item)}
+          >
+            <Copy className="size-4" />
+          </Button>
+        </HintTooltip>
+
+        <HintTooltip
+          label={
+            canMutate ? toggleLabel : "Identificador em falta — não é possível alterar o estado."
+          }
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              item.isActive
+                ? "text-success hover:bg-success/10 hover:text-success"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-muted-foreground",
+            )}
+            disabled={!canMutate || isToggling}
+            aria-label={toggleLabel}
+            onClick={() => onToggleActive(item)}
+          >
+            <Power className="size-4" />
+          </Button>
+        </HintTooltip>
+
+        <HintTooltip
+          label={canMutate ? "Apagar" : "Identificador em falta — não é possível apagar."}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={!canMutate}
+            aria-label="Apagar serviço"
+            onClick={() => onDelete(item)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </HintTooltip>
       </div>
-    </TooltipProvider>
+    </HintTooltipProvider>
   );
 }
 
 type ServiceCatalogTableProps = {
   items: EstablishmentServiceItem[];
   onEdit: (item: EstablishmentServiceItem) => void;
+  onDuplicate: (item: EstablishmentServiceItem) => void;
+  onToggleActive: (item: EstablishmentServiceItem) => void;
   onDelete: (item: EstablishmentServiceItem) => void;
+  togglingServiceId: string | null;
 };
 
-export function ServiceCatalogTable({ items, onEdit, onDelete }: ServiceCatalogTableProps) {
+export function ServiceCatalogTable({
+  items,
+  onEdit,
+  onDuplicate,
+  onToggleActive,
+  onDelete,
+  togglingServiceId,
+}: ServiceCatalogTableProps) {
   return (
     <div className="hidden rounded-lg border border-border md:block">
       <Table>
@@ -119,14 +165,13 @@ export function ServiceCatalogTable({ items, onEdit, onDelete }: ServiceCatalogT
           {items.map((item, index) => (
             <TableRow key={serviceRowKey(item, index)}>
               <TableCell className="pl-4 align-middle">
-                <div className="flex gap-3">
-                  <ServiceCatalogItemThumb className="size-10" iconClassName="size-[18px]" />
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="truncate font-medium text-foreground">{item.serviceName}</div>
-                    {item.description ? (
-                      <div className="line-clamp-2 text-sm text-foreground">{item.description}</div>
-                    ) : null}
-                  </div>
+                <div className="min-w-0 space-y-0.5">
+                  <div className="truncate font-medium text-foreground">{item.serviceName}</div>
+                  {item.description ? (
+                    <div className="line-clamp-2 text-sm text-muted-foreground">
+                      {item.description}
+                    </div>
+                  ) : null}
                 </div>
               </TableCell>
               <TableCell className="align-middle text-foreground">
@@ -147,7 +192,14 @@ export function ServiceCatalogTable({ items, onEdit, onDelete }: ServiceCatalogT
                 <ServiceStatusBadge isActive={item.isActive} />
               </TableCell>
               <TableCell className="pr-4 text-right align-middle">
-                <RowActions item={item} onEdit={onEdit} onDelete={onDelete} />
+                <RowActions
+                  item={item}
+                  onEdit={onEdit}
+                  onDuplicate={onDuplicate}
+                  onToggleActive={onToggleActive}
+                  onDelete={onDelete}
+                  isToggling={togglingServiceId === item.id}
+                />
               </TableCell>
             </TableRow>
           ))}
