@@ -17,7 +17,7 @@ export type DashboardMetricsOverview = {
     points: MetricPoint[];
   };
   averageTicket: {
-    value: number;
+    valueInCents: number;
     variationPercentage: number | null;
     points: MoneyMetricPoint[];
   };
@@ -27,7 +27,7 @@ export type DashboardMetricsOverview = {
     points: MetricPoint[];
   };
   totalRevenue: {
-    value: number;
+    valueInCents: number;
     variationPercentage: number | null;
     points: MoneyMetricPoint[];
   };

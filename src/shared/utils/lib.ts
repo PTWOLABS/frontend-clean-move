@@ -28,13 +28,38 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
 
-type QueryParamPrimitive = string | number | boolean;
+export function formatPercent(value: number) {
+  return `${new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value)}%`;
+}
+
+type QueryParamPrimitive = string | number | boolean | Date;
 type QueryParamValue =
   | QueryParamPrimitive
   | null
   | undefined
   | readonly (QueryParamPrimitive | null | undefined)[];
 type NormalizedQueryParamValue = string | string[];
+
+function isValidDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
+function formatDateQueryParam(value: Date) {
+  return new Date(
+    Date.UTC(
+      value.getFullYear(),
+      value.getMonth(),
+      value.getDate(),
+      value.getHours(),
+      value.getMinutes(),
+      value.getSeconds(),
+      value.getMilliseconds(),
+    ),
+  ).toISOString();
+}
 
 function appendQueryParam(params: URLSearchParams, name: string, rawValue: unknown) {
   if (rawValue === undefined || rawValue === null) return;
@@ -83,7 +108,13 @@ export function normalizeQueryParamsFilters<T extends object>(
     if (Array.isArray(filterValue)) {
       normalizedFilters[filterName] = filterValue
         .filter((item) => item !== undefined && item !== null)
-        .map((item) => String(item).trim());
+        .map((item) => (isValidDate(item) ? formatDateQueryParam(item) : String(item).trim()));
+
+      continue;
+    }
+
+    if (isValidDate(filterValue)) {
+      normalizedFilters[filterName] = formatDateQueryParam(filterValue);
 
       continue;
     }
