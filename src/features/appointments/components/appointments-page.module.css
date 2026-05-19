@@ -1,0 +1,528 @@
+.calendarFrame :global(.fc) {
+  --fc-border-color: hsl(var(--border) / 0.78);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--muted) / 0.28);
+  --fc-neutral-text-color: hsl(var(--muted-foreground));
+  --fc-now-indicator-color: hsl(var(--accent));
+  --fc-list-event-hover-bg-color: hsl(var(--muted) / 0.32);
+  color: hsl(var(--foreground));
+}
+
+.calendarFrame :global(.fc .fc-scrollgrid) {
+  overflow: hidden;
+  border: 1px solid hsl(var(--border) / 0.82);
+  border-radius: 1rem;
+  background: hsl(var(--background) / 0.4);
+}
+
+.calendarFrame :global(.fc .fc-popover) {
+  overflow: hidden;
+  border: 1px solid hsl(var(--border) / 0.9);
+  border-radius: 0.9rem;
+  background: hsl(var(--popover));
+  box-shadow: var(--shadow-lg);
+}
+
+.calendarFrame :global(.fc .fc-popover-header) {
+  padding: 0.55rem 0.7rem;
+  background: hsl(var(--muted) / 0.22);
+}
+
+.calendarFrame :global(.fc .fc-popover-title) {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: hsl(var(--popover-foreground));
+}
+
+.calendarFrame :global(.fc .fc-popover-close) {
+  color: hsl(var(--muted-foreground));
+  opacity: 1;
+}
+
+.calendarFrame :global(.fc .fc-popover-body) {
+  background: hsl(var(--popover));
+}
+
+.calendarFrame :global(.fc .fc-more-popover-misc) {
+  display: none;
+}
+
+.morePopoverAlignRight :global(.fc .fc-more-popover) {
+  left: auto !important;
+  right: var(--fc-more-popover-right-offset, 0px) !important;
+  transform-origin: top right;
+}
+
+.calendarFrame :global(.fc .fc-view-harness) {
+  min-height: 34rem;
+  overflow: visible;
+}
+
+.calendarFrame :global(.fc .fc-col-header-cell) {
+  background: hsl(var(--muted) / 0.32);
+}
+
+.calendarFrame :global(.fc .fc-col-header-cell-cushion) {
+  padding: 0.9rem 0.5rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-number),
+.calendarFrame :global(.fc .fc-timegrid-axis-cushion),
+.calendarFrame :global(.fc .fc-timegrid-slot-label-cushion) {
+  color: hsl(var(--foreground));
+}
+
+.calendarFrame :global(.fc .fc-timegrid-axis-cushion),
+.calendarFrame :global(.fc .fc-timegrid-slot-label-cushion) {
+  font-size: 0.75rem;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-number) {
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-frame) {
+  min-height: 8.75rem;
+  height: 8.75rem;
+}
+
+.monthDayCell :global(.fc-daygrid-day-frame) {
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.monthDayCell:hover :global(.fc-daygrid-day-frame),
+.monthDayCellSelected :global(.fc-daygrid-day-frame) {
+  background: hsl(var(--accent-soft) / 0.22);
+}
+
+.monthDayCellSelected :global(.fc-daygrid-day-frame) {
+  box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.28);
+}
+
+.monthCellIndicatorButton {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  z-index: 4;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.monthCellIndicatorIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5rem;
+  width: 1.5rem;
+  border: 1px solid hsl(var(--border) / 0.82);
+  border-radius: 999px;
+  background: hsl(var(--background) / 0.92);
+  color: hsl(var(--muted-foreground));
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.monthDayCell:hover .monthCellIndicatorButton,
+.monthDayCellSelected .monthCellIndicatorButton,
+.monthDayCell :global(.fc-daygrid-day-frame):focus-within .monthCellIndicatorButton {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.monthDayCellSelected .monthCellIndicatorIcon {
+  border-color: hsl(var(--accent) / 0.4);
+  color: hsl(var(--accent));
+}
+
+.calendarFrame :global(.fc .fc-day-other .fc-daygrid-day-number) {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day.fc-day-today),
+.calendarFrame :global(.fc .fc-timegrid-col.fc-day-today) {
+  background: hsl(var(--accent-soft) / 0.34);
+}
+
+.calendarFrame :global(.fc .fc-daygrid-more-link) {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.5rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: hsl(var(--muted) / 0.36);
+}
+
+.calendarFrame :global(.fc .fc-daygrid-more-link:hover) {
+  background: hsl(var(--accent-soft) / 0.58);
+  color: hsl(var(--accent));
+}
+
+.calendarFrame :global(.fc .fc-event) {
+  box-shadow: none;
+}
+
+.calendarFrame :global(.fc .fc-event).eventCard {
+  position: relative;
+  border: 1px solid var(--appointment-event-border, hsl(var(--border) / 0.75));
+  background: var(--appointment-event-background, hsl(var(--muted) / 0.22));
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.calendarFrame :global(.fc .fc-event).eventCard:hover {
+  border-color: hsl(var(--accent) / 0.52);
+  box-shadow:
+    0 0 0 1px hsl(var(--accent) / 0.16),
+    var(--shadow-xs);
+}
+
+.calendarFrame :global(.fc .fc-event).eventCard:focus-visible {
+  outline: none;
+  border-color: hsl(var(--accent) / 0.72);
+  box-shadow:
+    0 0 0 2px hsl(var(--accent) / 0.22),
+    var(--shadow-xs);
+}
+
+.calendarFrame :global(.fc .fc-event-main) {
+  padding: 0;
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event .fc-event-main) {
+  height: 100%;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-events) {
+  margin-top: 0.3rem;
+  overflow: hidden;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-bottom) {
+  margin: 0.25rem 0.3rem 0;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-event-harness) {
+  margin-inline: 0.25rem;
+  margin-top: 0.2rem;
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event-harness) {
+  margin-inline: 0.18rem;
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event-harness-inset .fc-timegrid-event) {
+  box-shadow: none;
+}
+
+.calendarFrame :global(.fc .fc-timegrid-slot),
+.calendarFrame :global(.fc .fc-scrollgrid-section > td),
+.calendarFrame :global(.fc .fc-theme-standard td),
+.calendarFrame :global(.fc .fc-theme-standard th) {
+  border-color: hsl(var(--border) / 0.7);
+}
+
+.calendarFrame :global(.fc .fc-timeGridWeek-view .fc-timegrid-slot) {
+  height: 2.4rem;
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard::after {
+  content: "+";
+  position: absolute;
+  right: 0.3rem;
+  bottom: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.15rem;
+  width: 1.15rem;
+  border: 1px solid hsl(var(--border) / 0.82);
+  border-radius: 999px;
+  background: hsl(var(--background) / 0.94);
+  color: hsl(var(--accent));
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+  pointer-events: none;
+  box-shadow: var(--shadow-xs);
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard:hover::after,
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard:focus-visible::after,
+.calendarFrame :global(.fc .fc-timegrid-event).eventSelected::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.calendarFrame :global(.fc .fc-timegrid-more-link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.15rem;
+  margin: 0.12rem 0.18rem 0;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: hsl(var(--background) / 0.94);
+  color: hsl(var(--accent));
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.calendarFrame :global(.fc .fc-timegrid-more-link:hover) {
+  background: hsl(var(--accent-soft) / 0.62);
+}
+
+.calendarFrame :global(.fc .fc-timegrid-now-indicator-line) {
+  border-color: hsl(var(--accent));
+}
+
+.calendarFrame :global(.fc .fc-timegrid-now-indicator-arrow) {
+  border-color: hsl(var(--accent));
+  color: hsl(var(--accent));
+}
+
+.calendarFrame :global(.fc .fc-timegrid-col-misc) {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.slotOverlayGrid {
+  display: grid;
+  height: 100%;
+  width: 100%;
+}
+
+.slotOverlaySpacer {
+  pointer-events: none;
+}
+
+.emptySlotButton {
+  pointer-events: auto;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.emptySlotButton:hover,
+.emptySlotButton:focus-visible {
+  border-color: hsl(var(--accent) / 0.22);
+  background: hsl(var(--accent-soft) / 0.22);
+  outline: none;
+}
+
+.emptySlotButtonSelected {
+  border-color: hsl(var(--accent) / 0.5);
+  background: hsl(var(--accent-soft) / 0.4);
+  box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.22);
+}
+
+.emptySlotPlus {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.3rem;
+  width: 1.3rem;
+  border: 1px solid hsl(var(--border) / 0.82);
+  border-radius: 999px;
+  background: hsl(var(--background) / 0.9);
+  color: hsl(var(--muted-foreground));
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.emptySlotButton:hover .emptySlotPlus,
+.emptySlotButton:focus-visible .emptySlotPlus,
+.emptySlotButtonSelected .emptySlotPlus {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.emptySlotButtonSelected .emptySlotPlus {
+  border-color: hsl(var(--accent) / 0.4);
+  color: hsl(var(--accent));
+}
+
+.monthEventContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.24rem 0.42rem;
+  border-radius: 0.5rem;
+  background: hsl(var(--background) / 0.32);
+}
+
+.monthEventTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.71rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.monthEventTime {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.eventCard {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 0.72rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.eventSelected {
+  border-color: hsl(var(--accent) / 0.88);
+  box-shadow:
+    0 0 0 2px hsl(var(--accent) / 0.24),
+    var(--shadow-xs);
+}
+
+.eventTonePrimary {
+  --appointment-event-border: hsl(var(--primary) / 0.4);
+  --appointment-event-background: hsl(var(--primary) / 0.16);
+}
+
+.eventToneAccent {
+  --appointment-event-border: hsl(var(--accent) / 0.38);
+  --appointment-event-background: hsl(var(--accent) / 0.15);
+}
+
+.eventToneSuccess {
+  --appointment-event-border: hsl(var(--success) / 0.38);
+  --appointment-event-background: hsl(var(--success) / 0.16);
+}
+
+.eventToneWarning {
+  --appointment-event-border: hsl(var(--warning) / 0.38);
+  --appointment-event-background: hsl(var(--warning) / 0.16);
+}
+
+.eventToneDanger {
+  --appointment-event-border: hsl(var(--danger) / 0.38);
+  --appointment-event-background: hsl(var(--danger) / 0.16);
+}
+
+.eventToneInfo {
+  --appointment-event-border: hsl(var(--info) / 0.4);
+  --appointment-event-background: hsl(var(--info) / 0.16);
+}
+
+.eventContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  min-width: 0;
+  height: 100%;
+  padding: 0.48rem 0.58rem 0.52rem;
+}
+
+.eventTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.eventToneDot {
+  flex-shrink: 0;
+  margin-top: 0.18rem;
+  box-shadow: 0 0 0 0.18rem hsl(var(--background) / 0.74);
+}
+
+.eventTime {
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: hsl(var(--muted-foreground));
+}
+
+.eventTitle {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  line-clamp: 2;
+  line-height: 1.22;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.eventMeta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: auto;
+  font-size: 0.67rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.calendarFrame :global(.fc .fc-daygrid-event .fc-event-main) {
+  padding: 0;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-event) {
+  margin-top: 0;
+  border-radius: 0.58rem;
+  font-size: 0.72rem;
+}
