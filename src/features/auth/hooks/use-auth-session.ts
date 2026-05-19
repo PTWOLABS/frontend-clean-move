@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { fetchAuthSession } from "../lib/fetch-auth-session";
-
-const FIVE_MIN_MS = 5 * 60 * 1000;
+import { FIVE_MIN_MS } from "@/shared/constants/times";
 
 export function useAuthSession() {
   return useQuery({

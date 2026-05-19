@@ -3,13 +3,21 @@
 import { PolarAngleAxis, RadialBar, RadialBarChart } from "recharts";
 
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
-import type { CancellationRateData } from "@/features/dashboard/types/dashboard-sections";
+import { Skeleton } from "@/components/ui/skeleton";
+import type {
+  CancellationRateData,
+  DashboardMetricsFiltersBase,
+} from "@/features/dashboard/types/dashboard-sections";
 
 import { DashboardPanel } from "./dashboard-panel";
+import { useFetchMetricsAppointment } from "../hooks/use-fetch-metrics-appointments";
+import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
+import { DashboardPanelSkeleton, DashboardQueryErrorState } from "./dashboard-query-state";
 
 type CancellationRateCardProps = {
-  data: CancellationRateData | null;
   className?: string;
+  filters?: DashboardMetricsFiltersBase;
+  data?: CancellationRateData | null;
 };
 
 const chartConfig = {
@@ -26,12 +34,60 @@ function formatPercent(value: number) {
   }).format(value)}%`;
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
+function getGaugeValue(data: CancellationRateData) {
+  if (data.targetPercent > 0) {
+    return Math.min((data.currentPercent / data.targetPercent) * 100, 100);
+  }
+
+  return data.currentPercent;
 }
 
-export function CancellationRateCard({ data, className }: CancellationRateCardProps) {
-  if (!data) {
+export function CancellationRateCard({ className, filters, data }: CancellationRateCardProps) {
+  const { data: appointmentsData, error, isLoading, refetch } = useFetchMetricsAppointment(filters);
+  const errorFeedback = useDashboardQueryErrorFeedback({
+    resourceKey: "cancellation-rate",
+    resourceLabel: "a taxa de cancelamento",
+    error: data ? null : error,
+  });
+
+  const cancellationRateData =
+    data ??
+    (appointmentsData
+      ? {
+          currentPercent: appointmentsData.cancellationRate.currentPercent,
+          targetPercent: appointmentsData.cancellationRate.comparisonPercentPoints || 0,
+          comparisonPercentPoints: appointmentsData.cancellationRate.comparisonPercentPoints || 0,
+        }
+      : null);
+
+  if (isLoading && !data && !appointmentsData) {
+    return (
+      <DashboardPanelSkeleton title="Taxa de cancelamento" className={className}>
+        <div className="mx-auto flex w-full max-w-80 flex-col items-center">
+          <Skeleton className="h-64 w-full rounded-full" />
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+        </div>
+      </DashboardPanelSkeleton>
+    );
+  }
+
+  if (errorFeedback && !data && !appointmentsData) {
+    return (
+      <DashboardPanel title="Taxa de cancelamento" className={className}>
+        <DashboardQueryErrorState
+          title={errorFeedback.title}
+          description={errorFeedback.description}
+          minHeightClassName="min-h-64"
+          onRetry={() => void refetch()}
+        />
+      </DashboardPanel>
+    );
+  }
+
+  if (!cancellationRateData) {
     return (
       <DashboardPanel title="Taxa de cancelamento" className={className}>
         <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/20 px-4 text-center text-sm text-muted-foreground">
@@ -41,11 +97,10 @@ export function CancellationRateCard({ data, className }: CancellationRateCardPr
     );
   }
 
-  const gaugeValue =
-    data.targetPercent > 0 ? clamp((data.currentPercent / data.targetPercent) * 100, 0, 100) : 0;
+  const gaugeValue = getGaugeValue(cancellationRateData);
 
-  const currentPercent = formatPercent(data.currentPercent);
-  const targetPercent = formatPercent(data.targetPercent);
+  const currentPercent = formatPercent(cancellationRateData.currentPercent);
+  const targetPercent = formatPercent(cancellationRateData.targetPercent);
 
   return (
     <DashboardPanel title="Taxa de cancelamento" className={className}>

@@ -1,30 +1,18 @@
 "use client";
 
-import * as React from "react";
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type {
-  DashboardPeriodOption,
-  PopularService,
-} from "@/features/dashboard/types/dashboard-sections";
+import type { DashboardMetricsFiltersBase } from "@/features/dashboard/types/dashboard-sections";
 
 import { DashboardPanel } from "./dashboard-panel";
 import { formatNumber } from "@/shared/utils/lib";
+import { useFetchPopularServices } from "../hooks/use-fetch-popular-services";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
+import { DashboardPanelSkeleton, DashboardQueryErrorState } from "./dashboard-query-state";
 
 type PopularServicesCardProps = {
-  items: PopularService[];
-  periodOptions: DashboardPeriodOption[];
-  defaultPeriod: string;
+  filters?: DashboardMetricsFiltersBase;
   className?: string;
 };
-
-const MAX_VISIBLE_SERVICES = 5;
 
 function getPercentage(value: number, total: number) {
   if (total <= 0) {
@@ -34,40 +22,56 @@ function getPercentage(value: number, total: number) {
   return Math.round((value / total) * 100);
 }
 
-export function PopularServicesCard({
-  items,
-  periodOptions,
-  defaultPeriod,
-  className,
-}: PopularServicesCardProps) {
-  const [period, setPeriod] = React.useState(defaultPeriod);
-  const selectedPeriod = periodOptions.some((option) => option.value === period)
-    ? period
-    : periodOptions[0]?.value;
-  const totalServices = items.reduce((total, item) => total + item.completedCount, 0);
-  const visibleServices = items.slice(0, MAX_VISIBLE_SERVICES);
+export function PopularServicesCard({ filters, className }: PopularServicesCardProps) {
+  const { data, error, isLoading, refetch } = useFetchPopularServices(filters);
+
+  const errorFeedback = useDashboardQueryErrorFeedback({
+    resourceKey: "popular-services",
+    resourceLabel: "serviços populares",
+    error,
+  });
+
+  const totalServices = data?.totalServices || 0;
+  const visibleServices = data?.popularServices || [];
+
+  if (isLoading && !data) {
+    return (
+      <DashboardPanelSkeleton title="Serviços populares" className={className}>
+        <div className="mt-15 space-y-4">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-border/70 pt-4">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-7 w-16" />
+        </div>
+      </DashboardPanelSkeleton>
+    );
+  }
+
+  if (errorFeedback && !data) {
+    return (
+      <DashboardPanel title="Serviços populares" className={className}>
+        <DashboardQueryErrorState
+          title={errorFeedback.title}
+          description={errorFeedback.description}
+          minHeightClassName="min-h-40"
+          onRetry={() => void refetch()}
+        />
+      </DashboardPanel>
+    );
+  }
 
   return (
-    <DashboardPanel
-      title="Serviços populares"
-      className={className}
-      action={
-        periodOptions.length ? (
-          <Select value={selectedPeriod} onValueChange={setPeriod}>
-            <SelectTrigger className="h-8 w-32 border-border/80 bg-muted/30 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {periodOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null
-      }
-    >
+    <DashboardPanel title="Serviços populares" className={className}>
       {visibleServices.length ? (
         <div className="mt-15 space-y-4">
           {visibleServices.map((service) => {

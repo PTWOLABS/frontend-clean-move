@@ -1,31 +1,72 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  dashboardPeriodOptionsMock,
-  dashboardPopularServicesMock,
-} from "@/features/dashboard/mocks/dashboard-sections.mock";
+vi.mock("../hooks/use-fetch-popular-services", () => ({
+  useFetchPopularServices: vi.fn(),
+}));
 
+vi.mock("../hooks/use-dashboard-query-error-feedback", () => ({
+  useDashboardQueryErrorFeedback: vi.fn(),
+}));
+
+import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
+import { useFetchPopularServices } from "../hooks/use-fetch-popular-services";
 import { PopularServicesCard } from "./popular-services-card";
 
+function mockPopularServicesQuery(
+  overrides: Partial<ReturnType<typeof useFetchPopularServices>> = {},
+) {
+  const refetch = vi.fn();
+
+  vi.mocked(useFetchPopularServices).mockReturnValue({
+    data: undefined,
+    error: null,
+    isLoading: false,
+    refetch,
+    ...overrides,
+  } as ReturnType<typeof useFetchPopularServices>);
+
+  return refetch;
+}
+
+function mockErrorFeedback(feedback: ReturnType<typeof useDashboardQueryErrorFeedback> = null) {
+  vi.mocked(useDashboardQueryErrorFeedback).mockReturnValue(feedback);
+}
+
 describe("PopularServicesCard", () => {
-  it("renders only the top five services with percentages and total", () => {
-    render(
-      <PopularServicesCard
-        items={dashboardPopularServicesMock}
-        periodOptions={dashboardPeriodOptionsMock}
-        defaultPeriod="this-month"
-      />,
-    );
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPopularServicesQuery();
+    mockErrorFeedback();
+  });
+
+  it("renders the fetched services, their percentages, and the total", () => {
+    mockPopularServicesQuery({
+      data: {
+        totalServices: 315,
+        popularServices: [
+          {
+            id: "full-wash",
+            name: "Lavagem Completa",
+            completedCount: 128,
+            percent: 41,
+          },
+          {
+            id: "interior-cleaning",
+            name: "Higienização Interna",
+            completedCount: 86,
+            percent: 27,
+          },
+        ],
+      },
+    });
+
+    render(<PopularServicesCard />);
 
     expect(screen.getByRole("heading", { name: /serviços populares/i })).toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toHaveTextContent("Este mês");
     expect(screen.getByText("Lavagem Completa")).toBeInTheDocument();
     expect(screen.getByText("Higienização Interna")).toBeInTheDocument();
-    expect(screen.getByText("Polimento")).toBeInTheDocument();
-    expect(screen.getByText("Cristalização")).toBeInTheDocument();
-    expect(screen.getByText("Enceramento")).toBeInTheDocument();
-    expect(screen.queryByText("Vitrificação")).not.toBeInTheDocument();
     expect(
       screen.getByLabelText(/lavagem completa: 128 serviços, 41% do total/i),
     ).toBeInTheDocument();
@@ -34,16 +75,51 @@ describe("PopularServicesCard", () => {
   });
 
   it("renders an empty state and zero total when there are no services", () => {
-    render(
-      <PopularServicesCard
-        items={[]}
-        periodOptions={dashboardPeriodOptionsMock}
-        defaultPeriod="this-month"
-      />,
-    );
+    mockPopularServicesQuery({
+      data: {
+        totalServices: 0,
+        popularServices: [],
+      },
+    });
+
+    render(<PopularServicesCard />);
 
     expect(screen.getByText("Nenhum serviço realizado no período.")).toBeInTheDocument();
     expect(screen.getByText("Total de serviços")).toBeInTheDocument();
     expect(screen.getByText("0")).toBeInTheDocument();
+  });
+
+  it("renders loading skeletons while the first request is pending", () => {
+    mockPopularServicesQuery({
+      isLoading: true,
+    });
+
+    render(<PopularServicesCard />);
+
+    expect(screen.getByRole("heading", { name: /serviços populares/i })).toBeInTheDocument();
+    expect(document.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Nenhum serviço realizado no período.")).not.toBeInTheDocument();
+  });
+
+  it("renders an inline error state and retries when the first request fails", async () => {
+    const user = userEvent.setup();
+    const refetch = mockPopularServicesQuery({
+      error: new Error("boom"),
+    });
+
+    mockErrorFeedback({
+      title: "Falha ao carregar serviços populares.",
+      description: "Tente novamente em alguns instantes.",
+      statusCode: 500,
+    });
+
+    render(<PopularServicesCard />);
+
+    expect(screen.getByText("Falha ao carregar serviços populares.")).toBeInTheDocument();
+    expect(screen.getByText("Tente novamente em alguns instantes.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 });

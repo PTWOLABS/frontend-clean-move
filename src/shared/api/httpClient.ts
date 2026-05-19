@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig } from "axios";
+import { buildQueryParamsFilters, normalizeQueryParamsFilters } from "../utils/lib";
 
 import { getApiBaseUrl } from "./get-api-base-url";
 
@@ -24,12 +25,13 @@ const AUTH_PATHS_SKIP_REFRESH = new Set([
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-type RequestOptions = {
+type RequestOptions<TFilters extends object = Record<string, never>> = {
   method?: HttpMethod;
   headers?: HeadersInit;
   body?: unknown;
   signal?: AbortSignal;
   _retry?: boolean;
+  filters?: TFilters;
 };
 
 type ApiErrorProps = {
@@ -142,9 +144,9 @@ function parseErrorPayload(data: unknown): unknown {
   return data;
 }
 
-export async function httpClient<TResponse>(
+export async function httpClient<TResponse, TFilters extends object = Record<string, never>>(
   path: string,
-  { method = "GET", headers, body, signal, _retry }: RequestOptions = {},
+  { method = "GET", headers, body, signal, _retry, filters }: RequestOptions<TFilters> = {},
 ): Promise<TResponse> {
   const requestHeaders = headersInitToRecord(headers);
 
@@ -156,8 +158,19 @@ export async function httpClient<TResponse>(
     requestHeaders.Authorization = `Bearer ${accessToken}`;
   }
 
+  let queryParams = "";
+
+  if (filters) {
+    const normalizedFilters = normalizeQueryParamsFilters(filters);
+    queryParams = buildQueryParamsFilters(normalizedFilters) ?? "";
+  }
+
+  const url = queryParams
+    ? `${path}${path.includes("?") ? `&${queryParams.slice(1)}` : queryParams}`
+    : path;
+
   const config: AxiosRequestConfig = {
-    url: path,
+    url,
     method,
     headers: requestHeaders,
     data: body !== undefined && body !== null ? body : undefined,
@@ -176,7 +189,14 @@ export async function httpClient<TResponse>(
     ) {
       const refreshed = await tryRefreshAccessToken();
       if (refreshed) {
-        return httpClient<TResponse>(path, { method, headers, body, signal, _retry: true });
+        return httpClient<TResponse, TFilters>(path, {
+          method,
+          headers,
+          body,
+          signal,
+          _retry: true,
+          filters,
+        });
       }
     }
 

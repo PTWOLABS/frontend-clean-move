@@ -1,6 +1,12 @@
 import { httpClient } from "@/shared/api/httpClient";
-import { DashboardMetrics } from "./types";
+import { DashboardMetricsOverview } from "./types";
+import { DashboardMetricsOverviewFilters } from "../types/dashboard-sections";
 
-export async function fetchMetricsOverview(filters?: string) {
-  return await httpClient<DashboardMetrics>(`/dashboard/metrics/overview?${filters}`, {});
+export async function fetchMetricsOverview(filters?: DashboardMetricsOverviewFilters) {
+  return await httpClient<DashboardMetricsOverview, DashboardMetricsOverviewFilters>(
+    "/dashboard/metrics/overview",
+    {
+      filters,
+    },
+  );
 }

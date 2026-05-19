@@ -3,21 +3,31 @@
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import type {
-  RevenueAppointmentsPoint,
-  RevenueAppointmentsSummary,
-} from "@/features/dashboard/types/dashboard-sections";
+import { Select } from "@/components/ui/select/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { DashboardMetricsRevenueAndAppointments } from "@/features/dashboard/api/types";
 import { cn } from "@/shared/utils/cn";
+import { formatCompactCurrency, formatCurrency, formatNumber } from "@/shared/utils/lib";
+import { useState } from "react";
 
 import { DashboardPanel } from "./dashboard-panel";
-import { formatCompactCurrency, formatCurrency, formatNumber } from "@/shared/utils/lib";
+import { DashboardPanelSkeleton, DashboardQueryErrorState } from "./dashboard-query-state";
+import { useFetchMetricsRevenueAndAppointment } from "../hooks/use-fetch-metrics-revenue-and-appointments";
+import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
+import { DashboardGranularity, DashboardMetricsFiltersBase } from "../types/dashboard-sections";
 
 type RevenueAppointmentsChartCardProps = {
-  data: RevenueAppointmentsPoint[];
-  summary: RevenueAppointmentsSummary;
-  periodLabel?: string;
+  granularityOptions: {
+    label: string;
+    value: DashboardGranularity;
+  }[];
+  defaultGranularity: DashboardGranularity;
   className?: string;
+  filters?: DashboardMetricsFiltersBase;
 };
+
+type RevenueAppointmentsPoint = DashboardMetricsRevenueAndAppointments["points"][number];
+type RevenueAppointmentsSummary = DashboardMetricsRevenueAndAppointments["summary"];
 
 type RevenueTooltipPayload = {
   color?: string;
@@ -92,7 +102,17 @@ function RevenueAppointmentsTooltip({ active, payload }: RevenueTooltipProps) {
   );
 }
 
-function SummaryMetric({ label, value, trend }: { label: string; value: string; trend: number }) {
+function SummaryMetric({
+  label,
+  value,
+  trend,
+}: {
+  label: string;
+  value: string;
+  trend: RevenueAppointmentsSummary["revenueTrendPercent"];
+}) {
+  const hasTrend = trend !== null;
+
   return (
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -100,8 +120,13 @@ function SummaryMetric({ label, value, trend }: { label: string; value: string; 
         <p className="font-display text-xl font-semibold leading-none text-card-foreground">
           {value}
         </p>
-        <span className={cn("text-xs font-semibold", trend >= 0 ? "text-success" : "text-danger")}>
-          {formatTrend(trend)}
+        <span
+          className={cn(
+            "text-xs font-semibold",
+            hasTrend ? (trend >= 0 ? "text-success" : "text-danger") : "text-muted-foreground",
+          )}
+        >
+          {hasTrend ? formatTrend(trend) : "Sem comparação"}
         </span>
       </div>
     </div>
@@ -109,20 +134,85 @@ function SummaryMetric({ label, value, trend }: { label: string; value: string; 
 }
 
 export function RevenueAppointmentsChartCard({
-  data,
-  summary,
-  periodLabel = "Diário",
+  granularityOptions,
+  defaultGranularity,
   className,
+  filters,
 }: RevenueAppointmentsChartCardProps) {
+  const [granularity, setGranularity] = useState(defaultGranularity);
+
+  const { data, error, isLoading, refetch } = useFetchMetricsRevenueAndAppointment({
+    ...filters,
+    granularity,
+  });
+
+  const errorFeedback = useDashboardQueryErrorFeedback({
+    resourceKey: "revenue-and-appointments",
+    resourceLabel: "receita e agendamentos",
+    error,
+  });
+  const points = data?.points ?? [];
+  const summary = data?.summary;
+
+  const action = granularityOptions.length ? (
+    <Select
+      options={granularityOptions}
+      className="h-8 w-32 border-border/80 bg-muted/30 text-xs"
+      value={granularity}
+      onChange={setGranularity}
+    />
+  ) : null;
+
+  if (isLoading && !data) {
+    return (
+      <DashboardPanelSkeleton
+        title="Receita e agendamentos ao longo do tempo"
+        className={className}
+        action={action}
+      >
+        <div className="mb-4 flex flex-wrap items-center gap-4">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+
+        <Skeleton className="h-72 w-full rounded-xl" />
+
+        <div className="mt-4 grid gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-28" />
+            <Skeleton className="h-7 w-24" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-36" />
+            <Skeleton className="h-7 w-20" />
+          </div>
+        </div>
+      </DashboardPanelSkeleton>
+    );
+  }
+
+  if (errorFeedback && !data) {
+    return (
+      <DashboardPanel
+        title="Receita e agendamentos ao longo do tempo"
+        className={className}
+        action={action}
+      >
+        <DashboardQueryErrorState
+          title={errorFeedback.title}
+          description={errorFeedback.description}
+          minHeightClassName="min-h-72"
+          onRetry={() => void refetch()}
+        />
+      </DashboardPanel>
+    );
+  }
+
   return (
     <DashboardPanel
       title="Receita e agendamentos ao longo do tempo"
       className={className}
-      action={
-        <span className="inline-flex h-8 items-center rounded-lg border border-border/80 bg-muted/30 px-3 text-xs font-medium text-muted-foreground">
-          {periodLabel}
-        </span>
-      }
+      action={action}
     >
       <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-2">
@@ -135,7 +225,7 @@ export function RevenueAppointmentsChartCard({
         </span>
       </div>
 
-      {data.length ? (
+      {points.length ? (
         <ChartContainer
           config={chartConfig}
           role="img"
@@ -144,7 +234,7 @@ export function RevenueAppointmentsChartCard({
         >
           <AreaChart
             accessibilityLayer
-            data={data}
+            data={points}
             margin={{ top: 12, right: 8, bottom: 0, left: 0 }}
           >
             <defs>
@@ -223,18 +313,20 @@ export function RevenueAppointmentsChartCard({
         </div>
       )}
 
-      <div className="mt-4 grid gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2">
-        <SummaryMetric
-          label="Receita no período"
-          value={formatCurrency(summary.revenueInCents)}
-          trend={summary.revenueTrendPercent}
-        />
-        <SummaryMetric
-          label="Agendamentos no período"
-          value={formatNumber(summary.appointments)}
-          trend={summary.appointmentsTrendPercent}
-        />
-      </div>
+      {summary ? (
+        <div className="mt-4 grid gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2">
+          <SummaryMetric
+            label="Receita no período"
+            value={formatCurrency(summary.revenueInCents)}
+            trend={summary.revenueTrendPercent}
+          />
+          <SummaryMetric
+            label="Agendamentos no período"
+            value={formatNumber(summary.appointments)}
+            trend={summary.appointmentsTrendPercent}
+          />
+        </div>
+      ) : null}
     </DashboardPanel>
   );
 }
