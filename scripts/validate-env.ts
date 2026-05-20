@@ -69,11 +69,6 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
-function isRelativeApiPath(value: string): boolean {
-  const trimmed = value.trim();
-  return trimmed.startsWith("/") && !trimmed.startsWith("//");
-}
-
 function fail(message: string): never {
   console.error(`\x1b[31m[validate-env]\x1b[0m ${message}`);
   process.exit(1);
@@ -88,33 +83,12 @@ const fromFiles = loadMergedFromFiles();
 const apiBase = effective("NEXT_PUBLIC_API_BASE_URL", fromFiles);
 if (!apiBase.trim()) {
   fail(
-    "NEXT_PUBLIC_API_BASE_URL é obrigatória. Em dev: URL da API (ex.: http://localhost:8080). Em produção: /api.",
+    "NEXT_PUBLIC_API_BASE_URL é obrigatória (URL da API, ex.: http://localhost:8080). Defina no .env.local ou no ambiente.",
   );
 }
-
-const usesProxy = isRelativeApiPath(apiBase);
-const proxyTarget = effective("API_PROXY_TARGET", fromFiles);
-
-if (isProduction) {
-  if (!usesProxy) {
-    fail(
-      `Em produção, NEXT_PUBLIC_API_BASE_URL deve ser o path do proxy (ex.: /api). Valor atual: ${JSON.stringify(apiBase)}`,
-    );
-  }
-  if (!isHttpUrl(proxyTarget)) {
-    fail(
-      "Em produção, API_PROXY_TARGET é obrigatória (URL http(s) da API real, ex.: https://api.seudominio.com).",
-    );
-  }
-} else if (usesProxy) {
-  if (!isHttpUrl(proxyTarget)) {
-    fail(
-      "Com NEXT_PUBLIC_API_BASE_URL=/api em desenvolvimento, defina API_PROXY_TARGET (ex.: http://localhost:8080).",
-    );
-  }
-} else if (!isHttpUrl(apiBase)) {
+if (!isHttpUrl(apiBase)) {
   fail(
-    `NEXT_PUBLIC_API_BASE_URL deve ser uma URL http(s) válida ou um path relativo (/api). Valor atual: ${JSON.stringify(apiBase)}`,
+    `NEXT_PUBLIC_API_BASE_URL deve ser uma URL http(s) válida. Valor atual: ${JSON.stringify(apiBase)}`,
   );
 }
 
@@ -123,10 +97,6 @@ if (googleId.trim() && googleId.trim().length < 10) {
   warn("NEXT_PUBLIC_GOOGLE_CLIENT_ID parece inválido (muito curto). Login com Google pode falhar.");
 }
 
-const proxyNote = usesProxy
-  ? `proxy → ${proxyTarget.trim() || "(API_PROXY_TARGET)"}`
-  : "API direta";
-
 console.log(
-  `\x1b[32m[validate-env]\x1b[0m OK (${isProduction ? "production" : "development"}): NEXT_PUBLIC_API_BASE_URL=${apiBase.trim()} (${proxyNote}); Google ${googleId.trim() ? "configurado" : "opcional (omitido)"}.`,
+  `\x1b[32m[validate-env]\x1b[0m OK (${isProduction ? "production" : "development"}): NEXT_PUBLIC_API_BASE_URL está definida; Google ${googleId.trim() ? "configurado" : "opcional (omitido)"}.`,
 );

@@ -1,9 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import { buildQueryParamsFilters, normalizeQueryParamsFilters } from "../utils/lib";
 
-import { getApiBaseUrl } from "./get-api-base-url";
-
-const BASE_URL = getApiBaseUrl();
+const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
 
 if (!BASE_URL) {
   console.warn("NEXT_PUBLIC_API_BASE_URL não está definido. Configure o arquivo .env.local.");
@@ -73,10 +71,11 @@ export function setAccessToken(token: string | null) {
 async function performRefreshAccessToken(): Promise<boolean> {
   if (!BASE_URL) return false;
   try {
-    const res = await api.post<AuthRefreshResponse>(
-      "/auth/refresh",
+    const res = await axios.post<AuthRefreshResponse>(
+      `${BASE_URL}/auth/refresh`,
       {},
       {
+        withCredentials: true,
         headers: { "Content-Type": "application/json" },
       },
     );
