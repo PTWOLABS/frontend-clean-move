@@ -10,7 +10,6 @@ import { useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-import { AppointmentDetailsCard } from "./appointment-details-card";
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
 import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
@@ -75,11 +74,11 @@ export function AppointmentsPage() {
   const resolvedSelectedEventId = (selectedEventFromState ?? defaultSelectedEvent)?.id ?? null;
   const resolvedSelectedDate =
     selectionSource === "auto" && defaultSelectedEvent ? defaultSelectedEvent.start : selectedDate;
-  const visibleAppointments = events.filter(
-    (event) =>
-      event.start.getTime() >= visibleRange.start.getTime() &&
-      event.start.getTime() < visibleRange.end.getTime(),
-  );
+  // const visibleAppointments = events.filter(
+  //   (event) =>
+  //     event.start.getTime() >= visibleRange.start.getTime() &&
+  //     event.start.getTime() < visibleRange.end.getTime(),
+  // );
 
   function syncSelection(date: Date) {
     setSelectedDate(date);
@@ -164,7 +163,10 @@ export function AppointmentsPage() {
             Planejamento operacional
           </span>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Agendamentos</h1>
-          <p>descrição...</p>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Organize os agendamentos, acompanhe a ocupação da agenda e navegue pelos períodos de
+            atendimento.
+          </p>
           {/* <Badge
             variant="outline"
             className="rounded-full border-border/70 bg-card/80 px-2.5 py-0.5 text-[11px] text-muted-foreground"
@@ -257,13 +259,6 @@ export function AppointmentsPage() {
             isError={!!errorFeedback || hasAppointmentsError}
             onRetry={refetchAppointments}
             onSelectEvent={handleAgendaItemClick}
-          />
-          <AppointmentDetailsCard
-            events={events}
-            selectedEventId={resolvedSelectedEventId}
-            isLoading={isLoadingAppointments}
-            isError={!!errorFeedback || hasAppointmentsError}
-            onRetry={refetchAppointments}
           />
         </div>
       </div>

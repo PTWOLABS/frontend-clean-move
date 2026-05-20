@@ -56,15 +56,22 @@ export const CALENDAR_VIEWPORT_BOTTOM_OFFSET = 24;
 export const navigationCalendarClassNames = {
   root: "w-full",
   months: "w-full",
-  month: "w-full",
+  month: "relative flex w-full flex-col gap-4",
+  nav: "absolute inset-x-0 top-0 flex items-center justify-between",
+  month_caption: "flex h-8 items-center justify-center px-10",
+  caption_label: "text-sm font-semibold capitalize text-card-foreground",
+  button_previous:
+    "absolute left-0 top-0 inline-flex size-8 items-center justify-center rounded-xl border border-border/70 bg-background/70 text-muted-foreground transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  button_next:
+    "absolute right-0 top-0 inline-flex size-8 items-center justify-center rounded-xl border border-border/70 bg-background/70 text-muted-foreground transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   month_grid: "w-full table-fixed border-separate border-spacing-y-1.5",
   weekdays: "grid w-full grid-cols-7",
   week: "mt-1.5 grid w-full grid-cols-7",
   weekday:
     "flex h-8 w-full items-center justify-center text-[0.72rem] font-medium lowercase tracking-[0.04em] text-muted-foreground",
-  day: "relative flex h-9 w-full items-center justify-center p-0 text-center text-sm",
+  day: "relative flex h-9 w-full items-center justify-center p-0 text-center text-sm [&.outside]:text-muted-foreground [&.outside]:opacity-50 [&.selected>button]:bg-primary [&.selected>button]:text-primary-foreground [&.selected>button]:hover:bg-primary [&.selected>button]:hover:text-primary-foreground [&.today>button]:ring-1 [&.today>button]:ring-accent/80 [&.today>button]:ring-offset-2 [&.today>button]:ring-offset-background [&.today:not(.selected)>button]:bg-accent/20 [&.today:not(.selected)>button]:font-semibold [&.today:not(.selected)>button]:text-accent-foreground",
   day_button:
-    "inline-flex size-9 items-center justify-center rounded-xl p-0 text-sm font-normal leading-none transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex size-9 items-center justify-center rounded-sm p-0 text-sm font-normal leading-none transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
 };
 
 export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {

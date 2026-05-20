@@ -85,8 +85,8 @@ export function AppointmentsCalendarToolbar({
   }
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <div className="hidden items-center gap-2 lg:flex">
         <div className="flex items-center gap-2">
           <Button
             type="button"
@@ -119,18 +119,18 @@ export function AppointmentsCalendarToolbar({
         </div>
       </div>
 
-      <div className="min-w-0 text-left lg:text-center">
+      <div className="min-w-0 flex-none text-left lg:text-center">
         <CardTitle className="truncate font-display text-xl font-semibold capitalize text-card-foreground sm:text-2xl">
           {calendarTitle}
         </CardTitle>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 lg:ml-0">
         <Select
           value={selectedView}
           onChange={handleViewChange}
           options={viewOptions}
-          className="h-9 min-w-40 rounded-xl border-border/80 bg-background/70 shadow-xs"
+          className="h-9 w-36 rounded-xl border-border/80 bg-background/70 shadow-xs sm:w-40"
         />
 
         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -138,7 +138,7 @@ export function AppointmentsCalendarToolbar({
             <Button
               type="button"
               variant="outline"
-              className="h-9 min-w-40 justify-between rounded-xl border-border/80 bg-background/70 px-3 shadow-xs xl:hidden"
+              className="h-9 w-40 justify-between rounded-xl border-border/80 bg-background/70 px-3 shadow-xs xl:hidden"
             >
               <span className="inline-flex min-w-0 items-center gap-2">
                 <CalendarDays className="size-4 text-muted-foreground" />
