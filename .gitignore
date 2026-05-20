@@ -72,3 +72,9 @@ Thumbs.db
 
 # Certificados locais
 *.pem
+
+# MCP's
+*.playwright-mcp
+
+# Local IDE configs
+*.vscode
