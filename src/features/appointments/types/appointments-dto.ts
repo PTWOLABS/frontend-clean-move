@@ -7,13 +7,13 @@ export type AppointmentDTO = {
     establishmentId: string;
     customerId: string;
     vehicleId: string | null;
-    service: {
+    services: {
       id: string;
       name: string;
       category: ServiceCategoryCode | null;
       durationInMinutes: number | null;
       priceInCents: number;
-    };
+    }[];
     vehicle: {
       plate: string | null;
       brand: string | null;

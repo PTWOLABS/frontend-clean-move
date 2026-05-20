@@ -2,19 +2,37 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CarFront, Clock3 } from "lucide-react";
+import { CarFront, Clock3, RotateCcw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/shared/utils/cn";
 
-import { useAppointmentsPage } from "../contexts/appointments-page-context";
+import { getAppointmentsForDate, getStatusLabel } from "../lib/appointments-calendar";
 import { formatAppointmentTimeRange, statusBadgeClassName } from "../lib/appointments-page.helpers";
-import { getStatusLabel } from "../lib/appointments-calendar";
+import type { AppointmentCalendarEvent } from "../types/appointment-calendar";
 
-export function AppointmentsDayAgendaCard() {
-  const { selectedDate, selectedEventId, selectedDayAppointments, handleAgendaItemClick } =
-    useAppointmentsPage();
+type AppointmentsDayAgendaCardProps = {
+  selectedDate: Date;
+  selectedEventId: string | null;
+  events: AppointmentCalendarEvent[];
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+  onSelectEvent: (event: AppointmentCalendarEvent) => void;
+};
+
+export function AppointmentsDayAgendaCard({
+  selectedDate,
+  selectedEventId,
+  events,
+  isLoading,
+  isError,
+  onRetry,
+  onSelectEvent,
+}: AppointmentsDayAgendaCardProps) {
+  const selectedDayAppointments = getAppointmentsForDate(events, selectedDate);
 
   return (
     <Card className="rounded-3xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
@@ -25,7 +43,25 @@ export function AppointmentsDayAgendaCard() {
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        {selectedDayAppointments.length ? (
+        {isLoading ? (
+          <div className="rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
+            <p className="font-medium text-card-foreground">Carregando agenda do dia.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Os agendamentos deste período ainda estão sendo sincronizados.
+            </p>
+          </div>
+        ) : isError ? (
+          <div className="rounded-2xl border border-dashed border-danger-soft bg-background/45 p-5">
+            <p className="font-medium text-card-foreground">Não foi possível carregar a agenda.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Atualize os dados para tentar novamente.
+            </p>
+            <Button className="mt-4 h-10 rounded-xl px-4" variant="outline" onClick={onRetry}>
+              <RotateCcw className="size-4" />
+              Tentar novamente
+            </Button>
+          </div>
+        ) : selectedDayAppointments.length ? (
           selectedDayAppointments.map((event) => {
             const isActive = selectedEventId === event.id;
 
@@ -33,7 +69,7 @@ export function AppointmentsDayAgendaCard() {
               <button
                 key={event.id}
                 type="button"
-                onClick={() => handleAgendaItemClick(event)}
+                onClick={() => onSelectEvent(event)}
                 className={cn(
                   "w-full rounded-2xl border border-border/70 bg-background/55 p-4 text-left transition-colors hover:border-accent/40 hover:bg-accent-soft/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isActive && "border-accent/50 bg-accent-soft/45",
@@ -74,10 +110,6 @@ export function AppointmentsDayAgendaCard() {
         ) : (
           <div className="rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
             <p className="font-medium text-card-foreground">Nenhum agendamento neste dia.</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Use o botão &quot;Novo agendamento&quot; para inserir um mock local no horário
-              selecionado.
-            </p>
           </div>
         )}
       </CardContent>

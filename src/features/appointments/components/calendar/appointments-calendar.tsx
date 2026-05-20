@@ -1,16 +1,28 @@
 "use client";
 
+import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DayCellContentArg } from "@fullcalendar/core/index.js";
+import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
 import { isSameDay as isSameDayDateFns } from "date-fns";
-import { useRef } from "react";
+import { useRef, type RefObject } from "react";
 
+import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/shared/utils/cn";
 
-import { useAppointmentsPage } from "../../contexts/appointments-page-context";
 import styles from "../appointments-page.module.css";
-import type { AppointmentExtendedProps } from "../../types/appointment-calendar";
+import { useCalendarMoreLink } from "../../hooks/use-calendar-more-link";
+import { useCalendarViewportHeight } from "../../hooks/use-calendar-viewport-height";
+import { useFullCalendarResize } from "../../hooks/use-full-calendar-resize";
+import { useMonthCellIndicators } from "../../hooks/use-month-cell-indicators";
+import { getCalendarEventClassNames } from "../../lib/appointments-page.helpers";
+import type {
+  AppointmentCalendarEvent,
+  AppointmentCalendarView,
+  AppointmentExtendedProps,
+} from "../../types/appointment-calendar";
+import { CalendarEventContent } from "./calendar-event-content";
 import {
   appointmentsCalendarBusinessHours,
   appointmentsCalendarEventTimeFormat,
@@ -24,29 +36,43 @@ import {
 } from "./appointments-calendar.config";
 import { CalendarMoreLinkContent } from "./calendar-more-link-content";
 import { CalendarSlotOverlay } from "./calendar-slot-overlay";
-import { useCalendarMoreLink } from "../../hooks/use-calendar-more-link";
-import { useCalendarViewportHeight } from "../../hooks/use-calendar-viewport-height";
-import { useFullCalendarResize } from "../../hooks/use-full-calendar-resize";
-import { useMonthCellIndicators } from "../../hooks/use-month-cell-indicators";
-import { getCalendarEventClassNames } from "../../lib/appointments-page.helpers";
-import { CalendarEventContent } from "./calendar-event-content";
 
-export function AppointmentsCalendar() {
+type AppointmentsCalendarProps = {
+  calendarRef: RefObject<FullCalendar | null>;
+  initialSelectedDate: Date;
+  events: AppointmentCalendarEvent[];
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+  selectedDate: Date;
+  selectedEventId: string | null;
+  selectedSlotKey: string | null;
+  selectedView: AppointmentCalendarView;
+  onDateClick: (info: DateClickArg) => void;
+  onDatesSet: (arg: DatesSetArg) => void;
+  onEventClick: (info: EventClickArg) => void;
+  onMonthCellPress: (date: Date) => void;
+  onSlotPress: (date: Date) => void;
+};
+
+export function AppointmentsCalendar({
+  calendarRef,
+  initialSelectedDate,
+  events,
+  isLoading,
+  isError,
+  onRetry,
+  selectedDate,
+  selectedEventId,
+  selectedSlotKey,
+  selectedView,
+  onDateClick,
+  onDatesSet,
+  onEventClick,
+  onMonthCellPress,
+  onSlotPress,
+}: AppointmentsCalendarProps) {
   const { state: sidebarState } = useSidebar();
-  const {
-    calendarRef,
-    events,
-    initialSelectedDate,
-    selectedDate,
-    selectedEventId,
-    selectedSlotKey,
-    selectedView,
-    handleDateClick,
-    handleDatesSet,
-    handleEventClick,
-    handleMonthCellPress,
-    handleSlotPress,
-  } = useAppointmentsPage();
   const calendarViewportRef = useRef<HTMLDivElement | null>(null);
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
   const isMonthGridView = selectedView === "dayGridMonth";
@@ -69,7 +95,7 @@ export function AppointmentsCalendar() {
     handleMonthCellWillUnmount,
     renderMonthDayCellContent,
   } = useMonthCellIndicators({
-    onMonthCellPress: handleMonthCellPress,
+    onMonthCellPress,
   });
 
   useFullCalendarResize({
@@ -87,7 +113,7 @@ export function AppointmentsCalendar() {
           date={arg.date}
           events={events}
           selectedSlotKey={selectedSlotKey}
-          onSlotPress={handleSlotPress}
+          onSlotPress={onSlotPress}
         />
       );
     }
@@ -126,6 +152,7 @@ export function AppointmentsCalendar() {
       <div
         ref={calendarResizeRef}
         className={cn(
+          "relative",
           isMonthGridView ? "overflow-visible" : "h-full overflow-hidden",
           styles.calendarFrame,
           isMonthGridView && styles.calendarFrameMonthGrid,
@@ -134,7 +161,21 @@ export function AppointmentsCalendar() {
         style={calendarFrameStyle}
       >
         {monthCellIndicatorPortals}
-        {isCalendarViewportReady ? (
+        {isCalendarViewportReady && isError ? (
+          <div className="flex h-full min-h-[28rem] flex-col items-center justify-center gap-3 px-6 text-center">
+            <div>
+              <p className="text-sm font-medium text-card-foreground">
+                Não foi possível carregar os agendamentos.
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Atualize os dados para tentar novamente.
+              </p>
+            </div>
+            <Button variant="outline" onClick={onRetry}>
+              Tentar novamente
+            </Button>
+          </div>
+        ) : isCalendarViewportReady ? (
           <FullCalendar
             ref={calendarRef}
             plugins={appointmentsCalendarPlugins}
@@ -175,9 +216,9 @@ export function AppointmentsCalendar() {
             moreLinkWillUnmount={handleMoreLinkWillUnmount}
             moreLinkClick={handleMoreLinkClick}
             events={events}
-            dateClick={handleDateClick}
-            eventClick={handleEventClick}
-            datesSet={handleDatesSet}
+            dateClick={onDateClick}
+            eventClick={onEventClick}
+            datesSet={onDatesSet}
             eventContent={(arg) => <CalendarEventContent arg={arg} />}
             eventClassNames={(arg) => {
               const extendedProps = arg.event.extendedProps as AppointmentExtendedProps;
@@ -189,6 +230,11 @@ export function AppointmentsCalendar() {
               });
             }}
           />
+        ) : null}
+        {isCalendarViewportReady && isLoading ? (
+          <div className="pointer-events-none absolute inset-x-4 top-4 z-20 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            Carregando agendamentos...
+          </div>
         ) : null}
       </div>
     </div>

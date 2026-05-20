@@ -1,10 +1,9 @@
 import type { EventInput } from "@fullcalendar/core/index.js";
+import type { AppointmentStatus } from "@/shared/types/appointments";
 
 export type AppointmentCalendarView = "dayGridMonth" | "timeGridWeek" | "timeGridDay";
 
 export type AppointmentTone = "primary" | "accent" | "success" | "warning" | "danger" | "info";
-
-export type AppointmentMockStatus = "CONFIRMED" | "CHECK_IN" | "WAITING" | "FINISHED";
 
 export type AppointmentExtendedProps = {
   customer: string;
@@ -14,7 +13,7 @@ export type AppointmentExtendedProps = {
   notes: string;
   reminder: string;
   tone: AppointmentTone;
-  status: AppointmentMockStatus;
+  status: AppointmentStatus;
 };
 
 export type AppointmentCalendarEvent = Omit<

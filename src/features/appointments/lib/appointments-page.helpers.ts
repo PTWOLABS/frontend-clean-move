@@ -1,11 +1,12 @@
 import { addMinutes, format, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+import type { AppointmentStatus } from "@/shared/types/appointments";
+
 import type {
   AppointmentCalendarEvent,
   AppointmentCalendarView,
   AppointmentExtendedProps,
-  AppointmentMockStatus,
   AppointmentTone,
 } from "../types/appointment-calendar";
 import styles from "../components/appointments-page.module.css";
@@ -28,11 +29,10 @@ export const viewOptions: Array<{
   },
 ];
 
-export const statusBadgeClassName: Record<AppointmentMockStatus, string> = {
-  CONFIRMED: "border-transparent bg-success-soft text-success-soft-foreground",
-  CHECK_IN: "border-transparent bg-info-soft text-info-soft-foreground",
-  WAITING: "border-transparent bg-warning-soft text-warning-soft-foreground",
-  FINISHED: "border-transparent bg-secondary text-secondary-foreground",
+export const statusBadgeClassName: Record<AppointmentStatus, string> = {
+  DONE: "border-transparent bg-success-soft text-success-soft-foreground",
+  SCHEDULED: "border-transparent bg-info-soft text-info-soft-foreground",
+  CANCELLED: "border-transparent bg-danger-soft text-danger-soft-foreground",
 };
 
 const toneContainerClassName: Record<AppointmentTone, string> = {

@@ -2,23 +2,38 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, CalendarDays, CarFront, Plus, UserRound, Wrench } from "lucide-react";
+import { CalendarClock, CalendarDays, CarFront, RotateCcw, UserRound, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/shared/utils/cn";
 
-import { useAppointmentsPage } from "../contexts/appointments-page-context";
+import { getStatusLabel } from "../lib/appointments-calendar";
 import {
   formatAppointmentTimeRange,
   getInitials,
   statusBadgeClassName,
 } from "../lib/appointments-page.helpers";
-import { getStatusLabel } from "../lib/appointments-calendar";
+import type { AppointmentCalendarEvent } from "../types/appointment-calendar";
 
-export function AppointmentDetailsCard() {
-  const { selectedEvent, handleAddMockAppointment } = useAppointmentsPage();
+type AppointmentDetailsCardProps = {
+  events: AppointmentCalendarEvent[];
+  selectedEventId: string | null;
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+};
+
+export function AppointmentDetailsCard({
+  events,
+  selectedEventId,
+  isLoading,
+  isError,
+  onRetry,
+}: AppointmentDetailsCardProps) {
+  const selectedEvent =
+    (selectedEventId ? events.find((event) => event.id === selectedEventId) : null) ?? null;
 
   return (
     <Card className="rounded-3xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
@@ -116,6 +131,30 @@ export function AppointmentDetailsCard() {
               </div>
             </div>
           </div>
+        ) : isLoading ? (
+          <div className="space-y-3 rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="size-4 text-accent" />
+              <p className="font-medium text-card-foreground">Carregando detalhes</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Os dados do agendamento selecionado estão sendo carregados.
+            </p>
+          </div>
+        ) : isError ? (
+          <div className="space-y-3 rounded-2xl border border-dashed border-danger-soft bg-background/45 p-5">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="size-4 text-danger" />
+              <p className="font-medium text-card-foreground">Não foi possível carregar</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Tente atualizar os agendamentos para exibir os detalhes novamente.
+            </p>
+            <Button className="h-10 rounded-xl px-4" variant="outline" onClick={onRetry}>
+              <RotateCcw className="size-4" />
+              Tentar novamente
+            </Button>
+          </div>
         ) : (
           <div className="space-y-3 rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
             <div className="flex items-center gap-2">
@@ -123,13 +162,8 @@ export function AppointmentDetailsCard() {
               <p className="font-medium text-card-foreground">Nenhum evento selecionado</p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Clique em um evento no calendário ou na lista lateral para carregar os detalhes. Se
-              quiser testar a criação local, adicione um novo mock no dia selecionado.
+              Clique em um evento no calendário ou na lista lateral para carregar os detalhes.
             </p>
-            <Button className="h-10 rounded-xl px-4" onClick={handleAddMockAppointment}>
-              <Plus className="size-4" />
-              Adicionar mock neste horário
-            </Button>
           </div>
         )}
       </CardContent>

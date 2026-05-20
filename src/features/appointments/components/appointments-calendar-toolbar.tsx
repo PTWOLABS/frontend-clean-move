@@ -1,8 +1,10 @@
 "use client";
 
+import type FullCalendar from "@fullcalendar/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar as MiniCalendar } from "@/components/ui/calendar";
@@ -10,23 +12,77 @@ import { CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select } from "@/components/ui/select/select";
 
-import { useAppointmentsPage } from "../contexts/appointments-page-context";
+import type { AppointmentCalendarView } from "../types/appointment-calendar";
 import { navigationCalendarClassNames, viewOptions } from "../lib/appointments-page.helpers";
 
-export function AppointmentsCalendarToolbar() {
-  const {
-    calendarTitle,
-    selectedDate,
-    selectedView,
-    miniCalendarMonth,
-    isDatePickerOpen,
-    handleNavigate,
-    handleToday,
-    handleViewChange,
-    handleMiniCalendarSelect,
-    setMiniCalendarMonth,
-    setIsDatePickerOpen,
-  } = useAppointmentsPage();
+type AppointmentsCalendarToolbarProps = {
+  calendarRef: RefObject<FullCalendar | null>;
+  calendarTitle: string;
+  selectedDate: Date;
+  selectedView: AppointmentCalendarView;
+  onSelectDate: (date: Date) => void;
+};
+
+export function AppointmentsCalendarToolbar({
+  calendarRef,
+  calendarTitle,
+  selectedDate,
+  selectedView,
+  onSelectDate,
+}: AppointmentsCalendarToolbarProps) {
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  function getCalendarApi() {
+    return calendarRef.current?.getApi() ?? null;
+  }
+
+  function handleToday() {
+    const calendarApi = getCalendarApi();
+
+    if (!calendarApi) {
+      return;
+    }
+
+    calendarApi.today();
+    onSelectDate(calendarApi.getDate());
+  }
+
+  function handleNavigate(direction: "prev" | "next") {
+    const calendarApi = getCalendarApi();
+
+    if (!calendarApi) {
+      return;
+    }
+
+    if (direction === "prev") {
+      calendarApi.prev();
+    } else {
+      calendarApi.next();
+    }
+
+    onSelectDate(calendarApi.getDate());
+  }
+
+  function handleViewChange(nextView: AppointmentCalendarView) {
+    const calendarApi = getCalendarApi();
+
+    if (!calendarApi) {
+      return;
+    }
+
+    calendarApi.changeView(nextView);
+    onSelectDate(calendarApi.getDate());
+  }
+
+  function handleMiniCalendarSelect(date: Date | undefined) {
+    if (!date) {
+      return;
+    }
+
+    setIsDatePickerOpen(false);
+    onSelectDate(date);
+    getCalendarApi()?.gotoDate(date);
+  }
 
   return (
     <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
@@ -95,10 +151,10 @@ export function AppointmentsCalendarToolbar() {
           </PopoverTrigger>
           <PopoverContent align="end" className="w-[18.5rem] rounded-2xl border-border/80 p-0">
             <MiniCalendar
+              key={format(selectedDate, "yyyy-MM")}
               mode="single"
               locale={ptBR}
-              month={miniCalendarMonth}
-              onMonthChange={setMiniCalendarMonth}
+              defaultMonth={selectedDate}
               selected={selectedDate}
               onSelect={handleMiniCalendarSelect}
               className="w-full"
