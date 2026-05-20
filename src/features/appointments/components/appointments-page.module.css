@@ -18,7 +18,7 @@
 }
 
 .calendarFrame :global(.fc) {
-  --appointment-month-cell-height: 150px;
+  --appointment-month-cell-height: 140px;
   --fc-border-color: hsl(var(--border) / 0.78);
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: hsl(var(--muted) / 0.28);
@@ -211,8 +211,8 @@
 
 .monthCellIndicatorButton {
   position: absolute;
-  right: 0.45rem;
-  bottom: 0.45rem;
+  left: 0.45rem;
+  top: 0.45rem;
   z-index: 4;
   border: 0;
   padding: 0;
@@ -268,6 +268,7 @@
 .calendarFrame :global(.fc .fc-daygrid-more-link) {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
   max-width: 100%;
   overflow: hidden;
   padding: 0.12rem 0.4rem;
@@ -281,9 +282,15 @@
   background: hsl(var(--muted) / 0.36);
 }
 
+.moreLinkLabel {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: inherit;
+}
+
 .moreLinkFullLabel,
 .moreLinkCompactLabel {
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -298,7 +305,7 @@
 }
 
 .calendarFrame :global(.fc .fc-daygrid-more-link[data-compact="true"]) .moreLinkCompactLabel {
-  display: inline;
+  display: block;
 }
 
 .calendarFrame :global(.fc .fc-daygrid-more-link:hover) {
@@ -345,15 +352,17 @@
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-events) {
-  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
   min-height: 0;
-  margin-top: 0;
+  margin: 0;
   padding-top: 0.18rem;
   overflow: hidden;
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-bottom) {
-  margin: 0.25rem 0.3rem 0;
+  margin: 0 0.3rem;
 }
 
 .calendarFrame :global(.fc .fc-daygrid-event-harness) {
@@ -520,17 +529,19 @@
 }
 
 .monthEventContent {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
+  width: 100%;
   min-width: 0;
+  height: 20px;
   padding: 0.24rem 0.42rem;
   border-radius: 0.5rem;
   background: hsl(var(--background) / 0.32);
 }
 
 .monthEventTitle {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -540,6 +551,7 @@
 }
 
 .monthEventTime {
+  margin-left: auto;
   flex-shrink: 0;
   font-size: 0.66rem;
   font-weight: 600;
