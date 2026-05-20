@@ -1,3 +1,5 @@
+import { AppointmentsFilters } from "@/features/appointments/types/api-filters";
+
 export const QUERY_KEYS = {
   authSession: ["auth", "session"] as const,
   login: ["login"],
@@ -8,4 +10,5 @@ export const QUERY_KEYS = {
   metricsAppointment: ["metrics-appointment"],
   popularServices: ["popular-services"],
   revenueAndAppointments: ["revenue-and-appointments"],
+  appointments: (filters?: AppointmentsFilters) => ["appointments", ...(filters ? [filters] : [])],
 };
