@@ -1,4 +1,24 @@
+.calendarViewport {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.calendarViewportMonthGrid {
+  overflow: visible;
+}
+
+.calendarFrame {
+  height: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+
+.calendarFrameMonthGrid {
+  height: auto;
+}
+
 .calendarFrame :global(.fc) {
+  --appointment-month-cell-height: 150px;
   --fc-border-color: hsl(var(--border) / 0.78);
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: hsl(var(--muted) / 0.28);
@@ -6,6 +26,18 @@
   --fc-now-indicator-color: hsl(var(--accent));
   --fc-list-event-hover-bg-color: hsl(var(--muted) / 0.32);
   color: hsl(var(--foreground));
+  height: 100%;
+}
+
+.calendarFrame :global(.fc-scrollgrid),
+.calendarFrame :global(.fc-view-harness),
+.calendarFrame :global(.fc-view-harness-active),
+.calendarFrame :global(.fc-scroller),
+.calendarFrame :global(.fc-scroller-harness),
+.calendarFrame :global(.fc-scroller-liquid-absolute),
+.calendarFrame :global(.fc-daygrid-body),
+.calendarFrame :global(.fc-timegrid-body) {
+  min-height: 0;
 }
 
 .calendarFrame :global(.fc .fc-scrollgrid) {
@@ -54,8 +86,64 @@
 }
 
 .calendarFrame :global(.fc .fc-view-harness) {
-  min-height: 34rem;
+  height: 100% !important;
+  min-height: 0;
   overflow: visible;
+}
+
+.calendarFrameMonthGrid :global(.fc .fc-view-harness) {
+  height: auto !important;
+}
+
+.calendarFrame :global(.fc .fc-scroller) {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--accent) / 0.42) hsl(var(--muted) / 0.18);
+}
+
+.calendarFrame :global(.fc .fc-scroller::-webkit-scrollbar) {
+  width: 0.72rem;
+  height: 0.72rem;
+}
+
+.calendarFrame :global(.fc .fc-scroller::-webkit-scrollbar-track) {
+  background: hsl(var(--muted) / 0.14);
+}
+
+.calendarFrame :global(.fc .fc-scroller::-webkit-scrollbar-thumb) {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: hsl(var(--accent) / 0.34);
+  background-clip: padding-box;
+}
+
+.calendarFrame :global(.fc .fc-scroller::-webkit-scrollbar-thumb:hover) {
+  background: hsl(var(--accent) / 0.46);
+  background-clip: padding-box;
+}
+
+.calendarFrame :global(.fc .fc-scrollgrid-section-header .fc-scroller),
+.calendarFrame :global(.fc .fc-col-header .fc-scroller) {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+.calendarFrame :global(.fc .fc-scrollgrid-section-header .fc-scroller::-webkit-scrollbar),
+.calendarFrame :global(.fc .fc-col-header .fc-scroller::-webkit-scrollbar) {
+  width: 0;
+  height: 0;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-body .fc-scroller),
+.calendarFrame :global(.fc .fc-timegrid-body .fc-scroller),
+.calendarFrame :global(.fc .fc-timegrid-body .fc-scroller-liquid-absolute),
+.calendarFrame :global(.fc .fc-daygrid-body .fc-scroller-liquid-absolute) {
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+.calendarFrameMonthGrid :global(.fc .fc-daygrid-body .fc-scroller),
+.calendarFrameMonthGrid :global(.fc .fc-daygrid-body .fc-scroller-liquid-absolute) {
+  overflow: hidden !important;
 }
 
 .calendarFrame :global(.fc .fc-col-header-cell) {
@@ -83,13 +171,27 @@
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-number) {
-  padding: 0.75rem;
+  padding: 0.7rem 0.8rem 0;
   font-size: 0.875rem;
+  line-height: 1;
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-frame) {
-  min-height: 8.75rem;
-  height: 8.75rem;
+  display: flex;
+  min-height: var(--appointment-month-cell-height);
+  height: var(--appointment-month-cell-height);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-top),
+.calendarFrame :global(.fc .fc-daygrid-day-bottom) {
+  flex-shrink: 0;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-day-top) {
+  min-height: 2.1rem;
+  padding-bottom: 0.5rem;
 }
 
 .monthDayCell :global(.fc-daygrid-day-frame) {
@@ -179,6 +281,26 @@
   background: hsl(var(--muted) / 0.36);
 }
 
+.moreLinkFullLabel,
+.moreLinkCompactLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moreLinkCompactLabel {
+  display: none;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-more-link[data-compact="true"]) .moreLinkFullLabel {
+  display: none;
+}
+
+.calendarFrame :global(.fc .fc-daygrid-more-link[data-compact="true"]) .moreLinkCompactLabel {
+  display: inline;
+}
+
 .calendarFrame :global(.fc .fc-daygrid-more-link:hover) {
   background: hsl(var(--accent-soft) / 0.58);
   color: hsl(var(--accent));
@@ -223,7 +345,10 @@
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-events) {
-  margin-top: 0.3rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 0;
+  padding-top: 0.18rem;
   overflow: hidden;
 }
 
@@ -233,7 +358,7 @@
 
 .calendarFrame :global(.fc .fc-daygrid-event-harness) {
   margin-inline: 0.25rem;
-  margin-top: 0.2rem;
+  margin-top: 0.16rem;
 }
 
 .calendarFrame :global(.fc .fc-timegrid-event-harness) {
