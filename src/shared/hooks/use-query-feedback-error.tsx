@@ -103,7 +103,6 @@ export function useQueryFeedbackError({
   resourceLabel,
   override,
 }: QueryErrorFeedbackParams) {
-  console.log("ERRO AQUI:", error);
   const feedback = useMemo(() => {
     if (!error) {
       return null;
