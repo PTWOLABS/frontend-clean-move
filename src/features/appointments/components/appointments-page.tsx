@@ -22,6 +22,8 @@ import type {
   AppointmentCalendarEvent,
   AppointmentCalendarView,
 } from "../types/appointment-calendar";
+import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
+import { AppointmentInfoCard } from "./appointment-info-card";
 
 function getInitialVisibleRange(date: Date) {
   const start = startOfMonth(date);
@@ -54,9 +56,17 @@ export function AppointmentsPage() {
     }),
     [visibleRange.end, visibleRange.start],
   );
-  const { data: events = [], isPending, isError, refetch } = useListAppointments(filters);
+
+  const { data: events = [], isPending, isError, refetch, error } = useListAppointments(filters);
+
   const isLoadingAppointments = isPending && events.length === 0;
   const hasAppointmentsError = isError && events.length === 0;
+
+  const errorFeedback = useQueryFeedbackError({
+    resourceKey: "calendar-appointments",
+    resourceLabel: "os agendamentos",
+    error: error,
+  });
 
   const defaultSelectedEvent =
     selectionSource === "auto" ? (findNextAppointment(events) ?? events[0] ?? null) : null;
@@ -149,20 +159,21 @@ export function AppointmentsPage() {
   return (
     <section className="flex min-h-0 flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <div className="flex flex-col min-w-0 flex-wrap gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent">
             Planejamento operacional
           </span>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Agendamentos</h1>
-          <Badge
+          <p>descrição...</p>
+          {/* <Badge
             variant="outline"
             className="rounded-full border-border/70 bg-card/80 px-2.5 py-0.5 text-[11px] text-muted-foreground"
           >
             {visibleAppointments.length} no período
-          </Badge>
+          </Badge> */}
         </div>
 
-        {hasAppointmentsError ? (
+        {errorFeedback || hasAppointmentsError ? (
           <Badge
             variant="outline"
             className="w-fit rounded-full border-danger-soft bg-danger-soft px-3 py-1 text-xs text-danger-soft-foreground"
@@ -178,6 +189,24 @@ export function AppointmentsPage() {
           </Badge>
         ) : null}
       </header>
+
+      <div className="flex justify-between gap-4 ">
+        <AppointmentInfoCard
+          title="Período visível"
+          mainContent="12 agendamentos"
+          description="26 de abril - 6 de junho de 2026"
+        />
+        <AppointmentInfoCard
+          title="Período visível"
+          mainContent="12 agendamentos"
+          description="26 de abril - 6 de junho de 2026"
+        />
+        <AppointmentInfoCard
+          title="Período visível"
+          mainContent="12 agendamentos"
+          description="26 de abril - 6 de junho de 2026"
+        />
+      </div>
 
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <Card className="min-w-0 overflow-hidden rounded-3xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
@@ -197,7 +226,7 @@ export function AppointmentsPage() {
               initialSelectedDate={initialSelectedDate}
               events={events}
               isLoading={isLoadingAppointments}
-              isError={hasAppointmentsError}
+              isError={!!errorFeedback || hasAppointmentsError}
               onRetry={refetchAppointments}
               selectedDate={resolvedSelectedDate}
               selectedEventId={resolvedSelectedEventId}
@@ -225,7 +254,7 @@ export function AppointmentsPage() {
             selectedEventId={resolvedSelectedEventId}
             events={events}
             isLoading={isLoadingAppointments}
-            isError={hasAppointmentsError}
+            isError={!!errorFeedback || hasAppointmentsError}
             onRetry={refetchAppointments}
             onSelectEvent={handleAgendaItemClick}
           />
@@ -233,7 +262,7 @@ export function AppointmentsPage() {
             events={events}
             selectedEventId={resolvedSelectedEventId}
             isLoading={isLoadingAppointments}
-            isError={hasAppointmentsError}
+            isError={!!errorFeedback || hasAppointmentsError}
             onRetry={refetchAppointments}
           />
         </div>
