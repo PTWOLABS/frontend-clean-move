@@ -1,0 +1,119 @@
+import { addMinutes, format, startOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+import type {
+  AppointmentCalendarEvent,
+  AppointmentCalendarView,
+  AppointmentExtendedProps,
+  AppointmentMockStatus,
+  AppointmentTone,
+} from "../types/appointment-calendar";
+import styles from "../components/appointments-page.module.css";
+
+export const viewOptions: Array<{
+  label: string;
+  value: AppointmentCalendarView;
+}> = [
+  {
+    label: "Visão mensal",
+    value: "dayGridMonth",
+  },
+  {
+    label: "Visão semanal",
+    value: "timeGridWeek",
+  },
+  {
+    label: "Visão diária",
+    value: "timeGridDay",
+  },
+];
+
+export const statusBadgeClassName: Record<AppointmentMockStatus, string> = {
+  CONFIRMED: "border-transparent bg-success-soft text-success-soft-foreground",
+  CHECK_IN: "border-transparent bg-info-soft text-info-soft-foreground",
+  WAITING: "border-transparent bg-warning-soft text-warning-soft-foreground",
+  FINISHED: "border-transparent bg-secondary text-secondary-foreground",
+};
+
+const toneContainerClassName: Record<AppointmentTone, string> = {
+  primary: styles.eventTonePrimary,
+  accent: styles.eventToneAccent,
+  success: styles.eventToneSuccess,
+  warning: styles.eventToneWarning,
+  danger: styles.eventToneDanger,
+  info: styles.eventToneInfo,
+};
+
+export const SLOT_DURATION = "00:30:00";
+export const SLOT_DURATION_MINUTES = 30;
+export const SLOT_MIN_TIME = "01:00:00";
+export const SLOT_MAX_TIME = "24:00:00";
+export const SLOT_START_HOUR = 1;
+export const SLOT_END_HOUR = 24;
+export const SLOT_COUNT = ((SLOT_END_HOUR - SLOT_START_HOUR) * 60) / SLOT_DURATION_MINUTES;
+export const CALENDAR_VIEWPORT_BOTTOM_OFFSET = 24;
+
+export const navigationCalendarClassNames = {
+  root: "w-full",
+  months: "w-full",
+  month: "w-full",
+  month_grid: "w-full table-fixed border-separate border-spacing-y-1.5",
+  weekdays: "grid w-full grid-cols-7",
+  week: "mt-1.5 grid w-full grid-cols-7",
+  weekday:
+    "flex h-8 w-full items-center justify-center text-[0.72rem] font-medium lowercase tracking-[0.04em] text-muted-foreground",
+  day: "relative flex h-9 w-full items-center justify-center p-0 text-center text-sm",
+  day_button:
+    "inline-flex size-9 items-center justify-center rounded-xl p-0 text-sm font-normal leading-none transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+};
+
+export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {
+  return `${format(event.start, "HH:mm", { locale: ptBR })} - ${format(event.end, "HH:mm", {
+    locale: ptBR,
+  })}`;
+}
+
+export function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+export function formatSlotKey(date: Date) {
+  return format(date, "yyyy-MM-dd'T'HH:mm");
+}
+
+export function formatDayKey(date: Date) {
+  return format(date, "yyyy-MM-dd");
+}
+
+export function buildSlotDate(date: Date, slotIndex: number) {
+  return addMinutes(startOfDay(date), SLOT_START_HOUR * 60 + slotIndex * SLOT_DURATION_MINUTES);
+}
+
+export function doesEventOverlapSlot(
+  event: AppointmentCalendarEvent,
+  slotStart: Date,
+  slotEnd: Date,
+) {
+  return event.start.getTime() < slotEnd.getTime() && event.end.getTime() > slotStart.getTime();
+}
+
+export function getCalendarEventClassNames({
+  extendedProps,
+  eventId,
+  selectedEventId,
+}: {
+  extendedProps: AppointmentExtendedProps;
+  eventId: string;
+  selectedEventId: string | null;
+}) {
+  return [
+    styles.eventCard,
+    toneContainerClassName[extendedProps.tone],
+    eventId === selectedEventId ? styles.eventSelected : "",
+  ];
+}
