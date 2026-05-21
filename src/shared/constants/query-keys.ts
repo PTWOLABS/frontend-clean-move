@@ -10,9 +10,10 @@ export const QUERY_KEYS = {
   metricsAppointment: ["metrics-appointment"],
   popularServices: ["popular-services"],
   revenueAndAppointments: ["revenue-and-appointments"],
-  appointments: (filters?: AppointmentsFilters, appointmentId?: string) => [
-    "appointments",
-    ...(filters ? [filters] : []),
-    ...(appointmentId ? [appointmentId] : []),
-  ],
+  appointments: (filters?: AppointmentsFilters, appointmentId?: string) =>
+    [
+      "appointments",
+      ...(filters ? [filters] : []),
+      ...(appointmentId ? [appointmentId] : []),
+    ] as const,
 };
