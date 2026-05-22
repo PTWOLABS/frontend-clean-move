@@ -15,3 +15,8 @@ export type AppointmentsFilters = {
   customerId?: string;
   search?: string; //General text search across customer full name, customer nickname, booked service name, vehicle plate, vehicle brand, and vehicle model. Non-alphanumeric characters are removed when matching against vehicle plate.
 };
+
+export type AppointmentsCalendarFilters = {
+  startsAt: string;
+  endsAt: string;
+};

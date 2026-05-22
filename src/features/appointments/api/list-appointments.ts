@@ -1,9 +1,9 @@
 import { httpClient } from "@/shared/api/httpClient";
-import { AppointmentsFilters } from "../types/api-filters";
+import { AppointmentsCalendarFilters } from "../types/api-filters";
 import { AppointmentDTO } from "../types/appointments-dto";
 
-export async function listAppointments(filters?: AppointmentsFilters) {
-  return await httpClient<AppointmentDTO, AppointmentsFilters>("/appointments", {
+export async function listAppointments(filters?: AppointmentsCalendarFilters) {
+  return await httpClient<AppointmentDTO, AppointmentsCalendarFilters>("/appointments/calendar", {
     filters,
   });
 }

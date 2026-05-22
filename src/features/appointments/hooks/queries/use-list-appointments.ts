@@ -5,9 +5,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { listAppointments } from "../../api/list-appointments";
 import { mapAppointmentsToCalendarEvents } from "../../lib/appointments-calendar";
 
-import { AppointmentsFilters } from "../../types/api-filters";
+import { AppointmentsCalendarFilters } from "../../types/api-filters";
 
-export function useListAppointments(filters?: AppointmentsFilters) {
+export function useListAppointments(filters?: AppointmentsCalendarFilters) {
   return useQuery({
     queryKey: QUERY_KEYS.appointments(filters),
     queryFn: async () => listAppointments(filters),
