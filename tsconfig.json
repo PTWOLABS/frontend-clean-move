@@ -41,6 +41,8 @@
     ".agents",
     ".codex",
     ".cursor",
+    "cypress",
+    "cypress.config.ts",
     "docs/superpowers"
   ]
 }

@@ -1,0 +1,152 @@
+import { describe, expect, it } from "vitest";
+
+import type { AppointmentDTO } from "../types/appointments-dto";
+import {
+  findNextAppointment,
+  formatCalendarRange,
+  getAppointmentsForDate,
+  getStatusLabel,
+  getViewLabel,
+  mapAppointmentsToCalendarEvents,
+} from "./appointments-calendar";
+
+const response: AppointmentDTO = {
+  appointments: [
+    {
+      id: "appointment-2",
+      establishmentId: "est-1",
+      customerId: "customer-2",
+      vehicleId: "vehicle-2",
+      services: [
+        {
+          id: "service-2",
+          name: "Vitrificacao",
+          category: "DETAILING",
+          durationInMinutes: 120,
+          priceInCents: 35000,
+        },
+      ],
+      vehicle: {
+        plate: "ABC1D23",
+        brand: "Toyota",
+        model: "Corolla",
+        color: "Preto",
+        year: 2024,
+      },
+      startsAt: "2026-05-19T13:00:00.000Z",
+      endsAt: "2026-05-19T15:00:00.000Z",
+      description: "Validar acabamento final.",
+      discountInCents: null,
+      status: "DONE",
+      createdAt: "2026-05-19T10:00:00.000Z",
+      updatedAt: "2026-05-19T10:30:00.000Z",
+      doneAt: "2026-05-19T15:30:00.000Z",
+      cancelledAt: null,
+    },
+    {
+      id: "appointment-1",
+      establishmentId: "est-1",
+      customerId: "customer-1",
+      vehicleId: null,
+      services: [
+        {
+          id: "service-1",
+          name: "Lavagem tecnica",
+          category: "WASH",
+          durationInMinutes: 45,
+          priceInCents: 9000,
+        },
+        {
+          id: "service-3",
+          name: "Higienizacao",
+          category: "INTERIOR",
+          durationInMinutes: 30,
+          priceInCents: 12000,
+        },
+      ],
+      vehicle: null,
+      startsAt: "2026-05-20T09:00:00.000Z",
+      endsAt: null,
+      description: null,
+      discountInCents: null,
+      status: "SCHEDULED",
+      createdAt: "2026-05-19T08:00:00.000Z",
+      updatedAt: "2026-05-19T08:10:00.000Z",
+      doneAt: null,
+      cancelledAt: null,
+    },
+    {
+      id: "appointment-3",
+      establishmentId: "est-1",
+      customerId: "customer-3",
+      vehicleId: null,
+      services: [
+        {
+          id: "service-4",
+          name: "Polimento",
+          category: "DETAILING",
+          durationInMinutes: 60,
+          priceInCents: 15000,
+        },
+      ],
+      vehicle: null,
+      startsAt: "2026-05-21T10:00:00.000Z",
+      endsAt: null,
+      description: null,
+      discountInCents: null,
+      status: "CANCELLED",
+      createdAt: "2026-05-19T08:00:00.000Z",
+      updatedAt: "2026-05-19T08:10:00.000Z",
+      doneAt: null,
+      cancelledAt: "2026-05-19T08:30:00.000Z",
+    },
+  ],
+};
+
+describe("appointments-calendar helpers", () => {
+  it("maps the API response to sorted calendar events with fallbacks", () => {
+    const appointments = mapAppointmentsToCalendarEvents(response);
+
+    expect(appointments).toHaveLength(3);
+    expect(appointments[0]?.id).toBe("appointment-2");
+    expect(appointments[1]?.title).toBe("Lavagem tecnica +1");
+    expect(appointments[1]?.end.toISOString()).toBe("2026-05-20T10:15:00.000Z");
+    expect(appointments[1]?.extendedProps.customer).toBeTruthy();
+    expect(appointments[1]?.extendedProps.attendants).toHaveLength(2);
+    expect(appointments[1]?.extendedProps.vehicle).toBe("Veículo não informado");
+    expect(appointments[1]?.extendedProps.notes).toBe("Sem observações operacionais.");
+    expect(appointments[1]?.extendedProps.reminder).toBe("Lembrete automático padrão");
+  });
+
+  it("filters only the appointments of the selected day", () => {
+    const appointments = mapAppointmentsToCalendarEvents(response);
+    const selectedDate = new Date("2026-05-20T12:00:00.000Z");
+
+    const filteredAppointments = getAppointmentsForDate(appointments, selectedDate);
+
+    expect(filteredAppointments).toHaveLength(1);
+    expect(filteredAppointments[0]?.title).toBe("Lavagem tecnica +1");
+  });
+
+  it("returns the next upcoming appointment ignoring cancelled events", () => {
+    const appointments = mapAppointmentsToCalendarEvents(response);
+    const now = new Date("2026-05-20T08:00:00.000Z");
+
+    const nextAppointment = findNextAppointment(appointments, now);
+
+    expect(nextAppointment?.id).toBe("appointment-1");
+  });
+
+  it("formats the visible range for the custom header", () => {
+    const start = new Date(2026, 4, 1);
+    const endExclusive = new Date(2026, 5, 1);
+
+    expect(formatCalendarRange(start, endExclusive)).toBe("1 de maio - 31 de maio de 2026");
+  });
+
+  it("exposes readable labels for views and statuses", () => {
+    expect(getViewLabel("dayGridMonth")).toBe("Visão mensal");
+    expect(getViewLabel("timeGridWeek")).toBe("Visão semanal");
+    expect(getStatusLabel("SCHEDULED")).toBe("Agendado");
+  });
+});
