@@ -7,7 +7,6 @@ import { format, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useMemo, useRef, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
@@ -15,7 +14,12 @@ import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
 import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
 import { AppointmentsQuickNavigationCard } from "./appointments-quick-navigation-card";
 import { useListAppointments } from "../hooks/queries/use-list-appointments";
-import { findNextAppointment } from "../lib/appointments-calendar";
+import {
+  findNextAppointment,
+  formatCalendarRange,
+  getAppointmentsForDate,
+  getViewLabel,
+} from "../lib/appointments-calendar";
 import { formatSlotKey } from "../lib/appointments-page.helpers";
 import type {
   AppointmentCalendarEvent,
@@ -31,6 +35,10 @@ function getInitialVisibleRange(date: Date) {
     start,
     end: startOfMonth(new Date(start.getFullYear(), start.getMonth() + 1, 1)),
   };
+}
+
+function formatAppointmentsCount(count: number) {
+  return `${count} agendamento${count === 1 ? "" : "s"}`;
 }
 
 export function AppointmentsPage() {
@@ -74,11 +82,13 @@ export function AppointmentsPage() {
   const resolvedSelectedEventId = (selectedEventFromState ?? defaultSelectedEvent)?.id ?? null;
   const resolvedSelectedDate =
     selectionSource === "auto" && defaultSelectedEvent ? defaultSelectedEvent.start : selectedDate;
-  // const visibleAppointments = events.filter(
-  //   (event) =>
-  //     event.start.getTime() >= visibleRange.start.getTime() &&
-  //     event.start.getTime() < visibleRange.end.getTime(),
-  // );
+  const visibleAppointments = events.filter(
+    (event) =>
+      event.start.getTime() >= visibleRange.start.getTime() &&
+      event.start.getTime() < visibleRange.end.getTime(),
+  );
+  const selectedDayAppointments = getAppointmentsForDate(events, resolvedSelectedDate);
+  const visibleRangeLabel = formatCalendarRange(visibleRange.start, visibleRange.end);
 
   function syncSelection(date: Date) {
     setSelectedDate(date);
@@ -157,8 +167,8 @@ export function AppointmentsPage() {
 
   return (
     <section className="flex min-h-0 flex-col gap-4">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-col min-w-0 flex-wrap gap-2">
+      {/* <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent">
             Planejamento operacional
           </span>
@@ -167,12 +177,6 @@ export function AppointmentsPage() {
             Organize os agendamentos, acompanhe a ocupação da agenda e navegue pelos períodos de
             atendimento.
           </p>
-          {/* <Badge
-            variant="outline"
-            className="rounded-full border-border/70 bg-card/80 px-2.5 py-0.5 text-[11px] text-muted-foreground"
-          >
-            {visibleAppointments.length} no período
-          </Badge> */}
         </div>
 
         {errorFeedback || hasAppointmentsError ? (
@@ -190,28 +194,28 @@ export function AppointmentsPage() {
             Carregando dados
           </Badge>
         ) : null}
-      </header>
+      </header> */}
 
-      <div className="flex justify-between gap-4 ">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <AppointmentInfoCard
           title="Período visível"
-          mainContent="12 agendamentos"
-          description="26 de abril - 6 de junho de 2026"
+          mainContent={formatAppointmentsCount(visibleAppointments.length)}
+          description={visibleRangeLabel}
         />
         <AppointmentInfoCard
-          title="Período visível"
-          mainContent="12 agendamentos"
-          description="26 de abril - 6 de junho de 2026"
+          title="Dia selecionado"
+          mainContent={formatAppointmentsCount(selectedDayAppointments.length)}
+          description={format(resolvedSelectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
         />
         <AppointmentInfoCard
-          title="Período visível"
-          mainContent="12 agendamentos"
-          description="26 de abril - 6 de junho de 2026"
+          title="Visualização"
+          mainContent={getViewLabel(selectedView)}
+          description={calendarTitle}
         />
       </div>
 
-      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card className="min-w-0 overflow-hidden rounded-3xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <Card className="min-w-0 overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl">
           <CardHeader className="border-b border-border/70 px-4 py-3 sm:px-5 sm:py-4">
             <AppointmentsCalendarToolbar
               calendarRef={calendarRef}
@@ -222,7 +226,7 @@ export function AppointmentsPage() {
             />
           </CardHeader>
 
-          <CardContent className="p-3 md:p-4">
+          <CardContent className="p-2 sm:p-3 md:p-4">
             <AppointmentsCalendar
               calendarRef={calendarRef}
               initialSelectedDate={initialSelectedDate}
