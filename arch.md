@@ -37,16 +37,16 @@ Estrutura relevante:
   - Página inicial simples com navegação para os domínios:
     - `/login` (auth)
     - `/user` (user)
-    - `/servicos` (service)
+    - `/services` (service)
 - `src/app/(public)/login/page.tsx`
   - Rota pública de login.
   - Consome `features/auth` (formulário, schema, mutation de login).
 - `src/app/(private)/user/page.tsx`
   - Rota autenticada (conceitualmente) para dados de usuário.
   - Consome `features/user`.
-- `src/app/(private)/servicos/page.tsx`
-  - Rota autenticada (conceitualmente) para serviços.
-  - Consome `features/service`.
+- `src/app/(private)/services/page.tsx`
+  - Rota autenticada para o catálogo de serviços.
+  - Consome `features/service` (`ServiceCatalog`).
 
 ### `src/features`
 
@@ -68,7 +68,7 @@ Cada domínio deve, idealmente, seguir um padrão de subpastas:
   - Exemplos:
     - `auth/api/index.ts`: `login`, `getCurrentUser` (delega em `getCurrentUserProfile`, `GET /user/me`).
     - `user/api/index.ts`: `getCurrentUserProfile`.
-    - `service/api/index.ts`: `listServicos`.
+    - `service/api/list-services.ts`: `listServices`.
 - `components/`
   - Componentes de UI **específicos do domínio**, compostos a partir de:
     - Componentes de UI base (`src/components/ui`).
@@ -76,14 +76,14 @@ Cada domínio deve, idealmente, seguir um padrão de subpastas:
   - Exemplos:
     - `auth/components/login-form.tsx`.
     - `user/components/user-summary.tsx`.
-    - `service/components/servicos-list.tsx`.
+    - `service/components/service-catalog.tsx`.
 - `hooks/`
   - Hooks React (geralmente `React Query`) focados no domínio.
   - Sempre consomem o módulo `api` da mesma feature.
   - Exemplos:
     - `auth/hooks/use-login.ts`.
     - `user/hooks/use-current-user.ts`.
-    - `service/hooks/use-servicos.ts`.
+    - `service/hooks/use-services.ts`.
 - `schemas/`
   - **Schemas Zod** para validação de formulários e contratos de entrada.
   - Exemplos:
@@ -94,7 +94,7 @@ Cada domínio deve, idealmente, seguir um padrão de subpastas:
   - Exemplos:
     - `auth/types/index.ts`: `AuthUser`, `LoginPayload`, `LoginResponse`.
     - `user/types/index.ts`: `User`.
-    - `service/types/index.ts`: `Servico`.
+    - `service/types/index.ts`: `ServiceItem`, `CreateServicePayload`.
 
 > **Regra geral**: código que só faz sentido dentro de um domínio fica dentro da feature. Código transversal (reutilizável entre domínios) vai para `src/shared` ou `src/components/ui`.
 
@@ -159,7 +159,7 @@ Componentes compartilhados que não são puramente “primitivas de UI”:
 
 Uso no projeto:
 
-- Rotas principais (`/`, `/login`, `/user`, `/servicos`) em `src/app`.
+- Rotas principais (`/`, `/login`, `/user`, `/services`) em `src/app`.
 - `layout.tsx` definido como layout raiz, incluindo providers globais.
 
 ### TypeScript
@@ -222,9 +222,9 @@ Uso no projeto:
 - Hooks de domínio:
   - `useLogin` (mutation).
   - `useCurrentUser` (query).
-  - `useServicos` (query).
+  - `useServices` (query).
 - Responsável por:
-  - Cache por `queryKey` (ex.: `["user","me"]`, `["servicos"]`).
+  - Cache por `queryKey` centralizado em `src/shared/constants/query-keys.ts` (ex.: `QUERY_KEYS.services()`, `["user","me"]`).
   - Estados de loading/erro/dados.
 
 ### React Hook Form + Zod

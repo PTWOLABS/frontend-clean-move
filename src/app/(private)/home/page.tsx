@@ -23,7 +23,7 @@ export default function Home() {
           Domínio User
         </Link>
         <Link
-          href="/servicos"
+          href="/services"
           className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
         >
           Domínio Serviços

@@ -17,20 +17,20 @@ import {
   formatServiceCategory,
   formatServicePriceBrl,
 } from "../lib/format-catalog";
-import type { EstablishmentServiceItem } from "../types";
+import type { ServiceItem } from "../types";
 
 import { ServiceStatusBadge } from "./service-status-badge";
 
-function serviceRowKey(item: EstablishmentServiceItem, index: number): string {
+function serviceRowKey(item: ServiceItem, index: number): string {
   return item.id ?? `${item.serviceName}-${item.category}-${index}`;
 }
 
 type RowActionsProps = {
-  item: EstablishmentServiceItem;
-  onEdit: (item: EstablishmentServiceItem) => void;
-  onDuplicate: (item: EstablishmentServiceItem) => void;
-  onToggleActive: (item: EstablishmentServiceItem) => void;
-  onDelete: (item: EstablishmentServiceItem) => void;
+  item: ServiceItem;
+  onEdit: (item: ServiceItem) => void;
+  onDuplicate: (item: ServiceItem) => void;
+  onToggleActive: (item: ServiceItem) => void;
+  onDelete: (item: ServiceItem) => void;
   isToggling: boolean;
 };
 
@@ -120,11 +120,11 @@ function RowActions({
 }
 
 type ServiceCatalogTableProps = {
-  items: EstablishmentServiceItem[];
-  onEdit: (item: EstablishmentServiceItem) => void;
-  onDuplicate: (item: EstablishmentServiceItem) => void;
-  onToggleActive: (item: EstablishmentServiceItem) => void;
-  onDelete: (item: EstablishmentServiceItem) => void;
+  items: ServiceItem[];
+  onEdit: (item: ServiceItem) => void;
+  onDuplicate: (item: ServiceItem) => void;
+  onToggleActive: (item: ServiceItem) => void;
+  onDelete: (item: ServiceItem) => void;
   togglingServiceId: string | null;
 };
 

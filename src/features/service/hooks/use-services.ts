@@ -2,27 +2,29 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { listEstablishmentServices } from "../api/list-establishment-services";
-import type { ListEstablishmentServicesQuery } from "../types";
+import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
-export type UseEstablishmentServicesArgs = ListEstablishmentServicesQuery & {
+import { listServices } from "../api/list-services";
+import type { ListServicesQuery } from "../types";
+
+export type UseServicesArgs = ListServicesQuery & {
   ownerId: string;
   enabled?: boolean;
 };
 
-export function useEstablishmentServices({
+export function useServices({
   ownerId,
   enabled = true,
   page = 1,
   size = 5,
   name,
   isActive,
-}: UseEstablishmentServicesArgs) {
+}: UseServicesArgs) {
   return useQuery({
-    queryKey: ["establishments", ownerId, "services", { page, size, name, isActive }],
+    queryKey: QUERY_KEYS.services({ page, size, name, isActive }),
     placeholderData: keepPreviousData,
     queryFn: ({ signal }) =>
-      listEstablishmentServices(
+      listServices(
         ownerId,
         {
           page,
