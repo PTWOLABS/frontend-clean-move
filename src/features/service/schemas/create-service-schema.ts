@@ -129,3 +129,20 @@ export function mapCreateServiceFormToPayload(
     isActive: values.isActive,
   };
 }
+
+/** Item de listagem derivado dos valores validados do formulário (update otimista). */
+export function formValuesToServiceItem(
+  serviceId: string,
+  values: CreateServiceFormValues,
+): ServiceItem {
+  const payload = mapCreateServiceFormToPayload(values);
+  return {
+    id: serviceId,
+    serviceName: payload.serviceName,
+    description: payload.description,
+    category: payload.category,
+    estimatedDuration: payload.estimatedDuration,
+    price: payload.price,
+    isActive: payload.isActive,
+  };
+}
