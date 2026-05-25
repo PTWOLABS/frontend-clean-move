@@ -85,52 +85,50 @@ export function AppointmentsCalendarToolbar({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-      <div className="hidden items-center gap-2 lg:flex">
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-xl border-border/80 bg-background/70"
-            onClick={() => handleNavigate("prev")}
-            aria-label="Período anterior"
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 rounded-xl border-border/80 bg-background/70 px-3.5"
-            onClick={handleToday}
-          >
-            Hoje
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-xl border-border/80 bg-background/70"
-            onClick={() => handleNavigate("next")}
-            aria-label="Próximo período"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
+    <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+      <div className="order-2 flex items-center gap-2 lg:order-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 shrink-0 rounded-xl border-border/80 bg-background/70"
+          onClick={() => handleNavigate("prev")}
+          aria-label="Período anterior"
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 shrink-0 rounded-xl border-border/80 bg-background/70 px-3.5"
+          onClick={handleToday}
+        >
+          Hoje
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 shrink-0 rounded-xl border-border/80 bg-background/70"
+          onClick={() => handleNavigate("next")}
+          aria-label="Próximo período"
+        >
+          <ChevronRight className="size-4" />
+        </Button>
       </div>
 
-      <div className="min-w-0 flex-none text-left lg:text-center">
-        <CardTitle className="truncate font-display text-xl font-semibold capitalize text-card-foreground sm:text-2xl">
+      <div className="order-1 min-w-0 text-left lg:order-2 lg:text-center">
+        <CardTitle className="truncate font-display text-lg font-semibold capitalize text-card-foreground sm:text-2xl">
           {calendarTitle}
         </CardTitle>
       </div>
 
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 lg:ml-0">
+      <div className="order-3 grid min-w-0 grid-cols-1 gap-2 sm:flex sm:items-center sm:justify-end lg:ml-0">
         <Select
           value={selectedView}
           onChange={handleViewChange}
           options={viewOptions}
-          className="h-9 w-36 rounded-xl border-border/80 bg-background/70 shadow-xs sm:w-40"
+          className="h-9 w-full rounded-xl border-border/80 bg-background/70 shadow-xs sm:w-40"
         />
 
         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -138,10 +136,10 @@ export function AppointmentsCalendarToolbar({
             <Button
               type="button"
               variant="outline"
-              className="h-9 w-40 justify-between rounded-xl border-border/80 bg-background/70 px-3 shadow-xs xl:hidden"
+              className="h-9 w-full justify-between rounded-xl border-border/80 bg-background/70 px-3 shadow-xs sm:w-40 xl:hidden"
             >
               <span className="inline-flex min-w-0 items-center gap-2">
-                <CalendarDays className="size-4 text-muted-foreground" />
+                <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
                 <span className="truncate text-sm text-card-foreground">
                   {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
                 </span>

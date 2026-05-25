@@ -31,6 +31,28 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   }
 
   const shouldShowMeta = durationInMinutes === null || durationInMinutes >= 60;
+  const isCompactTimeGridEvent = durationInMinutes !== null && durationInMinutes < 60;
+  const timeLabel = arg.timeText || "Dia inteiro";
+
+  if (isCompactTimeGridEvent) {
+    return (
+      <div className={cn(styles.eventContent, styles.eventContentCompact)}>
+        <span className={styles.eventCompactTitle}>
+          <span className={styles.eventCompactTime}>{timeLabel}</span>
+          <span className={styles.eventCompactName}>{arg.event.title}</span>
+        </span>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "size-2 rounded-full",
+            styles.eventToneDot,
+            styles.eventToneDotCompact,
+            toneDotClassName[extendedProps.tone],
+          )}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.eventContent}>

@@ -1,0 +1,231 @@
+import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
+import type { DateClickArg } from "@fullcalendar/interaction/index.js";
+import type FullCalendar from "@fullcalendar/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ReactNode, RefObject } from "react";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/components/ui/sidebar", () => ({
+  useSidebar: () => ({ state: "expanded" }),
+}));
+
+vi.mock("../../hooks/use-calendar-more-link", () => ({
+  useCalendarMoreLink: () => ({
+    calendarFrameStyle: undefined,
+    isMorePopoverAlignedRight: false,
+    handleMoreLinkDidMount: vi.fn(),
+    handleMoreLinkWillUnmount: vi.fn(),
+    handleMoreLinkClick: vi.fn(),
+  }),
+}));
+
+vi.mock("../../hooks/use-full-calendar-resize", () => ({
+  useFullCalendarResize: vi.fn(),
+}));
+
+vi.mock("../../hooks/use-month-cell-indicators", () => ({
+  useMonthCellIndicators: () => ({
+    monthCellIndicatorPortals: null,
+    handleMonthCellDidMount: vi.fn(),
+    handleMonthCellWillUnmount: vi.fn(),
+    renderMonthDayCellContent: () => "20",
+  }),
+}));
+
+vi.mock("@fullcalendar/react", () => ({
+  default: ({
+    events,
+    dateClick,
+    eventClick,
+    datesSet,
+    eventContent,
+    moreLinkContent,
+    eventClassNames,
+    height,
+  }: {
+    events: Array<{
+      id: string;
+      title: string;
+      start: Date;
+      end: Date;
+      extendedProps: Record<string, unknown>;
+    }>;
+    dateClick: (arg: DateClickArg) => void;
+    eventClick: (arg: EventClickArg) => void;
+    datesSet: (arg: DatesSetArg) => void;
+    eventContent: (arg: {
+      event: {
+        id: string;
+        title: string;
+        start: Date;
+        end: Date;
+        extendedProps: Record<string, unknown>;
+      };
+      timeText: string;
+      view: { type: string };
+    }) => ReactNode;
+    moreLinkContent: (arg: { num: number; view: { type: string } }) => ReactNode;
+    eventClassNames: (arg: {
+      event: { id: string; extendedProps: Record<string, unknown> };
+    }) => string[];
+    height: string | number;
+  }) => {
+    const firstEvent = events[0];
+
+    return (
+      <div>
+        <p>FullCalendar mock</p>
+        <p>Altura do calendário: {height}</p>
+        {firstEvent ? (
+          <>
+            <div data-testid="event-content">
+              {eventContent({
+                event: firstEvent,
+                timeText: "09:00 - 10:00",
+                view: { type: "timeGridWeek" },
+              })}
+            </div>
+            <p data-testid="event-class-names">
+              {eventClassNames({
+                event: {
+                  id: firstEvent.id,
+                  extendedProps: firstEvent.extendedProps,
+                },
+              }).join(" ")}
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                eventClick({
+                  jsEvent: { preventDefault: vi.fn() },
+                  event: firstEvent,
+                } as unknown as EventClickArg)
+              }
+            >
+              Disparar evento
+            </button>
+          </>
+        ) : null}
+        <div data-testid="more-link">
+          {moreLinkContent({ num: 2, view: { type: "dayGridMonth" } })}
+        </div>
+        <button
+          type="button"
+          onClick={() =>
+            dateClick({
+              date: new Date("2026-05-20T08:30:00.000Z"),
+              view: { type: "timeGridDay" },
+            } as DateClickArg)
+          }
+        >
+          Disparar data
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            datesSet({
+              start: new Date("2026-05-01T00:00:00.000Z"),
+              end: new Date("2026-06-01T00:00:00.000Z"),
+              view: { title: "maio de 2026", type: "dayGridMonth" },
+            } as DatesSetArg)
+          }
+        >
+          Disparar período
+        </button>
+      </div>
+    );
+  },
+}));
+
+import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+import { AppointmentsCalendar } from "./appointments-calendar";
+
+const appointmentEvent: AppointmentCalendarEvent = {
+  id: "appointment-1",
+  title: "Lavagem tecnica",
+  start: new Date("2026-05-20T09:00:00.000Z"),
+  end: new Date("2026-05-20T10:00:00.000Z"),
+  extendedProps: {
+    customer: "Ana Martins",
+    service: "Lavagem tecnica",
+    vehicle: "ABC-1234",
+    attendants: ["Patricia Costa"],
+    notes: "Sem observações.",
+    reminder: "Lembrete padrão",
+    tone: "info",
+    status: "SCHEDULED",
+  },
+};
+
+function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsCalendar>> = {}) {
+  const defaultProps: React.ComponentProps<typeof AppointmentsCalendar> = {
+    calendarRef: { current: null } as RefObject<FullCalendar | null>,
+    initialSelectedDate: new Date("2026-05-20T12:00:00.000Z"),
+    events: [appointmentEvent],
+    isLoading: false,
+    isError: false,
+    onRetry: vi.fn(),
+    selectedDate: new Date("2026-05-20T12:00:00.000Z"),
+    selectedEventId: "appointment-1",
+    selectedSlotKey: null,
+    selectedView: "dayGridMonth",
+    onDateClick: vi.fn(),
+    onDatesSet: vi.fn(),
+    onEventClick: vi.fn(),
+    onMonthCellPress: vi.fn(),
+    onSlotPress: vi.fn(),
+  };
+
+  return render(<AppointmentsCalendar {...defaultProps} {...props} />);
+}
+
+describe("AppointmentsCalendar", () => {
+  it("renders an error state and calls onRetry", async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+
+    renderCalendar({ isError: true, onRetry });
+
+    expect(screen.getByText("Não foi possível carregar os agendamentos.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the calendar content and loading overlay", () => {
+    renderCalendar({ isLoading: true });
+
+    expect(screen.getByText("FullCalendar mock")).toBeInTheDocument();
+    expect(screen.getByText("Altura do calendário: 100%")).toBeInTheDocument();
+    expect(screen.getByText("Carregando agendamentos...")).toBeInTheDocument();
+    expect(screen.getByText("Lavagem tecnica")).toBeInTheDocument();
+    expect(screen.getAllByText("mais 2 agendamentos...")).toHaveLength(2);
+    expect(screen.getByTestId("event-class-names").textContent).toContain("eventSelected");
+  });
+
+  it("forwards calendar callbacks from FullCalendar", async () => {
+    const user = userEvent.setup();
+    const onDateClick = vi.fn();
+    const onEventClick = vi.fn();
+    const onDatesSet = vi.fn();
+
+    renderCalendar({ onDateClick, onEventClick, onDatesSet });
+
+    await user.click(screen.getByRole("button", { name: /disparar data/i }));
+    await user.click(screen.getByRole("button", { name: /disparar evento/i }));
+    await user.click(screen.getByRole("button", { name: /disparar período/i }));
+
+    expect(onDateClick).toHaveBeenCalledWith(
+      expect.objectContaining({ date: new Date("2026-05-20T08:30:00.000Z") }),
+    );
+    expect(onEventClick).toHaveBeenCalledTimes(1);
+    expect(onDatesSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        start: new Date("2026-05-01T00:00:00.000Z"),
+        end: new Date("2026-06-01T00:00:00.000Z"),
+      }),
+    );
+  });
+});
