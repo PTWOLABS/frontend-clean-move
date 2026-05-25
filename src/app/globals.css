@@ -307,6 +307,37 @@
 }
 
 @layer utilities {
+  .scrollbar-clean,
+  .scrollbar-clean * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--accent) / 0.42) hsl(var(--muted) / 0.18);
+  }
+
+  .scrollbar-clean::-webkit-scrollbar,
+  .scrollbar-clean *::-webkit-scrollbar {
+    width: 0.72rem;
+    height: 0.72rem;
+  }
+
+  .scrollbar-clean::-webkit-scrollbar-track,
+  .scrollbar-clean *::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.14);
+  }
+
+  .scrollbar-clean::-webkit-scrollbar-thumb,
+  .scrollbar-clean *::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: hsl(var(--accent) / 0.34);
+    background-clip: padding-box;
+  }
+
+  .scrollbar-clean::-webkit-scrollbar-thumb:hover,
+  .scrollbar-clean *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--accent) / 0.46);
+    background-clip: padding-box;
+  }
+
   .landing-mobile-menu-summary::-webkit-details-marker {
     display: none;
   }

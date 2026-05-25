@@ -1,4 +1,4 @@
-import { ServiceCategoryCode } from "@/features/establishment/types";
+import { ServiceCategoryCode } from "@/features/service/types";
 import { AppointmentStatus } from "@/shared/types/appointments";
 
 export type AppointmentDTO = {

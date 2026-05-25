@@ -4,25 +4,26 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { ApiError } from "@/shared/api/httpClient";
+import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { updateService } from "../api/update-service";
 import {
   createServiceFormSchema,
-  establishmentServiceItemToFormDefaults,
+  serviceItemToFormDefaults,
   mapCreateServiceFormToPayload,
 } from "../schemas/create-service-schema";
-import type { EstablishmentServiceItem } from "../types";
+import type { ServiceItem } from "../types";
 
-export function useToggleServiceActive(ownerId: string) {
+export function useToggleServiceActive() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (item: EstablishmentServiceItem) => {
+    mutationFn: async (item: ServiceItem) => {
       if (!item.id) {
         throw new Error("Identificador do serviço em falta.");
       }
 
-      const formInput = establishmentServiceItemToFormDefaults(item);
+      const formInput = serviceItemToFormDefaults(item);
       const values = createServiceFormSchema.parse({
         ...formInput,
         isActive: !item.isActive,
@@ -32,7 +33,7 @@ export function useToggleServiceActive(ownerId: string) {
     },
     onSuccess: (_data, item) => {
       void queryClient.invalidateQueries({
-        queryKey: ["establishments", ownerId, "services"],
+        queryKey: QUERY_KEYS.services(),
       });
       toast.success(
         item.isActive ? "Serviço desativado com sucesso." : "Serviço ativado com sucesso.",

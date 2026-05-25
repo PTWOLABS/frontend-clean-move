@@ -19,9 +19,9 @@ import { ApiError } from "@/shared/api/httpClient";
 
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useDeleteService } from "../hooks/use-delete-service";
-import { useEstablishmentServices } from "../hooks/use-establishment-services";
+import { useServices } from "../hooks/use-services";
 import { useToggleServiceActive } from "../hooks/use-toggle-service-active";
-import type { EstablishmentServiceItem } from "../types";
+import type { ServiceItem } from "../types";
 
 import { ServiceCatalogHeader } from "./service-catalog-header";
 import { ServiceCatalogListSkeleton } from "./service-catalog-list-skeleton";
@@ -48,19 +48,19 @@ export function ServiceCatalog() {
   const [activeFilter, setActiveFilter] = useState<ServiceActiveFilter>("all");
 
   const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
-  const [editingService, setEditingService] = useState<EstablishmentServiceItem | null>(null);
-  const [duplicateSource, setDuplicateSource] = useState<EstablishmentServiceItem | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<EstablishmentServiceItem | null>(null);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [duplicateSource, setDuplicateSource] = useState<ServiceItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ServiceItem | null>(null);
 
-  const deleteMutation = useDeleteService(ownerId ?? "");
-  const toggleActiveMutation = useToggleServiceActive(ownerId ?? "");
+  const deleteMutation = useDeleteService();
+  const toggleActiveMutation = useToggleServiceActive();
 
   const togglingServiceId =
     toggleActiveMutation.isPending && toggleActiveMutation.variables?.id
       ? toggleActiveMutation.variables.id
       : null;
 
-  const handleToggleActive = (item: EstablishmentServiceItem) => {
+  const handleToggleActive = (item: ServiceItem) => {
     void toggleActiveMutation.mutateAsync(item).catch(() => {
       // Erro tratado em `useToggleServiceActive` (toast).
     });
@@ -77,7 +77,7 @@ export function ServiceCatalog() {
 
   const isActiveParam = filterToIsActive(activeFilter);
 
-  const servicesQuery = useEstablishmentServices({
+  const servicesQuery = useServices({
     ownerId: ownerId ?? "",
     enabled: Boolean(ownerId) && !userLoading,
     page,
@@ -146,21 +146,17 @@ export function ServiceCatalog() {
     }
   };
 
-  const handleDuplicate = (item: EstablishmentServiceItem) => {
+  const handleDuplicate = (item: ServiceItem) => {
     setDuplicateSource(item);
     setEditingService(null);
     setServiceSheetOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     const id = deleteTarget?.id;
     if (!id) return;
-    try {
-      await deleteMutation.mutateAsync(id);
-      setDeleteTarget(null);
-    } catch {
-      // Erro tratado em `useDeleteService` (toast).
-    }
+    setDeleteTarget(null);
+    deleteMutation.mutate(id);
   };
 
   return (
@@ -177,7 +173,6 @@ export function ServiceCatalog() {
       <ServiceFormSheet
         open={serviceSheetOpen}
         onOpenChange={handleServiceSheetOpenChange}
-        ownerId={ownerId}
         editingService={editingService}
         duplicateSource={duplicateSource}
       />

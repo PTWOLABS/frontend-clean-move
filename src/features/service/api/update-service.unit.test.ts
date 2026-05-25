@@ -10,7 +10,7 @@ vi.mock("@/shared/api/httpClient", () => ({
 
 import { updateService } from "./update-service";
 
-describe("establishment/api/update-service", () => {
+describe("service/api/update-service", () => {
   beforeEach(() => {
     httpClientMock.mockReset();
   });

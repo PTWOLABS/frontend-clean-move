@@ -11,11 +11,11 @@ import {
   formatServiceCategory,
   formatServicePriceBrl,
 } from "../lib/format-catalog";
-import type { EstablishmentServiceItem } from "../types";
+import type { ServiceItem } from "../types";
 
 import { ServiceStatusBadge } from "./service-status-badge";
 
-function serviceRowKey(item: EstablishmentServiceItem, index: number): string {
+function serviceRowKey(item: ServiceItem, index: number): string {
   return item.id ?? `${item.serviceName}-${item.category}-${index}`;
 }
 
@@ -23,11 +23,11 @@ const mobileActionButtonClass =
   "size-9 shrink-0 rounded-full border-border bg-background/50 text-foreground hover:bg-accent";
 
 type CardActionsProps = {
-  item: EstablishmentServiceItem;
-  onEdit: (item: EstablishmentServiceItem) => void;
-  onDuplicate: (item: EstablishmentServiceItem) => void;
-  onToggleActive: (item: EstablishmentServiceItem) => void;
-  onDelete: (item: EstablishmentServiceItem) => void;
+  item: ServiceItem;
+  onEdit: (item: ServiceItem) => void;
+  onDuplicate: (item: ServiceItem) => void;
+  onToggleActive: (item: ServiceItem) => void;
+  onDelete: (item: ServiceItem) => void;
   isToggling: boolean;
 };
 
@@ -121,11 +121,11 @@ function CardActions({
 }
 
 type ServiceCatalogMobileCardsProps = {
-  items: EstablishmentServiceItem[];
-  onEdit: (item: EstablishmentServiceItem) => void;
-  onDuplicate: (item: EstablishmentServiceItem) => void;
-  onToggleActive: (item: EstablishmentServiceItem) => void;
-  onDelete: (item: EstablishmentServiceItem) => void;
+  items: ServiceItem[];
+  onEdit: (item: ServiceItem) => void;
+  onDuplicate: (item: ServiceItem) => void;
+  onToggleActive: (item: ServiceItem) => void;
+  onDelete: (item: ServiceItem) => void;
   togglingServiceId: string | null;
 };
 

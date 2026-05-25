@@ -13,7 +13,6 @@ import { cn } from "@/shared/utils/cn";
 
 import styles from "../appointments-page.module.css";
 import { useCalendarMoreLink } from "../../hooks/use-calendar-more-link";
-import { useCalendarViewportHeight } from "../../hooks/use-calendar-viewport-height";
 import { useFullCalendarResize } from "../../hooks/use-full-calendar-resize";
 import { useMonthCellIndicators } from "../../hooks/use-month-cell-indicators";
 import { getCalendarEventClassNames } from "../../lib/appointments-page.helpers";
@@ -73,18 +72,13 @@ export function AppointmentsCalendar({
   onSlotPress,
 }: AppointmentsCalendarProps) {
   const { state: sidebarState } = useSidebar();
-  const calendarViewportRef = useRef<HTMLDivElement | null>(null);
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
   const isMonthGridView = selectedView === "dayGridMonth";
-  const { calendarViewportHeight, isCalendarViewportReady } = useCalendarViewportHeight({
-    viewportRef: calendarViewportRef,
-    selectedView,
-    sidebarState,
-  });
-  const shouldUseViewportHeight = !isMonthGridView && isCalendarViewportReady;
   const {
     calendarFrameStyle,
+    isMorePopoverPositioned,
     isMorePopoverAlignedRight,
+    isMorePopoverAlignedTop,
     handleMoreLinkDidMount,
     handleMoreLinkWillUnmount,
     handleMoreLinkClick,
@@ -101,7 +95,7 @@ export function AppointmentsCalendar({
   useFullCalendarResize({
     calendarRef,
     resizeTargetRef: calendarResizeRef,
-    calendarViewportHeight,
+    calendarViewportHeight: null,
     selectedView,
     sidebarState,
   });
@@ -134,34 +128,24 @@ export function AppointmentsCalendar({
 
   return (
     <div
-      ref={calendarViewportRef}
       className={cn(
-        "rounded-2xl border border-border/70 bg-background/40",
-        !isCalendarViewportReady ? "min-h-[32rem]" : "min-h-0",
-        isMonthGridView && styles.calendarViewportMonthGrid,
+        "scrollbar-clean rounded-2xl border border-border/70 bg-background/40",
         styles.calendarViewport,
       )}
-      style={
-        shouldUseViewportHeight
-          ? {
-              height: `${calendarViewportHeight}px`,
-            }
-          : undefined
-      }
     >
       <div
         ref={calendarResizeRef}
         className={cn(
-          "relative",
-          isMonthGridView ? "overflow-visible" : "h-full overflow-hidden",
+          "relative h-full overflow-hidden",
           styles.calendarFrame,
-          isMonthGridView && styles.calendarFrameMonthGrid,
+          isMorePopoverPositioned && styles.morePopoverPositioned,
           isMorePopoverAlignedRight && styles.morePopoverAlignRight,
+          isMorePopoverAlignedTop && styles.morePopoverAlignTop,
         )}
         style={calendarFrameStyle}
       >
         {monthCellIndicatorPortals}
-        {isCalendarViewportReady && isError ? (
+        {isError ? (
           <div className="flex h-full min-h-[28rem] flex-col items-center justify-center gap-3 px-6 text-center">
             <div>
               <p className="text-sm font-medium text-card-foreground">
@@ -175,7 +159,7 @@ export function AppointmentsCalendar({
               Tentar novamente
             </Button>
           </div>
-        ) : isCalendarViewportReady ? (
+        ) : (
           <FullCalendar
             ref={calendarRef}
             plugins={appointmentsCalendarPlugins}
@@ -196,7 +180,7 @@ export function AppointmentsCalendar({
             slotLabelFormat={appointmentsCalendarSlotLabelFormat}
             slotMinTime={appointmentsCalendarSlotMinTime}
             slotMaxTime={appointmentsCalendarSlotMaxTime}
-            height={isMonthGridView ? "auto" : "100%"}
+            height="100%"
             expandRows={!isMonthGridView}
             eventTimeFormat={appointmentsCalendarEventTimeFormat}
             businessHours={appointmentsCalendarBusinessHours}
@@ -230,8 +214,8 @@ export function AppointmentsCalendar({
               });
             }}
           />
-        ) : null}
-        {isCalendarViewportReady && isLoading ? (
+        )}
+        {isLoading ? (
           <div className="pointer-events-none absolute inset-x-4 top-4 z-20 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             Carregando agendamentos...
           </div>

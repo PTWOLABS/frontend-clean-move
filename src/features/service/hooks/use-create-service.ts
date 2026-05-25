@@ -4,29 +4,24 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { ApiError } from "@/shared/api/httpClient";
+import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
-import { updateService } from "../api/update-service";
+import { createService } from "../api/create-service";
 import { mapCreateServiceFormToPayload } from "../schemas/create-service-schema";
 import type { CreateServiceFormValues } from "../schemas/create-service-schema";
 
-export function useUpdateService(ownerId: string) {
+export function useCreateService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      serviceId,
-      values,
-    }: {
-      serviceId: string;
-      values: CreateServiceFormValues;
-    }) => {
-      return updateService(serviceId, mapCreateServiceFormToPayload(values));
+    mutationFn: async (values: CreateServiceFormValues) => {
+      return createService(mapCreateServiceFormToPayload(values));
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ["establishments", ownerId, "services"],
+        queryKey: QUERY_KEYS.services(),
       });
-      toast.success("Serviço atualizado com sucesso.");
+      toast.success("Serviço criado com sucesso.");
     },
     onError: (error) => {
       if (error instanceof ApiError) {
@@ -34,7 +29,7 @@ export function useUpdateService(ownerId: string) {
           toast.error(error.message || "Verifique os dados e tente novamente.");
           return;
         }
-        toast.error("Não foi possível atualizar o serviço. Tente novamente mais tarde.");
+        toast.error("Não foi possível criar o serviço. Tente novamente mais tarde.");
       }
     },
   });
