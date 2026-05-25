@@ -7,6 +7,7 @@ import { format, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useMemo, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
@@ -167,34 +168,24 @@ export function AppointmentsPage() {
 
   return (
     <section className="flex min-h-0 flex-col gap-4">
-      {/* <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-col gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent">
-            Planejamento operacional
-          </span>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Agendamentos</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Organize os agendamentos, acompanhe a ocupação da agenda e navegue pelos períodos de
-            atendimento.
-          </p>
-        </div>
-
-        {errorFeedback || hasAppointmentsError ? (
-          <Badge
-            variant="outline"
-            className="w-fit rounded-full border-danger-soft bg-danger-soft px-3 py-1 text-xs text-danger-soft-foreground"
-          >
-            Falha ao carregar
-          </Badge>
-        ) : isLoadingAppointments ? (
-          <Badge
-            variant="outline"
-            className="w-fit rounded-full border-border/70 bg-card/80 px-3 py-1 text-xs text-muted-foreground"
-          >
-            Carregando dados
-          </Badge>
-        ) : null}
-      </header> */}
+      {errorFeedback || hasAppointmentsError ? (
+        <Badge
+          role="alert"
+          variant="outline"
+          className="w-fit rounded-full border-danger-soft bg-danger-soft px-3 py-1 text-xs text-danger-soft-foreground"
+        >
+          Falha ao carregar
+        </Badge>
+      ) : isLoadingAppointments ? (
+        <Badge
+          role="status"
+          aria-live="polite"
+          variant="outline"
+          className="w-fit rounded-full border-border/70 bg-card/80 px-3 py-1 text-xs text-muted-foreground"
+        >
+          Carregando dados
+        </Badge>
+      ) : null}
 
       <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <AppointmentInfoCard
