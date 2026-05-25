@@ -104,17 +104,17 @@ export function useCreateCustomer() {
 
 ## Query Keys
 
-Use stable and hierarchical query keys.
+Define query keys in [`src/shared/constants/query-keys.ts`](../../src/shared/constants/query-keys.ts) as `QUERY_KEYS` and import them in hooks. Do not hardcode query key arrays in `useQuery`, `invalidateQueries` or `removeQueries`.
+
+Use stable and hierarchical keys via factories when filters or ids apply (e.g. `QUERY_KEYS.services({ page, size })`, `QUERY_KEYS.appointments(filters)`).
 
 Good examples:
 
 ```ts
-["auth", "current-user"];
-["customers", "list", filters];
-["customers", "detail", customerId];
-["appointments", "list", filters];
-["appointments", "detail", appointmentId];
-["services", "list"];
+QUERY_KEYS.authSession;
+QUERY_KEYS.services();
+QUERY_KEYS.services({ page: 1, size: 5, name: "lavagem" });
+QUERY_KEYS.appointments(filters);
 ```
 
 Avoid vague query keys:
@@ -136,7 +136,7 @@ Prefer:
 
 ```ts
 queryClient.invalidateQueries({
-  queryKey: ["customers", "list"],
+  queryKey: QUERY_KEYS.services(),
 });
 ```
 

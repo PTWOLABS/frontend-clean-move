@@ -33,9 +33,9 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { formatServiceCategory } from "@/features/establishment/lib/format-catalog";
-import { SERVICE_CATEGORY_CODES } from "@/features/establishment/types";
-import type { EstablishmentServiceItem } from "@/features/establishment/types";
+import { formatServiceCategory } from "../lib/format-catalog";
+import { SERVICE_CATEGORY_CODES } from "../types";
+import type { ServiceItem } from "../types";
 import { useFormatBrlMoney } from "@/shared/money/use-format-brl-money";
 
 import { useCreateService } from "../hooks/use-create-service";
@@ -43,8 +43,8 @@ import { useUpdateService } from "../hooks/use-update-service";
 import {
   createServiceDefaultValues,
   createServiceFormSchema,
-  establishmentServiceItemToDuplicateFormDefaults,
-  establishmentServiceItemToFormDefaults,
+  serviceItemToDuplicateFormDefaults,
+  serviceItemToFormDefaults,
   type CreateServiceFormInput,
   type CreateServiceFormValues,
 } from "../schemas/create-service-schema";
@@ -52,22 +52,20 @@ import {
 type ServiceFormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  ownerId: string;
   /** `null` = criar; com item (e `id`) = editar. */
-  editingService: EstablishmentServiceItem | null;
+  editingService: ServiceItem | null;
   /** Item de origem ao duplicar (abre formulário de criação pré-preenchido). */
-  duplicateSource: EstablishmentServiceItem | null;
+  duplicateSource: ServiceItem | null;
 };
 
 export function ServiceFormSheet({
   open,
   onOpenChange,
-  ownerId,
   editingService,
   duplicateSource,
 }: ServiceFormSheetProps) {
-  const { mutateAsync: createMutateAsync, isPending: isCreatePending } = useCreateService(ownerId);
-  const { mutateAsync: updateMutateAsync, isPending: isUpdatePending } = useUpdateService(ownerId);
+  const { mutate: createMutate, isPending: isCreatePending } = useCreateService();
+  const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateService();
   const money = useFormatBrlMoney();
 
   const isEditMode = Boolean(editingService?.id);
@@ -81,42 +79,54 @@ export function ServiceFormSheet({
       CreateServiceFormValues
     >,
     defaultValues: createServiceDefaultValues,
-    mode: "onBlur",
+    mode: isEditMode ? "onChange" : "onBlur",
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset } = methods;
+  const { control, handleSubmit, reset, formState } = methods;
+  const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   useEffect(() => {
     if (!open) return;
     if (editingService?.id) {
-      reset(establishmentServiceItemToFormDefaults(editingService));
+      reset(serviceItemToFormDefaults(editingService));
     } else if (duplicateSource) {
-      reset(establishmentServiceItemToDuplicateFormDefaults(duplicateSource));
+      reset(serviceItemToDuplicateFormDefaults(duplicateSource));
     } else {
       reset(createServiceDefaultValues);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- redefinir ao abrir ou ao mudar modo (editar / duplicar / criar)
   }, [open, editingService?.id, duplicateSource, reset]);
 
-  const onSubmit = async (values: CreateServiceFormValues) => {
-    try {
-      if (isEditMode) {
-        const serviceId = editingService?.id;
-        if (!serviceId) {
-          toast.error("Identificador do serviço em falta. Atualize a página.");
-          return;
-        }
-        await updateMutateAsync({ serviceId, values });
-      } else {
-        await createMutateAsync(values);
+  const closeSheetAfterSave = () => {
+    reset(createServiceDefaultValues);
+    onOpenChange(false);
+  };
+
+  const onSubmit = (values: CreateServiceFormValues) => {
+    if (isEditMode) {
+      const serviceId = editingService?.id;
+      if (!serviceId) {
+        toast.error("Identificador do serviço em falta. Atualize a página.");
+        return;
       }
-      reset(createServiceDefaultValues);
-      onOpenChange(false);
-    } catch {
-      // Erro tratado nos hooks (toast).
+      if (!isDirty) {
+        toast.info("Nenhuma alteração para guardar.");
+        return;
+      }
+      updateMutate(
+        { serviceId, values },
+        {
+          onSuccess: closeSheetAfterSave,
+        },
+      );
+      return;
     }
+
+    createMutate(values, {
+      onSuccess: closeSheetAfterSave,
+    });
   };
 
   return (
@@ -256,7 +266,11 @@ export function ServiceFormSheet({
               >
                 Cancelar
               </Button>
-              <Button type="submit" className="w-full sm:w-auto" disabled={isPending}>
+              <Button
+                type="submit"
+                className="w-full sm:w-auto"
+                disabled={isPending || (isEditMode && !isDirty)}
+              >
                 {isPending
                   ? "A guardar…"
                   : isEditMode

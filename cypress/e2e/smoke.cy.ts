@@ -21,6 +21,6 @@ describe("Fluxo principal", () => {
 
     cy.visit("/home");
     cy.contains("Domínio Serviços").click();
-    cy.url().should("include", "/servicos");
+    cy.url().should("include", "/services");
   });
 });

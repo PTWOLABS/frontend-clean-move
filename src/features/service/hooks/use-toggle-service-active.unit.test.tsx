@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { EstablishmentServiceItem } from "../types";
+import type { ServiceItem } from "../types";
 
 const updateServiceMock = vi.fn();
 const toastSuccessMock = vi.fn();
@@ -24,7 +24,7 @@ vi.mock("sonner", () => ({
 
 import { useToggleServiceActive } from "./use-toggle-service-active";
 
-const baseItem: EstablishmentServiceItem = {
+const baseItem: ServiceItem = {
   id: "svc-1",
   serviceName: "Lavagem Completa",
   category: "WASH",
@@ -42,7 +42,7 @@ describe("useToggleServiceActive", () => {
   it("calls updateService with flipped isActive", async () => {
     updateServiceMock.mockResolvedValueOnce({});
 
-    const { result } = renderHook(() => useToggleServiceActive("owner-1"), { wrapper });
+    const { result } = renderHook(() => useToggleServiceActive(), { wrapper });
 
     result.current.mutate(baseItem);
 
@@ -61,7 +61,7 @@ describe("useToggleServiceActive", () => {
   it("activates inactive service", async () => {
     updateServiceMock.mockResolvedValueOnce({});
 
-    const { result } = renderHook(() => useToggleServiceActive("owner-1"), { wrapper });
+    const { result } = renderHook(() => useToggleServiceActive(), { wrapper });
 
     result.current.mutate({ ...baseItem, isActive: false });
 

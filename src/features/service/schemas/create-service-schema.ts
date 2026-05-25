@@ -4,7 +4,7 @@ import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/form
 import {
   SERVICE_CATEGORY_CODES,
   type CreateServicePayload,
-  type EstablishmentServiceItem,
+  type ServiceItem,
   type ServiceCategoryCode,
 } from "../types";
 
@@ -81,9 +81,7 @@ function priceCentsToFormInput(price: unknown): string {
 /**
  * Valores iniciais do formulário a partir de um item da listagem (edição).
  */
-export function establishmentServiceItemToFormDefaults(
-  item: EstablishmentServiceItem,
-): CreateServiceFormInput {
+export function serviceItemToFormDefaults(item: ServiceItem): CreateServiceFormInput {
   const min = item.estimatedDuration?.minInMinutes ?? 30;
   const max = item.estimatedDuration?.maxInMinutes ?? Math.max(min, 60);
   return {
@@ -102,10 +100,8 @@ const DUPLICATE_NAME_PREFIX = "Cópia de ";
 /**
  * Valores iniciais do formulário para duplicar um serviço (criação com dados copiados).
  */
-export function establishmentServiceItemToDuplicateFormDefaults(
-  item: EstablishmentServiceItem,
-): CreateServiceFormInput {
-  const base = establishmentServiceItemToFormDefaults(item);
+export function serviceItemToDuplicateFormDefaults(item: ServiceItem): CreateServiceFormInput {
+  const base = serviceItemToFormDefaults(item);
   const name = (base.serviceName ?? "").trim();
   const duplicatedName = name.startsWith(DUPLICATE_NAME_PREFIX)
     ? name
@@ -127,5 +123,22 @@ export function mapCreateServiceFormToPayload(
     },
     price: Math.round(values.priceInReais * 100),
     isActive: values.isActive,
+  };
+}
+
+/** Item de listagem derivado dos valores validados do formulário (update otimista). */
+export function formValuesToServiceItem(
+  serviceId: string,
+  values: CreateServiceFormValues,
+): ServiceItem {
+  const payload = mapCreateServiceFormToPayload(values);
+  return {
+    id: serviceId,
+    serviceName: payload.serviceName,
+    description: payload.description,
+    category: payload.category,
+    estimatedDuration: payload.estimatedDuration,
+    price: payload.price,
+    isActive: payload.isActive,
   };
 }

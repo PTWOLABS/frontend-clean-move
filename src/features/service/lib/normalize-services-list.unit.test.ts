@@ -2,10 +2,10 @@
 
 import { describe, expect, it } from "vitest";
 
-import { normalizeEstablishmentServicesList } from "./normalize-services-list";
-import type { EstablishmentServiceItem, EstablishmentServiceListWireItem } from "../types";
+import { normalizeServicesList } from "./normalize-services-list";
+import type { ServiceItem, ServiceListWireItem } from "../types";
 
-const sampleItem: EstablishmentServiceItem = {
+const sampleItem: ServiceItem = {
   id: "1",
   serviceName: "Lavagem",
   category: "WASH",
@@ -14,9 +14,9 @@ const sampleItem: EstablishmentServiceItem = {
   isActive: true,
 };
 
-describe("normalizeEstablishmentServicesList", () => {
+describe("normalizeServicesList", () => {
   it("normalizes items + total", () => {
-    const out = normalizeEstablishmentServicesList({ items: [sampleItem], total: 42 }, 2, 20);
+    const out = normalizeServicesList({ items: [sampleItem], total: 42 }, 2, 20);
     expect(out).toEqual({
       items: [sampleItem],
       total: 42,
@@ -26,24 +26,24 @@ describe("normalizeEstablishmentServicesList", () => {
   });
 
   it("supports data + totalCount", () => {
-    const out = normalizeEstablishmentServicesList({ data: [sampleItem], totalCount: 5 }, 1, 20);
+    const out = normalizeServicesList({ data: [sampleItem], totalCount: 5 }, 1, 20);
     expect(out.items).toEqual([sampleItem]);
     expect(out.total).toBe(5);
   });
 
   it("supports raw array body", () => {
-    const out = normalizeEstablishmentServicesList([sampleItem], 1, 20);
+    const out = normalizeServicesList([sampleItem], 1, 20);
     expect(out.items).toEqual([sampleItem]);
     expect(out.total).toBe(1);
   });
 
   it("handles null body", () => {
-    const out = normalizeEstablishmentServicesList(null, 1, 20);
+    const out = normalizeServicesList(null, 1, 20);
     expect(out).toEqual({ items: [], total: 0, page: 1, size: 20 });
   });
 
   it("maps ServicePresenter wire shape (name, priceInCents) to catalog item", () => {
-    const wire: EstablishmentServiceListWireItem = {
+    const wire: ServiceListWireItem = {
       id: "svc-1",
       name: "Lavagem premium",
       description: "Inclui cera",
@@ -52,7 +52,7 @@ describe("normalizeEstablishmentServicesList", () => {
       priceInCents: 4500,
       isActive: true,
     };
-    const out = normalizeEstablishmentServicesList({ items: [wire], total: 1 }, 1, 20);
+    const out = normalizeServicesList({ items: [wire], total: 1 }, 1, 20);
     expect(out.items[0]).toEqual({
       id: "svc-1",
       serviceName: "Lavagem premium",
@@ -65,19 +65,19 @@ describe("normalizeEstablishmentServicesList", () => {
   });
 
   it("uses minInMinutes when maxInMinutes is null", () => {
-    const wire: EstablishmentServiceListWireItem = {
+    const wire: ServiceListWireItem = {
       name: "Serviço curto",
       category: "WASH",
       estimatedDuration: { minInMinutes: 15, maxInMinutes: null },
       priceInCents: 1000,
       isActive: true,
     };
-    const out = normalizeEstablishmentServicesList({ items: [wire], total: 1 }, 1, 20);
+    const out = normalizeServicesList({ items: [wire], total: 1 }, 1, 20);
     expect(out.items[0].estimatedDuration).toEqual({ minInMinutes: 15, maxInMinutes: 15 });
   });
 
   it("uses totalItems when total and totalCount are absent", () => {
-    const out = normalizeEstablishmentServicesList({ items: [sampleItem], totalItems: 99 }, 1, 20);
+    const out = normalizeServicesList({ items: [sampleItem], totalItems: 99 }, 1, 20);
     expect(out.total).toBe(99);
   });
 });

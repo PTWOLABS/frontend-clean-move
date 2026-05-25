@@ -8,9 +8,9 @@ vi.mock("@/shared/api/httpClient", () => ({
   httpClient: (...args: unknown[]) => httpClientMock(...args),
 }));
 
-import { listEstablishmentServices } from "./list-establishment-services";
+import { listServices } from "./list-services";
 
-describe("establishment/api/list-establishment-services", () => {
+describe("service/api/list-services", () => {
   beforeEach(() => {
     httpClientMock.mockReset();
   });
@@ -21,7 +21,7 @@ describe("establishment/api/list-establishment-services", () => {
       total: 0,
     });
 
-    await listEstablishmentServices("abc-uuid", {
+    await listServices("abc-uuid", {
       page: 2,
       size: 10,
       name: "lavagem",
@@ -36,7 +36,7 @@ describe("establishment/api/list-establishment-services", () => {
 
   it("omits isActive when undefined", async () => {
     httpClientMock.mockResolvedValueOnce({ items: [], total: 0 });
-    await listEstablishmentServices("id-1", { page: 1, size: 5 });
+    await listServices("id-1", { page: 1, size: 5 });
     expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=5", {
       signal: undefined,
     });
@@ -44,7 +44,7 @@ describe("establishment/api/list-establishment-services", () => {
 
   it("uses default size 5 when size is omitted", async () => {
     httpClientMock.mockResolvedValueOnce({ items: [], total: 0 });
-    await listEstablishmentServices("id-1", { page: 1 });
+    await listServices("id-1", { page: 1 });
     expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=5", {
       signal: undefined,
     });
