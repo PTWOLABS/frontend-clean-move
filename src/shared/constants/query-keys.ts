@@ -16,4 +16,11 @@ export const QUERY_KEYS = {
       ...(filters ? [filters] : []),
       ...(appointmentId ? [appointmentId] : []),
     ] as const,
+  services: (filters?: {
+    page?: number;
+    size?: number;
+    name?: string;
+    isActive?: boolean;
+  }) =>
+    filters ? (["services", filters] as const) : (["services"] as const),
 };
