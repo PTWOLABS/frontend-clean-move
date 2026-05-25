@@ -7,19 +7,29 @@ import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { deleteService } from "../api/delete-service";
+import {
+  removeServiceFromLists,
+  restoreServicesLists,
+  snapshotServicesLists,
+  type ServicesListSnapshotEntry,
+} from "../lib/services-query-cache";
 
 export function useDeleteService() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (serviceId: string) => deleteService(serviceId),
+    onMutate: async (serviceId) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.services() });
+      const snapshot = snapshotServicesLists(queryClient);
+      removeServiceFromLists(queryClient, serviceId);
+      return { snapshot } satisfies { snapshot: ServicesListSnapshotEntry[] };
+    },
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.services(),
-      });
       toast.success("Serviço eliminado com sucesso.");
     },
-    onError: (error) => {
+    onError: (error, _serviceId, context) => {
+      restoreServicesLists(queryClient, context?.snapshot);
       if (error instanceof ApiError) {
         if (error.statusCode === 400) {
           toast.error(error.message || "Não foi possível apagar. Tente novamente.");
@@ -31,6 +41,9 @@ export function useDeleteService() {
         }
         toast.error("Não foi possível apagar o serviço. Tente novamente mais tarde.");
       }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() });
     },
   });
 }
