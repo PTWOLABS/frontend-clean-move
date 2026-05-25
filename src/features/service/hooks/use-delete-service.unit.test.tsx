@@ -84,9 +84,7 @@ describe("useDeleteService", () => {
   });
 
   it("restores cache when delete fails", async () => {
-    deleteServiceMock.mockRejectedValueOnce(
-      new ApiError({ statusCode: 500, message: "Erro" }),
-    );
+    deleteServiceMock.mockRejectedValueOnce(new ApiError({ statusCode: 500, message: "Erro" }));
 
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false }, mutations: { retry: false } },

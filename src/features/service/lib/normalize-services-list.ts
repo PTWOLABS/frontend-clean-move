@@ -23,9 +23,7 @@ function pickTotal(body: ServicesListApiResponse, itemsLength: number): number {
 /**
  * Converte o DTO de listagem (`name`, `priceInCents`, etc.) para o modelo usado na UI (`serviceName`, `price`).
  */
-export function mapWireToServiceItem(
-  raw: WireOrCatalogItem,
-): ServiceItem {
+export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
   const r = raw as ServiceItem & ServiceListWireItem;
   const serviceName = (r.serviceName ?? r.name ?? "").trim();
   const description = r.description == null ? undefined : String(r.description).trim() || undefined;

@@ -81,9 +81,7 @@ function priceCentsToFormInput(price: unknown): string {
 /**
  * Valores iniciais do formulário a partir de um item da listagem (edição).
  */
-export function serviceItemToFormDefaults(
-  item: ServiceItem,
-): CreateServiceFormInput {
+export function serviceItemToFormDefaults(item: ServiceItem): CreateServiceFormInput {
   const min = item.estimatedDuration?.minInMinutes ?? 30;
   const max = item.estimatedDuration?.maxInMinutes ?? Math.max(min, 60);
   return {
@@ -102,9 +100,7 @@ const DUPLICATE_NAME_PREFIX = "Cópia de ";
 /**
  * Valores iniciais do formulário para duplicar um serviço (criação com dados copiados).
  */
-export function serviceItemToDuplicateFormDefaults(
-  item: ServiceItem,
-): CreateServiceFormInput {
+export function serviceItemToDuplicateFormDefaults(item: ServiceItem): CreateServiceFormInput {
   const base = serviceItemToFormDefaults(item);
   const name = (base.serviceName ?? "").trim();
   const duplicatedName = name.startsWith(DUPLICATE_NAME_PREFIX)
