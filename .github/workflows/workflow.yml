@@ -4,9 +4,27 @@ on:
   pull_request:
 
 jobs:
+  validate-pr-flow:
+    name: Validate PR Flow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source and target branches
+        run: |
+          echo "Base branch: ${{ github.base_ref }}"
+          echo "Head branch: ${{ github.head_ref }}"
+
+          if [ "${{ github.base_ref }}" = "main" ] && [ "${{ github.head_ref }}" != "staging" ]; then
+            echo "❌ Pull requests para a branch main só podem vir da branch staging."
+            echo "Branch atual de origem: ${{ github.head_ref }}"
+            exit 1
+          fi
+
+          echo "✅ Fluxo de Pull Request válido."
+
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
+    needs: validate-pr-flow
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -19,6 +37,7 @@ jobs:
   eslint:
     name: ESLint
     runs-on: ubuntu-latest
+    needs: validate-pr-flow
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -31,6 +50,7 @@ jobs:
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
+    needs: validate-pr-flow
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -43,6 +63,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs: validate-pr-flow
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -57,6 +78,7 @@ jobs:
     if: false
     name: E2E Tests
     runs-on: ubuntu-latest
+    needs: validate-pr-flow
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -76,6 +98,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: validate-pr-flow
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
