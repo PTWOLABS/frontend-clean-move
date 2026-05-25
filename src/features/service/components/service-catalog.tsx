@@ -152,15 +152,11 @@ export function ServiceCatalog() {
     setServiceSheetOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     const id = deleteTarget?.id;
     if (!id) return;
-    try {
-      await deleteMutation.mutateAsync(id);
-      setDeleteTarget(null);
-    } catch {
-      // Erro tratado em `useDeleteService` (toast).
-    }
+    setDeleteTarget(null);
+    deleteMutation.mutate(id);
   };
 
   return (
