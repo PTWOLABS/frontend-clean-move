@@ -63,7 +63,7 @@ Rotas principais:
 - `/` – home, com links para os domínios.
 - `/login` – domínio **auth** (formulário de login).
 - `/user` – domínio **user** (dados do usuário atual).
-- `/servicos` – domínio **service** (lista de serviços; rota permanece em PT).
+- `/services` – domínio **service** (catálogo de serviços).
 
 ---
 
