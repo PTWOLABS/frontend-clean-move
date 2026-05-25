@@ -166,7 +166,19 @@ function stubAppointmentsSequence(responses: StubAppointmentsOptions[]) {
 function visitAppointments() {
   cy.clock(currentDate.getTime(), ["Date"]);
   cy.stubLogin();
-  cy.visit("/appointments");
+  cy.visit("/login");
+  cy.get('input[name="email"]').type("joao@email.com");
+  cy.get('input[name="password"]').type("supersenha");
+  cy.contains("button", /^entrar$/i).click();
+  cy.wait("@loginRequest");
+  cy.url().should("include", "/home");
+  cy.get("body").then(($body) => {
+    if ($body.find('button[aria-label="Abrir menu lateral"]:visible').length) {
+      cy.get('button[aria-label="Abrir menu lateral"]').click();
+    }
+  });
+  cy.get('a[href="/appointments"]').filter(":visible").first().click();
+  cy.url().should("include", "/appointments");
 }
 
 describe("Appointments page", () => {
@@ -221,11 +233,12 @@ describe("Appointments page", () => {
   it("shows the error state and reloads appointments with the retry action", () => {
     stubAppointmentsSequence([
       { status: 500 },
-      { appointments: defaultAppointments },
+      { status: 500 },
       { appointments: defaultAppointments },
     ]);
     visitAppointments();
 
+    cy.wait("@appointmentsRequest");
     cy.wait("@appointmentsRequest");
 
     cy.contains("Não foi possível carregar os agendamentos.").should("be.visible");

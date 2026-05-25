@@ -39,6 +39,8 @@ vi.mock("./appointments-calendar-toolbar", () => ({
 
 vi.mock("./calendar/appointments-calendar", () => ({
   AppointmentsCalendar: ({
+    isLoading,
+    isError,
     selectedEventId,
     selectedSlotKey,
     onDateClick,
@@ -50,6 +52,8 @@ vi.mock("./calendar/appointments-calendar", () => ({
   }: {
     selectedEventId: string | null;
     selectedSlotKey: string | null;
+    isLoading: boolean;
+    isError: boolean;
     onDateClick: (info: DateClickArg) => void;
     onDatesSet: (arg: DatesSetArg) => void;
     onEventClick: (info: EventClickArg) => void;
@@ -58,6 +62,8 @@ vi.mock("./calendar/appointments-calendar", () => ({
     onRetry: () => void;
   }) => (
     <div>
+      <p>Calendário carregando: {isLoading ? "sim" : "não"}</p>
+      <p>Calendário com erro: {isError ? "sim" : "não"}</p>
       <p>Evento selecionado no calendário: {selectedEventId ?? "nenhum"}</p>
       <p>Slot selecionado no calendário: {selectedSlotKey ?? "nenhum"}</p>
       <button
@@ -133,16 +139,22 @@ vi.mock("./appointments-quick-navigation-card", () => ({
 vi.mock("./appointments-day-agenda-card", () => ({
   AppointmentsDayAgendaCard: ({
     events,
+    isLoading,
+    isError,
     selectedEventId,
     onSelectEvent,
     onRetry,
   }: {
     events: AppointmentEventMock[];
+    isLoading: boolean;
+    isError: boolean;
     selectedEventId: string | null;
     onSelectEvent: (event: AppointmentEventMock) => void;
     onRetry: () => void;
   }) => (
     <div>
+      <p>Agenda carregando: {isLoading ? "sim" : "não"}</p>
+      <p>Agenda com erro: {isError ? "sim" : "não"}</p>
       <p>Evento selecionado na agenda: {selectedEventId ?? "nenhum"}</p>
       <button type="button" onClick={() => onSelectEvent(events[0])}>
         Selecionar item da agenda
@@ -206,7 +218,7 @@ describe("AppointmentsPage", () => {
     });
   });
 
-  it("renders the loading badge when appointments are pending without data", () => {
+  it("passes loading state to children when appointments are pending without data", () => {
     useListAppointmentsMock.mockReturnValue({
       data: [],
       isPending: true,
@@ -217,10 +229,11 @@ describe("AppointmentsPage", () => {
 
     render(<AppointmentsPage />);
 
-    expect(screen.getByText("Carregando dados")).toBeInTheDocument();
+    expect(screen.getByText("Calendário carregando: sim")).toBeInTheDocument();
+    expect(screen.getByText("Agenda carregando: sim")).toBeInTheDocument();
   });
 
-  it("renders the error badge when appointments fail without cached data", () => {
+  it("passes error state to children when appointments fail without cached data", () => {
     useListAppointmentsMock.mockReturnValue({
       data: [],
       isPending: false,
@@ -231,7 +244,8 @@ describe("AppointmentsPage", () => {
 
     render(<AppointmentsPage />);
 
-    expect(screen.getByText("Falha ao carregar")).toBeInTheDocument();
+    expect(screen.getByText("Calendário com erro: sim")).toBeInTheDocument();
+    expect(screen.getByText("Agenda com erro: sim")).toBeInTheDocument();
   });
 
   it("passes visible range filters to the appointments query", async () => {
