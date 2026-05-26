@@ -6,13 +6,13 @@ import { toast } from "sonner";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 import { getQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
 import { createAppointment } from "../../api/create-appointment";
-import { CreateAppointmentFormInput } from "../../schemas/create-appointment-schema";
+import { CreateAppointmentRequestBody } from "../../schemas/create-appointment-schema";
 
 export function useCreateAppointment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (body: CreateAppointmentFormInput) => {
+    mutationFn: async (body: CreateAppointmentRequestBody) => {
       return await createAppointment(body);
     },
     onSuccess: () => {

@@ -1,9 +1,10 @@
 import { httpClient } from "@/shared/api/httpClient";
-import { CreateAppointmentFormInput } from "../schemas/create-appointment-schema";
+import { CreateAppointmentRequestBody } from "../schemas/create-appointment-schema";
 import { AppointmentDTO } from "../types/appointments-dto";
 
-export async function createAppointment(body: CreateAppointmentFormInput) {
+export async function createAppointment(body: CreateAppointmentRequestBody) {
   return await httpClient<AppointmentDTO>("/appointments", {
     body,
+    method: "POST",
   });
 }

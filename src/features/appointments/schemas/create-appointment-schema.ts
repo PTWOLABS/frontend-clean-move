@@ -53,9 +53,9 @@ function isValidDiscount(value: string) {
 
 export const createAppointmentFormSchema = z
   .object({
-    customerName: z.string().trim().min(1, "Informe o nome do cliente."),
+    customerId: z.string().trim().min(1, "Selecione um cliente."),
     serviceIds: z.array(serviceOptionSchema).min(1, "Selecione pelo menos um serviço."),
-    vehicleName: z.string().trim().min(1, "Informe o nome do veículo."),
+    vehicleId: z.string().trim().min(1, "Selecione um veículo."),
     startsAt: requiredDateField("Selecione a data de início."),
     endsAt: optionalDateField,
     description: z
@@ -84,11 +84,14 @@ export const createAppointmentFormSchema = z
 
 export type CreateAppointmentFormInput = z.input<typeof createAppointmentFormSchema>;
 export type CreateAppointmentFormValues = z.output<typeof createAppointmentFormSchema>;
+export type CreateAppointmentRequestBody = Omit<CreateAppointmentFormValues, "serviceIds"> & {
+  serviceIds: string[];
+};
 
 export const createAppointmentDefaultValues: CreateAppointmentFormInput = {
-  customerName: "",
+  customerId: "",
   serviceIds: [],
-  vehicleName: "",
+  vehicleId: "",
   startsAt: null,
   endsAt: null,
   description: "",

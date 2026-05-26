@@ -10,7 +10,6 @@ import {
   type FieldValues,
   type Resolver,
 } from "react-hook-form";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
@@ -41,6 +40,7 @@ import { AppointmentDateField } from "./appointment-date-field";
 import { useListCustomerOptions } from "../../hooks/queries/use-list-customer-options";
 import { useListCustomerVehicleOptions } from "../../hooks/queries/use-list-customer-vehicle-options";
 import { useListServiceOptions } from "../../hooks/queries/use-list-service-options";
+import { useCreateAppointment } from "../../hooks/mutations/use-create-appointment-mutation";
 
 type AppointmentFormSheetProps = {
   open: boolean;
@@ -65,6 +65,8 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
   const [sheetContentElement, setSheetContentElement] = useState<HTMLDivElement | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
   const [vehicleSearch, setVehicleSearch] = useState("");
+  const [customerLabel, setCustomerLabel] = useState("");
+  const [vehicleLabel, setVehicleLabel] = useState("");
   const [serviceInputValue, setServiceInputValue] = useState("");
   const serviceSearch = useDebouncedValue(serviceInputValue, 500);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -113,11 +115,28 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
   const handleCustomerSelectedItemChange = useCallback(
     (option: ComboboxItemOption | null) => {
       setSelectedCustomerId(option?.value ?? null);
+      setValue("customerId", option?.value ?? "", {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
       setVehicleSearch("");
-      setValue("vehicleName", "", {
+      setVehicleLabel("");
+      setValue("vehicleId", "", {
         shouldDirty: true,
         shouldTouch: false,
-        shouldValidate: false,
+        shouldValidate: true,
+      });
+    },
+    [setValue],
+  );
+
+  const handleVehicleSelectedItemChange = useCallback(
+    (option: ComboboxItemOption | null) => {
+      setValue("vehicleId", option?.value ?? "", {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
       });
     },
     [setValue],
@@ -125,6 +144,8 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
 
   const resetOptionState = useCallback(() => {
     setCustomerSearch("");
+    setCustomerLabel("");
+    setVehicleLabel("");
     setServiceInputValue("");
     setVehicleSearch("");
     setSelectedCustomerId(null);
@@ -176,9 +197,15 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
     return <p className="px-2 py-1 text-sm text-muted-foreground">Nenhum serviço encontrado.</p>;
   };
 
+  const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();
+
   const onSubmit = (values: CreateAppointmentFormValues) => {
-    void values;
-    toast.info("Dados do agendamento validados. Integração de criação pendente.");
+    const body = {
+      ...values,
+      serviceIds: values.serviceIds.map((item) => item.value),
+    };
+
+    createAppointment(body);
   };
 
   return (
@@ -198,7 +225,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
             <div className="space-y-5">
               <FormField
                 control={fieldControl}
-                name="customerName"
+                name="customerId"
                 label="Nome do cliente"
                 required
                 renderControl={false}
@@ -209,8 +236,8 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                       ref={field.ref}
                       id={field.name}
                       name={field.name}
-                      value={typeof field.value === "string" ? field.value : ""}
-                      onValueChange={field.onChange}
+                      value={customerLabel}
+                      onValueChange={setCustomerLabel}
                       onDebouncedValueChange={setCustomerSearch}
                       onSelectedItemChange={handleCustomerSelectedItemChange}
                       onBlur={field.onBlur}
@@ -262,7 +289,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
 
               <FormField
                 control={fieldControl}
-                name="vehicleName"
+                name="vehicleId"
                 label="Veículo"
                 required
                 renderControl={false}
@@ -273,9 +300,10 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                       ref={field.ref}
                       id={field.name}
                       name={field.name}
-                      value={typeof field.value === "string" ? field.value : ""}
-                      onValueChange={field.onChange}
+                      value={vehicleLabel}
+                      onValueChange={setVehicleLabel}
                       onDebouncedValueChange={setVehicleSearch}
+                      onSelectedItemChange={handleVehicleSelectedItemChange}
                       onBlur={field.onBlur}
                       items={customerVehicleOptionsItems}
                       portalContainer={sheetContentRef}
@@ -380,12 +408,13 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
               <Button
                 type="button"
                 variant="outline"
+                disabled={creatingAppointment}
                 className="h-10 w-full sm:w-32"
                 onClick={() => handleSheetOpenChange(false)}
               >
                 Cancelar
               </Button>
-              <Button type="submit" className="h-10 w-full sm:w-40">
+              <Button type="submit" className="h-10 w-full sm:w-40" disabled={creatingAppointment}>
                 Salvar agendamento
               </Button>
             </SheetFooter>
