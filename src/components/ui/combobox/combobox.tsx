@@ -28,7 +28,9 @@ type ComboboxProps = Omit<
   debounceMs?: number;
   emptyMessage?: React.ReactNode;
   onDebouncedValueChange?: (value: string) => void;
+  onSelectedItemChange?: (item: ComboboxItemOption | null) => void;
   onValueChange?: (value: string) => void;
+  portalContainer?: React.ComponentProps<typeof ComboboxContent>["portalContainer"];
 };
 
 export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
@@ -41,7 +43,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
       placeholder = "Selecione uma opção",
       className,
       onDebouncedValueChange,
+      onSelectedItemChange,
       onValueChange,
+      portalContainer,
       showClear = true,
       ...props
     },
@@ -49,8 +53,14 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
   ) => {
     const selectedItem = items.find((item) => item.value === value || item.label === value) ?? null;
     const debouncedValue = useDebouncedValue(value, debounceMs);
+    const selectedLabelPendingDebounceRef = React.useRef<string | null>(null);
 
     React.useEffect(() => {
+      if (selectedLabelPendingDebounceRef.current === debouncedValue) {
+        selectedLabelPendingDebounceRef.current = null;
+        return;
+      }
+
       onDebouncedValueChange?.(debouncedValue);
     }, [debouncedValue, onDebouncedValueChange]);
 
@@ -62,8 +72,19 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
         itemToStringLabel={(item) => item.label}
         itemToStringValue={(item) => item.value}
         isItemEqualToValue={(item, selectedValue) => item.value === selectedValue.value}
-        onInputValueChange={(nextValue) => onValueChange?.(nextValue)}
-        onValueChange={(item) => onValueChange?.(item?.label ?? "")}
+        onInputValueChange={(nextValue, eventDetails) => {
+          if (eventDetails.reason === "item-press") {
+            return;
+          }
+
+          onValueChange?.(nextValue);
+          onSelectedItemChange?.(null);
+        }}
+        onValueChange={(item) => {
+          selectedLabelPendingDebounceRef.current = item?.label ?? null;
+          onValueChange?.(item?.label ?? "");
+          onSelectedItemChange?.(item);
+        }}
       >
         <ComboboxInput
           ref={ref}
@@ -75,7 +96,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
           )}
           {...props}
         />
-        <ComboboxContent>
+        <ComboboxContent portalContainer={portalContainer}>
           <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
           <ComboboxList>
             {(item) => (
