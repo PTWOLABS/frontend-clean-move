@@ -1,6 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { buildQueryParamsFilters, normalizeQueryParamsFilters } from "./lib";
+import {
+  buildQueryParamsFilters,
+  formatNumericInputValue,
+  getOnlyNumbers,
+  handleNumericInputChange,
+  normalizeQueryParamsFilters,
+} from "./lib";
 
 describe("query params filters", () => {
   it("formats array values as repeated query params", () => {
@@ -33,5 +39,37 @@ describe("query params filters", () => {
     expect(buildQueryParamsFilters(normalizedFilters)).toBe(
       "?startsAt=2026-04-01T00%3A00%3A00.000Z&endsAt=2026-04-07T00%3A00%3A00.000Z",
     );
+  });
+});
+
+describe("numeric input helpers", () => {
+  it("keeps only numeric characters", () => {
+    expect(getOnlyNumbers("A1.2-3,4")).toBe("1234");
+  });
+
+  it("formats numeric input as BRL currency from cents", () => {
+    expect(formatNumericInputValue("1234", { formatAsCurrency: true }).replace(/\s/g, " ")).toBe(
+      "R$ 12,34",
+    );
+  });
+
+  it("can format currency without the BRL symbol", () => {
+    expect(
+      formatNumericInputValue("R$ 1a2b3c4", {
+        formatAsCurrency: true,
+        showCurrencySymbol: false,
+      }),
+    ).toBe("12,34");
+  });
+
+  it("applies the formatted value in an onChange handler", () => {
+    const onChange = vi.fn();
+
+    handleNumericInputChange({ target: { value: "abc500" } }, onChange, {
+      formatAsCurrency: true,
+      showCurrencySymbol: false,
+    });
+
+    expect(onChange).toHaveBeenCalledWith("5,00");
   });
 });
