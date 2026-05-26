@@ -46,11 +46,6 @@ function isValidDiscount(value: string) {
 
   if (!normalizedValue) return true;
 
-  if (normalizedValue.endsWith("%")) {
-    const percentage = parseBrlMoneyToReais(normalizedValue.slice(0, -1));
-    return Number.isFinite(percentage) && percentage >= 0 && percentage <= 100;
-  }
-
   const amount = parseBrlMoneyToReais(normalizedValue);
   return Number.isFinite(amount) && amount >= 0;
 }
@@ -78,7 +73,7 @@ export const createAppointmentFormSchema = z
       .nullable()
       .transform((value) => value?.trim() ?? "")
       .refine(isValidDiscount, {
-        message: "Informe um desconto válido (ex.: 10,00 ou 10%).",
+        message: "Informe um desconto válido (ex.: 10,00).",
       }),
   })
   .refine((values) => !values.endsAt || values.endsAt >= values.startsAt, {
