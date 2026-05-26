@@ -20,3 +20,12 @@ export type AppointmentsCalendarFilters = {
   startsAt: string;
   endsAt: string;
 };
+
+export type OptionsFilters = {
+  limit?: number;
+  search?: string;
+};
+
+export type VehicleOptionsFilters = {
+  customerId?: string;
+} & OptionsFilters;
