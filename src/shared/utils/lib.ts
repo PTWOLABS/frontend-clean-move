@@ -88,7 +88,7 @@ function isValidDate(value: unknown): value is Date {
   return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
-function formatDateQueryParam(value: Date) {
+export function formatLocalDateTimeAsUtcISOString(value: Date) {
   return new Date(
     Date.UTC(
       value.getFullYear(),
@@ -100,6 +100,10 @@ function formatDateQueryParam(value: Date) {
       value.getMilliseconds(),
     ),
   ).toISOString();
+}
+
+function formatDateQueryParam(value: Date) {
+  return formatLocalDateTimeAsUtcISOString(value);
 }
 
 function appendQueryParam(params: URLSearchParams, name: string, rawValue: unknown) {
@@ -167,5 +171,15 @@ export function normalizeQueryParamsFilters<T extends object>(
 }
 
 export function getValidDate(value: unknown) {
-  return value instanceof Date && !Number.isNaN(value.getTime()) ? value : undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  }
+
+  return undefined;
 }
