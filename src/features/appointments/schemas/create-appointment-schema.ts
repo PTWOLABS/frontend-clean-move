@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
+import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 const dateInput = z.union([z.date(), z.string(), z.number(), z.null(), z.undefined()]);
 
@@ -18,7 +19,7 @@ const requiredDateField = (message: string) =>
       return z.NEVER;
     }
 
-    return date;
+    return formatLocalDateTimeAsUtcISOString(date);
   });
 
 const optionalDateField = dateInput.transform((value, context) => {
@@ -33,7 +34,7 @@ const optionalDateField = dateInput.transform((value, context) => {
     return z.NEVER;
   }
 
-  return date;
+  return formatLocalDateTimeAsUtcISOString(date);
 });
 
 const serviceOptionSchema = z.object({
@@ -76,7 +77,7 @@ export const createAppointmentFormSchema = z
         message: "Informe um desconto válido (ex.: 10,00).",
       }),
   })
-  .refine((values) => !values.endsAt || values.endsAt >= values.startsAt, {
+  .refine((values) => !values.endsAt || new Date(values.endsAt) >= new Date(values.startsAt), {
     message: "A data de encerramento deve ser igual ou posterior à data de início.",
     path: ["endsAt"],
   });
