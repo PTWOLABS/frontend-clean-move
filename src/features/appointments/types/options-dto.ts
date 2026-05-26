@@ -10,3 +10,7 @@ export type CustomerOptionsDTO = {
 export type VehicleOptionsDTO = {
   vehicles: OptionsDTO;
 };
+
+export type ServiceOptionsDTO = {
+  services: OptionsDTO;
+};
