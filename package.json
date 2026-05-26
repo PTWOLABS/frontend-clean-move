@@ -26,6 +26,7 @@
     "test:docker:all": "bash ./scripts/run-docker-tests.sh"
   },
   "dependencies": {
+    "@base-ui/react": "^1.5.0",
     "@fullcalendar/daygrid": "^6.1.20",
     "@fullcalendar/interaction": "^6.1.20",
     "@fullcalendar/react": "^6.1.20",
