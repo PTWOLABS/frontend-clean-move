@@ -7,8 +7,9 @@ import { listCustomerVehicleOptions } from "../../api/list-customer-vehicle-opti
 
 export function useListCustomerVehicleOptions(filters?: VehicleOptionsFilters) {
   return useQuery({
-    queryKey: QUERY_KEYS.vehicles(filters),
+    queryKey: QUERY_KEYS.vehicleOptions(filters),
     queryFn: async () => listCustomerVehicleOptions(filters),
+    enabled: Boolean(filters?.customerId),
     staleTime: FIVE_MIN_MS,
     retry: false,
   });

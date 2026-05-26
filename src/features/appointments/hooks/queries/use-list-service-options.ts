@@ -3,12 +3,12 @@ import { FIVE_MIN_MS } from "@/shared/constants/times";
 import { useQuery } from "@tanstack/react-query";
 
 import { OptionsFilters } from "../../types/api-filters";
-import { listCustomerOptions } from "../../api/list-customer-options";
+import { listServiceOptions } from "../../api/list-service-options";
 
-export function useListCustomerOptions(filters?: OptionsFilters) {
+export function useListServiceOptions(filters?: OptionsFilters) {
   return useQuery({
-    queryKey: QUERY_KEYS.customerOptions(filters),
-    queryFn: async () => listCustomerOptions(filters),
+    queryKey: QUERY_KEYS.serviceOptions(filters),
+    queryFn: async () => listServiceOptions(filters),
     staleTime: FIVE_MIN_MS,
     retry: false,
   });
