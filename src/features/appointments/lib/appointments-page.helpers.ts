@@ -16,18 +16,42 @@ export const viewOptions: Array<{
   value: AppointmentCalendarView;
 }> = [
   {
-    label: "Visão mensal",
+    label: "Visualização: Mês",
     value: "dayGridMonth",
   },
   {
-    label: "Visão semanal",
+    label: "Visualização: Semana",
     value: "timeGridWeek",
   },
   {
-    label: "Visão diária",
+    label: "Visualização: Dia",
     value: "timeGridDay",
   },
 ];
+
+export const compactViewOptions = viewOptions.filter((option) => option.value !== "timeGridWeek");
+
+export const viewToggleOptions: Array<{
+  label: string;
+  value: AppointmentCalendarView;
+}> = [
+  {
+    label: "Mês",
+    value: "dayGridMonth",
+  },
+  {
+    label: "Semana",
+    value: "timeGridWeek",
+  },
+  {
+    label: "Dia",
+    value: "timeGridDay",
+  },
+];
+
+export const compactViewToggleOptions = viewToggleOptions.filter(
+  (option) => option.value !== "timeGridWeek",
+);
 
 export const statusBadgeClassName: Record<AppointmentStatus, string> = {
   DONE: "border-transparent bg-success-soft text-success-soft-foreground",
@@ -95,6 +119,10 @@ export function formatSlotKey(date: Date) {
 
 export function formatDayKey(date: Date) {
   return format(date, "yyyy-MM-dd");
+}
+
+export function normalizeCalendarDate(date: Date) {
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
 
 export function buildSlotDate(date: Date, slotIndex: number) {
