@@ -188,6 +188,7 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     onEventClick: vi.fn(),
     onMonthCellPress: vi.fn(),
     onSlotPress: vi.fn(),
+    onCellAddIndicatorPress: vi.fn(),
   };
 
   return render(<AppointmentsCalendar {...defaultProps} {...props} />);
@@ -252,9 +253,7 @@ describe("AppointmentsCalendar", () => {
       onClearSelectedEvent,
     });
 
-    expect(
-      screen.getByRole("dialog", { name: /detalhes do agendamento/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /detalhes do agendamento/i })).toBeInTheDocument();
     expect(screen.getByText("Ana Martins")).toBeInTheDocument();
     expect(screen.getByText("Sem observações.")).toBeInTheDocument();
 

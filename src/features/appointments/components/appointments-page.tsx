@@ -19,7 +19,7 @@ import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
 import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
 import { UpcomingAppointmentsCard } from "./upcoming-appointments-card";
-import { useListAppointments } from "../hooks/queries/use-list-appointments";
+import { useListCalendarAppointments } from "../hooks/queries/use-list-calendar-appointments";
 import { findNextAppointment } from "../lib/appointments-calendar";
 import {
   compactViewOptions,
@@ -300,7 +300,13 @@ export function AppointmentsPage() {
     [appointmentStatusFilter, visibleRange.end, visibleRange.start],
   );
 
-  const { data: events = [], isPending, isError, refetch, error } = useListAppointments(filters);
+  const {
+    data: events = [],
+    isPending,
+    isError,
+    refetch,
+    error,
+  } = useListCalendarAppointments(filters);
 
   const isLoadingAppointments = isPending && events.length === 0;
   const hasAppointmentsError = isError && events.length === 0;

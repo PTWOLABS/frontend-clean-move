@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import type { RefObject } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const useListAppointmentsMock = vi.hoisted(() => vi.fn());
+const useListCalendarAppointmentsMock = vi.hoisted(() => vi.fn());
 const useQueryFeedbackErrorMock = vi.hoisted(() => vi.fn());
 
 type SelectOptionMock = {
@@ -21,8 +21,8 @@ type SelectMockProps = {
   value?: string;
 };
 
-vi.mock("../hooks/queries/use-list-appointments", () => ({
-  useListAppointments: useListAppointmentsMock,
+vi.mock("../hooks/queries/use-list-calendar-appointments", () => ({
+  useListCalendarAppointments: useListCalendarAppointmentsMock,
 }));
 
 vi.mock("@/shared/hooks/use-query-feedback-error", () => ({
@@ -292,7 +292,7 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
 describe("AppointmentsPage", () => {
   beforeEach(() => {
     useQueryFeedbackErrorMock.mockReturnValue(null);
-    useListAppointmentsMock.mockReturnValue({
+    useListCalendarAppointmentsMock.mockReturnValue({
       data: appointmentEvents,
       isPending: false,
       isError: false,
@@ -302,7 +302,7 @@ describe("AppointmentsPage", () => {
   });
 
   it("passes loading state to children when appointments are pending without data", () => {
-    useListAppointmentsMock.mockReturnValue({
+    useListCalendarAppointmentsMock.mockReturnValue({
       data: [],
       isPending: true,
       isError: false,
@@ -317,7 +317,7 @@ describe("AppointmentsPage", () => {
   });
 
   it("passes error state to children when appointments fail without cached data", () => {
-    useListAppointmentsMock.mockReturnValue({
+    useListCalendarAppointmentsMock.mockReturnValue({
       data: [],
       isPending: false,
       isError: true,
@@ -338,7 +338,7 @@ describe("AppointmentsPage", () => {
 
     await user.click(screen.getByRole("button", { name: /atualizar período/i }));
 
-    expect(useListAppointmentsMock).toHaveBeenLastCalledWith({
+    expect(useListCalendarAppointmentsMock).toHaveBeenLastCalledWith({
       startsAt: "2026-05-01T00:00:00.000Z",
       endsAt: "2026-06-01T00:00:00.000Z",
     });
@@ -364,7 +364,7 @@ describe("AppointmentsPage", () => {
 
     await user.click(screen.getByRole("button", { name: /atualizar mês com dias externos/i }));
 
-    expect(useListAppointmentsMock).toHaveBeenLastCalledWith({
+    expect(useListCalendarAppointmentsMock).toHaveBeenLastCalledWith({
       startsAt: "2026-04-26T00:00:00.000Z",
       endsAt: "2026-06-07T00:00:00.000Z",
     });
@@ -420,7 +420,7 @@ describe("AppointmentsPage", () => {
   it("refetches appointments from child retry actions", async () => {
     const user = userEvent.setup();
     const refetch = vi.fn();
-    useListAppointmentsMock.mockReturnValue({
+    useListCalendarAppointmentsMock.mockReturnValue({
       data: [],
       isPending: false,
       isError: true,
