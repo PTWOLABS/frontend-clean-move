@@ -12,8 +12,7 @@ vi.mock("@/components/ui/sidebar", () => ({
 
 vi.mock("../../hooks/use-calendar-more-link", () => ({
   useCalendarMoreLink: () => ({
-    calendarFrameStyle: undefined,
-    isMorePopoverAlignedRight: false,
+    isMorePopoverOpen: false,
     handleMoreLinkDidMount: vi.fn(),
     handleMoreLinkWillUnmount: vi.fn(),
     handleMoreLinkClick: vi.fn(),
@@ -30,6 +29,18 @@ vi.mock("../../hooks/use-month-cell-indicators", () => ({
     handleMonthCellDidMount: vi.fn(),
     handleMonthCellWillUnmount: vi.fn(),
     renderMonthDayCellContent: () => "20",
+  }),
+}));
+
+vi.mock("../../hooks/use-selected-calendar-event-popover", () => ({
+  useSelectedCalendarEventPopover: () => ({
+    hasSelectedEventAnchor: true,
+    handleEventClickAnchor: vi.fn(),
+    handleEventDidMount: vi.fn(),
+    handleEventWillUnmount: vi.fn(),
+    popoverPlacement: "right",
+    popoverStyle: {},
+    setPopoverElement: vi.fn(),
   }),
 }));
 
@@ -168,8 +179,10 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     onRetry: vi.fn(),
     selectedDate: new Date("2026-05-20T12:00:00.000Z"),
     selectedEventId: "appointment-1",
+    selectedEventPopoverId: null,
     selectedSlotKey: null,
     selectedView: "dayGridMonth",
+    onClearSelectedEvent: vi.fn(),
     onDateClick: vi.fn(),
     onDatesSet: vi.fn(),
     onEventClick: vi.fn(),
@@ -201,7 +214,8 @@ describe("AppointmentsCalendar", () => {
     expect(screen.getByText("Altura do calendário: 100%")).toBeInTheDocument();
     expect(screen.getByText("Carregando agendamentos...")).toBeInTheDocument();
     expect(screen.getByText("Lavagem tecnica")).toBeInTheDocument();
-    expect(screen.getAllByText("mais 2 agendamentos...")).toHaveLength(2);
+    expect(screen.getByText("mais 2 agendamentos...")).toHaveClass("sr-only");
+    expect(screen.getByText("+2 ag.")).toBeInTheDocument();
     expect(screen.getByTestId("event-class-names").textContent).toContain("eventSelected");
   });
 
@@ -227,5 +241,25 @@ describe("AppointmentsCalendar", () => {
         end: new Date("2026-06-01T00:00:00.000Z"),
       }),
     );
+  });
+
+  it("renders the selected event details popover and closes it", async () => {
+    const user = userEvent.setup();
+    const onClearSelectedEvent = vi.fn();
+
+    renderCalendar({
+      selectedEventPopoverId: "appointment-1",
+      onClearSelectedEvent,
+    });
+
+    expect(
+      screen.getByRole("dialog", { name: /detalhes do agendamento/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Ana Martins")).toBeInTheDocument();
+    expect(screen.getByText("Sem observações.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /fechar detalhes do agendamento/i }));
+
+    expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
   });
 });

@@ -16,6 +16,9 @@ const response: AppointmentDTO = {
       id: "appointment-2",
       establishmentId: "est-1",
       customerId: "customer-2",
+      customer: {
+        name: "Marina Oliveira",
+      },
       vehicleId: "vehicle-2",
       services: [
         {
@@ -47,6 +50,9 @@ const response: AppointmentDTO = {
       id: "appointment-1",
       establishmentId: "est-1",
       customerId: "customer-1",
+      customer: {
+        name: "João Pereira",
+      },
       vehicleId: null,
       services: [
         {
@@ -79,6 +85,7 @@ const response: AppointmentDTO = {
       id: "appointment-3",
       establishmentId: "est-1",
       customerId: "customer-3",
+      customer: null,
       vehicleId: null,
       services: [
         {
@@ -110,8 +117,9 @@ describe("appointments-calendar helpers", () => {
     expect(appointments).toHaveLength(3);
     expect(appointments[0]?.id).toBe("appointment-2");
     expect(appointments[1]?.title).toBe("Lavagem tecnica +1");
-    expect(appointments[1]?.end.toISOString()).toBe("2026-05-20T10:15:00.000Z");
-    expect(appointments[1]?.extendedProps.customer).toBeTruthy();
+    expect(appointments[1]?.end.getHours()).toBe(10);
+    expect(appointments[1]?.end.getMinutes()).toBe(15);
+    expect(appointments[1]?.extendedProps.customer).toBe("João Pereira");
     expect(appointments[1]?.extendedProps.attendants).toHaveLength(2);
     expect(appointments[1]?.extendedProps.vehicle).toBe("Veículo não informado");
     expect(appointments[1]?.extendedProps.notes).toBe("Sem observações operacionais.");
@@ -126,6 +134,19 @@ describe("appointments-calendar helpers", () => {
 
     expect(filteredAppointments).toHaveLength(1);
     expect(filteredAppointments[0]?.title).toBe("Lavagem tecnica +1");
+  });
+
+  it("uses a fallback customer label when the API does not embed customer details", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[0]!,
+          customer: null,
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.customer).toBe("Cliente não informado");
   });
 
   it("returns the next upcoming appointment ignoring cancelled events", () => {
