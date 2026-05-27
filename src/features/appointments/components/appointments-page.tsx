@@ -28,6 +28,9 @@ import type {
 } from "../types/appointment-calendar";
 import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
 import { AppointmentInfoCard } from "./appointment-info-card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { AppointmentFormSheet } from "./form-sheet/appointment-form-sheet";
 
 function getInitialVisibleRange(date: Date) {
   const start = startOfMonth(date);
@@ -56,6 +59,7 @@ export function AppointmentsPage() {
     getInitialVisibleRange(initialSelectedDate),
   );
   const [selectedSlotKey, setSelectedSlotKey] = useState<string | null>(null);
+  const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
 
   const filters = useMemo(
     () => ({
@@ -185,7 +189,16 @@ export function AppointmentsPage() {
         >
           Carregando dados
         </Badge>
-      ) : null}
+      ) : (
+        <Button
+          onClick={() => {
+            setAppointmentSheetOpen(true);
+          }}
+        >
+          <Plus />
+          Novo agendamento
+        </Button>
+      )}
 
       <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <AppointmentInfoCard
@@ -257,6 +270,7 @@ export function AppointmentsPage() {
           />
         </div>
       </div>
+      <AppointmentFormSheet open={appointmentSheetOpen} onOpenChange={setAppointmentSheetOpen} />
     </section>
   );
 }

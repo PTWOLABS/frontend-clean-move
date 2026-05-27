@@ -166,6 +166,12 @@ vi.mock("./appointments-day-agenda-card", () => ({
   ),
 }));
 
+vi.mock("./form-sheet/appointment-form-sheet", () => ({
+  AppointmentFormSheet: ({ open }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
+    <div data-testid="appointment-form-sheet" data-open={String(open)} />
+  ),
+}));
+
 import type { AppointmentCalendarEvent } from "../types/appointment-calendar";
 import { AppointmentsPage } from "./appointments-page";
 
