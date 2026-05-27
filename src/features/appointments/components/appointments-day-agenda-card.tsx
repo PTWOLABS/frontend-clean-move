@@ -35,7 +35,7 @@ export function AppointmentsDayAgendaCard({
   const selectedDayAppointments = getAppointmentsForDate(events, selectedDate);
 
   return (
-    <Card className="flex max-h-96 min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl">
+    <Card className="flex max-h-96 min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl xl:max-h-none xl:flex-1">
       <CardHeader className="shrink-0 pb-4">
         <CardTitle className="text-base">Agenda do dia</CardTitle>
         <p className="text-sm text-muted-foreground">
