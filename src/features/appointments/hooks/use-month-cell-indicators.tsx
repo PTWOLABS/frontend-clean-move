@@ -86,7 +86,7 @@ export function useMonthCellIndicators({
             target.key,
           ),
         ),
-    [onMonthCellPress, targets],
+    [onMonthCellPress, targets, onCellAddIndicatorPress],
   );
 
   const renderMonthDayCellContent = useCallback((arg: DayCellContentArg) => arg.dayNumberText, []);

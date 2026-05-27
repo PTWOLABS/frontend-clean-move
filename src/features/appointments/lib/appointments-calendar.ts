@@ -15,8 +15,7 @@ type AppointmentListItem = AppointmentDTO["appointments"][number];
 const DEFAULT_APPOINTMENT_DURATION_IN_MINUTES = 60;
 const DEFAULT_ATTENDANTS = ["Patricia Costa", "Lucas Martins"];
 const FALLBACK_CUSTOMER_LABEL = "Cliente não informado";
-const API_DATE_TIME_PATTERN =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
+const API_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
 
 function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: AppointmentCalendarEvent) {
   return left.start.getTime() - right.start.getTime();

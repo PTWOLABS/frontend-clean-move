@@ -291,22 +291,26 @@ export function useCalendarMoreLink() {
     [clearMorePopoverState],
   );
 
-  const handleMoreLinkClick = useCallback((arg: MoreLinkArg) => {
-    const currentTarget =
-      arg.jsEvent.currentTarget instanceof HTMLElement ? arg.jsEvent.currentTarget : null;
-    const target = arg.jsEvent.target instanceof HTMLElement ? arg.jsEvent.target : null;
-    const linkElement = currentTarget ?? target?.closest<HTMLElement>(".fc-more-link") ?? null;
-    const viewHarness = linkElement?.closest<HTMLElement>(".fc-view-harness");
+  const handleMoreLinkClick = useCallback(
+    (arg: MoreLinkArg) => {
+      const currentTarget =
+        arg.jsEvent.currentTarget instanceof HTMLElement ? arg.jsEvent.currentTarget : null;
+      const target = arg.jsEvent.target instanceof HTMLElement ? arg.jsEvent.target : null;
+      const linkElement = currentTarget ?? target?.closest<HTMLElement>(".fc-more-link") ?? null;
+      const viewHarness = linkElement?.closest<HTMLElement>(".fc-view-harness");
 
-    if (!linkElement) {
-      clearMorePopoverState();
-      return;
-    }
+      if (!linkElement) {
+        clearMorePopoverState();
+        return;
+      }
 
-    activeMoreLinkRef.current = linkElement;
-    activeCalendarRootRef.current = viewHarness?.closest<HTMLElement>(".fc") ?? viewHarness ?? null;
-    setIsMorePopoverOpen(true);
-  }, [clearMorePopoverState]);
+      activeMoreLinkRef.current = linkElement;
+      activeCalendarRootRef.current =
+        viewHarness?.closest<HTMLElement>(".fc") ?? viewHarness ?? null;
+      setIsMorePopoverOpen(true);
+    },
+    [clearMorePopoverState],
+  );
 
   useEffect(() => {
     const linkElement = activeMoreLinkRef.current;

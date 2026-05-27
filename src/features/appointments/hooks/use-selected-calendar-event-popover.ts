@@ -241,27 +241,24 @@ export function useSelectedCalendarEventPopover({
     [schedulePositionPopover],
   );
 
-  const handleEventDidMount = useCallback(
-    (arg: EventMountArg) => {
-      const eventId = arg.event.id;
-      const eventElements = eventElementsRef.current.get(eventId) ?? new Set<HTMLElement>();
+  const handleEventDidMount = useCallback((arg: EventMountArg) => {
+    const eventId = arg.event.id;
+    const eventElements = eventElementsRef.current.get(eventId) ?? new Set<HTMLElement>();
 
-      eventElements.add(arg.el);
-      eventElementsRef.current.set(eventId, eventElements);
-      setMountedEventIds((currentEventIds) => {
-        if (currentEventIds.has(eventId)) {
-          return currentEventIds;
-        }
+    eventElements.add(arg.el);
+    eventElementsRef.current.set(eventId, eventElements);
+    setMountedEventIds((currentEventIds) => {
+      if (currentEventIds.has(eventId)) {
+        return currentEventIds;
+      }
 
-        const nextEventIds = new Set(currentEventIds);
-        nextEventIds.add(eventId);
+      const nextEventIds = new Set(currentEventIds);
+      nextEventIds.add(eventId);
 
-        return nextEventIds;
-      });
-      setAnchorVersion((currentVersion) => currentVersion + 1);
-    },
-    [],
-  );
+      return nextEventIds;
+    });
+    setAnchorVersion((currentVersion) => currentVersion + 1);
+  }, []);
 
   const handleEventWillUnmount = useCallback((arg: EventMountArg) => {
     const eventId = arg.event.id;
@@ -332,7 +329,7 @@ export function useSelectedCalendarEventPopover({
   return {
     hasSelectedEventAnchor: Boolean(
       selectedEventId &&
-        (activeAnchorEventId === selectedEventId || mountedEventIds.has(selectedEventId)),
+      (activeAnchorEventId === selectedEventId || mountedEventIds.has(selectedEventId)),
     ),
     handleEventClickAnchor,
     handleEventDidMount,
