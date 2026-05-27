@@ -120,10 +120,8 @@ describe("appointments-calendar helpers", () => {
     expect(appointments[1]?.end.getHours()).toBe(10);
     expect(appointments[1]?.end.getMinutes()).toBe(15);
     expect(appointments[1]?.extendedProps.customer).toBe("João Pereira");
-    expect(appointments[1]?.extendedProps.attendants).toHaveLength(2);
     expect(appointments[1]?.extendedProps.vehicle).toBe("Veículo não informado");
     expect(appointments[1]?.extendedProps.notes).toBe("Sem observações operacionais.");
-    expect(appointments[1]?.extendedProps.reminder).toBe("Lembrete automático padrão");
   });
 
   it("filters only the appointments of the selected day", () => {

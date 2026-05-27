@@ -18,7 +18,7 @@ import { Select } from "@/components/ui/select/select";
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
 import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
-import { UpcomingAppointmentsCard } from "./upcoming-appointments-card";
+import { NextAppointment, UpcomingAppointmentsCard } from "./upcoming-appointments-card";
 import { useListCalendarAppointments } from "../hooks/queries/use-list-calendar-appointments";
 import { findNextAppointment } from "../lib/appointments-calendar";
 import {
@@ -317,13 +317,31 @@ export function AppointmentsPage() {
     error: error,
   });
 
+  const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
+    if (events.length === 0 || !initialSelectedDate) return [];
+
+    return events
+      .filter((event) => new Date(event.startsAt) > initialSelectedDate)
+      .filter((_event, index) => index < 5)
+      .map((event) => ({
+        id: event.id,
+        startsAt: event.startsAt,
+        serviceName: event.extendedProps.service,
+        vehiclePlate: event.extendedProps.vehicle,
+        tone: event.extendedProps.tone,
+        customerName: event.extendedProps.customer,
+      }));
+  }, [events, initialSelectedDate]);
+
   const defaultSelectedEvent =
     selectionSource === "auto" ? (findNextAppointment(events) ?? events[0] ?? null) : null;
   const selectedEventFromState =
     (selectedEventId ? events.find((event) => event.id === selectedEventId) : null) ?? null;
   const resolvedSelectedEventId = (selectedEventFromState ?? defaultSelectedEvent)?.id ?? null;
   const resolvedSelectedDate =
-    selectionSource === "auto" && defaultSelectedEvent ? defaultSelectedEvent.start : selectedDate;
+    selectionSource === "auto" && defaultSelectedEvent
+      ? defaultSelectedEvent.startsAt
+      : selectedDate;
 
   function syncSelection(date: Date) {
     setSelectedDate(date);
@@ -420,7 +438,7 @@ export function AppointmentsPage() {
     setSelectionSource("manual");
     setSelectedSlotKey(null);
     setSelectedEventId(event.id);
-    syncSelection(event.start);
+    syncSelection(event.startsAt);
   }
 
   function handleClearSelectedEvent() {
@@ -439,7 +457,7 @@ export function AppointmentsPage() {
     handleSelectEvent({
       id: info.event.id,
       title: info.event.title,
-      start: info.event.start,
+      startsAt: info.event.start,
       end: info.event.end ?? info.event.start,
       extendedProps: info.event.extendedProps as AppointmentCalendarEvent["extendedProps"],
     });
@@ -447,7 +465,7 @@ export function AppointmentsPage() {
 
   function handleAgendaItemClick(event: AppointmentCalendarEvent) {
     handleSelectEvent(event);
-    calendarRef.current?.getApi()?.gotoDate(event.start);
+    calendarRef.current?.getApi()?.gotoDate(event.startsAt);
   }
 
   function refetchAppointments() {
@@ -555,8 +573,8 @@ export function AppointmentsPage() {
           </CardContent>
         </Card>
 
-        <div className="min-w-0 space-y-4 xl:flex xl:max-h-[43rem] xl:flex-col xl:space-y-0 xl:overflow-hidden">
-          <UpcomingAppointmentsCard />
+        <div className="min-w-0 space-y-4 xl:flex xl:max-h-[43rem] xl:flex-col xl:space-y-0 xl:overflow-hidden ">
+          <UpcomingAppointmentsCard appointments={upcommingFiveAppointments} />
           <AppointmentsDayAgendaCard
             selectedDate={resolvedSelectedDate}
             selectedEventId={resolvedSelectedEventId}

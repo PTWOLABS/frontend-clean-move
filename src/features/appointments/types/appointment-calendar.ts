@@ -9,9 +9,7 @@ export type AppointmentExtendedProps = {
   customer: string;
   service: string;
   vehicle: string;
-  attendants: string[];
   notes: string;
-  reminder: string;
   tone: AppointmentTone;
   status: AppointmentStatus;
 };
@@ -21,7 +19,7 @@ export type AppointmentCalendarEvent = Omit<
   "id" | "start" | "end" | "extendedProps"
 > & {
   id: string;
-  start: Date;
+  startsAt: Date;
   end: Date;
   extendedProps: AppointmentExtendedProps;
 };

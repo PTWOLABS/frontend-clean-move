@@ -13,24 +13,11 @@ import type {
 type AppointmentListItem = AppointmentDTO["appointments"][number];
 
 const DEFAULT_APPOINTMENT_DURATION_IN_MINUTES = 60;
-const DEFAULT_ATTENDANTS = ["Patricia Costa", "Lucas Martins"];
 const FALLBACK_CUSTOMER_LABEL = "Cliente não informado";
 const API_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
 
 function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: AppointmentCalendarEvent) {
-  return left.start.getTime() - right.start.getTime();
-}
-
-function getStableIndex(seed: string, size: number) {
-  return [...seed].reduce((total, character) => total + character.charCodeAt(0), 0) % size;
-}
-
-function getFallbackAttendants(appointmentId: string) {
-  const startIndex = getStableIndex(appointmentId, DEFAULT_ATTENDANTS.length);
-  return [
-    DEFAULT_ATTENDANTS[startIndex]!,
-    DEFAULT_ATTENDANTS[(startIndex + 1) % DEFAULT_ATTENDANTS.length]!,
-  ];
+  return left.startsAt.getTime() - right.startsAt.getTime();
 }
 
 function getCustomerLabel(appointment: AppointmentListItem) {
@@ -138,15 +125,13 @@ export function mapAppointmentToCalendarEvent(
   return {
     id: appointment.id,
     title: services.title,
-    start,
+    startsAt: start,
     end,
     extendedProps: {
       customer: getCustomerLabel(appointment),
       service: services.label,
       vehicle: getVehicleLabel(appointment),
-      attendants: getFallbackAttendants(appointment.id),
       notes: appointment.description?.trim() || "Sem observações operacionais.",
-      reminder: "Lembrete automático padrão",
       tone: getAppointmentTone(appointment.status),
       status: appointment.status,
     },
@@ -162,7 +147,7 @@ export function mapAppointmentsToCalendarEvents(
 }
 
 export function getAppointmentsForDate(events: AppointmentCalendarEvent[], date: Date) {
-  return events.filter((event) => isSameDay(event.start, date)).sort(sortAppointmentsByStart);
+  return events.filter((event) => isSameDay(event.startsAt, date)).sort(sortAppointmentsByStart);
 }
 
 export function findNextAppointment(events: AppointmentCalendarEvent[], now: Date = new Date()) {
@@ -170,7 +155,7 @@ export function findNextAppointment(events: AppointmentCalendarEvent[], now: Dat
     events
       .filter(
         (event) =>
-          event.extendedProps.status !== "CANCELLED" && event.start.getTime() >= now.getTime(),
+          event.extendedProps.status !== "CANCELLED" && event.startsAt.getTime() >= now.getTime(),
       )
       .sort(sortAppointmentsByStart)[0] ?? null
   );

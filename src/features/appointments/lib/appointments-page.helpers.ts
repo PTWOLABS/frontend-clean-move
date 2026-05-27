@@ -99,18 +99,9 @@ export const navigationCalendarClassNames = {
 };
 
 export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {
-  return `${format(event.start, "HH:mm", { locale: ptBR })} - ${format(event.end, "HH:mm", {
+  return `${format(event.startsAt, "HH:mm", { locale: ptBR })} - ${format(event.end, "HH:mm", {
     locale: ptBR,
   })}`;
-}
-
-export function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 export function formatSlotKey(date: Date) {
@@ -134,7 +125,7 @@ export function doesEventOverlapSlot(
   slotStart: Date,
   slotEnd: Date,
 ) {
-  return event.start.getTime() < slotEnd.getTime() && event.end.getTime() > slotStart.getTime();
+  return event.startsAt.getTime() < slotEnd.getTime() && event.end.getTime() > slotStart.getTime();
 }
 
 export function getCalendarEventClassNames({

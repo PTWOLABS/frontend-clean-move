@@ -40,11 +40,11 @@ describe("appointments calendar timezone mapping", () => {
 
     const [appointment] = mapAppointmentsToCalendarEvents(response);
 
-    expect(appointment?.start.getFullYear()).toBe(2026);
-    expect(appointment?.start.getMonth()).toBe(11);
-    expect(appointment?.start.getDate()).toBe(25);
-    expect(appointment?.start.getHours()).toBe(12);
-    expect(appointment?.start.getMinutes()).toBe(30);
+    expect(appointment?.startsAt.getFullYear()).toBe(2026);
+    expect(appointment?.startsAt.getMonth()).toBe(11);
+    expect(appointment?.startsAt.getDate()).toBe(25);
+    expect(appointment?.startsAt.getHours()).toBe(12);
+    expect(appointment?.startsAt.getMinutes()).toBe(30);
     expect(appointment?.end.getHours()).toBe(14);
     expect(appointment?.end.getMinutes()).toBe(0);
   });

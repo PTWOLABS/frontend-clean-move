@@ -8,15 +8,13 @@ import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
 const appointmentEvent: AppointmentCalendarEvent = {
   id: "appointment-1",
   title: "Lavagem tecnica +1",
-  start: new Date("2026-05-20T09:00:00.000Z"),
+  startsAt: new Date("2026-05-20T09:00:00.000Z"),
   end: new Date("2026-05-20T10:15:00.000Z"),
   extendedProps: {
     customer: "Ana Martins",
     service: "Lavagem tecnica, Higienizacao",
     vehicle: "Veículo não informado",
-    attendants: ["Patricia Costa", "Lucas Martins"],
     notes: "Sem observações operacionais.",
-    reminder: "Lembrete automático padrão",
     tone: "info",
     status: "SCHEDULED",
   },

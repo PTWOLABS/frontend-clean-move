@@ -77,9 +77,8 @@ export function CalendarEventDetailsPopover({
             <CalendarClock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0">
               <p className={styles.eventDetailsInfoPrimary}>
-                {format(event.start, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {format(event.startsAt, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </p>
-              <p className={styles.eventDetailsInfoSecondary}>{event.extendedProps.reminder}</p>
             </div>
           </div>
 

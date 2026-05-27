@@ -11,9 +11,9 @@ export type NextAppointment = {
   id: string;
   startsAt: Date;
   serviceName: string;
-  customerName: string;
   vehiclePlate: string;
   tone: AppointmentTone;
+  customerName?: string;
 };
 
 type UpcomingAppointmentsCardProps = {
