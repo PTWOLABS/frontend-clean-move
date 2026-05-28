@@ -90,6 +90,7 @@ vi.mock("@fullcalendar/react", () => ({
         <p>Altura do calendário: {height}</p>
         {firstEvent ? (
           <>
+            <p data-testid="event-start">{firstEvent.start.toISOString()}</p>
             <div data-testid="event-content">
               {eventContent({
                 event: firstEvent,
@@ -213,6 +214,7 @@ describe("AppointmentsCalendar", () => {
     expect(screen.getByText("Altura do calendário: 100%")).toBeInTheDocument();
     expect(screen.getByText("Carregando agendamentos...")).toBeInTheDocument();
     expect(screen.getByText("Lavagem tecnica")).toBeInTheDocument();
+    expect(screen.getByTestId("event-start")).toHaveTextContent("2026-05-20T09:00:00.000Z");
     expect(screen.getByText("mais 2 agendamentos...")).toHaveClass("sr-only");
     expect(screen.getByText("+2 ag.")).toBeInTheDocument();
     expect(screen.getByTestId("event-class-names").textContent).toContain("eventSelected");

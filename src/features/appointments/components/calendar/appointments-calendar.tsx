@@ -1,11 +1,11 @@
 "use client";
 
-import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
+import type { DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
 import { isSameDay as isSameDayDateFns } from "date-fns";
-import { useRef, type RefObject } from "react";
+import { useMemo, useRef, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -82,6 +82,14 @@ export function AppointmentsCalendar({
   const { state: sidebarState } = useSidebar();
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
   const isMonthGridView = selectedView === "dayGridMonth";
+  const fullCalendarEvents = useMemo<EventInput[]>(
+    () =>
+      events.map((event) => ({
+        ...event,
+        start: event.startsAt,
+      })),
+    [events],
+  );
   const { handleMoreLinkDidMount, handleMoreLinkWillUnmount, handleMoreLinkClick } =
     useCalendarMoreLink();
   const selectedPopoverEvent =
@@ -214,7 +222,7 @@ export function AppointmentsCalendar({
             moreLinkDidMount={handleMoreLinkDidMount}
             moreLinkWillUnmount={handleMoreLinkWillUnmount}
             moreLinkClick={handleMoreLinkClick}
-            events={events}
+            events={fullCalendarEvents}
             dateClick={onDateClick}
             eventClick={handleCalendarEventClick}
             eventDidMount={handleEventDidMount}
