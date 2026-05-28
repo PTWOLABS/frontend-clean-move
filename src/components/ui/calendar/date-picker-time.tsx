@@ -19,6 +19,7 @@ type DatePickerTimeProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   placeholder?: string;
   disabled?: boolean;
   invalid?: boolean;
+  timeInputClassName?: string;
   portalContainer?: React.ComponentProps<typeof PopoverContent>["portalContainer"];
 };
 
@@ -45,6 +46,7 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
       placeholder = "Selecione data e horário",
       disabled = false,
       invalid = false,
+      timeInputClassName,
       portalContainer,
       ...props
     },
@@ -108,6 +110,7 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
             "h-10 w-28 border-border/80 bg-background/40 shadow-sm",
             invalid && "border-destructive/70 focus-visible:ring-destructive/30",
             "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none",
+            timeInputClassName,
           )}
           onChange={(event) => {
             const nextTime = event.target.value;

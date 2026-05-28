@@ -241,7 +241,7 @@ export function AppointmentFormSheet({
       <SheetContent
         ref={handleSheetContentRef}
         side="right"
-        className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
+        className="flex w-full max-w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
       >
         <SheetHeader className="text-left">
           <SheetTitle>Novo agendamento</SheetTitle>
@@ -281,6 +281,7 @@ export function AppointmentFormSheet({
                       autoComplete="name"
                       disabled={creatingAppointment}
                       required
+                      className="w-[calc(100%-2rem)] min-[360px]:w-full"
                     />
                   </FormControl>
                 )}
@@ -306,7 +307,7 @@ export function AppointmentFormSheet({
                       emptyIndicator={getServiceEmptyIndicator()}
                       disabled={creatingAppointment}
                       className={cn(
-                        "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm",
+                        "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-[calc(100%-2rem)] min-[360px]:w-full",
                         fieldState.invalid &&
                           "border-destructive/70 focus-within:ring-destructive/30",
                       )}
@@ -347,6 +348,7 @@ export function AppointmentFormSheet({
                       autoComplete="off"
                       disabled={!selectedCustomerId || creatingAppointment}
                       required
+                      className="w-[calc(100%-2rem)] min-[360px]:w-full"
                     />
                   </FormControl>
                 )}
@@ -360,6 +362,8 @@ export function AppointmentFormSheet({
                   portalContainer={sheetContentElement}
                   disabled={creatingAppointment}
                   required
+                  className="w-[calc(100%-2rem)] min-[360px]:w-full"
+                  timeInputClassName="w-24 min-[380px]:w-28"
                 />
                 <AppointmentDateField
                   control={fieldControl}
@@ -367,6 +371,8 @@ export function AppointmentFormSheet({
                   label="Data de encerramento"
                   portalContainer={sheetContentElement}
                   disabled={creatingAppointment}
+                  className="w-[calc(100%-2rem)] min-[360px]:w-full"
+                  timeInputClassName="w-24 min-[380px]:w-28"
                 />
               </div>
 
@@ -389,11 +395,11 @@ export function AppointmentFormSheet({
                           placeholder="Adicione informações adicionais (opcional)"
                           maxLength={500}
                           rows={5}
-                          className="min-h-24 resize-y border-border/80 bg-background/40 pb-8"
+                          className="w-[calc(100%-2rem)] resize-y border-border/80 bg-background/40 pb-8 min-[360px]:w-full"
                           disabled={creatingAppointment}
                         />
                       </FormControl>
-                      <span className="pointer-events-none absolute bottom-3 right-3 text-xs text-muted-foreground">
+                      <span className="pointer-events-none absolute bottom-3 right-[calc(2.5rem+3px)] text-xs text-muted-foreground">
                         {description.length}/500
                       </span>
                     </div>
@@ -423,7 +429,7 @@ export function AppointmentFormSheet({
                             inputMode="decimal"
                             autoComplete="off"
                             placeholder="0,00"
-                            className="h-10 border-border/80 bg-background/40 pl-10 tabular-nums"
+                            className="h-10 border-border/80 bg-background/40 pl-10 tabular-nums w-[calc(100%-2rem)] min-[360px]:w-full"
                             value={discount}
                             disabled={creatingAppointment}
                             onChange={(event) =>

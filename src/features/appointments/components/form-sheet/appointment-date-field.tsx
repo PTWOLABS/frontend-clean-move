@@ -11,6 +11,8 @@ type AppointmentDateFieldProps = {
   portalContainer?: HTMLElement | null;
   disabled?: boolean;
   required?: boolean;
+  className?: string;
+  timeInputClassName?: string;
 };
 
 export function AppointmentDateField({
@@ -20,6 +22,8 @@ export function AppointmentDateField({
   disabled = false,
   portalContainer,
   required,
+  className,
+  timeInputClassName,
 }: AppointmentDateFieldProps) {
   return (
     <FormField
@@ -39,6 +43,8 @@ export function AppointmentDateField({
             invalid={fieldState.invalid}
             portalContainer={portalContainer}
             placeholder="Selecione data e horário"
+            className={className}
+            timeInputClassName={timeInputClassName}
           />
         </FormControl>
       )}
