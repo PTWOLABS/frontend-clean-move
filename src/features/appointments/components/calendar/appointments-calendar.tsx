@@ -56,6 +56,7 @@ type AppointmentsCalendarProps = {
   onDatesSet: (arg: DatesSetArg) => void;
   onEventClick: (info: EventClickArg) => void;
   onClearSelectedEvent: () => void;
+  onEditEvent: (event: AppointmentCalendarEvent) => void;
   onMonthCellPress: (date: Date) => void;
   onSlotPress: (date: Date) => void;
   onCellAddIndicatorPress: (open: boolean) => void;
@@ -79,6 +80,7 @@ export function AppointmentsCalendar({
   onDatesSet,
   onEventClick,
   onClearSelectedEvent,
+  onEditEvent,
   onMonthCellPress,
   onSlotPress,
   onCellAddIndicatorPress,
@@ -266,6 +268,7 @@ export function AppointmentsCalendar({
             style={popoverStyle}
             isUpdatingStatus={updatingStatusAppointmentId === selectedPopoverEvent.id}
             onClose={onClearSelectedEvent}
+            onEdit={onEditEvent}
             onStatusChange={onStatusChange}
           />
         ) : null}

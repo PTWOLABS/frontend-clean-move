@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarCheck2, CarFront, Clock3, RotateCcw } from "lucide-react";
+import { CalendarCheck2, CarFront, Clock3, Pencil, RotateCcw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ type AppointmentsDayAgendaCardProps = {
   isError: boolean;
   updatingStatusAppointmentId: string | null;
   onRetry: () => void;
+  onEditEvent: (event: AppointmentCalendarEvent) => void;
   onSelectEvent: (event: AppointmentCalendarEvent) => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
@@ -64,6 +65,7 @@ export function AppointmentsDayAgendaCard({
   isError,
   updatingStatusAppointmentId,
   onRetry,
+  onEditEvent,
   onSelectEvent,
   onStatusChange,
 }: AppointmentsDayAgendaCardProps) {
@@ -157,6 +159,16 @@ export function AppointmentsDayAgendaCard({
                       isUpdating={updatingStatusAppointmentId === event.id}
                       onStatusChange={onStatusChange}
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 rounded-full text-muted-foreground hover:text-foreground"
+                      aria-label={`Editar agendamento ${event.title}`}
+                      onClick={() => onEditEvent(event)}
+                    >
+                      <Pencil className="size-4" aria-hidden />
+                    </Button>
                   </div>
                 </div>
               </div>
