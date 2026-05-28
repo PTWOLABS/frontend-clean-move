@@ -136,8 +136,8 @@ export function AppointmentStatusActions({
         <AlertDialogHeader>
           <AlertDialogTitle>Cancelar agendamento?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação altera o status do agendamento para cancelado. O backend continuará
-            responsável pelas regras de permissão e validação.
+            Esta ação altera o status do agendamento para cancelado. Tem certeza que deseja cancelar
+            este agendamento?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
