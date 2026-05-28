@@ -1,0 +1,49 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+
+import { AppointmentStatusActions } from "./appointment-status-actions";
+
+describe("AppointmentStatusActions", () => {
+  it("calls onStatusChange for direct status changes", async () => {
+    const user = userEvent.setup();
+    const onStatusChange = vi.fn();
+
+    render(
+      <AppointmentStatusActions
+        appointmentId="appointment-1"
+        currentStatus="SCHEDULED"
+        isUpdating={false}
+        onStatusChange={onStatusChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
+    await user.click(screen.getByRole("menuitem", { name: /marcar como concluído/i }));
+
+    expect(onStatusChange).toHaveBeenCalledWith("appointment-1", "DONE");
+  });
+
+  it("asks for confirmation before cancelling an appointment", async () => {
+    const user = userEvent.setup();
+    const onStatusChange = vi.fn();
+
+    render(
+      <AppointmentStatusActions
+        appointmentId="appointment-1"
+        currentStatus="SCHEDULED"
+        isUpdating={false}
+        onStatusChange={onStatusChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
+    await user.click(screen.getByRole("menuitem", { name: /cancelar agendamento/i }));
+
+    expect(screen.getByRole("alertdialog", { name: /cancelar agendamento/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^cancelar agendamento$/i }));
+
+    expect(onStatusChange).toHaveBeenCalledWith("appointment-1", "CANCELLED");
+  });
+});
