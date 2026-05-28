@@ -182,7 +182,7 @@ export function UpcomingAppointmentsCard({
               <div>
                 <p className="font-medium text-card-foreground">Nenhum próximo agendamento.</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Os próximos horários aparecerão aqui quando a integração estiver disponível.
+                  Os próximos horários aparecerão aqui quando houver.
                 </p>
               </div>
             </div>

@@ -208,7 +208,21 @@ vi.mock("./calendar/appointments-calendar", () => ({
 }));
 
 vi.mock("./upcoming-appointments-card", () => ({
-  UpcomingAppointmentsCard: () => <div>Próximos agendamentos</div>,
+  UpcomingAppointmentsCard: ({
+    appointments,
+    isLoading,
+  }: {
+    appointments: Array<{ serviceName: string }>;
+    isLoading?: boolean;
+  }) => (
+    <div>
+      <p>Próximos carregando: {isLoading ? "sim" : "não"}</p>
+      <p>
+        Próximos agendamentos:{" "}
+        {appointments.map((appointment) => appointment.serviceName).join(", ") || "nenhum"}
+      </p>
+    </div>
+  ),
 }));
 
 vi.mock("./appointments-day-agenda-card", () => ({
@@ -283,6 +297,38 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
   },
 ];
 
+function makeFutureAppointmentEvent({
+  id,
+  serviceName,
+  daysFromNow,
+}: {
+  id: string;
+  serviceName: string;
+  daysFromNow: number;
+}): AppointmentCalendarEvent {
+  const startsAt = new Date();
+  startsAt.setDate(startsAt.getDate() + daysFromNow);
+  startsAt.setHours(9, 0, 0, 0);
+
+  const end = new Date(startsAt);
+  end.setHours(startsAt.getHours() + 1);
+
+  return {
+    id,
+    title: serviceName,
+    startsAt,
+    end,
+    extendedProps: {
+      customer: "Cliente teste",
+      service: serviceName,
+      vehicle: "ABC-1234",
+      notes: "Sem observações.",
+      tone: "info",
+      status: "SCHEDULED",
+    },
+  };
+}
+
 describe("AppointmentsPage", () => {
   beforeEach(() => {
     useQueryFeedbackErrorMock.mockReturnValue(null);
@@ -337,6 +383,42 @@ describe("AppointmentsPage", () => {
       endsAt: "2026-06-01T00:00:00.000Z",
     });
     expect(screen.getByText("Título do calendário: Maio de 2026")).toBeInTheDocument();
+  });
+
+  it("keeps upcoming appointments from the first loaded events when filters change", async () => {
+    const user = userEvent.setup();
+    let queryEvents = [
+      makeFutureAppointmentEvent({
+        id: "initial-upcoming",
+        serviceName: "Lavagem inicial",
+        daysFromNow: 1,
+      }),
+    ];
+
+    useListCalendarAppointmentsMock.mockImplementation(() => ({
+      data: queryEvents,
+      isPending: false,
+      isError: false,
+      refetch: vi.fn(),
+      error: null,
+    }));
+
+    render(<AppointmentsPage />);
+
+    expect(await screen.findByText("Próximos agendamentos: Lavagem inicial")).toBeInTheDocument();
+
+    queryEvents = [
+      makeFutureAppointmentEvent({
+        id: "filtered-upcoming",
+        serviceName: "Polimento filtrado",
+        daysFromNow: 2,
+      }),
+    ];
+
+    await user.selectOptions(screen.getByLabelText("Status"), "DONE");
+
+    expect(screen.getByText("Próximos agendamentos: Lavagem inicial")).toBeInTheDocument();
+    expect(screen.queryByText("Próximos agendamentos: Polimento filtrado")).not.toBeInTheDocument();
   });
 
   it("keeps list-like day ranges mapped to the day view filter and full date title", async () => {

@@ -275,6 +275,9 @@ function useCompactCalendarNavigation() {
 export function AppointmentsPage() {
   const calendarRef = useRef<FullCalendar | null>(null);
   const [initialSelectedDate] = useState(() => new Date());
+  const [initialUpcomingEvents, setInitialUpcomingEvents] = useState<
+    AppointmentCalendarEvent[] | null
+  >(null);
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectionSource, setSelectionSource] = useState<"auto" | "manual">("auto");
@@ -323,10 +326,21 @@ export function AppointmentsPage() {
     error: error,
   });
 
-  const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
-    if (events.length === 0 || !initialSelectedDate) return [];
+  useEffect(() => {
+    if (initialUpcomingEvents !== null || isPending || isError) {
+      return;
+    }
 
-    return events
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- captura o primeiro carregamento para manter a lista lateral estável ao trocar filtros
+    setInitialUpcomingEvents(events);
+  }, [events, initialUpcomingEvents, isError, isPending]);
+
+  const upcomingEventsSource = initialUpcomingEvents ?? events;
+
+  const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
+    if (upcomingEventsSource.length === 0 || !initialSelectedDate) return [];
+
+    return upcomingEventsSource
       .filter((event) => new Date(event.startsAt) > initialSelectedDate)
       .filter((_event, index) => index < 5)
       .map((event) => ({
@@ -340,7 +354,7 @@ export function AppointmentsPage() {
         tone: event.extendedProps.tone,
         customerName: event.extendedProps.customer,
       }));
-  }, [events, initialSelectedDate]);
+  }, [upcomingEventsSource, initialSelectedDate]);
 
   const defaultSelectedEvent =
     selectionSource === "auto" ? (findNextAppointment(events) ?? events[0] ?? null) : null;
