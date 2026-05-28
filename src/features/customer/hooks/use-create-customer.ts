@@ -28,8 +28,9 @@ export function useCreateCustomer() {
 
       return customerResponse.customer;
     },
-    onSuccess: () => {
+    onSuccess: (customer) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles(customer.id) });
       toast.success("Cliente criado com sucesso.");
     },
     onError: (error) => {

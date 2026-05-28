@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCustomers } from "@/features/customer/hooks/use-customers";
+import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
+import { useListCustomerOptions } from "@/features/appointments/hooks/queries/use-list-customer-options";
 import { ApiError } from "@/shared/api/httpClient";
-import { useDebounce } from "@/shared/hooks/use-debounced-value";
 
 import { useDeleteVehicle } from "../hooks/use-delete-vehicle";
 import { useVehicles } from "../hooks/use-vehicles";
@@ -29,26 +29,41 @@ import { VehicleCatalogToolbar } from "./vehicle-catalog-toolbar";
 import { VehicleFormSheet } from "./vehicle-form-sheet";
 
 const PAGE_SIZE = 10;
-const CUSTOMER_SEARCH_DEBOUNCE_MS = 350;
-const CUSTOMER_LIST_SIZE = 50;
+const CUSTOMER_OPTIONS_LIMIT = 20;
 
 export function VehicleCatalog() {
   const [page, setPage] = useState(1);
+  const [customerLabel, setCustomerLabel] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [vehicleSheetOpen, setVehicleSheetOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VehicleDto | null>(null);
 
-  const debouncedCustomerSearch = useDebounce(customerSearch, CUSTOMER_SEARCH_DEBOUNCE_MS);
-
-  const customersQuery = useCustomers({
-    page: 1,
-    size: CUSTOMER_LIST_SIZE,
-    search: debouncedCustomerSearch.trim() || undefined,
+  const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
+    limit: CUSTOMER_OPTIONS_LIMIT,
+    search: customerSearch || undefined,
   });
 
-  const customers = useMemo(() => customersQuery.data?.items ?? [], [customersQuery.data?.items]);
+  const customerOptionsItems = useMemo(
+    () =>
+      customerOptions?.customers?.map((option) => ({
+        label: option.label,
+        value: option.id,
+      })) ?? [],
+    [customerOptions],
+  );
+
+  const handleCustomerSelect = useCallback((option: ComboboxItemOption | null) => {
+    setSelectedCustomerId(option?.value ?? "");
+    setPage(1);
+  }, []);
+
+  const getCustomerEmptyMessage = () => {
+    if (isLoadingCustomerOptions) return "Buscando clientes...";
+
+    return "Nenhum cliente encontrado.";
+  };
 
   const vehiclesQuery = useVehicles({
     customerId: selectedCustomerId,
@@ -65,27 +80,6 @@ export function VehicleCatalog() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const displayedPage = data?.page ?? page;
   const hasCustomerSelected = Boolean(selectedCustomerId);
-
-  if (customersQuery.isError) {
-    const message =
-      customersQuery.error instanceof ApiError
-        ? customersQuery.error.message
-        : "Não foi possível carregar os clientes.";
-
-    return (
-      <Card className="border-destructive/40">
-        <CardHeader>
-          <CardTitle className="text-destructive">Erro ao carregar</CardTitle>
-          <CardDescription className="text-destructive/90">{message}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button type="button" variant="outline" onClick={() => customersQuery.refetch()}>
-            Tentar novamente
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const showListSkeleton = hasCustomerSelected && vehiclesQuery.isLoading && !data;
   const showVehiclesError = hasCustomerSelected && vehiclesQuery.isError;
@@ -112,15 +106,12 @@ export function VehicleCatalog() {
       />
 
       <VehicleCatalogToolbar
-        customerSearch={customerSearch}
+        customerLabel={customerLabel}
+        onCustomerLabelChange={setCustomerLabel}
         onCustomerSearchChange={setCustomerSearch}
-        selectedCustomerId={selectedCustomerId}
-        onCustomerSelect={(customerId) => {
-          setSelectedCustomerId(customerId);
-          setPage(1);
-        }}
-        customers={customers}
-        isLoadingCustomers={customersQuery.isLoading}
+        onCustomerSelect={handleCustomerSelect}
+        customerOptions={customerOptionsItems}
+        customerEmptyMessage={getCustomerEmptyMessage()}
       />
 
       <AlertDialog
