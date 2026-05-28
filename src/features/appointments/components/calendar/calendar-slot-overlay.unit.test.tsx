@@ -10,15 +10,13 @@ function makeAppointmentEvent(): AppointmentCalendarEvent {
   return {
     id: "appointment-1",
     title: "Lavagem tecnica",
-    start: new Date(2026, 4, 20, 9),
+    startsAt: new Date(2026, 4, 20, 9),
     end: new Date(2026, 4, 20, 10),
     extendedProps: {
       customer: "Ana Martins",
       service: "Lavagem tecnica",
       vehicle: "ABC-1234",
-      attendants: ["Patricia Costa"],
       notes: "Sem observações.",
-      reminder: "Lembrete padrão",
       tone: "info",
       status: "SCHEDULED",
     },

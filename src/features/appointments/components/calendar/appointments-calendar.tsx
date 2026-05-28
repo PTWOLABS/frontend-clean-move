@@ -1,11 +1,11 @@
 "use client";
 
-import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
+import type { DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
 import { isSameDay as isSameDayDateFns } from "date-fns";
-import { useRef, type RefObject } from "react";
+import { useMemo, useRef, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -15,6 +15,7 @@ import styles from "../appointments-page.module.css";
 import { useCalendarMoreLink } from "../../hooks/use-calendar-more-link";
 import { useFullCalendarResize } from "../../hooks/use-full-calendar-resize";
 import { useMonthCellIndicators } from "../../hooks/use-month-cell-indicators";
+import { useSelectedCalendarEventPopover } from "../../hooks/use-selected-calendar-event-popover";
 import { getCalendarEventClassNames } from "../../lib/appointments-page.helpers";
 import type {
   AppointmentCalendarEvent,
@@ -22,6 +23,7 @@ import type {
   AppointmentExtendedProps,
 } from "../../types/appointment-calendar";
 import { CalendarEventContent } from "./calendar-event-content";
+import { CalendarEventDetailsPopover } from "./calendar-event-details-popover";
 import {
   appointmentsCalendarBusinessHours,
   appointmentsCalendarEventTimeFormat,
@@ -45,13 +47,16 @@ type AppointmentsCalendarProps = {
   onRetry: () => void;
   selectedDate: Date;
   selectedEventId: string | null;
+  selectedEventPopoverId: string | null;
   selectedSlotKey: string | null;
   selectedView: AppointmentCalendarView;
   onDateClick: (info: DateClickArg) => void;
   onDatesSet: (arg: DatesSetArg) => void;
   onEventClick: (info: EventClickArg) => void;
+  onClearSelectedEvent: () => void;
   onMonthCellPress: (date: Date) => void;
   onSlotPress: (date: Date) => void;
+  onCellAddIndicatorPress: (open: boolean) => void;
 };
 
 export function AppointmentsCalendar({
@@ -63,26 +68,33 @@ export function AppointmentsCalendar({
   onRetry,
   selectedDate,
   selectedEventId,
+  selectedEventPopoverId,
   selectedSlotKey,
   selectedView,
   onDateClick,
   onDatesSet,
   onEventClick,
+  onClearSelectedEvent,
   onMonthCellPress,
   onSlotPress,
+  onCellAddIndicatorPress,
 }: AppointmentsCalendarProps) {
   const { state: sidebarState } = useSidebar();
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
   const isMonthGridView = selectedView === "dayGridMonth";
-  const {
-    calendarFrameStyle,
-    isMorePopoverPositioned,
-    isMorePopoverAlignedRight,
-    isMorePopoverAlignedTop,
-    handleMoreLinkDidMount,
-    handleMoreLinkWillUnmount,
-    handleMoreLinkClick,
-  } = useCalendarMoreLink();
+  const fullCalendarEvents = useMemo<EventInput[]>(
+    () =>
+      events.map((event) => ({
+        ...event,
+        start: event.startsAt,
+      })),
+    [events],
+  );
+  const { handleMoreLinkDidMount, handleMoreLinkWillUnmount, handleMoreLinkClick } =
+    useCalendarMoreLink();
+  const selectedPopoverEvent =
+    (selectedEventPopoverId ? events.find((event) => event.id === selectedEventPopoverId) : null) ??
+    null;
   const {
     monthCellIndicatorPortals,
     handleMonthCellDidMount,
@@ -90,6 +102,7 @@ export function AppointmentsCalendar({
     renderMonthDayCellContent,
   } = useMonthCellIndicators({
     onMonthCellPress,
+    onCellAddIndicatorPress,
   });
 
   useFullCalendarResize({
@@ -99,6 +112,23 @@ export function AppointmentsCalendar({
     selectedView,
     sidebarState,
   });
+  const {
+    hasSelectedEventAnchor,
+    handleEventClickAnchor,
+    handleEventDidMount,
+    handleEventWillUnmount,
+    popoverPlacement,
+    popoverStyle,
+    setPopoverElement,
+  } = useSelectedCalendarEventPopover({
+    containerRef: calendarResizeRef,
+    selectedEventId: selectedEventPopoverId,
+  });
+
+  function handleCalendarEventClick(info: EventClickArg) {
+    handleEventClickAnchor(info);
+    onEventClick(info);
+  }
 
   function renderDayCellContent(arg: DayCellContentArg) {
     if (arg.view.type.startsWith("timeGrid")) {
@@ -135,14 +165,7 @@ export function AppointmentsCalendar({
     >
       <div
         ref={calendarResizeRef}
-        className={cn(
-          "relative h-full overflow-hidden",
-          styles.calendarFrame,
-          isMorePopoverPositioned && styles.morePopoverPositioned,
-          isMorePopoverAlignedRight && styles.morePopoverAlignRight,
-          isMorePopoverAlignedTop && styles.morePopoverAlignTop,
-        )}
-        style={calendarFrameStyle}
+        className={cn("relative h-full overflow-hidden", styles.calendarFrame)}
       >
         {monthCellIndicatorPortals}
         {isError ? (
@@ -199,9 +222,11 @@ export function AppointmentsCalendar({
             moreLinkDidMount={handleMoreLinkDidMount}
             moreLinkWillUnmount={handleMoreLinkWillUnmount}
             moreLinkClick={handleMoreLinkClick}
-            events={events}
+            events={fullCalendarEvents}
             dateClick={onDateClick}
-            eventClick={onEventClick}
+            eventClick={handleCalendarEventClick}
+            eventDidMount={handleEventDidMount}
+            eventWillUnmount={handleEventWillUnmount}
             datesSet={onDatesSet}
             eventContent={(arg) => <CalendarEventContent arg={arg} />}
             eventClassNames={(arg) => {
@@ -219,6 +244,15 @@ export function AppointmentsCalendar({
           <div className="pointer-events-none absolute inset-x-4 top-4 z-20 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             Carregando agendamentos...
           </div>
+        ) : null}
+        {selectedPopoverEvent && hasSelectedEventAnchor ? (
+          <CalendarEventDetailsPopover
+            event={selectedPopoverEvent}
+            placement={popoverPlacement}
+            popoverRef={setPopoverElement}
+            style={popoverStyle}
+            onClose={onClearSelectedEvent}
+          />
         ) : null}
       </div>
     </div>

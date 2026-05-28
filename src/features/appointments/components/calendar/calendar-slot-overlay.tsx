@@ -27,7 +27,7 @@ export function CalendarSlotOverlay({
   selectedSlotKey,
   onSlotPress,
 }: CalendarSlotOverlayProps) {
-  const dayEvents = events.filter((event) => formatDayKey(event.start) === formatDayKey(date));
+  const dayEvents = events.filter((event) => formatDayKey(event.startsAt) === formatDayKey(date));
 
   return (
     <div

@@ -1,7 +1,7 @@
 .calendarViewport {
-  height: 58rem;
-  min-height: 58rem;
-  max-height: 58rem;
+  height: 43rem;
+  min-height: 43rem;
+  max-height: 43rem;
   overflow: hidden;
 }
 
@@ -12,7 +12,7 @@
 }
 
 .calendarFrame :global(.fc) {
-  --appointment-month-cell-height: 150px;
+  --appointment-month-cell-height: 96px;
   --fc-border-color: hsl(var(--border) / 0.78);
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: hsl(var(--muted) / 0.28);
@@ -42,7 +42,9 @@
 }
 
 .calendarFrame :global(.fc .fc-popover) {
-  max-width: min(18rem, calc(100vw - 2rem));
+  width: max-content;
+  min-width: min(14rem, calc(100vw - 1.25rem));
+  max-width: min(18rem, calc(100vw - 1.25rem));
   overflow: hidden;
   border: 1px solid hsl(var(--border) / 0.9);
   border-radius: 0.9rem;
@@ -62,6 +64,10 @@
 }
 
 .calendarFrame :global(.fc .fc-popover-title) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.76rem;
   font-weight: 700;
   color: hsl(var(--popover-foreground));
@@ -81,27 +87,6 @@
 
 .calendarFrame :global(.fc .fc-more-popover-misc) {
   display: none;
-}
-
-.morePopoverPositioned :global(.fc .fc-more-popover) {
-  top: var(--fc-more-popover-top-offset, 0px) !important;
-  left: var(--fc-more-popover-left-offset, 0px) !important;
-}
-
-.morePopoverAlignRight :global(.fc .fc-more-popover) {
-  left: auto !important;
-  right: var(--fc-more-popover-right-offset, 0px) !important;
-  transform-origin: top right;
-}
-
-.morePopoverAlignTop :global(.fc .fc-more-popover) {
-  top: auto !important;
-  bottom: var(--fc-more-popover-bottom-offset, 0px) !important;
-  transform-origin: bottom left;
-}
-
-.morePopoverAlignRight.morePopoverAlignTop :global(.fc .fc-more-popover) {
-  transform-origin: bottom right;
 }
 
 .calendarFrame :global(.fc .fc-view-harness) {
@@ -185,8 +170,8 @@
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-top) {
-  min-height: 1.75rem;
-  padding-bottom: 0.25rem;
+  min-height: 1.55rem;
+  padding-bottom: 0.12rem;
 }
 
 .monthDayCell :global(.fc-daygrid-day-frame) {
@@ -260,13 +245,18 @@
   background: hsl(var(--accent-soft) / 0.34);
 }
 
+.calendarFrame :global(.fc .fc-daygrid-day-bg .fc-non-business) {
+  background: transparent;
+}
+
 .calendarFrame :global(.fc .fc-daygrid-more-link) {
   display: inline-flex;
   align-items: center;
-  min-width: 0;
-  max-width: calc(100% - 0.2rem);
+  justify-content: center;
+  min-width: 2rem;
+  max-width: 100%;
   overflow: hidden;
-  padding: 0.1rem 0.28rem;
+  padding: 0.1rem 0.36rem;
   border-radius: 0.5rem;
   color: hsl(var(--muted-foreground));
   font-size: 0.66rem;
@@ -349,10 +339,10 @@
 .calendarFrame :global(.fc .fc-daygrid-day-events) {
   display: flex;
   flex-direction: column;
-  gap: 0.08rem;
+  gap: 0.06rem;
   min-height: 0;
   margin: 0;
-  padding-top: 0.12rem;
+  padding-top: 0.08rem;
   overflow: hidden;
 }
 
@@ -362,7 +352,7 @@
 
 .calendarFrame :global(.fc .fc-daygrid-event-harness) {
   margin-inline: 0.14rem;
-  margin-top: 0.12rem;
+  margin-top: 0.08rem;
 }
 
 .calendarFrame :global(.fc .fc-timegrid-event-harness) {
@@ -526,13 +516,30 @@
 .monthEventContent {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.26rem;
   width: 100%;
   min-width: 0;
-  min-height: 1.15rem;
-  padding: 0.18rem 0.3rem;
-  border-radius: 0.5rem;
-  background: hsl(var(--background) / 0.32);
+  min-height: 1.28rem;
+  padding: 0.16rem 0.42rem 0.16rem 0.34rem;
+  border-radius: 0.42rem;
+  background: transparent;
+}
+
+.monthEventToneDot {
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0.12rem hsl(var(--background) / 0.28);
+}
+
+.monthEventTime {
+  flex: 0 0 auto;
+  overflow: hidden;
+  max-width: 42%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.67rem;
+  font-weight: 800;
+  line-height: 1;
+  color: hsl(var(--foreground) / 0.92);
 }
 
 .monthEventTitle {
@@ -541,17 +548,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.71rem;
-  font-weight: 700;
-  color: hsl(var(--foreground));
-}
-
-.monthEventTime {
-  display: none;
-  margin-left: auto;
-  flex-shrink: 0;
-  font-size: 0.66rem;
+  font-size: 0.67rem;
   font-weight: 600;
+  line-height: 1;
   color: hsl(var(--muted-foreground));
 }
 
@@ -693,30 +692,154 @@
   color: hsl(var(--muted-foreground));
 }
 
+.eventDetailsPopover {
+  position: absolute;
+  z-index: 35;
+  width: min(18.5rem, calc(100vw - 1.25rem));
+  min-width: min(15.5rem, calc(100vw - 1.25rem));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid hsl(var(--border) / 0.9);
+  border-radius: 0.9rem;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  box-shadow:
+    0 1.1rem 3rem hsl(var(--background) / 0.42),
+    var(--shadow-lg);
+}
+
+.eventDetailsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.72rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.7);
+  background: hsl(var(--muted) / 0.22);
+}
+
+.eventDetailsTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: hsl(var(--popover-foreground));
+}
+
+.eventDetailsSubtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.18rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: hsl(var(--muted-foreground));
+}
+
+.eventDetailsClose {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid hsl(var(--border) / 0.76);
+  border-radius: 0.56rem;
+  background: hsl(var(--background) / 0.58);
+  color: hsl(var(--muted-foreground));
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.eventDetailsClose:hover {
+  border-color: hsl(var(--accent) / 0.55);
+  background: hsl(var(--accent) / 0.16);
+  color: hsl(var(--foreground));
+}
+
+.eventDetailsClose:focus-visible {
+  outline: 2px solid hsl(var(--ring) / 0.85);
+  outline-offset: 2px;
+}
+
+.eventDetailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.75rem;
+}
+
+.eventDetailsInfoList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.eventDetailsInfoRow {
+  display: flex;
+  min-width: 0;
+  gap: 0.62rem;
+}
+
+.eventDetailsInfoPrimary {
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.28;
+  color: hsl(var(--popover-foreground));
+}
+
+.eventDetailsInfoSecondary {
+  margin-top: 0.08rem;
+  overflow-wrap: anywhere;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: hsl(var(--muted-foreground));
+}
+
 .calendarFrame :global(.fc .fc-daygrid-event .fc-event-main) {
   padding: 0;
 }
 
 .calendarFrame :global(.fc .fc-daygrid-event) {
   margin-top: 0;
-  border-radius: 0.58rem;
+  border-radius: 0.42rem;
   font-size: 0.72rem;
 }
 
+.calendarFrame :global(.fc .fc-daygrid-event).eventCard {
+  min-height: 1.28rem;
+  border-color: hsl(var(--border) / 0.42);
+  background: hsl(var(--muted) / 0.28);
+  box-shadow: none;
+}
+
 @media (min-width: 640px) {
+  .calendarFrame :global(.fc) {
+    --appointment-month-cell-height: 100px;
+  }
+
   .calendarFrame :global(.fc .fc-col-header-cell-cushion) {
     padding: 0.8rem 0.4rem;
     font-size: 0.7rem;
   }
 
   .calendarFrame :global(.fc .fc-daygrid-day-number) {
-    padding: 0.62rem 0.65rem 0;
+    padding: 0.5rem 0.65rem 0;
     font-size: 0.84rem;
   }
 
   .calendarFrame :global(.fc .fc-daygrid-day-top) {
-    min-height: 2rem;
-    padding-bottom: 0.42rem;
+    min-height: 1.8rem;
+    padding-bottom: 0.2rem;
   }
 
   .calendarFrame :global(.fc .fc-daygrid-more-link) {
@@ -731,27 +854,31 @@
 
   .calendarFrame :global(.fc .fc-daygrid-event-harness) {
     margin-inline: 0.24rem;
-    margin-top: 0.16rem;
+    margin-top: 0.1rem;
   }
 
   .monthEventContent {
-    min-height: 1.25rem;
-    padding: 0.24rem 0.42rem;
+    min-height: 1.32rem;
+    padding: 0.18rem 0.46rem 0.18rem 0.36rem;
   }
 
   .monthEventTime {
-    display: inline;
+    max-width: 46%;
   }
 }
 
 @media (min-width: 1024px) {
+  .calendarFrame :global(.fc) {
+    --appointment-month-cell-height: 104px;
+  }
+
   .calendarFrame :global(.fc .fc-col-header-cell-cushion) {
     padding: 0.9rem 0.5rem;
     font-size: 0.72rem;
   }
 
   .calendarFrame :global(.fc .fc-daygrid-day-number) {
-    padding: 0.7rem 0.8rem 0;
+    padding: 0.55rem 0.8rem 0;
     font-size: 0.875rem;
   }
 }

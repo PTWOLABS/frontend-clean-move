@@ -24,8 +24,16 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   if (isMonthView) {
     return (
       <div className={styles.monthEventContent}>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "size-1.5 rounded-full",
+            styles.monthEventToneDot,
+            toneDotClassName[extendedProps.tone],
+          )}
+        />
+        <span className={styles.monthEventTime}>{arg.timeText || "Dia inteiro"}</span>
         <span className={styles.monthEventTitle}>{arg.event.title}</span>
-        <span className={styles.monthEventTime}>{arg.timeText}</span>
       </div>
     );
   }

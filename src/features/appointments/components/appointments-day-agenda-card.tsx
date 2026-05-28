@@ -7,6 +7,7 @@ import { CarFront, Clock3, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/shared/utils/cn";
 
 import { getAppointmentsForDate, getStatusLabel } from "../lib/appointments-calendar";
@@ -23,6 +24,32 @@ type AppointmentsDayAgendaCardProps = {
   onSelectEvent: (event: AppointmentCalendarEvent) => void;
 };
 
+const dayAgendaSkeletonRows = ["first", "second", "third", "fourth"];
+
+function DayAgendaLoadingState() {
+  return (
+    <div role="status" aria-label="Carregando agenda do dia" className="space-y-3">
+      {dayAgendaSkeletonRows.map((row) => (
+        <div key={row} className="rounded-2xl border border-border/70 bg-background/55 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <Skeleton className="h-4 w-4/5 max-w-40" />
+              <Skeleton className="mt-2 h-3 w-3/5 max-w-32" />
+            </div>
+
+            <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3.5 w-28" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AppointmentsDayAgendaCard({
   selectedDate,
   selectedEventId,
@@ -35,21 +62,19 @@ export function AppointmentsDayAgendaCard({
   const selectedDayAppointments = getAppointmentsForDate(events, selectedDate);
 
   return (
-    <Card className="flex max-h-96 min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl">
+    <Card
+      aria-busy={isLoading}
+      className="flex min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl h-30 xl:flex-1 xl:basis-0"
+    >
       <CardHeader className="shrink-0 pb-4">
         <CardTitle className="text-base">Agenda do dia</CardTitle>
         <p className="text-sm text-muted-foreground">
           {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </p>
       </CardHeader>
-      <CardContent className="scrollbar-clean min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0">
+      <CardContent className="scrollbar-clean min-h-0 flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0">
         {isLoading ? (
-          <div className="rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
-            <p className="font-medium text-card-foreground">Carregando agenda do dia.</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Os agendamentos deste período ainda estão sendo sincronizados.
-            </p>
-          </div>
+          <DayAgendaLoadingState />
         ) : isError ? (
           <div className="rounded-2xl border border-dashed border-danger-soft bg-background/45 p-5">
             <p className="font-medium text-card-foreground">Não foi possível carregar a agenda.</p>

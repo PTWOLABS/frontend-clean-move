@@ -1,4 +1,4 @@
-import { AppointmentStatus } from "@/shared/types/appointments";
+import type { AppointmentStatus } from "@/shared/types/appointments";
 
 export type AppointmentsFilters = {
   startsAt: string;
@@ -19,6 +19,7 @@ export type AppointmentsFilters = {
 export type AppointmentsCalendarFilters = {
   startsAt: string;
   endsAt: string;
+  status?: AppointmentStatus[];
 };
 
 export type OptionsFilters = {

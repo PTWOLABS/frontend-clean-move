@@ -9,6 +9,7 @@ type AppointmentDateFieldProps = {
   name: "startsAt" | "endsAt";
   label: string;
   portalContainer?: HTMLElement | null;
+  disabled?: boolean;
   required?: boolean;
 };
 
@@ -16,6 +17,7 @@ export function AppointmentDateField({
   control,
   name,
   label,
+  disabled = false,
   portalContainer,
   required,
 }: AppointmentDateFieldProps) {
@@ -33,6 +35,7 @@ export function AppointmentDateField({
             value={getValidDate(field.value) ?? null}
             onChange={field.onChange}
             onBlur={field.onBlur}
+            disabled={disabled}
             invalid={fieldState.invalid}
             portalContainer={portalContainer}
             placeholder="Selecione data e horário"

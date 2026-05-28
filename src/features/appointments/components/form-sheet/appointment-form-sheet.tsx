@@ -10,6 +10,7 @@ import {
   type FieldValues,
   type Resolver,
 } from "react-hook-form";
+import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
@@ -45,21 +46,34 @@ import { useCreateAppointment } from "../../hooks/mutations/use-create-appointme
 type AppointmentFormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultStartsAt?: Date;
 };
 
-export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormSheetProps) {
+export function AppointmentFormSheet({
+  open,
+  onOpenChange,
+  defaultStartsAt,
+}: AppointmentFormSheetProps) {
+  const formDefaultValues = useMemo<CreateAppointmentFormInput>(
+    () => ({
+      ...createAppointmentDefaultValues,
+      startsAt: defaultStartsAt ?? null,
+    }),
+    [defaultStartsAt],
+  );
+
   const methods = useForm<CreateAppointmentFormInput, undefined, CreateAppointmentFormValues>({
     resolver: zodResolver(createAppointmentFormSchema) as Resolver<
       CreateAppointmentFormInput,
       undefined,
       CreateAppointmentFormValues
     >,
-    defaultValues: createAppointmentDefaultValues,
+    defaultValues: formDefaultValues,
     mode: "onBlur",
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue } = methods;
+  const { clearErrors, control, handleSubmit, reset, setValue } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
   const sheetContentRef = useRef<HTMLDivElement | null>(null);
   const [sheetContentElement, setSheetContentElement] = useState<HTMLDivElement | null>(null);
@@ -74,8 +88,8 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
   useEffect(() => {
     if (!open) return;
 
-    reset(createAppointmentDefaultValues);
-  }, [open, reset]);
+    reset(formDefaultValues);
+  }, [formDefaultValues, open, reset]);
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
     limit: 5,
@@ -93,6 +107,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
     limit: 5,
     search: serviceSearch || undefined,
   });
+  const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();
 
   const customerOptionsItems = useMemo(
     () =>
@@ -118,17 +133,18 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
       setValue("customerId", option?.value ?? "", {
         shouldDirty: true,
         shouldTouch: true,
-        shouldValidate: true,
+        shouldValidate: Boolean(option),
       });
       setVehicleSearch("");
       setVehicleLabel("");
       setValue("vehicleId", "", {
         shouldDirty: true,
         shouldTouch: false,
-        shouldValidate: true,
+        shouldValidate: false,
       });
+      clearErrors("vehicleId");
     },
-    [setValue],
+    [clearErrors, setValue],
   );
 
   const handleVehicleSelectedItemChange = useCallback(
@@ -151,15 +167,25 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
     setSelectedCustomerId(null);
   }, []);
 
+  const closeSheetAfterSave = useCallback(() => {
+    reset(formDefaultValues);
+    resetOptionState();
+    onOpenChange(false);
+  }, [formDefaultValues, onOpenChange, reset, resetOptionState]);
+
   const handleSheetOpenChange = useCallback(
     (nextOpen: boolean) => {
+      if (!nextOpen && creatingAppointment) {
+        return;
+      }
+
       if (!nextOpen) {
         resetOptionState();
       }
 
       onOpenChange(nextOpen);
     },
-    [onOpenChange, resetOptionState],
+    [creatingAppointment, onOpenChange, resetOptionState],
   );
 
   const handleSheetContentRef = useCallback((node: HTMLDivElement | null) => {
@@ -197,15 +223,17 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
     return <p className="px-2 py-1 text-sm text-muted-foreground">Nenhum serviço encontrado.</p>;
   };
 
-  const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();
-
   const onSubmit = (values: CreateAppointmentFormValues) => {
+    if (creatingAppointment) return;
+
     const body = {
       ...values,
       serviceIds: values.serviceIds.map((item) => item.value),
     };
 
-    createAppointment(body);
+    createAppointment(body, {
+      onSuccess: closeSheetAfterSave,
+    });
   };
 
   return (
@@ -221,8 +249,13 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
         </SheetHeader>
 
         <FormProvider {...methods}>
-          <form className="flex flex-1 flex-col gap-6 py-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-5">
+          <form
+            className="flex flex-1 flex-col gap-6 py-6"
+            aria-busy={creatingAppointment}
+            aria-describedby={creatingAppointment ? "appointment-submit-status" : undefined}
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <fieldset disabled={creatingAppointment} className="space-y-5 disabled:opacity-80">
               <FormField
                 control={fieldControl}
                 name="customerId"
@@ -246,6 +279,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                       placeholder="Digite o nome do cliente"
                       emptyMessage={getCustomerEmptyMessage()}
                       autoComplete="name"
+                      disabled={creatingAppointment}
                       required
                     />
                   </FormControl>
@@ -270,6 +304,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                       options={serviceOptionsItems}
                       placeholder="Selecione os serviços"
                       emptyIndicator={getServiceEmptyIndicator()}
+                      disabled={creatingAppointment}
                       className={cn(
                         "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm",
                         fieldState.invalid &&
@@ -310,7 +345,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                       placeholder="Digite o nome do veículo"
                       emptyMessage={getVehicleEmptyMessage()}
                       autoComplete="off"
-                      disabled={!selectedCustomerId}
+                      disabled={!selectedCustomerId || creatingAppointment}
                       required
                     />
                   </FormControl>
@@ -323,6 +358,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                   name="startsAt"
                   label="Data de início"
                   portalContainer={sheetContentElement}
+                  disabled={creatingAppointment}
                   required
                 />
                 <AppointmentDateField
@@ -330,6 +366,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                   name="endsAt"
                   label="Data de encerramento"
                   portalContainer={sheetContentElement}
+                  disabled={creatingAppointment}
                 />
               </div>
 
@@ -353,6 +390,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                           maxLength={500}
                           rows={5}
                           className="min-h-24 resize-y border-border/80 bg-background/40 pb-8"
+                          disabled={creatingAppointment}
                         />
                       </FormControl>
                       <span className="pointer-events-none absolute bottom-3 right-3 text-xs text-muted-foreground">
@@ -387,6 +425,7 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                             placeholder="0,00"
                             className="h-10 border-border/80 bg-background/40 pl-10 tabular-nums"
                             value={discount}
+                            disabled={creatingAppointment}
                             onChange={(event) =>
                               handleNumericInputChange(event, field.onChange, {
                                 formatAsCurrency: true,
@@ -402,21 +441,43 @@ export function AppointmentFormSheet({ open, onOpenChange }: AppointmentFormShee
                   );
                 }}
               </FormField>
-            </div>
+            </fieldset>
 
-            <SheetFooter className="mt-auto flex-col gap-3 p-0 pt-2 sm:flex-row sm:justify-end sm:space-x-0">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={creatingAppointment}
-                className="h-10 w-full sm:w-32"
-                onClick={() => handleSheetOpenChange(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" className="h-10 w-full sm:w-40" disabled={creatingAppointment}>
-                Salvar agendamento
-              </Button>
+            <SheetFooter className="mt-auto flex-col gap-3 border-t border-border p-0 pt-4 sm:flex-col sm:space-x-0">
+              {creatingAppointment ? (
+                <div
+                  id="appointment-submit-status"
+                  role="status"
+                  aria-live="polite"
+                  className="flex min-h-10 items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 text-sm font-medium text-primary"
+                >
+                  <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden />
+                  Salvando agendamento...
+                </div>
+              ) : null}
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={creatingAppointment}
+                  className="h-10 w-full sm:w-32"
+                  onClick={() => handleSheetOpenChange(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-10 w-full sm:w-40"
+                  disabled={creatingAppointment}
+                  aria-busy={creatingAppointment}
+                >
+                  {creatingAppointment ? (
+                    <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden />
+                  ) : null}
+                  {creatingAppointment ? "Salvando..." : "Salvar agendamento"}
+                </Button>
+              </div>
             </SheetFooter>
           </form>
         </FormProvider>

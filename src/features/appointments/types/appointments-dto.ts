@@ -6,6 +6,9 @@ export type AppointmentDTO = {
     id: string;
     establishmentId: string;
     customerId: string;
+    customer?: {
+      fullName?: string | null;
+    } | null;
     vehicleId: string | null;
     services: {
       id: string;

@@ -8,21 +8,36 @@ import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
 const appointmentEvent: AppointmentCalendarEvent = {
   id: "appointment-1",
   title: "Lavagem tecnica +1",
-  start: new Date("2026-05-20T09:00:00.000Z"),
+  startsAt: new Date("2026-05-20T09:00:00.000Z"),
   end: new Date("2026-05-20T10:15:00.000Z"),
   extendedProps: {
     customer: "Ana Martins",
     service: "Lavagem tecnica, Higienizacao",
     vehicle: "Veículo não informado",
-    attendants: ["Patricia Costa", "Lucas Martins"],
     notes: "Sem observações operacionais.",
-    reminder: "Lembrete automático padrão",
     tone: "info",
     status: "SCHEDULED",
   },
 };
 
 describe("AppointmentsDayAgendaCard", () => {
+  it("renders a loading state", () => {
+    render(
+      <AppointmentsDayAgendaCard
+        selectedDate={new Date("2026-05-20T12:00:00.000Z")}
+        selectedEventId={null}
+        events={[]}
+        isLoading
+        isError={false}
+        onRetry={vi.fn()}
+        onSelectEvent={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("status", { name: /carregando agenda do dia/i })).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum agendamento neste dia.")).not.toBeInTheDocument();
+  });
+
   it("calls onSelectEvent when the user clicks an agenda item", async () => {
     const user = userEvent.setup();
     const onSelectEvent = vi.fn();
