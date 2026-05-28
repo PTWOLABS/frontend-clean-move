@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/shared/utils/cn";
 
 import type { AppointmentTone } from "../types/appointment-calendar";
+import { HintTooltip } from "@/shared/components/hint-tooltip";
 
 export type NextAppointment = {
   id: string;
@@ -26,8 +27,6 @@ type UpcomingAppointmentsCardProps = {
 type NextAppointmentItemProps = {
   appointment: NextAppointment;
 };
-
-const nextAppointments: NextAppointment[] = [];
 
 const appointmentToneClassName: Record<AppointmentTone, string> = {
   primary: "bg-primary ring-primary/20",
@@ -133,7 +132,7 @@ function UpcomingAppointmentsLoadingState() {
 }
 
 export function UpcomingAppointmentsCard({
-  appointments = nextAppointments,
+  appointments = [],
   isLoading = false,
 }: UpcomingAppointmentsCardProps) {
   const visibleAppointments = appointments.slice(0, 5);
@@ -141,7 +140,7 @@ export function UpcomingAppointmentsCard({
   return (
     <Card
       aria-busy={isLoading}
-      className="hidden min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl xl:flex xl:shrink-0"
+      className="hidden min-h-0 flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs sm:rounded-3xl xl:flex xl:shrink-0"
     >
       <CardHeader className="shrink-0 border-b border-border/60 px-6 pb-4 pt-5">
         <div className="flex items-start justify-between gap-3">
@@ -170,7 +169,13 @@ export function UpcomingAppointmentsCard({
         ) : visibleAppointments.length ? (
           <ol className="space-y-2">
             {visibleAppointments.map((appointment) => (
-              <NextAppointmentItem key={appointment.id} appointment={appointment} />
+              <HintTooltip
+                className="max-w-78 shrink-0"
+                key={appointment.id}
+                label={`${appointment.serviceName} - ${appointment.customerName}`}
+              >
+                <NextAppointmentItem key={appointment.id} appointment={appointment} />
+              </HintTooltip>
             ))}
           </ol>
         ) : (

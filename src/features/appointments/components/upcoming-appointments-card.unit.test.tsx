@@ -1,6 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { HintTooltipProvider } from "@/shared/components/hint-tooltip";
+
 import { NextAppointmentItem, UpcomingAppointmentsCard } from "./upcoming-appointments-card";
 import type { NextAppointment } from "./upcoming-appointments-card";
 
@@ -27,14 +29,16 @@ describe("UpcomingAppointmentsCard", () => {
 
   it("renders only the first five next appointments", () => {
     render(
-      <UpcomingAppointmentsCard
-        appointments={Array.from({ length: 6 }, (_, index) =>
-          makeAppointment({
-            id: `appointment-${index + 1}`,
-            serviceName: `Serviço ${index + 1}`,
-          }),
-        )}
-      />,
+      <HintTooltipProvider>
+        <UpcomingAppointmentsCard
+          appointments={Array.from({ length: 6 }, (_, index) =>
+            makeAppointment({
+              id: `appointment-${index + 1}`,
+              serviceName: `Serviço ${index + 1}`,
+            }),
+          )}
+        />
+      </HintTooltipProvider>,
     );
 
     expect(screen.getAllByRole("listitem")).toHaveLength(5);

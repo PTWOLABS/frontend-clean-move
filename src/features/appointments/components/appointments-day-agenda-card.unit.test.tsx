@@ -28,6 +28,7 @@ describe("AppointmentsDayAgendaCard", () => {
         selectedEventId={null}
         events={[]}
         isLoading
+        isRefreshing={false}
         isError={false}
         onRetry={vi.fn()}
         onSelectEvent={vi.fn()}
@@ -48,6 +49,7 @@ describe("AppointmentsDayAgendaCard", () => {
         selectedEventId={null}
         events={[appointmentEvent]}
         isLoading={false}
+        isRefreshing={false}
         isError={false}
         onRetry={vi.fn()}
         onSelectEvent={onSelectEvent}
@@ -57,5 +59,23 @@ describe("AppointmentsDayAgendaCard", () => {
     await user.click(screen.getByRole("button", { name: /lavagem tecnica/i }));
 
     expect(onSelectEvent).toHaveBeenCalledWith(appointmentEvent);
+  });
+
+  it("renders the agenda loading state while refreshing", () => {
+    render(
+      <AppointmentsDayAgendaCard
+        selectedDate={new Date("2026-05-20T12:00:00.000Z")}
+        selectedEventId={null}
+        events={[appointmentEvent]}
+        isLoading={false}
+        isRefreshing
+        isError={false}
+        onRetry={vi.fn()}
+        onSelectEvent={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("status", { name: /carregando agenda do dia/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /lavagem tecnica/i })).not.toBeInTheDocument();
   });
 });

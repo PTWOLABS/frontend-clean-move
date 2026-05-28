@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CarFront, Clock3, RotateCcw } from "lucide-react";
+import { CalendarCheck2, CarFront, Clock3, RotateCcw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ type AppointmentsDayAgendaCardProps = {
   selectedEventId: string | null;
   events: AppointmentCalendarEvent[];
   isLoading: boolean;
+  isRefreshing?: boolean;
   isError: boolean;
   onRetry: () => void;
   onSelectEvent: (event: AppointmentCalendarEvent) => void;
@@ -55,6 +56,7 @@ export function AppointmentsDayAgendaCard({
   selectedEventId,
   events,
   isLoading,
+  isRefreshing = false,
   isError,
   onRetry,
   onSelectEvent,
@@ -63,17 +65,26 @@ export function AppointmentsDayAgendaCard({
 
   return (
     <Card
-      aria-busy={isLoading}
-      className="flex min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl h-30 xl:flex-1 xl:basis-0"
+      aria-busy={isLoading || isRefreshing}
+      className="flex min-h-80 flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs sm:rounded-3xl xl:min-h-0 xl:flex-1 xl:basis-0"
     >
       <CardHeader className="shrink-0 pb-4">
-        <CardTitle className="text-base">Agenda do dia</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                <CalendarCheck2 className="size-4" aria-hidden />
+              </span>
+              Agenda do dia
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="scrollbar-clean min-h-0 flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0">
-        {isLoading ? (
+        {isLoading || isRefreshing ? (
           <DayAgendaLoadingState />
         ) : isError ? (
           <div className="rounded-2xl border border-dashed border-danger-soft bg-background/45 p-5">

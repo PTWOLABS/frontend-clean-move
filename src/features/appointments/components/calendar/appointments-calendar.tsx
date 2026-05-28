@@ -137,7 +137,9 @@ export function AppointmentsCalendar({
           date={arg.date}
           events={events}
           selectedSlotKey={selectedSlotKey}
+          isDayView={arg.view.type === "timeGridDay"}
           onSlotPress={onSlotPress}
+          onCellAddIndicatorPress={onCellAddIndicatorPress}
         />
       );
     }
@@ -228,7 +230,13 @@ export function AppointmentsCalendar({
             eventDidMount={handleEventDidMount}
             eventWillUnmount={handleEventWillUnmount}
             datesSet={onDatesSet}
-            eventContent={(arg) => <CalendarEventContent arg={arg} />}
+            eventContent={(arg) => (
+              <CalendarEventContent
+                arg={arg}
+                onSlotPress={onSlotPress}
+                onCellAddIndicatorPress={onCellAddIndicatorPress}
+              />
+            )}
             eventClassNames={(arg) => {
               const extendedProps = arg.event.extendedProps as AppointmentExtendedProps;
 
