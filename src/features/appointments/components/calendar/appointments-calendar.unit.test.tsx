@@ -181,6 +181,7 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     selectedEventPopoverId: null,
     selectedSlotKey: null,
     selectedView: "dayGridMonth",
+    updatingStatusAppointmentId: null,
     onClearSelectedEvent: vi.fn(),
     onDateClick: vi.fn(),
     onDatesSet: vi.fn(),
@@ -188,6 +189,7 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     onMonthCellPress: vi.fn(),
     onSlotPress: vi.fn(),
     onCellAddIndicatorPress: vi.fn(),
+    onStatusChange: vi.fn(),
   };
 
   return render(<AppointmentsCalendar {...defaultProps} {...props} />);

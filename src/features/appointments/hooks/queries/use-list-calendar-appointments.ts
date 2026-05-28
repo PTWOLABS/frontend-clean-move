@@ -9,7 +9,7 @@ import { AppointmentsCalendarFilters } from "../../types/api-filters";
 
 export function useListCalendarAppointments(filters?: AppointmentsCalendarFilters) {
   return useQuery({
-    queryKey: QUERY_KEYS.appointments(filters),
+    queryKey: QUERY_KEYS.appointments({ filters }),
     queryFn: async () => listCalendarAppointments(filters),
     select: mapAppointmentsToCalendarEvents,
     enabled: Boolean(filters?.startsAt),

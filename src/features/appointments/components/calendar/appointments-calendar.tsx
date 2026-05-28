@@ -9,6 +9,7 @@ import { useMemo, useRef, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import type { AppointmentStatus } from "@/shared/types/appointments";
 import { cn } from "@/shared/utils/cn";
 
 import styles from "../appointments-page.module.css";
@@ -50,6 +51,7 @@ type AppointmentsCalendarProps = {
   selectedEventPopoverId: string | null;
   selectedSlotKey: string | null;
   selectedView: AppointmentCalendarView;
+  updatingStatusAppointmentId: string | null;
   onDateClick: (info: DateClickArg) => void;
   onDatesSet: (arg: DatesSetArg) => void;
   onEventClick: (info: EventClickArg) => void;
@@ -57,6 +59,7 @@ type AppointmentsCalendarProps = {
   onMonthCellPress: (date: Date) => void;
   onSlotPress: (date: Date) => void;
   onCellAddIndicatorPress: (open: boolean) => void;
+  onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
 export function AppointmentsCalendar({
@@ -71,6 +74,7 @@ export function AppointmentsCalendar({
   selectedEventPopoverId,
   selectedSlotKey,
   selectedView,
+  updatingStatusAppointmentId,
   onDateClick,
   onDatesSet,
   onEventClick,
@@ -78,6 +82,7 @@ export function AppointmentsCalendar({
   onMonthCellPress,
   onSlotPress,
   onCellAddIndicatorPress,
+  onStatusChange,
 }: AppointmentsCalendarProps) {
   const { state: sidebarState } = useSidebar();
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
@@ -259,7 +264,9 @@ export function AppointmentsCalendar({
             placement={popoverPlacement}
             popoverRef={setPopoverElement}
             style={popoverStyle}
+            isUpdatingStatus={updatingStatusAppointmentId === selectedPopoverEvent.id}
             onClose={onClearSelectedEvent}
+            onStatusChange={onStatusChange}
           />
         ) : null}
       </div>

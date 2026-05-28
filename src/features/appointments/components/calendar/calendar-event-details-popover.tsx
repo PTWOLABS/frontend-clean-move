@@ -6,8 +6,10 @@ import { ptBR } from "date-fns/locale";
 import { CalendarClock, CarFront, UserRound, Wrench, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import type { AppointmentStatus } from "@/shared/types/appointments";
 import { cn } from "@/shared/utils/cn";
 
+import { AppointmentStatusActions } from "../appointment-status-actions";
 import styles from "../appointments-page.module.css";
 import { getStatusLabel } from "../../lib/appointments-calendar";
 import {
@@ -21,7 +23,9 @@ type CalendarEventDetailsPopoverProps = {
   placement: "bottom" | "left" | "right" | "top";
   popoverRef: (element: HTMLDivElement | null) => void;
   style: CSSProperties;
+  isUpdatingStatus: boolean;
   onClose: () => void;
+  onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
 export function CalendarEventDetailsPopover({
@@ -29,7 +33,9 @@ export function CalendarEventDetailsPopover({
   placement,
   popoverRef,
   style,
+  isUpdatingStatus,
   onClose,
+  onStatusChange,
 }: CalendarEventDetailsPopoverProps) {
   return (
     <div
@@ -57,7 +63,7 @@ export function CalendarEventDetailsPopover({
       </div>
 
       <div className={styles.eventDetailsBody}>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 mb-2">
           <Badge
             variant="outline"
             className={cn(
@@ -67,9 +73,12 @@ export function CalendarEventDetailsPopover({
           >
             {getStatusLabel(event.extendedProps.status)}
           </Badge>
-          <span className="shrink-0 text-[0.7rem] font-medium text-muted-foreground">
-            {formatAppointmentTimeRange(event)}
-          </span>
+          <AppointmentStatusActions
+            appointmentId={event.id}
+            currentStatus={event.extendedProps.status}
+            isUpdating={isUpdatingStatus}
+            onStatusChange={onStatusChange}
+          />
         </div>
 
         <div className={styles.eventDetailsInfoList}>
@@ -78,6 +87,9 @@ export function CalendarEventDetailsPopover({
             <div className="min-w-0">
               <p className={styles.eventDetailsInfoPrimary}>
                 {format(event.startsAt, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </p>
+              <p className={styles.eventDetailsInfoSecondary}>
+                {formatAppointmentTimeRange(event)}
               </p>
             </div>
           </div>
