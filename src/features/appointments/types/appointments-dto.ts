@@ -35,3 +35,13 @@ export type AppointmentDTO = {
     cancelledAt: string | null;
   }[];
 };
+
+export type UpdateAppointmentStatusDTO = {
+  appointment: {
+    id: string;
+    status: AppointmentStatus;
+    updatedAt: string;
+    doneAt?: string | null;
+    cancelledAt?: string | null;
+  };
+};
