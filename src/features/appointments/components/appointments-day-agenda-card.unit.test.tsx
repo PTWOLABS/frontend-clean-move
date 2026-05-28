@@ -30,8 +30,10 @@ describe("AppointmentsDayAgendaCard", () => {
         isLoading
         isRefreshing={false}
         isError={false}
+        updatingStatusAppointmentId={null}
         onRetry={vi.fn()}
         onSelectEvent={vi.fn()}
+        onStatusChange={vi.fn()}
       />,
     );
 
@@ -51,8 +53,10 @@ describe("AppointmentsDayAgendaCard", () => {
         isLoading={false}
         isRefreshing={false}
         isError={false}
+        updatingStatusAppointmentId={null}
         onRetry={vi.fn()}
         onSelectEvent={onSelectEvent}
+        onStatusChange={vi.fn()}
       />,
     );
 
@@ -70,8 +74,10 @@ describe("AppointmentsDayAgendaCard", () => {
         isLoading={false}
         isRefreshing
         isError={false}
+        updatingStatusAppointmentId={null}
         onRetry={vi.fn()}
         onSelectEvent={vi.fn()}
+        onStatusChange={vi.fn()}
       />,
     );
 

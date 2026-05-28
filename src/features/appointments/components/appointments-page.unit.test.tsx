@@ -8,6 +8,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const useListCalendarAppointmentsMock = vi.hoisted(() => vi.fn());
 const useQueryFeedbackErrorMock = vi.hoisted(() => vi.fn());
+const useUpdateAppointmentStatusMock = vi.hoisted(() => vi.fn());
+const updateAppointmentStatusMutateMock = vi.hoisted(() => vi.fn());
 
 type SelectOptionMock = {
   label: string;
@@ -21,8 +23,14 @@ type SelectMockProps = {
   value?: string;
 };
 
+type AppointmentStatusMock = "DONE" | "SCHEDULED" | "CANCELLED";
+
 vi.mock("../hooks/queries/use-list-calendar-appointments", () => ({
   useListCalendarAppointments: useListCalendarAppointmentsMock,
+}));
+
+vi.mock("../hooks/mutations/use-update-appointment-status-mutation", () => ({
+  useUpdateAppointmentStatus: useUpdateAppointmentStatusMock,
 }));
 
 vi.mock("@/shared/hooks/use-query-feedback-error", () => ({
@@ -83,6 +91,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
     selectedEventId,
     selectedEventPopoverId,
     selectedSlotKey,
+    updatingStatusAppointmentId,
     onClearSelectedEvent,
     onDateClick,
     onDatesSet,
@@ -90,10 +99,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
     onSlotPress,
     onMonthCellPress,
     onRetry,
+    onStatusChange,
   }: {
     selectedEventId: string | null;
     selectedEventPopoverId: string | null;
     selectedSlotKey: string | null;
+    updatingStatusAppointmentId: string | null;
     isLoading: boolean;
     isError: boolean;
     onClearSelectedEvent: () => void;
@@ -103,6 +114,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
     onSlotPress: (date: Date) => void;
     onMonthCellPress: (date: Date) => void;
     onRetry: () => void;
+    onStatusChange: (appointmentId: string, status: AppointmentStatusMock) => void;
   }) => (
     <div>
       <p>Calendário carregando: {isLoading ? "sim" : "não"}</p>
@@ -110,6 +122,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
       <p>Evento selecionado no calendário: {selectedEventId ?? "nenhum"}</p>
       <p>Popover selecionado no calendário: {selectedEventPopoverId ?? "nenhum"}</p>
       <p>Slot selecionado no calendário: {selectedSlotKey ?? "nenhum"}</p>
+      <p>Status atualizando no calendário: {updatingStatusAppointmentId ?? "nenhum"}</p>
       <button
         type="button"
         onClick={() =>
@@ -203,6 +216,9 @@ vi.mock("./calendar/appointments-calendar", () => ({
       <button type="button" onClick={onClearSelectedEvent}>
         Fechar popover do calendário
       </button>
+      <button type="button" onClick={() => onStatusChange("appointment-1", "DONE")}>
+        Concluir pelo calendário
+      </button>
     </div>
   ),
 }));
@@ -232,27 +248,35 @@ vi.mock("./appointments-day-agenda-card", () => ({
     isRefreshing,
     isError,
     selectedEventId,
+    updatingStatusAppointmentId,
     onSelectEvent,
     onRetry,
+    onStatusChange,
   }: {
     events: AppointmentEventMock[];
     isLoading: boolean;
     isRefreshing?: boolean;
     isError: boolean;
     selectedEventId: string | null;
+    updatingStatusAppointmentId: string | null;
     onSelectEvent: (event: AppointmentEventMock) => void;
     onRetry: () => void;
+    onStatusChange: (appointmentId: string, status: AppointmentStatusMock) => void;
   }) => (
     <div>
       <p>Agenda carregando: {isLoading ? "sim" : "não"}</p>
       <p>Agenda atualizando: {isRefreshing ? "sim" : "não"}</p>
       <p>Agenda com erro: {isError ? "sim" : "não"}</p>
       <p>Evento selecionado na agenda: {selectedEventId ?? "nenhum"}</p>
+      <p>Status atualizando na agenda: {updatingStatusAppointmentId ?? "nenhum"}</p>
       <button type="button" onClick={() => onSelectEvent(events[0])}>
         Selecionar item da agenda
       </button>
       <button type="button" onClick={onRetry}>
         Recarregar agenda
+      </button>
+      <button type="button" onClick={() => onStatusChange("appointment-2", "CANCELLED")}>
+        Cancelar pela agenda
       </button>
     </div>
   ),
@@ -334,7 +358,13 @@ function makeFutureAppointmentEvent({
 
 describe("AppointmentsPage", () => {
   beforeEach(() => {
+    updateAppointmentStatusMutateMock.mockClear();
     useQueryFeedbackErrorMock.mockReturnValue(null);
+    useUpdateAppointmentStatusMock.mockReturnValue({
+      mutate: updateAppointmentStatusMutateMock,
+      isPending: false,
+      variables: undefined,
+    });
     useListCalendarAppointmentsMock.mockReturnValue({
       data: appointmentEvents,
       isPending: false,
@@ -536,5 +566,23 @@ describe("AppointmentsPage", () => {
     await user.click(screen.getByRole("button", { name: /recarregar agenda/i }));
 
     expect(refetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("updates appointment status from calendar and agenda actions", async () => {
+    const user = userEvent.setup();
+
+    render(<AppointmentsPage />);
+
+    await user.click(screen.getByRole("button", { name: /concluir pelo calendário/i }));
+    await user.click(screen.getByRole("button", { name: /cancelar pela agenda/i }));
+
+    expect(updateAppointmentStatusMutateMock).toHaveBeenNthCalledWith(1, {
+      appointmentId: "appointment-1",
+      status: "DONE",
+    });
+    expect(updateAppointmentStatusMutateMock).toHaveBeenNthCalledWith(2, {
+      appointmentId: "appointment-2",
+      status: "CANCELLED",
+    });
   });
 });
