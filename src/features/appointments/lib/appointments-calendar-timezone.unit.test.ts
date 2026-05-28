@@ -12,7 +12,7 @@ describe("appointments calendar timezone mapping", () => {
           establishmentId: "est-1",
           customerId: "customer-1",
           customer: {
-            name: "Cliente",
+            fullName: "Cliente",
           },
           vehicleId: null,
           services: [

@@ -21,7 +21,7 @@ function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: Appointm
 }
 
 function getCustomerLabel(appointment: AppointmentListItem) {
-  const customerLabel = appointment.customer?.name;
+  const customerLabel = appointment.customer?.fullName;
 
   return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
 }

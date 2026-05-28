@@ -17,7 +17,7 @@ const response: AppointmentDTO = {
       establishmentId: "est-1",
       customerId: "customer-2",
       customer: {
-        name: "Marina Oliveira",
+        fullName: "Marina Oliveira",
       },
       vehicleId: "vehicle-2",
       services: [
@@ -51,7 +51,7 @@ const response: AppointmentDTO = {
       establishmentId: "est-1",
       customerId: "customer-1",
       customer: {
-        name: "João Pereira",
+        fullName: "João Pereira",
       },
       vehicleId: null,
       services: [
