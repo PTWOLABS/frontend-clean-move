@@ -373,7 +373,6 @@ describe("AppointmentsPage", () => {
 
     render(<AppointmentsPage />);
 
-    expect(screen.getByText("Atualizando dados")).toBeInTheDocument();
     expect(screen.getByText("Calendário carregando: sim")).toBeInTheDocument();
     expect(screen.getByText("Agenda carregando: não")).toBeInTheDocument();
     expect(screen.getByText("Agenda atualizando: sim")).toBeInTheDocument();

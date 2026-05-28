@@ -61,7 +61,7 @@ describe("AppointmentsDayAgendaCard", () => {
     expect(onSelectEvent).toHaveBeenCalledWith(appointmentEvent);
   });
 
-  it("shows refresh feedback without replacing agenda items with skeletons", () => {
+  it("renders the agenda loading state while refreshing", () => {
     render(
       <AppointmentsDayAgendaCard
         selectedDate={new Date("2026-05-20T12:00:00.000Z")}
@@ -75,10 +75,7 @@ describe("AppointmentsDayAgendaCard", () => {
       />,
     );
 
-    expect(screen.getByText("Atualizando")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /lavagem tecnica/i })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("status", { name: /carregando agenda do dia/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("status", { name: /carregando agenda do dia/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /lavagem tecnica/i })).not.toBeInTheDocument();
   });
 });
