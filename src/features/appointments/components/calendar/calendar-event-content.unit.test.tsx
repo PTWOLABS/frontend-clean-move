@@ -1,6 +1,7 @@
 import type { EventContentArg } from "@fullcalendar/core/index.js";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { CalendarEventContent } from "./calendar-event-content";
 
@@ -46,6 +47,8 @@ describe("CalendarEventContent", () => {
           end: new Date("2026-05-20T10:00:00.000Z"),
           timeText: "09:00",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -63,6 +66,8 @@ describe("CalendarEventContent", () => {
           end: new Date("2026-05-20T10:00:00.000Z"),
           timeText: "09:00 - 10:00",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -80,6 +85,8 @@ describe("CalendarEventContent", () => {
           end: new Date("2026-05-20T09:30:00.000Z"),
           timeText: "09:00",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -97,9 +104,37 @@ describe("CalendarEventContent", () => {
           end: null,
           timeText: "",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
     expect(screen.getByText("Dia inteiro")).toBeInTheDocument();
+  });
+
+  it("opens the appointment sheet from the time grid event add indicator", async () => {
+    const user = userEvent.setup();
+    const onCellAddIndicatorPress = vi.fn();
+    const onSlotPress = vi.fn();
+    const { container } = render(
+      <CalendarEventContent
+        arg={makeEventContentArg({
+          viewType: "timeGridWeek",
+          start: new Date("2026-05-20T09:00:00.000Z"),
+          end: new Date("2026-05-20T10:00:00.000Z"),
+          timeText: "09:00 - 10:00",
+        })}
+        onSlotPress={onSlotPress}
+        onCellAddIndicatorPress={onCellAddIndicatorPress}
+      />,
+    );
+    const addIndicator = container.querySelector("span[class*='eventAddIndicator']");
+
+    expect(addIndicator).not.toBeNull();
+
+    await user.click(addIndicator!);
+
+    expect(onSlotPress).toHaveBeenCalledWith(new Date("2026-05-20T09:00:00.000Z"));
+    expect(onCellAddIndicatorPress).toHaveBeenCalledWith(true);
   });
 });
