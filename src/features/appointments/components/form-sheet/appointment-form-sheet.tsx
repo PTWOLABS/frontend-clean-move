@@ -547,7 +547,7 @@ export function AppointmentFormSheet({
                           placeholder="Adicione informações adicionais (opcional)"
                           maxLength={500}
                           rows={5}
-                          className="resize-y border-border/80 bg-background/40 pb-8 w-full"
+                          className="resize-y border-border/80 bg-background/40 pb-8 w-full scrollbar-clean"
                           disabled={isSubmitting}
                         />
                       </FormControl>
