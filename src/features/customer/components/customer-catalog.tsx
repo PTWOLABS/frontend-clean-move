@@ -117,8 +117,8 @@ export function CustomerCatalog() {
             <AlertDialogTitle>Apagar cliente?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser anulada. O cliente{" "}
-              <span className="font-medium text-foreground">{deleteTarget?.fullName ?? ""}</span> será
-              removido.
+              <span className="font-medium text-foreground">{deleteTarget?.fullName ?? ""}</span>{" "}
+              será removido.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

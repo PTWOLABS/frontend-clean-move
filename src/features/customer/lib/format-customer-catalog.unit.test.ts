@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  formatVehicleName,
-  getCustomerVehiclesCount,
-} from "./format-customer-catalog";
+import { formatVehicleName, getCustomerVehiclesCount } from "./format-customer-catalog";
 
 describe("format-customer-catalog", () => {
   it("formatVehicleName returns brand and model", () => {

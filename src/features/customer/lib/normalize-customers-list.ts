@@ -1,4 +1,9 @@
-import type { CustomerDto, CustomersPage, CustomerWithPrimaryVehicle, ListCustomersResponse } from "../types";
+import type {
+  CustomerDto,
+  CustomersPage,
+  CustomerWithPrimaryVehicle,
+  ListCustomersResponse,
+} from "../types";
 
 function mapCustomerToListItem(customer: CustomerDto): CustomerWithPrimaryVehicle {
   return {

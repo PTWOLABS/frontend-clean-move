@@ -12,12 +12,7 @@ export type UseVehiclesArgs = ListVehiclesQuery & {
   enabled?: boolean;
 };
 
-export function useVehicles({
-  customerId,
-  enabled = true,
-  page = 1,
-  size = 10,
-}: UseVehiclesArgs) {
+export function useVehicles({ customerId, enabled = true, page = 1, size = 10 }: UseVehiclesArgs) {
   return useQuery({
     queryKey: QUERY_KEYS.vehicles(customerId, { page, size }),
     placeholderData: keepPreviousData,

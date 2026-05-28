@@ -261,14 +261,33 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
                   <InputField control={fieldControl} name="address.street" label="Rua" required />
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <InputField control={fieldControl} name="address.city" label="Cidade" required />
+                    <InputField
+                      control={fieldControl}
+                      name="address.city"
+                      label="Cidade"
+                      required
+                    />
                     <InputField control={fieldControl} name="address.state" label="UF" required />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <InputField control={fieldControl} name="address.zipCode" label="CEP" required />
-                    <InputField control={fieldControl} name="address.country" label="País" required />
+                    <InputField
+                      control={fieldControl}
+                      name="address.zipCode"
+                      label="CEP"
+                      required
+                    />
+                    <InputField
+                      control={fieldControl}
+                      name="address.country"
+                      label="País"
+                      required
+                    />
                   </div>
-                  <InputField control={fieldControl} name="address.complement" label="Complemento" />
+                  <InputField
+                    control={fieldControl}
+                    name="address.complement"
+                    label="Complemento"
+                  />
                 </div>
               ) : null}
             </div>

@@ -64,11 +64,11 @@ export function hasVehicleData(vehicle?: VehicleDto | null): boolean {
   if (!vehicle) return false;
   return Boolean(
     vehicle.plate?.trim() ||
-      vehicle.brand?.trim() ||
-      vehicle.model?.trim() ||
-      vehicle.color?.trim() ||
-      vehicle.year != null ||
-      vehicle.notes?.trim(),
+    vehicle.brand?.trim() ||
+    vehicle.model?.trim() ||
+    vehicle.color?.trim() ||
+    vehicle.year != null ||
+    vehicle.notes?.trim(),
   );
 }
 

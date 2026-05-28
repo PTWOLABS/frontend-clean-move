@@ -83,10 +83,10 @@ export function hasCompleteAddress(address?: CustomerAddress | null): boolean {
   if (!address) return false;
   return Boolean(
     address.street?.trim() &&
-      address.city?.trim() &&
-      address.state?.trim() &&
-      address.zipCode?.trim() &&
-      address.country?.trim(),
+    address.city?.trim() &&
+    address.state?.trim() &&
+    address.zipCode?.trim() &&
+    address.country?.trim(),
   );
 }
 
@@ -197,9 +197,7 @@ export function customerToFormDefaults(
   };
 }
 
-function buildAddressPayload(
-  address: CustomerFormValues["address"],
-): CustomerAddress | null {
+function buildAddressPayload(address: CustomerFormValues["address"]): CustomerAddress | null {
   const street = address.street?.trim();
   const city = address.city?.trim();
   const state = address.state?.trim();
@@ -234,9 +232,7 @@ export function mapCustomerFormToPayload(values: CustomerFormValues): CreateCust
   };
 }
 
-export function mapVehicleFormToPayload(
-  values: CustomerFormValues,
-): CreateVehiclePayload | null {
+export function mapVehicleFormToPayload(values: CustomerFormValues): CreateVehiclePayload | null {
   if (!values.includeVehicle) return null;
   return mapVehicleFieldsToPayload(values.vehicle);
 }

@@ -34,14 +34,16 @@ function VehicleListItem({ vehicle }: { vehicle: CustomerVehicleDto }) {
     <li className="rounded-lg border border-border bg-muted/30 px-4 py-3">
       <p className="font-medium text-foreground">{name}</p>
       {details ? <p className="mt-0.5 text-sm text-muted-foreground">{details}</p> : null}
-      {vehicle.notes ? (
-        <p className="mt-1 text-sm text-muted-foreground">{vehicle.notes}</p>
-      ) : null}
+      {vehicle.notes ? <p className="mt-1 text-sm text-muted-foreground">{vehicle.notes}</p> : null}
     </li>
   );
 }
 
-export function CustomerVehiclesDialog({ customer, open, onOpenChange }: CustomerVehiclesDialogProps) {
+export function CustomerVehiclesDialog({
+  customer,
+  open,
+  onOpenChange,
+}: CustomerVehiclesDialogProps) {
   const vehiclesCount = customer ? getCustomerVehiclesCount(customer) : 0;
   const embeddedCount = customer?.vehicles?.length ?? 0;
   const needsFetch = Boolean(customer && vehiclesCount > embeddedCount);
@@ -52,11 +54,7 @@ export function CustomerVehiclesDialog({ customer, open, onOpenChange }: Custome
       size: Math.max(vehiclesCount, embeddedCount, 1),
     }),
     queryFn: ({ signal }) =>
-      listVehicles(
-        customer!.id,
-        { page: 1, size: Math.max(vehiclesCount, 50) },
-        signal,
-      ),
+      listVehicles(customer!.id, { page: 1, size: Math.max(vehiclesCount, 50) }, signal),
     enabled: open && needsFetch && Boolean(customer?.id),
   });
 

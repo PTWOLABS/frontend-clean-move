@@ -29,7 +29,9 @@ export function VehicleCatalogMobileCards({
         <Card key={item.id} className="overflow-hidden shadow-sm">
           <CardContent className="space-y-3 p-4">
             <div className="space-y-1">
-              <h3 className="text-base font-semibold text-foreground">{formatVehiclePlate(item)}</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                {formatVehiclePlate(item)}
+              </h3>
               <p className="text-sm text-muted-foreground">{formatVehicleName(item)}</p>
             </div>
 
@@ -44,9 +46,7 @@ export function VehicleCatalogMobileCards({
               </div>
             </div>
 
-            {item.notes ? (
-              <p className="text-sm text-muted-foreground">{item.notes}</p>
-            ) : null}
+            {item.notes ? <p className="text-sm text-muted-foreground">{item.notes}</p> : null}
 
             <Separator />
 

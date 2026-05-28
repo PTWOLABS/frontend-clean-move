@@ -40,10 +40,7 @@ export function CustomerCatalogMobileCards({
 
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Veículo</p>
-              <CustomerCatalogVehicleCell
-                customer={item}
-                onShowAllVehicles={onShowAllVehicles}
-              />
+              <CustomerCatalogVehicleCell customer={item} onShowAllVehicles={onShowAllVehicles} />
             </div>
 
             <Separator />

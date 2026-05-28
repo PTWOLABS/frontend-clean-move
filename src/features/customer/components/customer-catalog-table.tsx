@@ -68,10 +68,7 @@ export function CustomerCatalogTable({
               </TableCell>
               <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>
               <TableCell>
-                <CustomerCatalogVehicleCell
-                  customer={item}
-                  onShowAllVehicles={onShowAllVehicles}
-                />
+                <CustomerCatalogVehicleCell customer={item} onShowAllVehicles={onShowAllVehicles} />
               </TableCell>
               <TableCell className="pr-4 text-right">
                 <RowIconActions

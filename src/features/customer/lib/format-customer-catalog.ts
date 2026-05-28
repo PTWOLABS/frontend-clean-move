@@ -41,7 +41,9 @@ export function formatVehicleName(vehicle?: CustomerVehicleDto | null): string {
   return "Sem veículo";
 }
 
-export function getCustomerVehiclesCount(customer: Pick<CustomerDto, "vehicles" | "vehiclesCount">): number {
+export function getCustomerVehiclesCount(
+  customer: Pick<CustomerDto, "vehicles" | "vehiclesCount">,
+): number {
   if (typeof customer.vehiclesCount === "number" && customer.vehiclesCount >= 0) {
     return customer.vehiclesCount;
   }

@@ -8,7 +8,8 @@ type CustomerCatalogHeaderProps = {
 };
 
 export function CustomerCatalogHeader({ totalCount, onAddCustomer }: CustomerCatalogHeaderProps) {
-  const countLabel = totalCount === 1 ? "1 cliente cadastrado" : `${totalCount} clientes cadastrados`;
+  const countLabel =
+    totalCount === 1 ? "1 cliente cadastrado" : `${totalCount} clientes cadastrados`;
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

@@ -23,10 +23,9 @@ describe("vehicle/api/list-vehicles", () => {
 
     await listVehicles("customer-1", { page: 2, size: 10 });
 
-    expect(httpClientMock).toHaveBeenCalledWith(
-      "/customers/customer-1/vehicles?page=2&size=10",
-      { signal: undefined },
-    );
+    expect(httpClientMock).toHaveBeenCalledWith("/customers/customer-1/vehicles?page=2&size=10", {
+      signal: undefined,
+    });
   });
 
   it("returns normalized page", async () => {

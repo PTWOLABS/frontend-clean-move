@@ -21,9 +21,7 @@ export const QUERY_KEYS = {
   customers: (filters?: { page?: number; size?: number; search?: string }) =>
     filters ? (["customers", filters] as const) : (["customers"] as const),
   vehicles: (customerId: string, filters?: { page?: number; size?: number }) =>
-    filters
-      ? (["vehicles", customerId, filters] as const)
-      : (["vehicles", customerId] as const),
+    filters ? (["vehicles", customerId, filters] as const) : (["vehicles", customerId] as const),
   vehicleOptions: (filters?: { search?: string; customerId?: string; limit?: number }) =>
     filters ? (["vehicle-options", filters] as const) : (["vehicle-options"] as const),
 };

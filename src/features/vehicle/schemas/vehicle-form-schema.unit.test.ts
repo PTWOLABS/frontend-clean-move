@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  mapVehicleFormToPayload,
-  vehicleFormSchema,
-} from "./vehicle-form-schema";
+import { mapVehicleFormToPayload, vehicleFormSchema } from "./vehicle-form-schema";
 
 describe("vehicleFormSchema", () => {
   it("rejects plate with invalid length when provided", () => {

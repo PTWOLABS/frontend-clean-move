@@ -35,9 +35,7 @@ export function CustomerCatalogVehicleCell({
       aria-label={`Ver ${vehiclesCount} veículos de ${customer.fullName}`}
       onClick={() => onShowAllVehicles(customer)}
     >
-      <span className="inline-flex text-foreground">
-        {vehicleName}
-      </span>
+      <span className="inline-flex text-foreground">{vehicleName}</span>
       {vehiclesCount > 1 ? (
         <Badge variant="secondary" className="tabular-nums">
           {vehiclesCount}

@@ -62,7 +62,9 @@ function RowActions({
           className: "text-foreground hover:bg-accent hover:text-foreground",
         },
         {
-          label: canMutate ? toggleLabel : "Identificador em falta — não é possível alterar o estado.",
+          label: canMutate
+            ? toggleLabel
+            : "Identificador em falta — não é possível alterar o estado.",
           icon: Power,
           onClick: () => onToggleActive(item),
           disabled: !canMutate || isToggling,
