@@ -93,6 +93,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
     selectedSlotKey,
     updatingStatusAppointmentId,
     onClearSelectedEvent,
+    onEditEvent,
     onDateClick,
     onDatesSet,
     onEventClick,
@@ -108,6 +109,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
     isLoading: boolean;
     isError: boolean;
     onClearSelectedEvent: () => void;
+    onEditEvent: (event: AppointmentEventMock) => void;
     onDateClick: (info: DateClickArg) => void;
     onDatesSet: (arg: DatesSetArg) => void;
     onEventClick: (info: EventClickArg) => void;
@@ -219,6 +221,33 @@ vi.mock("./calendar/appointments-calendar", () => ({
       <button type="button" onClick={() => onStatusChange("appointment-1", "DONE")}>
         Concluir pelo calendário
       </button>
+      <button
+        type="button"
+        onClick={() =>
+          onEditEvent({
+            id: "appointment-2",
+            title: "Polimento",
+            startsAt: new Date("2026-05-21T11:00:00.000Z"),
+            end: new Date("2026-05-21T12:00:00.000Z"),
+            extendedProps: {
+              customerId: "customer-2",
+              customer: "Bruno Lima",
+              serviceIds: [{ value: "service-2", label: "Polimento" }],
+              service: "Polimento",
+              vehicleId: "vehicle-2",
+              vehicle: "XYZ-9876",
+              endsAt: new Date("2026-05-21T12:00:00.000Z"),
+              description: "Sem observações.",
+              discountValue: "",
+              notes: "Sem observações.",
+              tone: "success",
+              status: "DONE",
+            },
+          })
+        }
+      >
+        Editar pelo calendário
+      </button>
     </div>
   ),
 }));
@@ -250,6 +279,7 @@ vi.mock("./appointments-day-agenda-card", () => ({
     selectedEventId,
     updatingStatusAppointmentId,
     onSelectEvent,
+    onEditEvent,
     onRetry,
     onStatusChange,
   }: {
@@ -260,6 +290,7 @@ vi.mock("./appointments-day-agenda-card", () => ({
     selectedEventId: string | null;
     updatingStatusAppointmentId: string | null;
     onSelectEvent: (event: AppointmentEventMock) => void;
+    onEditEvent: (event: AppointmentEventMock) => void;
     onRetry: () => void;
     onStatusChange: (appointmentId: string, status: AppointmentStatusMock) => void;
   }) => (
@@ -272,6 +303,9 @@ vi.mock("./appointments-day-agenda-card", () => ({
       <button type="button" onClick={() => onSelectEvent(events[0])}>
         Selecionar item da agenda
       </button>
+      <button type="button" onClick={() => onEditEvent(events[0])}>
+        Editar pela agenda
+      </button>
       <button type="button" onClick={onRetry}>
         Recarregar agenda
       </button>
@@ -283,8 +317,19 @@ vi.mock("./appointments-day-agenda-card", () => ({
 }));
 
 vi.mock("./form-sheet/appointment-form-sheet", () => ({
-  AppointmentFormSheet: ({ open }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
-    <div data-testid="appointment-form-sheet" data-open={String(open)} />
+  AppointmentFormSheet: ({
+    appointment,
+    open,
+  }: {
+    appointment?: AppointmentEventMock | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+  }) => (
+    <div
+      data-testid="appointment-form-sheet"
+      data-open={String(open)}
+      data-appointment-id={appointment?.id ?? ""}
+    />
   ),
 }));
 
@@ -300,9 +345,15 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
     startsAt: new Date("2026-05-20T09:00:00.000Z"),
     end: new Date("2026-05-20T10:00:00.000Z"),
     extendedProps: {
+      customerId: "customer-1",
       customer: "Ana Martins",
+      serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
       service: "Lavagem tecnica",
+      vehicleId: "vehicle-1",
       vehicle: "ABC-1234",
+      endsAt: new Date("2026-05-20T10:00:00.000Z"),
+      description: "Sem observações.",
+      discountValue: "",
       notes: "Sem observações.",
       tone: "info",
       status: "SCHEDULED",
@@ -314,9 +365,15 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
     startsAt: new Date("2026-05-21T11:00:00.000Z"),
     end: new Date("2026-05-21T12:00:00.000Z"),
     extendedProps: {
+      customerId: "customer-2",
       customer: "Bruno Lima",
+      serviceIds: [{ value: "service-2", label: "Polimento" }],
       service: "Polimento",
+      vehicleId: "vehicle-2",
       vehicle: "XYZ-9876",
+      endsAt: new Date("2026-05-21T12:00:00.000Z"),
+      description: "Sem observações.",
+      discountValue: "",
       notes: "Sem observações.",
       tone: "success",
       status: "DONE",
@@ -346,9 +403,15 @@ function makeFutureAppointmentEvent({
     startsAt,
     end,
     extendedProps: {
+      customerId: "customer-1",
       customer: "Cliente teste",
+      serviceIds: [{ value: "service-1", label: serviceName }],
       service: serviceName,
+      vehicleId: "vehicle-1",
       vehicle: "ABC-1234",
+      endsAt: end,
+      description: "Sem observações.",
+      discountValue: "",
       notes: "Sem observações.",
       tone: "info",
       status: "SCHEDULED",
@@ -530,6 +593,27 @@ describe("AppointmentsPage", () => {
 
     expect(screen.getByText("Evento selecionado no calendário: nenhum")).toBeInTheDocument();
     expect(screen.getByText("Popover selecionado no calendário: nenhum")).toBeInTheDocument();
+  });
+
+  it("opens the appointment form in edit mode from agenda and calendar actions", async () => {
+    const user = userEvent.setup();
+
+    render(<AppointmentsPage />);
+
+    await user.click(screen.getByRole("button", { name: /editar pela agenda/i }));
+
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute("data-open", "true");
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute(
+      "data-appointment-id",
+      "appointment-1",
+    );
+
+    await user.click(screen.getByRole("button", { name: /editar pelo calendário/i }));
+
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute(
+      "data-appointment-id",
+      "appointment-2",
+    );
   });
 
   it("tracks manual slot selection and clears it when a month cell is selected", async () => {

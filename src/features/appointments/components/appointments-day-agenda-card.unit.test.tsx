@@ -11,9 +11,15 @@ const appointmentEvent: AppointmentCalendarEvent = {
   startsAt: new Date("2026-05-20T09:00:00.000Z"),
   end: new Date("2026-05-20T10:15:00.000Z"),
   extendedProps: {
+    customerId: "customer-1",
     customer: "Ana Martins",
+    serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
     service: "Lavagem tecnica, Higienizacao",
+    vehicleId: "vehicle-1",
     vehicle: "Veículo não informado",
+    endsAt: new Date("2026-05-20T10:15:00.000Z"),
+    description: "",
+    discountValue: "",
     notes: "Sem observações operacionais.",
     tone: "info",
     status: "SCHEDULED",
@@ -32,6 +38,7 @@ describe("AppointmentsDayAgendaCard", () => {
         isError={false}
         updatingStatusAppointmentId={null}
         onRetry={vi.fn()}
+        onEditEvent={vi.fn()}
         onSelectEvent={vi.fn()}
         onStatusChange={vi.fn()}
       />,
@@ -55,12 +62,13 @@ describe("AppointmentsDayAgendaCard", () => {
         isError={false}
         updatingStatusAppointmentId={null}
         onRetry={vi.fn()}
+        onEditEvent={vi.fn()}
         onSelectEvent={onSelectEvent}
         onStatusChange={vi.fn()}
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /lavagem tecnica/i }));
+    await user.click(screen.getAllByRole("button", { name: /lavagem tecnica/i })[0]!);
 
     expect(onSelectEvent).toHaveBeenCalledWith(appointmentEvent);
   });
@@ -76,6 +84,7 @@ describe("AppointmentsDayAgendaCard", () => {
         isError={false}
         updatingStatusAppointmentId={null}
         onRetry={vi.fn()}
+        onEditEvent={vi.fn()}
         onSelectEvent={vi.fn()}
         onStatusChange={vi.fn()}
       />,
