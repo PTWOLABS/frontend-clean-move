@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/shared/utils/cn";
 
 import type { AppointmentTone } from "../types/appointment-calendar";
+import { HintTooltip } from "@/shared/components/hint-tooltip";
 
 export type NextAppointment = {
   id: string;
@@ -26,8 +27,6 @@ type UpcomingAppointmentsCardProps = {
 type NextAppointmentItemProps = {
   appointment: NextAppointment;
 };
-
-const nextAppointments: NextAppointment[] = [];
 
 const appointmentToneClassName: Record<AppointmentTone, string> = {
   primary: "bg-primary ring-primary/20",
@@ -133,7 +132,7 @@ function UpcomingAppointmentsLoadingState() {
 }
 
 export function UpcomingAppointmentsCard({
-  appointments = nextAppointments,
+  appointments = [],
   isLoading = false,
 }: UpcomingAppointmentsCardProps) {
   const visibleAppointments = appointments.slice(0, 5);
@@ -170,7 +169,13 @@ export function UpcomingAppointmentsCard({
         ) : visibleAppointments.length ? (
           <ol className="space-y-2">
             {visibleAppointments.map((appointment) => (
-              <NextAppointmentItem key={appointment.id} appointment={appointment} />
+              <HintTooltip
+                className="max-w-78 shrink-0"
+                key={appointment.id}
+                label={`${appointment.serviceName} - ${appointment.customerName}`}
+              >
+                <NextAppointmentItem key={appointment.id} appointment={appointment} />
+              </HintTooltip>
             ))}
           </ol>
         ) : (

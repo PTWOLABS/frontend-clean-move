@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CarFront, Clock3, RotateCcw } from "lucide-react";
+import { CalendarCheck2, CarFront, Clock3, RotateCcw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,12 @@ export function AppointmentsDayAgendaCard({
       <CardHeader className="shrink-0 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle className="text-base">Agenda do dia</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                <CalendarCheck2 className="size-4" aria-hidden />
+              </span>
+              Agenda do dia
+            </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
               {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
             </p>
