@@ -25,23 +25,24 @@ export function CustomerCatalogVehicleCell({
     return <span className={cn("text-muted-foreground", className)}>Sem veículo</span>;
   }
 
-  if (vehiclesCount === 1) {
-    return <span className={cn("text-foreground", className)}>{vehicleName}</span>;
-  }
-
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <span className="text-foreground">{vehicleName}</span>
-      <button
-        type="button"
-        className="inline-flex rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label={`Ver ${vehiclesCount} veículos de ${customer.fullName}`}
-        onClick={() => onShowAllVehicles(customer)}
-      >
+    <button
+      type="button"
+      className={cn(
+        "flex w-full flex-wrap items-center gap-2 rounded-md px-1 py-0.5 text-left text-foreground transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
+        className,
+      )}
+      aria-label={`Ver ${vehiclesCount} veículos de ${customer.fullName}`}
+      onClick={() => onShowAllVehicles(customer)}
+    >
+      <span className="inline-flex text-foreground">
+        {vehicleName}
+      </span>
+      {vehiclesCount > 1 ? (
         <Badge variant="secondary" className="tabular-nums">
           {vehiclesCount}
         </Badge>
-      </button>
-    </div>
+      ) : null}
+    </button>
   );
 }

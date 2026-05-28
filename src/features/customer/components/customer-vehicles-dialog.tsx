@@ -67,8 +67,8 @@ export function CustomerVehiclesDialog({ customer, open, onOpenChange }: Custome
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-md">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Veículos do cliente</DialogTitle>
           <DialogDescription>
             {customer ? (
@@ -81,20 +81,22 @@ export function CustomerVehiclesDialog({ customer, open, onOpenChange }: Custome
           </DialogDescription>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="space-y-2" aria-busy="true" aria-label="A carregar veículos">
-            <Skeleton className="h-16 w-full rounded-lg" />
-            <Skeleton className="h-16 w-full rounded-lg" />
-          </div>
-        ) : vehicles.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum veículo cadastrado.</p>
-        ) : (
-          <ul className="space-y-2">
-            {vehicles.map((vehicle) => (
-              <VehicleListItem key={vehicle.id} vehicle={vehicle} />
-            ))}
-          </ul>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          {isLoading ? (
+            <div className="space-y-2" aria-busy="true" aria-label="A carregar veículos">
+              <Skeleton className="h-16 w-full rounded-lg" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+            </div>
+          ) : vehicles.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum veículo cadastrado.</p>
+          ) : (
+            <ul className="space-y-2">
+              {vehicles.map((vehicle) => (
+                <VehicleListItem key={vehicle.id} vehicle={vehicle} />
+              ))}
+            </ul>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
