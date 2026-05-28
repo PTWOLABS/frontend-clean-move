@@ -28,7 +28,7 @@ import { CustomerCatalogToolbar } from "./customer-catalog-toolbar";
 import { CustomerFormSheet } from "./customer-form-sheet";
 import { CustomerVehiclesDialog } from "./customer-vehicles-dialog";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 6;
 const SEARCH_DEBOUNCE_MS = 350;
 
 export function CustomerCatalog() {
