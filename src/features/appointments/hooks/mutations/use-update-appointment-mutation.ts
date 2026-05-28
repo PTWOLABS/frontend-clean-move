@@ -5,12 +5,12 @@ import { toast } from "sonner";
 
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 import { getMutationFeedbackError } from "@/shared/hooks/use-mutation-feedback-error";
-import type { AppointmentStatus } from "@/shared/types/appointments";
-import { updateAppointmentStatus } from "../../api/update-appointment-status";
+import { updateAppointment } from "../../api/update-appointment";
+import type { UpdateAppointmentRequestBody } from "../../schemas/update-appointment-schema";
 
-type UpdateAppointmentStatusRequest = {
+type UpdateAppointmentRequest = {
   appointmentId: string;
-  status: AppointmentStatus;
+  body: UpdateAppointmentRequestBody;
 };
 
 const queriesToInvalidate = [
@@ -21,19 +21,19 @@ const queriesToInvalidate = [
   QUERY_KEYS.popularServices,
 ];
 
-export function useUpdateAppointmentStatus() {
+export function useUpdateAppointment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ appointmentId, status }: UpdateAppointmentStatusRequest) => {
-      return await updateAppointmentStatus(appointmentId, status);
+    mutationFn: async ({ appointmentId, body }: UpdateAppointmentRequest) => {
+      return await updateAppointment(appointmentId, body);
     },
     onSuccess: async () => {
       await Promise.all(
         queriesToInvalidate.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
       );
 
-      toast.success("Status do agendamento atualizado com sucesso.");
+      toast.success("O agendamento foi atualizado com sucesso.");
     },
     onError: (error) => {
       const resourceKey = QUERY_KEYS.appointments()[0];
