@@ -312,12 +312,14 @@ export function AppointmentsPage() {
   const {
     data: events = [],
     isPending,
+    isFetching,
     isError,
     refetch,
     error,
   } = useListCalendarAppointments(filters);
 
   const isLoadingAppointments = isPending && events.length === 0;
+  const isRefreshingAppointments = isFetching && !isLoadingAppointments;
   const hasAppointmentsError = isError && events.length === 0;
 
   const errorFeedback = useQueryFeedbackError({
@@ -546,15 +548,6 @@ export function AppointmentsPage() {
           >
             Falha ao carregar
           </Badge>
-        ) : isLoadingAppointments ? (
-          <Badge
-            role="status"
-            aria-live="polite"
-            variant="outline"
-            className="w-fit rounded-full border-border/70 bg-card/80 px-3 py-1 text-xs text-muted-foreground"
-          >
-            Carregando dados
-          </Badge>
         ) : null}
       </header>
 
@@ -576,7 +569,7 @@ export function AppointmentsPage() {
               calendarRef={calendarRef}
               initialSelectedDate={initialSelectedDate}
               events={events}
-              isLoading={isLoadingAppointments}
+              isLoading={isLoadingAppointments || isRefreshingAppointments}
               isError={!!errorFeedback || hasAppointmentsError}
               onRetry={refetchAppointments}
               selectedDate={resolvedSelectedDate}
@@ -606,6 +599,7 @@ export function AppointmentsPage() {
             selectedEventId={resolvedSelectedEventId}
             events={events}
             isLoading={isLoadingAppointments}
+            isRefreshing={isRefreshingAppointments}
             isError={!!errorFeedback || hasAppointmentsError}
             onRetry={refetchAppointments}
             onSelectEvent={handleAgendaItemClick}
