@@ -19,6 +19,7 @@ import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
 import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
 import { NextAppointment, UpcomingAppointmentsCard } from "./upcoming-appointments-card";
+import { useUpdateAppointmentStatus } from "../hooks/mutations/use-update-appointment-status-mutation";
 import { useListCalendarAppointments } from "../hooks/queries/use-list-calendar-appointments";
 import { findNextAppointment } from "../lib/appointments-calendar";
 import {
@@ -317,10 +318,14 @@ export function AppointmentsPage() {
     refetch,
     error,
   } = useListCalendarAppointments(filters);
+  const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
   const isLoadingAppointments = isPending && events.length === 0;
   const isRefreshingAppointments = isFetching && !isLoadingAppointments;
   const hasAppointmentsError = isError && events.length === 0;
+  const updatingStatusAppointmentId = updateAppointmentStatusMutation.isPending
+    ? (updateAppointmentStatusMutation.variables?.appointmentId ?? null)
+    : null;
 
   const errorFeedback = useQueryFeedbackError({
     resourceKey: "calendar-appointments",
@@ -493,6 +498,13 @@ export function AppointmentsPage() {
     calendarRef.current?.getApi()?.gotoDate(event.startsAt);
   }
 
+  function handleAppointmentStatusChange(appointmentId: string, status: AppointmentStatus) {
+    updateAppointmentStatusMutation.mutate({
+      appointmentId,
+      status,
+    });
+  }
+
   function refetchAppointments() {
     void refetch();
   }
@@ -577,6 +589,7 @@ export function AppointmentsPage() {
               selectedEventPopoverId={selectedEventFromState?.id ?? null}
               selectedSlotKey={selectedSlotKey}
               selectedView={selectedView}
+              updatingStatusAppointmentId={updatingStatusAppointmentId}
               onClearSelectedEvent={handleClearSelectedEvent}
               onDateClick={handleDateClick}
               onDatesSet={handleDatesSet}
@@ -584,6 +597,7 @@ export function AppointmentsPage() {
               onMonthCellPress={handleMonthCellPress}
               onSlotPress={handleSlotPress}
               onCellAddIndicatorPress={setAppointmentSheetOpen}
+              onStatusChange={handleAppointmentStatusChange}
             />
             <CalendarStatusLegend />
           </CardContent>
@@ -601,8 +615,10 @@ export function AppointmentsPage() {
             isLoading={isLoadingAppointments}
             isRefreshing={isRefreshingAppointments}
             isError={!!errorFeedback || hasAppointmentsError}
+            updatingStatusAppointmentId={updatingStatusAppointmentId}
             onRetry={refetchAppointments}
             onSelectEvent={handleAgendaItemClick}
+            onStatusChange={handleAppointmentStatusChange}
           />
         </div>
       </div>
