@@ -20,7 +20,7 @@ export function useCreateCustomer() {
   return useMutation({
     mutationFn: async (values: CustomerFormValues) => {
       const customerResponse = await createCustomer(mapCustomerFormToPayload(values));
-      const vehiclePayload = mapVehicleFormToPayload(values.vehicle);
+      const vehiclePayload = mapVehicleFormToPayload(values);
 
       if (vehiclePayload) {
         await createCustomerVehicle(customerResponse.customer.id, vehiclePayload);

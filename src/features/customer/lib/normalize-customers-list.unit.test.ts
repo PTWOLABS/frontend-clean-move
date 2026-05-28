@@ -3,22 +3,28 @@ import { describe, expect, it } from "vitest";
 import { normalizeCustomersList } from "./normalize-customers-list";
 
 describe("normalizeCustomersList", () => {
-  it("maps customers and totalItems to CustomersPage", () => {
+  it("maps customers, totalItems and primaryVehicle from vehicles", () => {
     const result = normalizeCustomersList(
       {
-        customers: [{ id: "c1" } as never],
+        customers: [
+          {
+            id: "c1",
+            vehicles: [{ id: "v1", plate: "ABC1234", brand: "Toyota", model: "Corolla" } as never],
+            vehiclesCount: 2,
+          } as never,
+        ],
         totalItems: 42,
       },
       2,
       10,
     );
 
-    expect(result).toEqual({
-      items: [{ id: "c1" }],
-      total: 42,
-      page: 2,
-      size: 10,
-    });
+    expect(result.total).toBe(42);
+    expect(result.page).toBe(2);
+    expect(result.size).toBe(10);
+    expect(result.items[0]?.id).toBe("c1");
+    expect(result.items[0]?.primaryVehicle?.id).toBe("v1");
+    expect(result.items[0]?.vehiclesCount).toBe(2);
   });
 
   it("returns empty page when body is null", () => {

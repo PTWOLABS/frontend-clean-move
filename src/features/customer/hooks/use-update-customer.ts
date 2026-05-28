@@ -27,7 +27,7 @@ export function useUpdateCustomer() {
     mutationFn: async ({ customerId, values }: UpdateCustomerArgs) => {
       await updateCustomer(customerId, mapCustomerFormToPayload(values));
 
-      const vehiclePayload = mapVehicleFormToPayload(values.vehicle);
+      const vehiclePayload = mapVehicleFormToPayload(values);
 
       if (!vehiclePayload) return;
 

@@ -17,7 +17,6 @@ import { ApiError } from "@/shared/api/httpClient";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 
 import { useCustomers } from "../hooks/use-customers";
-import { useCustomerVehicles } from "../hooks/use-customer-vehicles";
 import { useDeleteCustomer } from "../hooks/use-delete-customer";
 import type { CustomerWithPrimaryVehicle } from "../types";
 import { CustomerCatalogHeader } from "./customer-catalog-header";
@@ -27,6 +26,7 @@ import { CustomerCatalogPagination } from "./customer-catalog-pagination";
 import { CustomerCatalogTable } from "./customer-catalog-table";
 import { CustomerCatalogToolbar } from "./customer-catalog-toolbar";
 import { CustomerFormSheet } from "./customer-form-sheet";
+import { CustomerVehiclesDialog } from "./customer-vehicles-dialog";
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -37,6 +37,8 @@ export function CustomerCatalog() {
   const [customerSheetOpen, setCustomerSheetOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<CustomerWithPrimaryVehicle | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CustomerWithPrimaryVehicle | null>(null);
+  const [vehiclesDialogCustomer, setVehiclesDialogCustomer] =
+    useState<CustomerWithPrimaryVehicle | null>(null);
 
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
@@ -50,21 +52,9 @@ export function CustomerCatalog() {
 
   const { data } = customersQuery;
   const total = data?.total ?? 0;
-  const customers = useMemo(() => data?.items ?? [], [data?.items]);
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const displayedPage = data?.page ?? page;
-
-  const vehicleQueries = useCustomerVehicles(customers.map((item) => item.id));
-
-  const customersWithVehicle = useMemo(() => {
-    return customers.map((customer, index) => ({
-      ...customer,
-      primaryVehicle: vehicleQueries[index]?.data?.vehicles?.[0] ?? null,
-    }));
-  }, [customers, vehicleQueries]);
-
-  const isLoadingVehicles = vehicleQueries.some((query) => query.isLoading);
-  const isErrorVehicles = vehicleQueries.some((query) => query.isError);
 
   if (customersQuery.isError) {
     const message =
@@ -87,25 +77,7 @@ export function CustomerCatalog() {
     );
   }
 
-  if (isErrorVehicles) {
-    return (
-      <Card className="border-destructive/40">
-        <CardHeader>
-          <CardTitle className="text-destructive">Erro ao carregar veículos</CardTitle>
-          <CardDescription className="text-destructive/90">
-            Não foi possível carregar o veículo principal de um ou mais clientes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button type="button" variant="outline" onClick={() => customersQuery.refetch()}>
-            Tentar novamente
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const showListSkeleton = (customersQuery.isLoading && !data) || isLoadingVehicles;
+  const showListSkeleton = customersQuery.isLoading && !data;
 
   return (
     <div className="space-y-6">
@@ -124,6 +96,14 @@ export function CustomerCatalog() {
           if (!open) setEditingCustomer(null);
         }}
         editingCustomer={editingCustomer}
+      />
+
+      <CustomerVehiclesDialog
+        customer={vehiclesDialogCustomer}
+        open={vehiclesDialogCustomer !== null}
+        onOpenChange={(open) => {
+          if (!open) setVehiclesDialogCustomer(null);
+        }}
       />
 
       <AlertDialog
@@ -171,27 +151,29 @@ export function CustomerCatalog() {
 
           {showListSkeleton ? (
             <CustomerCatalogListSkeleton count={PAGE_SIZE} />
-          ) : customersWithVehicle.length === 0 ? (
+          ) : items.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
               Nenhum cliente encontrado para os filtros atuais.
             </p>
           ) : (
             <>
               <CustomerCatalogTable
-                items={customersWithVehicle}
+                items={items}
                 onEdit={(item) => {
                   setEditingCustomer(item);
                   setCustomerSheetOpen(true);
                 }}
                 onDelete={(item) => setDeleteTarget(item)}
+                onShowAllVehicles={setVehiclesDialogCustomer}
               />
               <CustomerCatalogMobileCards
-                items={customersWithVehicle}
+                items={items}
                 onEdit={(item) => {
                   setEditingCustomer(item);
                   setCustomerSheetOpen(true);
                 }}
                 onDelete={(item) => setDeleteTarget(item)}
+                onShowAllVehicles={setVehiclesDialogCustomer}
               />
             </>
           )}

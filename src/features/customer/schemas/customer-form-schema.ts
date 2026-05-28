@@ -3,19 +3,12 @@ import { z } from "zod";
 import type {
   CreateCustomerPayload,
   CreateCustomerVehiclePayload,
+  CustomerAddress,
   CustomerDto,
   CustomerVehicleDto,
 } from "../types";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
-
-const optionalTrimmed = z
-  .string()
-  .optional()
-  .transform((value) => {
-    const parsed = value?.trim();
-    return parsed ? parsed : undefined;
-  });
 
 const optionalNullableTrimmed = z
   .string()
@@ -55,71 +48,136 @@ const birthDateField = z
     message: "Informe uma data de nascimento válida.",
   });
 
-const addressSchema = z
-  .object({
-    street: optionalTrimmed,
-    complement: optionalTrimmed,
-    country: optionalTrimmed,
-    state: optionalTrimmed,
-    zipCode: optionalTrimmed,
-    city: optionalTrimmed,
-  })
-  .transform((value) => {
-    if (!value.street || !value.country || !value.state || !value.zipCode || !value.city) {
-      return null;
-    }
+const addressFieldsSchema = z.object({
+  street: z.string().optional(),
+  complement: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  city: z.string().optional(),
+});
 
-    return {
-      street: value.street,
-      complement: value.complement,
-      country: value.country,
-      state: value.state,
-      zipCode: value.zipCode,
-      city: value.city,
-    };
-  });
+const vehicleFieldsSchema = z.object({
+  id: z.string().optional(),
+  plate: z.string().optional(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  color: z.string().optional(),
+  year: z.union([z.string(), z.number()]).optional(),
+  notes: z.string().optional(),
+});
 
-const vehicleYearField = z
-  .union([z.string(), z.number()])
-  .optional()
-  .transform((value) => {
-    if (value === undefined || value === null || value === "") return undefined;
-    if (typeof value === "number") return value;
-    return Number(value);
-  })
-  .refine((value) => value === undefined || (Number.isInteger(value) && value >= 1900), {
-    message: "Ano do veículo inválido (mínimo 1900).",
-  });
+export const emptyAddressFormValues: z.infer<typeof addressFieldsSchema> = {
+  street: "",
+  complement: "",
+  country: "Brasil",
+  state: "",
+  zipCode: "",
+  city: "",
+};
 
-const vehiclePlateField = z
-  .string()
-  .optional()
-  .transform((value) => {
-    if (!value) return undefined;
-    const normalized = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-    return normalized || undefined;
-  })
-  .refine((value) => !value || value.length === 7, {
-    message: "Placa inválida. Informe 7 caracteres.",
-  });
+export const emptyVehicleFormValues: z.infer<typeof vehicleFieldsSchema> = {
+  id: undefined,
+  plate: "",
+  brand: "",
+  model: "",
+  color: "",
+  year: undefined,
+  notes: "",
+};
 
-export const customerFormSchema = z.object({
+function normalizePlate(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  return normalized || undefined;
+}
+
+function parseVehicleYear(value: string | number | undefined): number | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value === "number") return value;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+export function hasCompleteAddress(address?: CustomerAddress | null): boolean {
+  if (!address) return false;
+  return Boolean(
+    address.street?.trim() &&
+      address.city?.trim() &&
+      address.state?.trim() &&
+      address.zipCode?.trim() &&
+      address.country?.trim(),
+  );
+}
+
+export function hasVehicleData(vehicle?: CustomerVehicleDto | null): boolean {
+  if (!vehicle) return false;
+  return Boolean(
+    vehicle.plate?.trim() ||
+      vehicle.brand?.trim() ||
+      vehicle.model?.trim() ||
+      vehicle.color?.trim() ||
+      vehicle.year != null ||
+      vehicle.notes?.trim(),
+  );
+}
+
+const customerFormBaseSchema = z.object({
   fullName: z.string().trim().min(1, "Informe o nome completo."),
   phone: phoneField,
   email: z.email("Informe um e-mail válido."),
   cpfCnpj: cpfCnpjField,
   nickname: optionalNullableTrimmed,
   birthDate: birthDateField,
-  address: addressSchema.optional(),
-  vehicle: z.object({
-    id: z.string().optional(),
-    plate: vehiclePlateField,
-    brand: optionalTrimmed,
-    model: optionalTrimmed,
-    color: optionalTrimmed,
-    year: vehicleYearField,
-    notes: optionalTrimmed,
-  }),
+  includeAddress: z.boolean(),
+  includeVehicle: z.boolean(),
+  address: addressFieldsSchema,
+  vehicle: vehicleFieldsSchema,
+});
+
+export const customerFormSchema = customerFormBaseSchema.superRefine((data, ctx) => {
+  if (data.includeAddress) {
+    const requiredAddressFields: Array<{
+      key: keyof z.infer<typeof addressFieldsSchema>;
+      message: string;
+    }> = [
+      { key: "street", message: "Informe a rua." },
+      { key: "city", message: "Informe a cidade." },
+      { key: "state", message: "Informe a UF." },
+      { key: "zipCode", message: "Informe o CEP." },
+      { key: "country", message: "Informe o país." },
+    ];
+
+    for (const { key, message } of requiredAddressFields) {
+      if (!data.address[key]?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["address", key],
+          message,
+        });
+      }
+    }
+  }
+
+  if (!data.includeVehicle) return;
+
+  const plate = normalizePlate(data.vehicle.plate);
+  if (plate && plate.length !== 7) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["vehicle", "plate"],
+      message: "Placa inválida. Informe 7 caracteres.",
+    });
+  }
+
+  const year = parseVehicleYear(data.vehicle.year);
+  if (year !== undefined && (!Number.isInteger(year) || year < 1900)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["vehicle", "year"],
+      message: "Ano do veículo inválido (mínimo 1900).",
+    });
+  }
 });
 
 export type CustomerFormInput = z.input<typeof customerFormSchema>;
@@ -132,28 +190,15 @@ export const customerFormDefaultValues: CustomerFormInput = {
   cpfCnpj: "",
   nickname: "",
   birthDate: "",
-  address: {
-    street: "",
-    complement: "",
-    country: "Brasil",
-    state: "",
-    zipCode: "",
-    city: "",
-  },
-  vehicle: {
-    id: undefined,
-    plate: "",
-    brand: "",
-    model: "",
-    color: "",
-    year: undefined,
-    notes: "",
-  },
+  includeAddress: false,
+  includeVehicle: false,
+  address: emptyAddressFormValues,
+  vehicle: emptyVehicleFormValues,
 };
 
 export function customerToFormDefaults(
   customer: CustomerDto,
-  primaryVehicle?: CustomerVehicleDto | null,
+  primaryVehicle: CustomerVehicleDto | null | undefined = customer.vehicles?.[0],
 ): CustomerFormInput {
   return {
     fullName: customer.fullName ?? "",
@@ -162,6 +207,8 @@ export function customerToFormDefaults(
     cpfCnpj: customer.cpfCnpj ?? "",
     nickname: customer.nickname ?? "",
     birthDate: customer.birthDate ? customer.birthDate.slice(0, 10) : "",
+    includeAddress: hasCompleteAddress(customer.address),
+    includeVehicle: hasVehicleData(primaryVehicle),
     address: {
       street: customer.address?.street ?? "",
       complement: customer.address?.complement ?? "",
@@ -182,6 +229,31 @@ export function customerToFormDefaults(
   };
 }
 
+function buildAddressPayload(
+  address: CustomerFormValues["address"],
+): CustomerAddress | null {
+  const street = address.street?.trim();
+  const city = address.city?.trim();
+  const state = address.state?.trim();
+  const zipCode = address.zipCode?.trim();
+  const country = address.country?.trim();
+
+  if (!street || !city || !state || !zipCode || !country) {
+    return null;
+  }
+
+  const complement = address.complement?.trim();
+
+  return {
+    street,
+    city,
+    state,
+    zipCode,
+    country,
+    ...(complement ? { complement } : {}),
+  };
+}
+
 export function mapCustomerFormToPayload(values: CustomerFormValues): CreateCustomerPayload {
   return {
     fullName: values.fullName.trim(),
@@ -190,20 +262,29 @@ export function mapCustomerFormToPayload(values: CustomerFormValues): CreateCust
     cpfCnpj: values.cpfCnpj ?? null,
     nickname: values.nickname ?? null,
     birthDate: values.birthDate ?? null,
-    address: values.address ?? null,
+    address: values.includeAddress ? buildAddressPayload(values.address) : null,
   };
 }
 
 export function mapVehicleFormToPayload(
-  values: CustomerFormValues["vehicle"],
+  values: CustomerFormValues,
 ): CreateCustomerVehiclePayload | null {
+  if (!values.includeVehicle) return null;
+
+  const plate = normalizePlate(values.vehicle.plate);
+  const brand = values.vehicle.brand?.trim() || undefined;
+  const model = values.vehicle.model?.trim() || undefined;
+  const color = values.vehicle.color?.trim() || undefined;
+  const year = parseVehicleYear(values.vehicle.year);
+  const notes = values.vehicle.notes?.trim() || undefined;
+
   const payload: CreateCustomerVehiclePayload = {
-    plate: values.plate,
-    brand: values.brand,
-    model: values.model,
-    color: values.color,
-    year: values.year,
-    notes: values.notes,
+    plate,
+    brand,
+    model,
+    color,
+    year: year !== undefined && Number.isInteger(year) ? year : undefined,
+    notes,
   };
 
   const hasAnyValue = Object.values(payload).some(

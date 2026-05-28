@@ -10,16 +10,23 @@ import {
 } from "@/components/ui/table";
 import { RowIconActions } from "@/shared/components/row-icon-actions";
 
-import { formatCpfCnpj, formatPhone, formatPrimaryVehicle } from "../lib/format-customer-catalog";
+import { formatCpfCnpj, formatPhone } from "../lib/format-customer-catalog";
 import type { CustomerWithPrimaryVehicle } from "../types";
+import { CustomerCatalogVehicleCell } from "./customer-catalog-vehicle-cell";
 
 type CustomerCatalogTableProps = {
   items: CustomerWithPrimaryVehicle[];
   onEdit: (item: CustomerWithPrimaryVehicle) => void;
   onDelete: (item: CustomerWithPrimaryVehicle) => void;
+  onShowAllVehicles: (item: CustomerWithPrimaryVehicle) => void;
 };
 
-export function CustomerCatalogTable({ items, onEdit, onDelete }: CustomerCatalogTableProps) {
+export function CustomerCatalogTable({
+  items,
+  onEdit,
+  onDelete,
+  onShowAllVehicles,
+}: CustomerCatalogTableProps) {
   return (
     <div className="hidden rounded-lg border border-border md:block">
       <Table>
@@ -60,7 +67,12 @@ export function CustomerCatalogTable({ items, onEdit, onDelete }: CustomerCatalo
                 </div>
               </TableCell>
               <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>
-              <TableCell>{formatPrimaryVehicle(item.primaryVehicle)}</TableCell>
+              <TableCell>
+                <CustomerCatalogVehicleCell
+                  customer={item}
+                  onShowAllVehicles={onShowAllVehicles}
+                />
+              </TableCell>
               <TableCell className="pr-4 text-right">
                 <RowIconActions
                   className="justify-end"

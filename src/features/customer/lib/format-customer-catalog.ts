@@ -1,4 +1,4 @@
-import type { CustomerVehicleDto } from "../types";
+import type { CustomerDto, CustomerVehicleDto } from "../types";
 
 export function formatCpfCnpj(value?: string | null): string {
   if (!value) return "-";
@@ -29,13 +29,26 @@ export function formatPhone(value: string): string {
   return value;
 }
 
-export function formatPrimaryVehicle(vehicle?: CustomerVehicleDto | null): string {
+export function formatVehicleName(vehicle?: CustomerVehicleDto | null): string {
   if (!vehicle) return "Sem veículo";
 
-  const plate = vehicle.plate?.trim();
-  const model = [vehicle.brand, vehicle.model].filter(Boolean).join(" ");
-  if (plate && model) return `${plate} - ${model}`;
-  if (plate) return plate;
+  const model = [vehicle.brand, vehicle.model].filter(Boolean).join(" ").trim();
   if (model) return model;
+
+  const plate = vehicle.plate?.trim();
+  if (plate) return plate;
+
   return "Sem veículo";
+}
+
+export function getCustomerVehiclesCount(customer: Pick<CustomerDto, "vehicles" | "vehiclesCount">): number {
+  if (typeof customer.vehiclesCount === "number" && customer.vehiclesCount >= 0) {
+    return customer.vehiclesCount;
+  }
+  return customer.vehicles?.length ?? 0;
+}
+
+/** @deprecated Prefer `formatVehicleName` na coluna de listagem. */
+export function formatPrimaryVehicle(vehicle?: CustomerVehicleDto | null): string {
+  return formatVehicleName(vehicle);
 }

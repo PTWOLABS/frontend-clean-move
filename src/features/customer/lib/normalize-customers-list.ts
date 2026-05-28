@@ -1,4 +1,11 @@
-import type { CustomersPage, ListCustomersResponse } from "../types";
+import type { CustomerDto, CustomersPage, CustomerWithPrimaryVehicle, ListCustomersResponse } from "../types";
+
+function mapCustomerToListItem(customer: CustomerDto): CustomerWithPrimaryVehicle {
+  return {
+    ...customer,
+    primaryVehicle: customer.vehicles?.[0] ?? null,
+  };
+}
 
 export function normalizeCustomersList(
   body: ListCustomersResponse | null | undefined,
@@ -9,7 +16,7 @@ export function normalizeCustomersList(
     return { items: [], total: 0, page, size };
   }
 
-  const items = body.customers ?? [];
+  const items = (body.customers ?? []).map(mapCustomerToListItem);
   const total =
     typeof body.totalItems === "number" && Number.isFinite(body.totalItems)
       ? body.totalItems

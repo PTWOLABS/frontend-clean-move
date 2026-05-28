@@ -3,7 +3,14 @@
 import { useEffect } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm, type Control, type FieldValues, type Resolver } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useWatch,
+  type Control,
+  type FieldValues,
+  type Resolver,
+} from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +24,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useCreateCustomer } from "../hooks/use-create-customer";
@@ -25,6 +33,8 @@ import {
   customerFormDefaultValues,
   customerFormSchema,
   customerToFormDefaults,
+  emptyAddressFormValues,
+  emptyVehicleFormValues,
   type CustomerFormInput,
   type CustomerFormValues,
 } from "../schemas/customer-form-schema";
@@ -44,21 +54,33 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const isPending = isCreatePending || isUpdatePending;
 
   const methods = useForm<CustomerFormInput, undefined, CustomerFormValues>({
-    resolver: zodResolver(customerFormSchema) as Resolver<CustomerFormInput, undefined, CustomerFormValues>,
+    resolver: zodResolver(customerFormSchema) as Resolver<
+      CustomerFormInput,
+      undefined,
+      CustomerFormValues
+    >,
     defaultValues: customerFormDefaultValues,
     mode: isEditMode ? "onChange" : "onBlur",
     reValidateMode: "onChange",
   });
 
-  const { control, reset, handleSubmit, formState } = methods;
+  const { control, reset, handleSubmit, setValue, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
+
+  const includeAddress = useWatch({ control, name: "includeAddress" });
+  const includeVehicle = useWatch({ control, name: "includeVehicle" });
 
   useEffect(() => {
     if (!open) return;
 
     if (editingCustomer) {
-      reset(customerToFormDefaults(editingCustomer, editingCustomer.primaryVehicle));
+      reset(
+        customerToFormDefaults(
+          editingCustomer,
+          editingCustomer.vehicles?.[0] ?? editingCustomer.primaryVehicle,
+        ),
+      );
       return;
     }
 
@@ -68,6 +90,20 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const handleCloseAfterSave = () => {
     reset(customerFormDefaultValues);
     onOpenChange(false);
+  };
+
+  const handleIncludeAddressChange = (checked: boolean) => {
+    setValue("includeAddress", checked, { shouldDirty: true, shouldValidate: true });
+    if (!checked) {
+      setValue("address", emptyAddressFormValues, { shouldDirty: true, shouldValidate: true });
+    }
+  };
+
+  const handleIncludeVehicleChange = (checked: boolean) => {
+    setValue("includeVehicle", checked, { shouldDirty: true, shouldValidate: true });
+    if (!checked) {
+      setValue("vehicle", emptyVehicleFormValues, { shouldDirty: true, shouldValidate: true });
+    }
   };
 
   const onSubmit = (values: CustomerFormValues) => {
@@ -102,7 +138,8 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
         <SheetHeader className="text-left">
           <SheetTitle>{isEditMode ? "Editar cliente" : "Novo cliente"}</SheetTitle>
           <SheetDescription>
-            Preencha os dados do cliente e, se desejar, cadastre também o veículo principal.
+            Preencha os dados principais do cliente. Use os toggles abaixo para incluir endereço ou
+            cadastrar um veículo, se necessário.
           </SheetDescription>
         </SheetHeader>
 
@@ -151,46 +188,99 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
               <InputField control={fieldControl} name="birthDate" label="Data de nascimento" type="date" />
             </div>
 
-            <div className="space-y-4 rounded-lg border border-border p-4">
-              <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
-              <InputField control={fieldControl} name="address.street" label="Rua" />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <InputField control={fieldControl} name="address.city" label="Cidade" />
-                <InputField control={fieldControl} name="address.state" label="UF" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <InputField control={fieldControl} name="address.zipCode" label="CEP" />
-                <InputField control={fieldControl} name="address.country" label="País" />
-              </div>
-              <InputField control={fieldControl} name="address.complement" label="Complemento" />
-            </div>
-
-            <div className="space-y-4 rounded-lg border border-border p-4">
-              <h3 className="text-sm font-semibold text-foreground">Veículo principal (opcional)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <InputField control={fieldControl} name="vehicle.plate" label="Placa" placeholder="ABC1234" />
-                <InputField control={fieldControl} name="vehicle.year" label="Ano" type="number" min={1900} />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <InputField control={fieldControl} name="vehicle.brand" label="Marca" />
-                <InputField control={fieldControl} name="vehicle.model" label="Modelo" />
-              </div>
-              <InputField control={fieldControl} name="vehicle.color" label="Cor" />
+            <div className="space-y-4">
               <FormField
                 control={fieldControl}
-                name="vehicle.notes"
-                label="Observações"
+                name="includeAddress"
+                label="Incluir endereço"
+                className="flex flex-row items-center justify-between rounded-lg border border-border p-4"
                 renderControl={false}
               >
                 {({ field }) => (
-                  <Textarea
-                    {...field}
-                    value={field.value ?? ""}
-                    rows={3}
-                    placeholder="Ex.: arranhão na lateral, película, etc."
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={handleIncludeAddressChange}
+                    aria-label="Incluir endereço"
+                    className="shrink-0"
                   />
                 )}
               </FormField>
+
+              {includeAddress ? (
+                <div className="space-y-4 rounded-lg border border-border p-4">
+                  <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
+                  <InputField control={fieldControl} name="address.street" label="Rua" required />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <InputField control={fieldControl} name="address.city" label="Cidade" required />
+                    <InputField control={fieldControl} name="address.state" label="UF" required />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <InputField control={fieldControl} name="address.zipCode" label="CEP" required />
+                    <InputField control={fieldControl} name="address.country" label="País" required />
+                  </div>
+                  <InputField control={fieldControl} name="address.complement" label="Complemento" />
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-4">
+              <FormField
+                control={fieldControl}
+                name="includeVehicle"
+                label="Incluir veículo"
+                className="flex flex-row items-center justify-between rounded-lg border border-border p-4"
+                renderControl={false}
+              >
+                {({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={handleIncludeVehicleChange}
+                    aria-label="Incluir veículo"
+                    className="shrink-0"
+                  />
+                )}
+              </FormField>
+
+              {includeVehicle ? (
+                <div className="space-y-4 rounded-lg border border-border p-4">
+                  <h3 className="text-sm font-semibold text-foreground">Veículo principal</h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <InputField
+                      control={fieldControl}
+                      name="vehicle.plate"
+                      label="Placa"
+                      placeholder="ABC1234"
+                    />
+                    <InputField
+                      control={fieldControl}
+                      name="vehicle.year"
+                      label="Ano"
+                      type="number"
+                      min={1900}
+                    />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <InputField control={fieldControl} name="vehicle.brand" label="Marca" />
+                    <InputField control={fieldControl} name="vehicle.model" label="Modelo" />
+                  </div>
+                  <InputField control={fieldControl} name="vehicle.color" label="Cor" />
+                  <FormField
+                    control={fieldControl}
+                    name="vehicle.notes"
+                    label="Observações"
+                    renderControl={false}
+                  >
+                    {({ field }) => (
+                      <Textarea
+                        {...field}
+                        value={field.value ?? ""}
+                        rows={3}
+                        placeholder="Ex.: arranhão na lateral, película, etc."
+                      />
+                    )}
+                  </FormField>
+                </div>
+              ) : null}
             </div>
 
             <SheetFooter className="mt-auto flex-col gap-2 border-t border-border p-0 pt-4 sm:flex-row sm:justify-end">

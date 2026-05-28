@@ -24,6 +24,8 @@ export type CustomerDto = {
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  vehicles?: CustomerVehicleDto[];
+  vehiclesCount?: number;
 };
 
 export type CustomerVehicleDto = {
@@ -65,7 +67,7 @@ export type ListCustomerVehiclesResponse = {
 
 /** Resposta normalizada no frontend após `listCustomers`. */
 export type CustomersPage = {
-  items: CustomerDto[];
+  items: CustomerWithPrimaryVehicle[];
   total: number;
   page: number;
   size: number;
