@@ -35,7 +35,7 @@ export const appointmentsCalendarViews = {
   dayGridMonth: {
     fixedWeekCount: true,
     showNonCurrentDates: true,
-    dayMaxEvents: 3,
+    dayMaxEvents: 2,
   },
   timeGridWeek: {
     dayHeaderFormat: { weekday: "short", day: "numeric" },

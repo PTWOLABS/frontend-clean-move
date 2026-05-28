@@ -16,9 +16,13 @@ type MonthCellIndicatorTarget = {
 
 type UseMonthCellIndicatorsOptions = {
   onMonthCellPress: (date: Date) => void;
+  onCellAddIndicatorPress: (open: boolean) => void;
 };
 
-export function useMonthCellIndicators({ onMonthCellPress }: UseMonthCellIndicatorsOptions) {
+export function useMonthCellIndicators({
+  onMonthCellPress,
+  onCellAddIndicatorPress,
+}: UseMonthCellIndicatorsOptions) {
   const [targets, setTargets] = useState<MonthCellIndicatorTarget[]>([]);
 
   const handleMonthCellDidMount = useCallback((arg: DayCellMountArg) => {
@@ -73,13 +77,16 @@ export function useMonthCellIndicators({ onMonthCellPress }: UseMonthCellIndicat
                 onMonthCellPress(target.date);
               }}
             >
-              <CalendarCellAddIndicator className={styles.monthCellIndicatorIcon} />
+              <CalendarCellAddIndicator
+                className={styles.monthCellIndicatorIcon}
+                onClick={onCellAddIndicatorPress}
+              />
             </button>,
             target.frameElement,
             target.key,
           ),
         ),
-    [onMonthCellPress, targets],
+    [onMonthCellPress, targets, onCellAddIndicatorPress],
   );
 
   const renderMonthDayCellContent = useCallback((arg: DayCellContentArg) => arg.dayNumberText, []);

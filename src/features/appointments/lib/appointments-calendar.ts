@@ -13,34 +13,38 @@ import type {
 type AppointmentListItem = AppointmentDTO["appointments"][number];
 
 const DEFAULT_APPOINTMENT_DURATION_IN_MINUTES = 60;
-const DEFAULT_ATTENDANTS = ["Patricia Costa", "Lucas Martins"];
-const FALLBACK_CUSTOMER_NAMES = [
-  "Ana Martins",
-  "Bruno Costa",
-  "Carla Souza",
-  "Diego Lima",
-  "Fernanda Rocha",
-  "Mariana Alves",
-];
+const FALLBACK_CUSTOMER_LABEL = "Cliente não informado";
+const API_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
 
 function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: AppointmentCalendarEvent) {
-  return left.start.getTime() - right.start.getTime();
+  return left.startsAt.getTime() - right.startsAt.getTime();
 }
 
-function getStableIndex(seed: string, size: number) {
-  return [...seed].reduce((total, character) => total + character.charCodeAt(0), 0) % size;
+function getCustomerLabel(appointment: AppointmentListItem) {
+  const customerLabel = appointment.customer?.fullName;
+
+  return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
 }
 
-function getFallbackCustomerName(appointmentId: string) {
-  return FALLBACK_CUSTOMER_NAMES[getStableIndex(appointmentId, FALLBACK_CUSTOMER_NAMES.length)]!;
-}
+function parseAppointmentDateTime(value: string) {
+  const match = API_DATE_TIME_PATTERN.exec(value);
 
-function getFallbackAttendants(appointmentId: string) {
-  const startIndex = getStableIndex(appointmentId, DEFAULT_ATTENDANTS.length);
-  return [
-    DEFAULT_ATTENDANTS[startIndex]!,
-    DEFAULT_ATTENDANTS[(startIndex + 1) % DEFAULT_ATTENDANTS.length]!,
-  ];
+  if (!match) {
+    return new Date(value);
+  }
+
+  const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = match;
+
+  // Appointment times are scheduled wall-clock values; keep the API components intact.
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+    Number(millisecond.slice(0, 3).padEnd(3, "0")),
+  );
 }
 
 function getServicesSummary(appointment: AppointmentListItem) {
@@ -94,7 +98,7 @@ function getAppointmentDurationInMinutes(appointment: AppointmentListItem) {
 
 function getAppointmentEnd(appointment: AppointmentListItem, start: Date) {
   if (appointment.endsAt) {
-    return new Date(appointment.endsAt);
+    return parseAppointmentDateTime(appointment.endsAt);
   }
 
   return addMinutes(start, getAppointmentDurationInMinutes(appointment));
@@ -114,22 +118,20 @@ function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
 export function mapAppointmentToCalendarEvent(
   appointment: AppointmentListItem,
 ): AppointmentCalendarEvent {
-  const start = new Date(appointment.startsAt);
+  const start = parseAppointmentDateTime(appointment.startsAt);
   const end = getAppointmentEnd(appointment, start);
   const services = getServicesSummary(appointment);
 
   return {
     id: appointment.id,
     title: services.title,
-    start,
+    startsAt: start,
     end,
     extendedProps: {
-      customer: getFallbackCustomerName(appointment.id),
+      customer: getCustomerLabel(appointment),
       service: services.label,
       vehicle: getVehicleLabel(appointment),
-      attendants: getFallbackAttendants(appointment.id),
       notes: appointment.description?.trim() || "Sem observações operacionais.",
-      reminder: "Lembrete automático padrão",
       tone: getAppointmentTone(appointment.status),
       status: appointment.status,
     },
@@ -145,7 +147,7 @@ export function mapAppointmentsToCalendarEvents(
 }
 
 export function getAppointmentsForDate(events: AppointmentCalendarEvent[], date: Date) {
-  return events.filter((event) => isSameDay(event.start, date)).sort(sortAppointmentsByStart);
+  return events.filter((event) => isSameDay(event.startsAt, date)).sort(sortAppointmentsByStart);
 }
 
 export function findNextAppointment(events: AppointmentCalendarEvent[], now: Date = new Date()) {
@@ -153,7 +155,7 @@ export function findNextAppointment(events: AppointmentCalendarEvent[], now: Dat
     events
       .filter(
         (event) =>
-          event.extendedProps.status !== "CANCELLED" && event.start.getTime() >= now.getTime(),
+          event.extendedProps.status !== "CANCELLED" && event.startsAt.getTime() >= now.getTime(),
       )
       .sort(sortAppointmentsByStart)[0] ?? null
   );

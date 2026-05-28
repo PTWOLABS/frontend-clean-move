@@ -1,4 +1,8 @@
-import { AppointmentsFilters } from "@/features/appointments/types/api-filters";
+import {
+  AppointmentsFilters,
+  OptionsFilters,
+  VehicleOptionsFilters,
+} from "@/features/appointments/types/api-filters";
 
 export const QUERY_KEYS = {
   authSession: ["auth", "session"] as const,
@@ -22,6 +26,10 @@ export const QUERY_KEYS = {
     filters ? (["customers", filters] as const) : (["customers"] as const),
   vehicles: (customerId: string, filters?: { page?: number; size?: number }) =>
     filters ? (["vehicles", customerId, filters] as const) : (["vehicles", customerId] as const),
-  vehicleOptions: (filters?: { search?: string; customerId?: string; limit?: number }) =>
-    filters ? (["vehicle-options", filters] as const) : (["vehicle-options"] as const),
+  serviceOptions: (filters?: OptionsFilters) =>
+    filters ? (["services", "options", filters] as const) : (["services", "options"] as const),
+  customerOptions: (filters?: OptionsFilters) =>
+    ["customers", ...(filters ? [filters] : [])] as const,
+  vehicleOptions: (filters?: VehicleOptionsFilters) =>
+    ["vehicle", ...(filters ? [filters] : [])] as const,
 };
