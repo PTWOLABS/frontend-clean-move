@@ -3,6 +3,7 @@ import type {
   UpdateVehiclePayload,
   VehicleDto,
 } from "@/features/vehicle/types";
+import type { OptionsQuery } from "@/shared/types/options-query";
 
 export type CustomerAddress = {
   street: string;
@@ -41,6 +42,8 @@ export type ListCustomersQuery = {
   page?: number;
   size?: number;
 };
+
+export type CustomerOptionsQuery = OptionsQuery;
 
 export type ListCustomerVehiclesQuery = {
   page?: number;

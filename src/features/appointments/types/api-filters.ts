@@ -1,3 +1,5 @@
+import type { VehicleOptionsQuery } from "@/features/vehicle/types";
+import type { OptionsQuery } from "@/shared/types/options-query";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 
 export type AppointmentsFilters = {
@@ -22,11 +24,6 @@ export type AppointmentsCalendarFilters = {
   status?: AppointmentStatus[];
 };
 
-export type OptionsFilters = {
-  limit?: number;
-  search?: string;
-};
+export type OptionsFilters = OptionsQuery;
 
-export type VehicleOptionsFilters = {
-  customerId?: string;
-} & OptionsFilters;
+export type VehicleOptionsFilters = VehicleOptionsQuery;

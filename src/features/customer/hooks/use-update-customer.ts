@@ -38,9 +38,9 @@ export function useUpdateCustomer() {
         await createVehicle(customerId, vehiclePayload);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, { customerId }) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
-      void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles(customerId) });
       toast.success("Cliente atualizado com sucesso.");
     },
     onError: (error) => {
