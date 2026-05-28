@@ -42,6 +42,15 @@ describe("UpcomingAppointmentsCard", () => {
     expect(screen.getByText("Serviço 5")).toBeInTheDocument();
     expect(screen.queryByText("Serviço 6")).not.toBeInTheDocument();
   });
+
+  it("renders a loading state", () => {
+    render(<UpcomingAppointmentsCard isLoading />);
+
+    expect(
+      screen.getByRole("status", { name: /carregando próximos agendamentos/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum próximo agendamento.")).not.toBeInTheDocument();
+  });
 });
 
 describe("NextAppointmentItem", () => {

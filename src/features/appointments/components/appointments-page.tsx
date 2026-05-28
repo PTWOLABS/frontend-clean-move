@@ -174,6 +174,12 @@ function resolveCalendarToolbarTitle(arg: DatesSetArg, view: AppointmentCalendar
   return formatCalendarToolbarTitle(titleStart, titleEnd, view);
 }
 
+function getVehiclePlate(vehicle: string) {
+  const plate = vehicle.trim().slice(-7);
+
+  return plate;
+}
+
 type AppointmentsDateFilterProps = {
   value: Date;
   onChange: (date: Date) => void;
@@ -327,7 +333,10 @@ export function AppointmentsPage() {
         id: event.id,
         startsAt: event.startsAt,
         serviceName: event.extendedProps.service,
-        vehiclePlate: event.extendedProps.vehicle,
+        vehiclePlate:
+          event.extendedProps.vehicle === "Veículo não informado"
+            ? "-------"
+            : getVehiclePlate(event.extendedProps.vehicle),
         tone: event.extendedProps.tone,
         customerName: event.extendedProps.customer,
       }));
@@ -573,8 +582,11 @@ export function AppointmentsPage() {
           </CardContent>
         </Card>
 
-        <div className="min-w-0 space-y-4 xl:flex xl:max-h-[43rem] xl:flex-col xl:space-y-0 xl:overflow-hidden ">
-          <UpcomingAppointmentsCard appointments={upcommingFiveAppointments} />
+        <div className="flex min-h-0 min-w-0 flex-col gap-4 h-full xl:max-h-[52rem] xl:overflow-hidden">
+          <UpcomingAppointmentsCard
+            appointments={upcommingFiveAppointments}
+            isLoading={isLoadingAppointments}
+          />
           <AppointmentsDayAgendaCard
             selectedDate={resolvedSelectedDate}
             selectedEventId={resolvedSelectedEventId}

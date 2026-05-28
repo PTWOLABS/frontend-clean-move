@@ -21,6 +21,23 @@ const appointmentEvent: AppointmentCalendarEvent = {
 };
 
 describe("AppointmentsDayAgendaCard", () => {
+  it("renders a loading state", () => {
+    render(
+      <AppointmentsDayAgendaCard
+        selectedDate={new Date("2026-05-20T12:00:00.000Z")}
+        selectedEventId={null}
+        events={[]}
+        isLoading
+        isError={false}
+        onRetry={vi.fn()}
+        onSelectEvent={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("status", { name: /carregando agenda do dia/i })).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum agendamento neste dia.")).not.toBeInTheDocument();
+  });
+
   it("calls onSelectEvent when the user clicks an agenda item", async () => {
     const user = userEvent.setup();
     const onSelectEvent = vi.fn();
