@@ -3,10 +3,10 @@
 import type { CSSProperties } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, CarFront, Pencil, UserRound, Wrench, X } from "lucide-react";
+import { CalendarClock, CarFront, UserRound, Wrench, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 import { cn } from "@/shared/utils/cn";
 
@@ -55,18 +55,24 @@ export function CalendarEventDetailsPopover({
           <p className={styles.eventDetailsSubtitle}>{event.extendedProps.service}</p>
         </div>
 
-        <button
-          type="button"
-          className={styles.eventDetailsClose}
-          aria-label="Fechar detalhes do agendamento"
-          onClick={onClose}
-        >
-          <X className="size-4" aria-hidden />
-        </button>
+        <HintTooltipProvider>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <HintTooltip label="Fechar" side="bottom">
+              <button
+                type="button"
+                className={styles.eventDetailsIconAction}
+                aria-label="Fechar detalhes do agendamento"
+                onClick={onClose}
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </HintTooltip>
+          </div>
+        </HintTooltipProvider>
       </div>
 
       <div className={styles.eventDetailsBody}>
-        <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center justify-between gap-3">
           <Badge
             variant="outline"
             className={cn(
@@ -80,20 +86,10 @@ export function CalendarEventDetailsPopover({
             appointmentId={event.id}
             currentStatus={event.extendedProps.status}
             isUpdating={isUpdatingStatus}
+            onEdit={() => onEdit(event)}
             onStatusChange={onStatusChange}
           />
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="mb-3 h-9 w-full justify-center rounded-xl"
-          onClick={() => onEdit(event)}
-        >
-          <Pencil className="size-4" aria-hidden />
-          Editar agendamento
-        </Button>
 
         <div className={styles.eventDetailsInfoList}>
           <div className={styles.eventDetailsInfoRow}>

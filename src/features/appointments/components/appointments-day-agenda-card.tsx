@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarCheck2, CarFront, Clock3, Pencil, RotateCcw } from "lucide-react";
+import { CalendarCheck2, CarFront, Clock3, RotateCcw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -118,7 +118,7 @@ export function AppointmentsDayAgendaCard({
                   isActive && "border-accent/50 bg-accent-soft/45",
                 )}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => onSelectEvent(event)}
@@ -157,18 +157,9 @@ export function AppointmentsDayAgendaCard({
                       appointmentId={event.id}
                       currentStatus={event.extendedProps.status}
                       isUpdating={updatingStatusAppointmentId === event.id}
+                      onEdit={() => onEditEvent(event)}
                       onStatusChange={onStatusChange}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 rounded-full text-muted-foreground hover:text-foreground"
-                      aria-label={`Editar agendamento ${event.title}`}
-                      onClick={() => onEditEvent(event)}
-                    >
-                      <Pencil className="size-4" aria-hidden />
-                    </Button>
                   </div>
                 </div>
               </div>

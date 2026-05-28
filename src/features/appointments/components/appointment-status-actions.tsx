@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarClock, CheckCircle2, Loader2, Settings, XCircle } from "lucide-react";
+import { CalendarClock, CheckCircle2, Loader2, Pencil, Settings, XCircle } from "lucide-react";
 
 import {
   AlertDialog,
@@ -31,6 +31,7 @@ type AppointmentStatusActionsProps = {
   appointmentId: string;
   currentStatus: AppointmentStatus;
   isUpdating: boolean;
+  onEdit?: () => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
@@ -60,6 +61,7 @@ export function AppointmentStatusActions({
   appointmentId,
   currentStatus,
   isUpdating,
+  onEdit,
   onStatusChange,
 }: AppointmentStatusActionsProps) {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -85,12 +87,14 @@ export function AppointmentStatusActions({
   const availableActions = appointmentStatusActions.filter(
     (action) => action.status !== currentStatus,
   );
+  const actionsLabel = onEdit ? "Ações do agendamento" : "Alterar status";
+  const actionsAriaLabel = onEdit ? "Ações do agendamento" : "Alterar status do agendamento";
 
   return (
     <AlertDialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
       <DropdownMenu>
         <HintTooltipProvider>
-          <HintTooltip label="Alterar status" side="left">
+          <HintTooltip label={actionsLabel} side="left">
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
@@ -98,7 +102,7 @@ export function AppointmentStatusActions({
                 size="icon"
                 className="size-8 shrink-0 rounded-xl border-border/70 bg-background/70"
                 disabled={isUpdating}
-                aria-label="Alterar status do agendamento"
+                aria-label={actionsAriaLabel}
               >
                 {isUpdating ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -110,6 +114,18 @@ export function AppointmentStatusActions({
           </HintTooltip>
         </HintTooltipProvider>
         <DropdownMenuContent align="end" className="w-56">
+          {onEdit ? (
+            <>
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                Ações
+              </DropdownMenuLabel>
+              <DropdownMenuItem disabled={isUpdating} onSelect={onEdit}>
+                <Pencil className="size-4" aria-hidden />
+                Editar agendamento
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
             Status atual: {getStatusLabel(currentStatus)}
           </DropdownMenuLabel>
