@@ -6,9 +6,18 @@ export type AppointmentCalendarView = "dayGridMonth" | "timeGridWeek" | "timeGri
 export type AppointmentTone = "primary" | "accent" | "success" | "warning" | "danger" | "info";
 
 export type AppointmentExtendedProps = {
+  customerId: string;
   customer: string;
+  serviceIds: {
+    value: string;
+    label: string;
+  }[];
   service: string;
+  vehicleId: string;
   vehicle: string;
+  endsAt: Date | null;
+  description: string;
+  discountValue: string;
   notes: string;
   tone: AppointmentTone;
   status: AppointmentStatus;

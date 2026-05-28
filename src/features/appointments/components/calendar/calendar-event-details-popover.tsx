@@ -3,9 +3,10 @@
 import type { CSSProperties } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, CarFront, UserRound, Wrench, X } from "lucide-react";
+import { CalendarClock, CarFront, Pencil, UserRound, Wrench, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 import { cn } from "@/shared/utils/cn";
 
@@ -25,6 +26,7 @@ type CalendarEventDetailsPopoverProps = {
   style: CSSProperties;
   isUpdatingStatus: boolean;
   onClose: () => void;
+  onEdit: (event: AppointmentCalendarEvent) => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
@@ -35,6 +37,7 @@ export function CalendarEventDetailsPopover({
   style,
   isUpdatingStatus,
   onClose,
+  onEdit,
   onStatusChange,
 }: CalendarEventDetailsPopoverProps) {
   return (
@@ -80,6 +83,17 @@ export function CalendarEventDetailsPopover({
             onStatusChange={onStatusChange}
           />
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mb-3 h-9 w-full justify-center rounded-xl"
+          onClick={() => onEdit(event)}
+        >
+          <Pencil className="size-4" aria-hidden />
+          Editar agendamento
+        </Button>
 
         <div className={styles.eventDetailsInfoList}>
           <div className={styles.eventDetailsInfoRow}>
