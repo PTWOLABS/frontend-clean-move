@@ -63,7 +63,7 @@ export function VehicleCatalogToolbar({
                 }
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60">
               {customers.map((customer) => (
                 <SelectItem key={customer.id} value={customer.id}>
                   {customer.fullName}
