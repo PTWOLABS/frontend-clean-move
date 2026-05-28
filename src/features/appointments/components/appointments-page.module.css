@@ -148,19 +148,19 @@
 .calendarFrame :global(.fc .fc-daygrid-day-frame) {
   display: flex;
   min-height: var(--appointment-month-cell-height);
-  height: var(--appointment-month-cell-height);
-  max-height: var(--appointment-month-cell-height);
+  height: 100%;
   flex-direction: column;
   overflow: hidden;
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day) {
+  position: relative;
   height: var(--appointment-month-cell-height);
   min-height: var(--appointment-month-cell-height);
 }
 
 .calendarFrame :global(.fc .fc-daygrid-day-frame) {
-  height: var(--appointment-month-cell-height) !important;
+  height: 100% !important;
   min-height: var(--appointment-month-cell-height) !important;
 }
 
@@ -174,18 +174,18 @@
   padding-bottom: 0.12rem;
 }
 
-.monthDayCell :global(.fc-daygrid-day-frame) {
+.monthDayCell {
   transition:
     background-color 160ms ease,
     box-shadow 160ms ease;
 }
 
-.monthDayCell:hover :global(.fc-daygrid-day-frame),
-.monthDayCellSelected :global(.fc-daygrid-day-frame) {
+.monthDayCell:hover,
+.monthDayCellSelected {
   background: hsl(var(--accent-soft) / 0.22);
 }
 
-.monthDayCellSelected :global(.fc-daygrid-day-frame) {
+.monthDayCellSelected {
   box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.28);
 }
 
@@ -374,11 +374,11 @@
   height: 2.25rem;
 }
 
-.calendarFrame :global(.fc .fc-timegrid-event).eventCard::after {
-  content: "+";
+.eventAddIndicator {
   position: absolute;
   right: 0.3rem;
   bottom: 0.25rem;
+  z-index: 6;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -398,15 +398,28 @@
     transform 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
-  pointer-events: none;
+  pointer-events: auto;
   box-shadow: var(--shadow-xs);
 }
 
-.calendarFrame :global(.fc .fc-timegrid-event).eventCard:hover::after,
-.calendarFrame :global(.fc .fc-timegrid-event).eventCard:focus-visible::after,
-.calendarFrame :global(.fc .fc-timegrid-event).eventSelected::after {
+.eventAddIndicatorCentered {
+  top: 50%;
+  right: 0.45rem;
+  bottom: auto;
+  transform: translateY(calc(-50% + 2px));
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard:hover .eventAddIndicator,
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard:focus-visible .eventAddIndicator,
+.calendarFrame :global(.fc .fc-timegrid-event).eventSelected .eventAddIndicator {
   opacity: 1;
   transform: translateY(0);
+}
+
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard:hover .eventAddIndicatorCentered,
+.calendarFrame :global(.fc .fc-timegrid-event).eventCard:focus-visible .eventAddIndicatorCentered,
+.calendarFrame :global(.fc .fc-timegrid-event).eventSelected .eventAddIndicatorCentered {
+  transform: translateY(-50%);
 }
 
 .calendarFrame :global(.fc .fc-timegrid-more-link) {
@@ -511,6 +524,19 @@
 .emptySlotButtonSelected .emptySlotPlus {
   border-color: hsl(var(--accent) / 0.4);
   color: hsl(var(--accent));
+}
+
+.emptySlotPlusCentered {
+  top: 50%;
+  right: 0.45rem;
+  bottom: auto;
+  transform: translateY(calc(-50% + 2px));
+}
+
+.emptySlotButton:hover .emptySlotPlusCentered,
+.emptySlotButton:focus-visible .emptySlotPlusCentered,
+.emptySlotButtonSelected .emptySlotPlusCentered {
+  transform: translateY(-50%);
 }
 
 .monthEventContent {
