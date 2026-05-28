@@ -13,6 +13,14 @@ type UpdateAppointmentStatusRequest = {
   status: AppointmentStatus;
 };
 
+const queriesToInvalidate = [
+  QUERY_KEYS.appointments(),
+  QUERY_KEYS.metricsOverview,
+  QUERY_KEYS.metricsAppointment,
+  QUERY_KEYS.revenueAndAppointments,
+  QUERY_KEYS.popularServices,
+];
+
 export function useUpdateAppointmentStatus() {
   const queryClient = useQueryClient();
 
@@ -20,10 +28,11 @@ export function useUpdateAppointmentStatus() {
     mutationFn: async ({ appointmentId, status }: UpdateAppointmentStatusRequest) => {
       return await updateAppointmentStatus(appointmentId, status);
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.appointments(),
+    onSuccess: async () => {
+      queriesToInvalidate.forEach(async (queryKey) => {
+        await queryClient.invalidateQueries({ queryKey });
       });
+
       toast.success("Status do agendamento atualizado com sucesso.");
     },
     onError: (error) => {
