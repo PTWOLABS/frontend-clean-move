@@ -64,7 +64,7 @@ export function AppointmentsDayAgendaCard({
   return (
     <Card
       aria-busy={isLoading}
-      className="flex min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl h-30 xl:flex-1 xl:basis-0"
+      className="flex min-h-80 flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs sm:rounded-3xl xl:min-h-0 xl:flex-1 xl:basis-0"
     >
       <CardHeader className="shrink-0 pb-4">
         <CardTitle className="text-base">Agenda do dia</CardTitle>

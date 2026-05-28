@@ -141,7 +141,7 @@ export function UpcomingAppointmentsCard({
   return (
     <Card
       aria-busy={isLoading}
-      className="hidden min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl xl:flex xl:shrink-0"
+      className="hidden min-h-0 flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs sm:rounded-3xl xl:flex xl:shrink-0"
     >
       <CardHeader className="shrink-0 border-b border-border/60 px-6 pb-4 pt-5">
         <div className="flex items-start justify-between gap-3">

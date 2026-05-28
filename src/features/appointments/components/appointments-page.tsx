@@ -559,7 +559,7 @@ export function AppointmentsPage() {
       </header>
 
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card className="min-w-0 overflow-visible rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm sm:rounded-3xl">
+        <Card className="min-w-0 overflow-visible rounded-2xl border-border/80 bg-card/80 shadow-xl backdrop-blur-sm sm:rounded-3xl">
           <CardHeader className="border-b border-border/70 px-4 py-3 sm:px-5 sm:py-4">
             <AppointmentsCalendarToolbar
               calendarRef={calendarRef}
