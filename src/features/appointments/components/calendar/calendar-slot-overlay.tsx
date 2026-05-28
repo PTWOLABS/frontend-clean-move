@@ -1,5 +1,4 @@
 import { addMinutes, format } from "date-fns";
-import { Plus } from "lucide-react";
 
 import { cn } from "@/shared/utils/cn";
 
@@ -13,19 +12,24 @@ import {
   SLOT_DURATION_MINUTES,
 } from "../../lib/appointments-page.helpers";
 import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+import { CalendarCellAddIndicator } from "./calendar-cell-add-indicator";
 
 type CalendarSlotOverlayProps = {
   date: Date;
   events: AppointmentCalendarEvent[];
   selectedSlotKey: string | null;
+  isDayView: boolean;
   onSlotPress: (date: Date) => void;
+  onCellAddIndicatorPress: (open: boolean) => void;
 };
 
 export function CalendarSlotOverlay({
   date,
   events,
   selectedSlotKey,
+  isDayView,
   onSlotPress,
+  onCellAddIndicatorPress,
 }: CalendarSlotOverlayProps) {
   const dayEvents = events.filter((event) => formatDayKey(event.startsAt) === formatDayKey(date));
 
@@ -62,9 +66,10 @@ export function CalendarSlotOverlay({
               onSlotPress(slotStart);
             }}
           >
-            <span aria-hidden="true" className={styles.emptySlotPlus}>
-              <Plus className="size-3.5" />
-            </span>
+            <CalendarCellAddIndicator
+              className={cn(styles.emptySlotPlus, isDayView && styles.emptySlotPlusCentered)}
+              onClick={onCellAddIndicatorPress}
+            />
           </button>
         );
       })}

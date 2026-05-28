@@ -11,7 +11,7 @@ import { CalendarCellAddIndicator } from "../components/calendar/calendar-cell-a
 type MonthCellIndicatorTarget = {
   date: Date;
   key: string;
-  frameElement: HTMLElement;
+  cellElement: HTMLElement;
 };
 
 type UseMonthCellIndicatorsOptions = {
@@ -30,19 +30,13 @@ export function useMonthCellIndicators({
       return;
     }
 
-    const frameElement = arg.el.querySelector<HTMLElement>(".fc-daygrid-day-frame");
-
-    if (!frameElement) {
-      return;
-    }
-
     const key = formatDayKey(arg.date);
 
     setTargets((currentTargets) => {
       const nextTarget = {
         date: arg.date,
         key,
-        frameElement,
+        cellElement: arg.el,
       };
       const existingIndex = currentTargets.findIndex((target) => target.key === key);
 
@@ -63,7 +57,7 @@ export function useMonthCellIndicators({
   const monthCellIndicatorPortals = useMemo(
     () =>
       targets
-        .filter((target) => target.frameElement.isConnected)
+        .filter((target) => target.cellElement.isConnected)
         .map((target) =>
           createPortal(
             <button
@@ -82,7 +76,7 @@ export function useMonthCellIndicators({
                 onClick={onCellAddIndicatorPress}
               />
             </button>,
-            target.frameElement,
+            target.cellElement,
             target.key,
           ),
         ),

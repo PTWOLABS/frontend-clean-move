@@ -5,6 +5,7 @@ import { cn } from "@/shared/utils/cn";
 
 import styles from "../appointments-page.module.css";
 import type { AppointmentExtendedProps, AppointmentTone } from "../../types/appointment-calendar";
+import { CalendarCellAddIndicator } from "./calendar-cell-add-indicator";
 
 const toneDotClassName: Record<AppointmentTone, string> = {
   primary: "bg-primary",
@@ -15,11 +16,29 @@ const toneDotClassName: Record<AppointmentTone, string> = {
   info: "bg-info",
 };
 
-export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
+type CalendarEventContentProps = {
+  arg: EventContentArg;
+  onSlotPress: (date: Date) => void;
+  onCellAddIndicatorPress: (open: boolean) => void;
+};
+
+export function CalendarEventContent({
+  arg,
+  onSlotPress,
+  onCellAddIndicatorPress,
+}: CalendarEventContentProps) {
   const extendedProps = arg.event.extendedProps as AppointmentExtendedProps;
   const isMonthView = arg.view.type === "dayGridMonth";
+  const isDayView = arg.view.type === "timeGridDay";
   const durationInMinutes =
     arg.event.start && arg.event.end ? differenceInMinutes(arg.event.end, arg.event.start) : null;
+  const handleEventAddIndicatorClick = () => {
+    if (arg.event.start) {
+      onSlotPress(arg.event.start);
+    }
+
+    onCellAddIndicatorPress(true);
+  };
 
   if (isMonthView) {
     return (
@@ -45,6 +64,11 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   if (isCompactTimeGridEvent) {
     return (
       <div className={cn(styles.eventContent, styles.eventContentCompact)}>
+        <CalendarCellAddIndicator
+          className={cn(styles.eventAddIndicator, isDayView && styles.eventAddIndicatorCentered)}
+          onClick={handleEventAddIndicatorClick}
+          stopClickPropagation
+        />
         <span className={styles.eventCompactTitle}>
           <span className={styles.eventCompactTime}>{timeLabel}</span>
           <span className={styles.eventCompactName}>{arg.event.title}</span>
@@ -64,6 +88,11 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
 
   return (
     <div className={styles.eventContent}>
+      <CalendarCellAddIndicator
+        className={cn(styles.eventAddIndicator, isDayView && styles.eventAddIndicatorCentered)}
+        onClick={handleEventAddIndicatorClick}
+        stopClickPropagation
+      />
       <div className={styles.eventTitleRow}>
         <span className={styles.eventTitle}>{arg.event.title}</span>
         <span
