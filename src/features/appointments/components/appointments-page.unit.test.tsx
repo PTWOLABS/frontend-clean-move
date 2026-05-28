@@ -229,6 +229,7 @@ vi.mock("./appointments-day-agenda-card", () => ({
   AppointmentsDayAgendaCard: ({
     events,
     isLoading,
+    isRefreshing,
     isError,
     selectedEventId,
     onSelectEvent,
@@ -236,6 +237,7 @@ vi.mock("./appointments-day-agenda-card", () => ({
   }: {
     events: AppointmentEventMock[];
     isLoading: boolean;
+    isRefreshing?: boolean;
     isError: boolean;
     selectedEventId: string | null;
     onSelectEvent: (event: AppointmentEventMock) => void;
@@ -243,6 +245,7 @@ vi.mock("./appointments-day-agenda-card", () => ({
   }) => (
     <div>
       <p>Agenda carregando: {isLoading ? "sim" : "não"}</p>
+      <p>Agenda atualizando: {isRefreshing ? "sim" : "não"}</p>
       <p>Agenda com erro: {isError ? "sim" : "não"}</p>
       <p>Evento selecionado na agenda: {selectedEventId ?? "nenhum"}</p>
       <button type="button" onClick={() => onSelectEvent(events[0])}>
@@ -335,6 +338,7 @@ describe("AppointmentsPage", () => {
     useListCalendarAppointmentsMock.mockReturnValue({
       data: appointmentEvents,
       isPending: false,
+      isFetching: false,
       isError: false,
       refetch: vi.fn(),
       error: null,
@@ -345,6 +349,7 @@ describe("AppointmentsPage", () => {
     useListCalendarAppointmentsMock.mockReturnValue({
       data: [],
       isPending: true,
+      isFetching: true,
       isError: false,
       refetch: vi.fn(),
       error: null,
@@ -356,10 +361,30 @@ describe("AppointmentsPage", () => {
     expect(screen.getByText("Agenda carregando: sim")).toBeInTheDocument();
   });
 
+  it("shows calendar refresh loading while keeping side cards stable when filters refetch", () => {
+    useListCalendarAppointmentsMock.mockReturnValue({
+      data: appointmentEvents,
+      isPending: false,
+      isFetching: true,
+      isError: false,
+      refetch: vi.fn(),
+      error: null,
+    });
+
+    render(<AppointmentsPage />);
+
+    expect(screen.getByText("Atualizando dados")).toBeInTheDocument();
+    expect(screen.getByText("Calendário carregando: sim")).toBeInTheDocument();
+    expect(screen.getByText("Agenda carregando: não")).toBeInTheDocument();
+    expect(screen.getByText("Agenda atualizando: sim")).toBeInTheDocument();
+    expect(screen.getByText("Próximos carregando: não")).toBeInTheDocument();
+  });
+
   it("passes error state to children when appointments fail without cached data", () => {
     useListCalendarAppointmentsMock.mockReturnValue({
       data: [],
       isPending: false,
+      isFetching: false,
       isError: true,
       refetch: vi.fn(),
       error: new Error("request failed"),
@@ -398,6 +423,7 @@ describe("AppointmentsPage", () => {
     useListCalendarAppointmentsMock.mockImplementation(() => ({
       data: queryEvents,
       isPending: false,
+      isFetching: false,
       isError: false,
       refetch: vi.fn(),
       error: null,
@@ -499,6 +525,7 @@ describe("AppointmentsPage", () => {
     useListCalendarAppointmentsMock.mockReturnValue({
       data: [],
       isPending: false,
+      isFetching: false,
       isError: true,
       refetch,
       error: new Error("request failed"),
