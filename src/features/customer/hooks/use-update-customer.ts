@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
-import { createCustomerVehicle } from "../api/create-customer-vehicle";
+import { createVehicle } from "@/features/vehicle/api/create-vehicle";
+import { updateVehicle } from "@/features/vehicle/api/update-vehicle";
+
 import { updateCustomer } from "../api/update-customer";
-import { updateCustomerVehicle } from "../api/update-customer-vehicle";
 import {
   mapCustomerFormToPayload,
   mapVehicleFormToPayload,
@@ -32,14 +33,14 @@ export function useUpdateCustomer() {
       if (!vehiclePayload) return;
 
       if (values.vehicle.id) {
-        await updateCustomerVehicle(customerId, values.vehicle.id, vehiclePayload);
+        await updateVehicle(customerId, values.vehicle.id, vehiclePayload);
       } else {
-        await createCustomerVehicle(customerId, vehiclePayload);
+        await createVehicle(customerId, vehiclePayload);
       }
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customerVehiclesRoot });
+      void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       toast.success("Cliente atualizado com sucesso.");
     },
     onError: (error) => {

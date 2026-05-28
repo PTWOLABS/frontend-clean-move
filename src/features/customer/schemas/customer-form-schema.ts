@@ -1,8 +1,17 @@
 import { z } from "zod";
 
+import {
+  emptyVehicleFormValues,
+  hasVehicleData,
+  mapVehicleFormToPayload as mapVehicleFieldsToPayload,
+  normalizePlate,
+  parseVehicleYear,
+  vehicleFieldsSchema,
+} from "@/features/vehicle/schemas/vehicle-form-schema";
+import type { CreateVehiclePayload } from "@/features/vehicle/types";
+
 import type {
   CreateCustomerPayload,
-  CreateCustomerVehiclePayload,
   CustomerAddress,
   CustomerDto,
   CustomerVehicleDto,
@@ -57,15 +66,7 @@ const addressFieldsSchema = z.object({
   city: z.string().optional(),
 });
 
-const vehicleFieldsSchema = z.object({
-  id: z.string().optional(),
-  plate: z.string().optional(),
-  brand: z.string().optional(),
-  model: z.string().optional(),
-  color: z.string().optional(),
-  year: z.union([z.string(), z.number()]).optional(),
-  notes: z.string().optional(),
-});
+export { emptyVehicleFormValues };
 
 export const emptyAddressFormValues: z.infer<typeof addressFieldsSchema> = {
   street: "",
@@ -76,28 +77,7 @@ export const emptyAddressFormValues: z.infer<typeof addressFieldsSchema> = {
   city: "",
 };
 
-export const emptyVehicleFormValues: z.infer<typeof vehicleFieldsSchema> = {
-  id: undefined,
-  plate: "",
-  brand: "",
-  model: "",
-  color: "",
-  year: undefined,
-  notes: "",
-};
-
-function normalizePlate(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  const normalized = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  return normalized || undefined;
-}
-
-function parseVehicleYear(value: string | number | undefined): number | undefined {
-  if (value === undefined || value === null || value === "") return undefined;
-  if (typeof value === "number") return value;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : Number.NaN;
-}
+export { hasVehicleData };
 
 export function hasCompleteAddress(address?: CustomerAddress | null): boolean {
   if (!address) return false;
@@ -107,18 +87,6 @@ export function hasCompleteAddress(address?: CustomerAddress | null): boolean {
       address.state?.trim() &&
       address.zipCode?.trim() &&
       address.country?.trim(),
-  );
-}
-
-export function hasVehicleData(vehicle?: CustomerVehicleDto | null): boolean {
-  if (!vehicle) return false;
-  return Boolean(
-    vehicle.plate?.trim() ||
-      vehicle.brand?.trim() ||
-      vehicle.model?.trim() ||
-      vehicle.color?.trim() ||
-      vehicle.year != null ||
-      vehicle.notes?.trim(),
   );
 }
 
@@ -268,28 +236,7 @@ export function mapCustomerFormToPayload(values: CustomerFormValues): CreateCust
 
 export function mapVehicleFormToPayload(
   values: CustomerFormValues,
-): CreateCustomerVehiclePayload | null {
+): CreateVehiclePayload | null {
   if (!values.includeVehicle) return null;
-
-  const plate = normalizePlate(values.vehicle.plate);
-  const brand = values.vehicle.brand?.trim() || undefined;
-  const model = values.vehicle.model?.trim() || undefined;
-  const color = values.vehicle.color?.trim() || undefined;
-  const year = parseVehicleYear(values.vehicle.year);
-  const notes = values.vehicle.notes?.trim() || undefined;
-
-  const payload: CreateCustomerVehiclePayload = {
-    plate,
-    brand,
-    model,
-    color,
-    year: year !== undefined && Number.isInteger(year) ? year : undefined,
-    notes,
-  };
-
-  const hasAnyValue = Object.values(payload).some(
-    (value) => value !== undefined && value !== null && value !== "",
-  );
-
-  return hasAnyValue ? payload : null;
+  return mapVehicleFieldsToPayload(values.vehicle);
 }

@@ -1,3 +1,9 @@
+import type {
+  CreateVehiclePayload,
+  UpdateVehiclePayload,
+  VehicleDto,
+} from "@/features/vehicle/types";
+
 export type CustomerAddress = {
   street: string;
   complement?: string | null;
@@ -28,21 +34,7 @@ export type CustomerDto = {
   vehiclesCount?: number;
 };
 
-export type CustomerVehicleDto = {
-  id: string;
-  establishmentId: string;
-  customerId: string;
-  imageUrl?: string | null;
-  plate?: string | null;
-  brand?: string | null;
-  model?: string | null;
-  color?: string | null;
-  year?: number | null;
-  notes?: string | null;
-  deletedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export type CustomerVehicleDto = VehicleDto;
 
 export type ListCustomersQuery = {
   search?: string;
@@ -85,16 +77,9 @@ export type CreateCustomerPayload = {
 
 export type UpdateCustomerPayload = Partial<CreateCustomerPayload>;
 
-export type CreateCustomerVehiclePayload = {
-  plate?: string;
-  brand?: string;
-  model?: string;
-  color?: string;
-  year?: number;
-  notes?: string;
-};
+export type CreateCustomerVehiclePayload = CreateVehiclePayload;
 
-export type UpdateCustomerVehiclePayload = Partial<CreateCustomerVehiclePayload>;
+export type UpdateCustomerVehiclePayload = UpdateVehiclePayload;
 
 export type CustomerWithPrimaryVehicle = CustomerDto & {
   primaryVehicle?: CustomerVehicleDto | null;

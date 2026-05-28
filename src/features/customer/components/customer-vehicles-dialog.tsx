@@ -10,10 +10,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { listVehicles } from "@/features/vehicle/api/list-vehicles";
+import { formatVehicleName } from "@/features/vehicle/lib/format-vehicle-catalog";
+import type { VehicleDto } from "@/features/vehicle/types";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
-import { listCustomerVehicles } from "../api/list-customer-vehicles";
-import { formatVehicleName, getCustomerVehiclesCount } from "../lib/format-customer-catalog";
+import { getCustomerVehiclesCount } from "../lib/format-customer-catalog";
 import type { CustomerVehicleDto, CustomerWithPrimaryVehicle } from "../types";
 
 type CustomerVehiclesDialogProps = {
@@ -45,12 +47,12 @@ export function CustomerVehiclesDialog({ customer, open, onOpenChange }: Custome
   const needsFetch = Boolean(customer && vehiclesCount > embeddedCount);
 
   const vehiclesQuery = useQuery({
-    queryKey: QUERY_KEYS.customerVehicles(customer?.id ?? "", {
+    queryKey: QUERY_KEYS.vehicles(customer?.id ?? "", {
       page: 1,
       size: Math.max(vehiclesCount, embeddedCount, 1),
     }),
     queryFn: ({ signal }) =>
-      listCustomerVehicles(
+      listVehicles(
         customer!.id,
         { page: 1, size: Math.max(vehiclesCount, 50) },
         signal,
@@ -58,7 +60,9 @@ export function CustomerVehiclesDialog({ customer, open, onOpenChange }: Custome
     enabled: open && needsFetch && Boolean(customer?.id),
   });
 
-  const vehicles = needsFetch ? (vehiclesQuery.data?.vehicles ?? []) : (customer?.vehicles ?? []);
+  const vehicles: VehicleDto[] = needsFetch
+    ? (vehiclesQuery.data?.items ?? [])
+    : (customer?.vehicles ?? []);
   const isLoading = needsFetch && vehiclesQuery.isLoading;
 
   return (

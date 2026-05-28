@@ -20,9 +20,10 @@ export const QUERY_KEYS = {
     filters ? (["services", filters] as const) : (["services"] as const),
   customers: (filters?: { page?: number; size?: number; search?: string }) =>
     filters ? (["customers", filters] as const) : (["customers"] as const),
-  customerVehiclesRoot: ["customer-vehicles"] as const,
-  customerVehicles: (customerId: string, filters?: { page?: number; size?: number }) =>
+  vehicles: (customerId: string, filters?: { page?: number; size?: number }) =>
     filters
-      ? (["customer-vehicles", customerId, filters] as const)
-      : (["customer-vehicles", customerId] as const),
+      ? (["vehicles", customerId, filters] as const)
+      : (["vehicles", customerId] as const),
+  vehicleOptions: (filters?: { search?: string; customerId?: string; limit?: number }) =>
+    filters ? (["vehicle-options", filters] as const) : (["vehicle-options"] as const),
 };

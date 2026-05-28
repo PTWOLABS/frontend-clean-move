@@ -7,7 +7,7 @@ import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { createCustomer } from "../api/create-customer";
-import { createCustomerVehicle } from "../api/create-customer-vehicle";
+import { createVehicle } from "@/features/vehicle/api/create-vehicle";
 import {
   mapCustomerFormToPayload,
   mapVehicleFormToPayload,
@@ -23,7 +23,7 @@ export function useCreateCustomer() {
       const vehiclePayload = mapVehicleFormToPayload(values);
 
       if (vehiclePayload) {
-        await createCustomerVehicle(customerResponse.customer.id, vehiclePayload);
+        await createVehicle(customerResponse.customer.id, vehiclePayload);
       }
 
       return customerResponse.customer;
