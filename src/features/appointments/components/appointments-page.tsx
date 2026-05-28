@@ -521,6 +521,15 @@ export function AppointmentsPage() {
     setAppointmentSheetOpen(true);
   }
 
+  function handleEditAppointmentFromPopover(event: AppointmentCalendarEvent) {
+    setSelectionSource("manual");
+    setSelectedEventId(null);
+    setSelectedSlotKey(null);
+    syncSelection(event.startsAt);
+    setAppointmentToEdit(event);
+    setAppointmentSheetOpen(true);
+  }
+
   function handleAppointmentStatusChange(appointmentId: string, status: AppointmentStatus) {
     updateAppointmentStatusMutation.mutate({
       appointmentId,
@@ -620,7 +629,7 @@ export function AppointmentsPage() {
               onMonthCellPress={handleMonthCellPress}
               onSlotPress={handleSlotPress}
               onCellAddIndicatorPress={handleCreateAppointmentSheetOpen}
-              onEditEvent={handleEditAppointment}
+              onEditEvent={handleEditAppointmentFromPopover}
               onStatusChange={handleAppointmentStatusChange}
             />
             <CalendarStatusLegend />

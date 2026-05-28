@@ -614,6 +614,8 @@ describe("AppointmentsPage", () => {
       "data-appointment-id",
       "appointment-2",
     );
+    expect(screen.getByText("Evento selecionado no calendário: nenhum")).toBeInTheDocument();
+    expect(screen.getByText("Popover selecionado no calendário: nenhum")).toBeInTheDocument();
   });
 
   it("tracks manual slot selection and clears it when a month cell is selected", async () => {
