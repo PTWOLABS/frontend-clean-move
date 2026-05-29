@@ -768,7 +768,7 @@
   color: hsl(var(--muted-foreground));
 }
 
-.eventDetailsClose {
+.eventDetailsIconAction {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
@@ -785,13 +785,13 @@
     border-color 160ms ease;
 }
 
-.eventDetailsClose:hover {
+.eventDetailsIconAction:hover {
   border-color: hsl(var(--accent) / 0.55);
   background: hsl(var(--accent) / 0.16);
   color: hsl(var(--foreground));
 }
 
-.eventDetailsClose:focus-visible {
+.eventDetailsIconAction:focus-visible {
   outline: 2px solid hsl(var(--ring) / 0.85);
   outline-offset: 2px;
 }

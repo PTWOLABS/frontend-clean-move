@@ -25,6 +25,7 @@ type AppointmentsDayAgendaCardProps = {
   isError: boolean;
   updatingStatusAppointmentId: string | null;
   onRetry: () => void;
+  onEditEvent: (event: AppointmentCalendarEvent) => void;
   onSelectEvent: (event: AppointmentCalendarEvent) => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
@@ -64,6 +65,7 @@ export function AppointmentsDayAgendaCard({
   isError,
   updatingStatusAppointmentId,
   onRetry,
+  onEditEvent,
   onSelectEvent,
   onStatusChange,
 }: AppointmentsDayAgendaCardProps) {
@@ -116,7 +118,7 @@ export function AppointmentsDayAgendaCard({
                   isActive && "border-accent/50 bg-accent-soft/45",
                 )}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => onSelectEvent(event)}
@@ -155,6 +157,7 @@ export function AppointmentsDayAgendaCard({
                       appointmentId={event.id}
                       currentStatus={event.extendedProps.status}
                       isUpdating={updatingStatusAppointmentId === event.id}
+                      onEdit={() => onEditEvent(event)}
                       onStatusChange={onStatusChange}
                     />
                   </div>

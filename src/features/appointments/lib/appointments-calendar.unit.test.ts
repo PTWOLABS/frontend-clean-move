@@ -120,7 +120,16 @@ describe("appointments-calendar helpers", () => {
     expect(appointments[1]?.end.getHours()).toBe(10);
     expect(appointments[1]?.end.getMinutes()).toBe(15);
     expect(appointments[1]?.extendedProps.customer).toBe("João Pereira");
+    expect(appointments[1]?.extendedProps.customerId).toBe("customer-1");
+    expect(appointments[1]?.extendedProps.serviceIds).toEqual([
+      { value: "service-1", label: "Lavagem tecnica" },
+      { value: "service-3", label: "Higienizacao" },
+    ]);
+    expect(appointments[1]?.extendedProps.vehicleId).toBe("");
     expect(appointments[1]?.extendedProps.vehicle).toBe("Veículo não informado");
+    expect(appointments[1]?.extendedProps.endsAt).toBeNull();
+    expect(appointments[1]?.extendedProps.description).toBe("");
+    expect(appointments[1]?.extendedProps.discountValue).toBe("");
     expect(appointments[1]?.extendedProps.notes).toBe("Sem observações operacionais.");
   });
 

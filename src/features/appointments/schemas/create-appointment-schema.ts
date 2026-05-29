@@ -51,36 +51,47 @@ function isValidDiscount(value: string) {
   return Number.isFinite(amount) && amount >= 0;
 }
 
+export const appointmentFormFieldsSchema = {
+  customerId: z.string().trim().min(1, "Selecione um cliente."),
+  serviceIds: z.array(serviceOptionSchema).min(1, "Selecione pelo menos um serviço."),
+  vehicleId: z.string().trim().min(1, "Selecione um veículo."),
+  startsAt: requiredDateField("Selecione a data de início."),
+  endsAt: optionalDateField,
+  description: z
+    .string()
+    .max(500, "A descrição deve ter no máximo 500 caracteres.")
+    .optional()
+    .nullable()
+    .transform((value) => {
+      const description = value?.trim();
+      return description ? description : null;
+    }),
+  discountValue: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .transform((value) => value?.trim() ?? "")
+    .refine(isValidDiscount, {
+      message: "Informe um desconto válido (ex.: 10,00).",
+    }),
+};
+
+export function isAppointmentDateRangeValid(values: {
+  startsAt?: string | null;
+  endsAt?: string | null;
+}) {
+  return !values.startsAt || !values.endsAt || new Date(values.endsAt) >= new Date(values.startsAt);
+}
+
+export const appointmentDateRangeRefinement = {
+  message: "A data de encerramento deve ser igual ou posterior à data de início.",
+  path: ["endsAt"],
+};
+
 export const createAppointmentFormSchema = z
-  .object({
-    customerId: z.string().trim().min(1, "Selecione um cliente."),
-    serviceIds: z.array(serviceOptionSchema).min(1, "Selecione pelo menos um serviço."),
-    vehicleId: z.string().trim().min(1, "Selecione um veículo."),
-    startsAt: requiredDateField("Selecione a data de início."),
-    endsAt: optionalDateField,
-    description: z
-      .string()
-      .max(500, "A descrição deve ter no máximo 500 caracteres.")
-      .optional()
-      .nullable()
-      .transform((value) => {
-        const description = value?.trim();
-        return description ? description : null;
-      }),
-    discountValue: z
-      .string()
-      .trim()
-      .optional()
-      .nullable()
-      .transform((value) => value?.trim() ?? "")
-      .refine(isValidDiscount, {
-        message: "Informe um desconto válido (ex.: 10,00).",
-      }),
-  })
-  .refine((values) => !values.endsAt || new Date(values.endsAt) >= new Date(values.startsAt), {
-    message: "A data de encerramento deve ser igual ou posterior à data de início.",
-    path: ["endsAt"],
-  });
+  .object(appointmentFormFieldsSchema)
+  .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 
 export type CreateAppointmentFormInput = z.input<typeof createAppointmentFormSchema>;
 export type CreateAppointmentFormValues = z.output<typeof createAppointmentFormSchema>;

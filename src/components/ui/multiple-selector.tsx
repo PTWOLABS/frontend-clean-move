@@ -504,7 +504,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                   onChange?.(selected.filter((s) => s.fixed));
                 }}
                 className={cn(
-                  "size-5",
+                  "flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground",
                   (hideClearAllButton ||
                     disabled ||
                     selected.length < 1 ||
@@ -512,7 +512,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                     "hidden",
                 )}
               >
-                <X />
+                <X className="size-4" aria-hidden />
               </button>
               <ChevronDownIcon
                 className={cn(

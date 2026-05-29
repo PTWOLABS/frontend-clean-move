@@ -11,6 +11,7 @@ import {
   type Resolver,
 } from "react-hook-form";
 import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
@@ -35,45 +36,144 @@ import {
   createAppointmentDefaultValues,
   createAppointmentFormSchema,
   type CreateAppointmentFormInput,
+  type CreateAppointmentRequestBody,
   type CreateAppointmentFormValues,
 } from "../../schemas/create-appointment-schema";
+import { updateAppointmentFormSchema } from "../../schemas/update-appointment-schema";
 import { AppointmentDateField } from "./appointment-date-field";
 import { useListCustomerOptions } from "../../hooks/queries/use-list-customer-options";
 import { useListCustomerVehicleOptions } from "../../hooks/queries/use-list-customer-vehicle-options";
 import { useListServiceOptions } from "../../hooks/queries/use-list-service-options";
 import { useCreateAppointment } from "../../hooks/mutations/use-create-appointment-mutation";
+import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
+import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
 
 type AppointmentFormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultStartsAt?: Date;
+  appointment?: AppointmentCalendarEvent | null;
 };
+
+function mergeOptionItems(options: Option[], selectedOptions: Option[]) {
+  const selectedValues = new Set(selectedOptions.map((option) => option.value));
+
+  return [...selectedOptions, ...options.filter((option) => !selectedValues.has(option.value))];
+}
+
+function getAppointmentFormDefaultValues(
+  appointment: AppointmentCalendarEvent,
+): CreateAppointmentFormInput {
+  return {
+    customerId: appointment.extendedProps.customerId,
+    serviceIds: appointment.extendedProps.serviceIds,
+    vehicleId: appointment.extendedProps.vehicleId,
+    startsAt: appointment.startsAt,
+    endsAt: appointment.extendedProps.endsAt,
+    description: appointment.extendedProps.description,
+    discountValue: appointment.extendedProps.discountValue,
+  };
+}
+
+function buildAppointmentRequestBody(
+  values: CreateAppointmentFormValues,
+): CreateAppointmentRequestBody {
+  return {
+    ...values,
+    serviceIds: values.serviceIds.map((item) => item.value),
+  };
+}
+
+function getComparableRequestBody(values: CreateAppointmentFormInput) {
+  const result = createAppointmentFormSchema.safeParse(values);
+
+  return result.success ? buildAppointmentRequestBody(result.data) : null;
+}
+
+function areServiceIdsEqual(left: string[], right: string[]) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function getChangedRequestBody(
+  currentBody: CreateAppointmentRequestBody,
+  initialBody: CreateAppointmentRequestBody | null,
+) {
+  if (!initialBody) {
+    return currentBody;
+  }
+
+  const changedBody: Partial<CreateAppointmentRequestBody> = {};
+
+  if (currentBody.customerId !== initialBody.customerId) {
+    changedBody.customerId = currentBody.customerId;
+  }
+
+  if (!areServiceIdsEqual(currentBody.serviceIds, initialBody.serviceIds)) {
+    changedBody.serviceIds = currentBody.serviceIds;
+  }
+
+  if (currentBody.vehicleId !== initialBody.vehicleId) {
+    changedBody.vehicleId = currentBody.vehicleId;
+  }
+
+  if (currentBody.startsAt !== initialBody.startsAt) {
+    changedBody.startsAt = currentBody.startsAt;
+  }
+
+  if (currentBody.endsAt !== initialBody.endsAt) {
+    changedBody.endsAt = currentBody.endsAt;
+  }
+
+  if (currentBody.description !== initialBody.description) {
+    changedBody.description = currentBody.description;
+  }
+
+  if (currentBody.discountValue !== initialBody.discountValue) {
+    changedBody.discountValue = currentBody.discountValue;
+  }
+
+  return changedBody;
+}
 
 export function AppointmentFormSheet({
   open,
   onOpenChange,
   defaultStartsAt,
+  appointment,
 }: AppointmentFormSheetProps) {
+  const isEditing = Boolean(appointment);
   const formDefaultValues = useMemo<CreateAppointmentFormInput>(
-    () => ({
-      ...createAppointmentDefaultValues,
-      startsAt: defaultStartsAt ?? null,
-    }),
-    [defaultStartsAt],
+    () =>
+      appointment
+        ? getAppointmentFormDefaultValues(appointment)
+        : {
+            ...createAppointmentDefaultValues,
+            startsAt: defaultStartsAt ?? null,
+          },
+    [appointment, defaultStartsAt],
+  );
+  const initialUpdateRequestBody = useMemo(
+    () => (appointment ? getComparableRequestBody(formDefaultValues) : null),
+    [appointment, formDefaultValues],
   );
 
   const methods = useForm<CreateAppointmentFormInput, undefined, CreateAppointmentFormValues>({
-    resolver: zodResolver(createAppointmentFormSchema) as Resolver<
-      CreateAppointmentFormInput,
-      undefined,
-      CreateAppointmentFormValues
-    >,
+    resolver: zodResolver(
+      isEditing ? updateAppointmentFormSchema : createAppointmentFormSchema,
+    ) as Resolver<CreateAppointmentFormInput, undefined, CreateAppointmentFormValues>,
     defaultValues: formDefaultValues,
     mode: "onBlur",
     reValidateMode: "onChange",
   });
 
-  const { clearErrors, control, handleSubmit, reset, setValue } = methods;
+  const {
+    clearErrors,
+    control,
+    formState: { isDirty },
+    handleSubmit,
+    reset,
+    setValue,
+  } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
   const sheetContentRef = useRef<HTMLDivElement | null>(null);
   const [sheetContentElement, setSheetContentElement] = useState<HTMLDivElement | null>(null);
@@ -89,7 +189,15 @@ export function AppointmentFormSheet({
     if (!open) return;
 
     reset(formDefaultValues);
-  }, [formDefaultValues, open, reset]);
+    /* eslint-disable react-hooks/set-state-in-effect -- hidrata inputs controlados ao abrir o sheet em modo criação/edição */
+    setCustomerSearch("");
+    setCustomerLabel(appointment?.extendedProps.customer ?? "");
+    setVehicleSearch("");
+    setVehicleLabel(appointment?.extendedProps.vehicle ?? "");
+    setServiceInputValue("");
+    setSelectedCustomerId(formDefaultValues.customerId || null);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [appointment, formDefaultValues, open, reset]);
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
     limit: 5,
@@ -108,24 +216,46 @@ export function AppointmentFormSheet({
     search: serviceSearch || undefined,
   });
   const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();
+  const { mutate: updateAppointment, isPending: updatingAppointment } = useUpdateAppointment();
+  const isSubmitting = creatingAppointment || updatingAppointment;
 
-  const customerOptionsItems = useMemo(
-    () =>
+  const customerOptionsItems = useMemo(() => {
+    const options =
       customerOptions?.customers?.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [customerOptions],
-  );
+      })) ?? [];
+    const selectedOptions =
+      appointment && appointment.extendedProps.customerId
+        ? [
+            {
+              label: appointment.extendedProps.customer,
+              value: appointment.extendedProps.customerId,
+            },
+          ]
+        : [];
 
-  const customerVehicleOptionsItems = useMemo(
-    () =>
+    return mergeOptionItems(options, selectedOptions);
+  }, [appointment, customerOptions]);
+
+  const customerVehicleOptionsItems = useMemo(() => {
+    const options =
       vehicleOptions?.vehicles?.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [vehicleOptions],
-  );
+      })) ?? [];
+    const selectedOptions =
+      appointment && appointment.extendedProps.vehicleId
+        ? [
+            {
+              label: appointment.extendedProps.vehicle,
+              value: appointment.extendedProps.vehicleId,
+            },
+          ]
+        : [];
+
+    return mergeOptionItems(options, selectedOptions);
+  }, [appointment, vehicleOptions]);
 
   const handleCustomerSelectedItemChange = useCallback(
     (option: ComboboxItemOption | null) => {
@@ -175,7 +305,7 @@ export function AppointmentFormSheet({
 
   const handleSheetOpenChange = useCallback(
     (nextOpen: boolean) => {
-      if (!nextOpen && creatingAppointment) {
+      if (!nextOpen && isSubmitting) {
         return;
       }
 
@@ -185,7 +315,7 @@ export function AppointmentFormSheet({
 
       onOpenChange(nextOpen);
     },
-    [creatingAppointment, onOpenChange, resetOptionState],
+    [isSubmitting, onOpenChange, resetOptionState],
   );
 
   const handleSheetContentRef = useCallback((node: HTMLDivElement | null) => {
@@ -206,14 +336,15 @@ export function AppointmentFormSheet({
     return "Nenhum veículo encontrado.";
   };
 
-  const serviceOptionsItems = useMemo(
-    () =>
+  const serviceOptionsItems = useMemo(() => {
+    const options =
       serviceOptions?.services?.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [serviceOptions],
-  );
+      })) ?? [];
+
+    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? []);
+  }, [appointment, serviceOptions]);
 
   const getServiceEmptyIndicator = () => {
     if (isLoadingServiceOptions) {
@@ -224,12 +355,29 @@ export function AppointmentFormSheet({
   };
 
   const onSubmit = (values: CreateAppointmentFormValues) => {
-    if (creatingAppointment) return;
+    if (isSubmitting) return;
 
-    const body = {
-      ...values,
-      serviceIds: values.serviceIds.map((item) => item.value),
-    };
+    const body = buildAppointmentRequestBody(values);
+
+    if (appointment) {
+      const changedBody = getChangedRequestBody(body, initialUpdateRequestBody);
+
+      if (Object.keys(changedBody).length === 0) {
+        toast.info("Nenhuma alteração para salvar.");
+        return;
+      }
+
+      updateAppointment(
+        {
+          appointmentId: appointment.id,
+          body: changedBody,
+        },
+        {
+          onSuccess: closeSheetAfterSave,
+        },
+      );
+      return;
+    }
 
     createAppointment(body, {
       onSuccess: closeSheetAfterSave,
@@ -244,18 +392,22 @@ export function AppointmentFormSheet({
         className="flex w-full max-w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
       >
         <SheetHeader className="text-left">
-          <SheetTitle>Novo agendamento</SheetTitle>
-          <SheetDescription>Preencha os dados para criar um novo agendamento.</SheetDescription>
+          <SheetTitle>{isEditing ? "Editar agendamento" : "Novo agendamento"}</SheetTitle>
+          <SheetDescription>
+            {isEditing
+              ? "Atualize os dados necessários deste agendamento."
+              : "Preencha os dados para criar um novo agendamento."}
+          </SheetDescription>
         </SheetHeader>
 
         <FormProvider {...methods}>
           <form
             className="flex flex-1 flex-col gap-6 py-6"
-            aria-busy={creatingAppointment}
-            aria-describedby={creatingAppointment ? "appointment-submit-status" : undefined}
+            aria-busy={isSubmitting}
+            aria-describedby={isSubmitting ? "appointment-submit-status" : undefined}
             onSubmit={handleSubmit(onSubmit)}
           >
-            <fieldset disabled={creatingAppointment} className="space-y-5 disabled:opacity-80">
+            <fieldset disabled={isSubmitting} className="space-y-5 disabled:opacity-80">
               <FormField
                 control={fieldControl}
                 name="customerId"
@@ -279,9 +431,9 @@ export function AppointmentFormSheet({
                       placeholder="Digite o nome do cliente"
                       emptyMessage={getCustomerEmptyMessage()}
                       autoComplete="name"
-                      disabled={creatingAppointment}
+                      disabled={isSubmitting}
                       required
-                      className="w-[calc(100%-2rem)] min-[360px]:w-full"
+                      className="w-full"
                     />
                   </FormControl>
                 )}
@@ -305,9 +457,9 @@ export function AppointmentFormSheet({
                       options={serviceOptionsItems}
                       placeholder="Selecione os serviços"
                       emptyIndicator={getServiceEmptyIndicator()}
-                      disabled={creatingAppointment}
+                      disabled={isSubmitting}
                       className={cn(
-                        "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-[calc(100%-2rem)] min-[360px]:w-full",
+                        "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-full",
                         fieldState.invalid &&
                           "border-destructive/70 focus-within:ring-destructive/30",
                       )}
@@ -346,9 +498,9 @@ export function AppointmentFormSheet({
                       placeholder="Digite o nome do veículo"
                       emptyMessage={getVehicleEmptyMessage()}
                       autoComplete="off"
-                      disabled={!selectedCustomerId || creatingAppointment}
+                      disabled={!selectedCustomerId || isSubmitting}
                       required
-                      className="w-[calc(100%-2rem)] min-[360px]:w-full"
+                      className="w-full"
                     />
                   </FormControl>
                 )}
@@ -360,9 +512,9 @@ export function AppointmentFormSheet({
                   name="startsAt"
                   label="Data de início"
                   portalContainer={sheetContentElement}
-                  disabled={creatingAppointment}
+                  disabled={isSubmitting}
                   required
-                  className="w-[calc(100%-2rem)] min-[360px]:w-full"
+                  className="w-full"
                   timeInputClassName="w-24 min-[380px]:w-28"
                 />
                 <AppointmentDateField
@@ -370,8 +522,8 @@ export function AppointmentFormSheet({
                   name="endsAt"
                   label="Data de encerramento"
                   portalContainer={sheetContentElement}
-                  disabled={creatingAppointment}
-                  className="w-[calc(100%-2rem)] min-[360px]:w-full"
+                  disabled={isSubmitting}
+                  className="w-full"
                   timeInputClassName="w-24 min-[380px]:w-28"
                 />
               </div>
@@ -395,11 +547,11 @@ export function AppointmentFormSheet({
                           placeholder="Adicione informações adicionais (opcional)"
                           maxLength={500}
                           rows={5}
-                          className="w-[calc(100%-2rem)] resize-y border-border/80 bg-background/40 pb-8 min-[360px]:w-full"
-                          disabled={creatingAppointment}
+                          className="resize-y border-border/80 bg-background/40 pb-8 w-full scrollbar-clean"
+                          disabled={isSubmitting}
                         />
                       </FormControl>
-                      <span className="pointer-events-none absolute bottom-3 right-[calc(2.5rem+3px)] text-xs text-muted-foreground">
+                      <span className="pointer-events-none absolute bottom-3 right-[calc(1rem)] text-xs text-muted-foreground">
                         {description.length}/500
                       </span>
                     </div>
@@ -429,9 +581,9 @@ export function AppointmentFormSheet({
                             inputMode="decimal"
                             autoComplete="off"
                             placeholder="0,00"
-                            className="h-10 border-border/80 bg-background/40 pl-10 tabular-nums w-[calc(100%-2rem)] min-[360px]:w-full"
+                            className="h-10 border-border/80 bg-background/40 pl-10 tabular-nums w-full"
                             value={discount}
-                            disabled={creatingAppointment}
+                            disabled={isSubmitting}
                             onChange={(event) =>
                               handleNumericInputChange(event, field.onChange, {
                                 formatAsCurrency: true,
@@ -450,7 +602,7 @@ export function AppointmentFormSheet({
             </fieldset>
 
             <SheetFooter className="mt-auto flex-col gap-3 border-t border-border p-0 pt-4 sm:flex-col sm:space-x-0">
-              {creatingAppointment ? (
+              {isSubmitting ? (
                 <div
                   id="appointment-submit-status"
                   role="status"
@@ -458,7 +610,7 @@ export function AppointmentFormSheet({
                   className="flex min-h-10 items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 text-sm font-medium text-primary"
                 >
                   <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden />
-                  Salvando agendamento...
+                  {isEditing ? "Atualizando agendamento..." : "Salvando agendamento..."}
                 </div>
               ) : null}
 
@@ -466,7 +618,7 @@ export function AppointmentFormSheet({
                 <Button
                   type="button"
                   variant="outline"
-                  disabled={creatingAppointment}
+                  disabled={isSubmitting}
                   className="h-10 w-full sm:w-32"
                   onClick={() => handleSheetOpenChange(false)}
                 >
@@ -475,13 +627,19 @@ export function AppointmentFormSheet({
                 <Button
                   type="submit"
                   className="h-10 w-full sm:w-40"
-                  disabled={creatingAppointment}
-                  aria-busy={creatingAppointment}
+                  disabled={isSubmitting || (isEditing && !isDirty)}
+                  aria-busy={isSubmitting}
                 >
-                  {creatingAppointment ? (
+                  {isSubmitting ? (
                     <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden />
                   ) : null}
-                  {creatingAppointment ? "Salvando..." : "Salvar agendamento"}
+                  {isSubmitting
+                    ? isEditing
+                      ? "Atualizando..."
+                      : "Salvando..."
+                    : isEditing
+                      ? "Salvar alterações"
+                      : "Salvar agendamento"}
                 </Button>
               </div>
             </SheetFooter>

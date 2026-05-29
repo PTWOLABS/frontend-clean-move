@@ -6,6 +6,8 @@ const useListCustomerOptionsMock = vi.hoisted(() => vi.fn());
 const useListCustomerVehicleOptionsMock = vi.hoisted(() => vi.fn());
 const useListServiceOptionsMock = vi.hoisted(() => vi.fn());
 const useCreateAppointmentMock = vi.hoisted(() => vi.fn());
+const useUpdateAppointmentMock = vi.hoisted(() => vi.fn());
+const toastInfoMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../hooks/queries/use-list-customer-options", () => ({
   useListCustomerOptions: useListCustomerOptionsMock,
@@ -21,6 +23,16 @@ vi.mock("../../hooks/queries/use-list-service-options", () => ({
 
 vi.mock("../../hooks/mutations/use-create-appointment-mutation", () => ({
   useCreateAppointment: useCreateAppointmentMock,
+}));
+
+vi.mock("../../hooks/mutations/use-update-appointment-mutation", () => ({
+  useUpdateAppointment: useUpdateAppointmentMock,
+}));
+
+vi.mock("sonner", () => ({
+  toast: {
+    info: toastInfoMock,
+  },
 }));
 
 vi.mock("@/components/ui/sheet", async () => {
@@ -195,9 +207,32 @@ vi.mock("@/components/ui/calendar/date-picker-time", async () => {
 });
 
 import { AppointmentFormSheet } from "./appointment-form-sheet";
+import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+
+const appointmentToEdit: AppointmentCalendarEvent = {
+  id: "appointment-1",
+  title: "Lavagem completa",
+  startsAt: new Date("2026-05-20T08:30:00.000Z"),
+  end: new Date("2026-05-20T10:00:00.000Z"),
+  extendedProps: {
+    customerId: "customer-1",
+    customer: "Cliente Teste",
+    serviceIds: [{ value: "service-1", label: "Lavagem completa" }],
+    service: "Lavagem completa",
+    vehicleId: "vehicle-1",
+    vehicle: "ABC-1234",
+    endsAt: new Date("2026-05-20T10:00:00.000Z"),
+    description: "Observação original",
+    discountValue: "15,00",
+    notes: "Observação original",
+    tone: "info",
+    status: "SCHEDULED",
+  },
+};
 
 describe("AppointmentFormSheet", () => {
   beforeEach(() => {
+    toastInfoMock.mockClear();
     useListCustomerOptionsMock.mockReturnValue({
       data: { customers: [] },
       isPending: false,
@@ -214,6 +249,10 @@ describe("AppointmentFormSheet", () => {
       mutate: vi.fn(),
       isPending: false,
     });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    });
   });
 
   it("keeps the provided default start date when the sheet opens", async () => {
@@ -227,6 +266,24 @@ describe("AppointmentFormSheet", () => {
       );
     });
     expect(screen.getAllByTestId("date-picker-time")[1]).toHaveTextContent("empty");
+  });
+
+  it("prefills fields when editing an existing appointment", async () => {
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    expect(screen.getByText("Editar agendamento")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nome do cliente/)).toHaveValue("Cliente Teste");
+    expect(screen.getByLabelText(/Serviços/)).toHaveValue("service-1");
+    expect(screen.getByLabelText(/Veículo/)).toHaveValue("ABC-1234");
+    expect(screen.getAllByTestId("date-picker-time")[0]).toHaveTextContent(
+      "2026-05-20T08:30:00.000Z",
+    );
+    expect(screen.getAllByTestId("date-picker-time")[1]).toHaveTextContent(
+      "2026-05-20T10:00:00.000Z",
+    );
+    expect(screen.getByLabelText(/Descrição/)).toHaveValue("Observação original");
+    expect(screen.getByLabelText(/Desconto/)).toHaveValue("15,00");
+    expect(screen.getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
   });
 
   it("does not validate the vehicle field when the customer changes", async () => {
@@ -326,6 +383,47 @@ describe("AppointmentFormSheet", () => {
           serviceIds: ["service-1"],
           vehicleId: "vehicle-1",
         }),
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+
+    const mutationOptions = mutate.mock.calls[0]?.[1] as { onSuccess?: () => void } | undefined;
+
+    mutationOptions?.onSuccess?.();
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("sends only changed fields when editing an appointment", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+    const onOpenChange = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet open onOpenChange={onOpenChange} appointment={appointmentToEdit} />,
+    );
+
+    const descriptionInput = screen.getByLabelText(/Descrição/);
+
+    await user.clear(descriptionInput);
+    await user.type(descriptionInput, "Nova observação");
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            description: "Nova observação",
+          },
+        },
         expect.objectContaining({
           onSuccess: expect.any(Function),
         }),

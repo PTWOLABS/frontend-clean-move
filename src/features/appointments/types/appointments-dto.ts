@@ -45,3 +45,7 @@ export type UpdateAppointmentStatusDTO = {
     cancelledAt?: string | null;
   };
 };
+
+export type UpdateAppointmentDTO = {
+  appointment: AppointmentDTO["appointments"][number];
+};

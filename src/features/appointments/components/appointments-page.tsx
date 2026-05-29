@@ -295,6 +295,7 @@ export function AppointmentsPage() {
   );
   const [selectedSlotKey, setSelectedSlotKey] = useState<string | null>(null);
   const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
+  const [appointmentToEdit, setAppointmentToEdit] = useState<AppointmentCalendarEvent | null>(null);
   const isCompactCalendarNavigation = useCompactCalendarNavigation();
   const availableViewFilterOptions = isCompactCalendarNavigation ? compactViewOptions : viewOptions;
   const availableViewToggleOptions = isCompactCalendarNavigation
@@ -498,6 +499,37 @@ export function AppointmentsPage() {
     calendarRef.current?.getApi()?.gotoDate(event.startsAt);
   }
 
+  function handleCreateAppointmentSheetOpen(open: boolean) {
+    if (open) {
+      setAppointmentToEdit(null);
+    }
+
+    setAppointmentSheetOpen(open);
+  }
+
+  function handleAppointmentSheetOpenChange(open: boolean) {
+    setAppointmentSheetOpen(open);
+
+    if (!open) {
+      setAppointmentToEdit(null);
+    }
+  }
+
+  function handleEditAppointment(event: AppointmentCalendarEvent) {
+    handleSelectEvent(event);
+    setAppointmentToEdit(event);
+    setAppointmentSheetOpen(true);
+  }
+
+  function handleEditAppointmentFromPopover(event: AppointmentCalendarEvent) {
+    setSelectionSource("manual");
+    setSelectedEventId(null);
+    setSelectedSlotKey(null);
+    syncSelection(event.startsAt);
+    setAppointmentToEdit(event);
+    setAppointmentSheetOpen(true);
+  }
+
   function handleAppointmentStatusChange(appointmentId: string, status: AppointmentStatus) {
     updateAppointmentStatusMutation.mutate({
       appointmentId,
@@ -526,7 +558,7 @@ export function AppointmentsPage() {
             type="button"
             className="h-11 w-full sm:w-auto sm:min-w-[12.5rem]"
             onClick={() => {
-              setAppointmentSheetOpen(true);
+              handleCreateAppointmentSheetOpen(true);
             }}
           >
             <Plus className="size-4" />
@@ -596,7 +628,8 @@ export function AppointmentsPage() {
               onEventClick={handleEventClick}
               onMonthCellPress={handleMonthCellPress}
               onSlotPress={handleSlotPress}
-              onCellAddIndicatorPress={setAppointmentSheetOpen}
+              onCellAddIndicatorPress={handleCreateAppointmentSheetOpen}
+              onEditEvent={handleEditAppointmentFromPopover}
               onStatusChange={handleAppointmentStatusChange}
             />
             <CalendarStatusLegend />
@@ -617,6 +650,7 @@ export function AppointmentsPage() {
             isError={!!errorFeedback || hasAppointmentsError}
             updatingStatusAppointmentId={updatingStatusAppointmentId}
             onRetry={refetchAppointments}
+            onEditEvent={handleEditAppointment}
             onSelectEvent={handleAgendaItemClick}
             onStatusChange={handleAppointmentStatusChange}
           />
@@ -624,8 +658,9 @@ export function AppointmentsPage() {
       </div>
       <AppointmentFormSheet
         open={appointmentSheetOpen}
-        onOpenChange={setAppointmentSheetOpen}
+        onOpenChange={handleAppointmentSheetOpenChange}
         defaultStartsAt={selectedDate}
+        appointment={appointmentToEdit}
       />
     </section>
   );

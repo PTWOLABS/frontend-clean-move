@@ -1,6 +1,7 @@
 import { addMinutes, format, isSameDay, isSameMonth, isSameYear, subMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+import { formatReaisToBrlInput } from "@/shared/money/format-brl-money";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 
 import type { AppointmentDTO } from "../types/appointments-dto";
@@ -72,6 +73,13 @@ function getServicesSummary(appointment: AppointmentListItem) {
   };
 }
 
+function getServiceOptions(appointment: AppointmentListItem) {
+  return appointment.services.map((service) => ({
+    value: service.id,
+    label: service.name.trim() || "Serviço não informado",
+  }));
+}
+
 function getVehicleLabel(appointment: AppointmentListItem) {
   if (!appointment.vehicle) {
     return "Veículo não informado";
@@ -82,6 +90,14 @@ function getVehicleLabel(appointment: AppointmentListItem) {
     .map((value) => value!.trim());
 
   return segments.length ? segments.join(" • ") : "Veículo não informado";
+}
+
+function getDiscountValue(appointment: AppointmentListItem) {
+  if (appointment.discountInCents === null || appointment.discountInCents === undefined) {
+    return "";
+  }
+
+  return formatReaisToBrlInput(appointment.discountInCents / 100);
 }
 
 function getAppointmentDurationInMinutes(appointment: AppointmentListItem) {
@@ -120,7 +136,10 @@ export function mapAppointmentToCalendarEvent(
 ): AppointmentCalendarEvent {
   const start = parseAppointmentDateTime(appointment.startsAt);
   const end = getAppointmentEnd(appointment, start);
+  const explicitEnd = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
   const services = getServicesSummary(appointment);
+  const vehicleLabel = getVehicleLabel(appointment);
+  const description = appointment.description?.trim() ?? "";
 
   return {
     id: appointment.id,
@@ -128,10 +147,16 @@ export function mapAppointmentToCalendarEvent(
     startsAt: start,
     end,
     extendedProps: {
+      customerId: appointment.customerId,
       customer: getCustomerLabel(appointment),
+      serviceIds: getServiceOptions(appointment),
       service: services.label,
-      vehicle: getVehicleLabel(appointment),
-      notes: appointment.description?.trim() || "Sem observações operacionais.",
+      vehicleId: appointment.vehicleId ?? "",
+      vehicle: vehicleLabel,
+      endsAt: explicitEnd,
+      description,
+      discountValue: getDiscountValue(appointment),
+      notes: description || "Sem observações operacionais.",
       tone: getAppointmentTone(appointment.status),
       status: appointment.status,
     },

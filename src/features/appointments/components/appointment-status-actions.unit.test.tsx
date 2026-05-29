@@ -5,6 +5,28 @@ import { describe, expect, it, vi } from "vitest";
 import { AppointmentStatusActions } from "./appointment-status-actions";
 
 describe("AppointmentStatusActions", () => {
+  it("shows edit action inside the actions menu when provided", async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    const onStatusChange = vi.fn();
+
+    render(
+      <AppointmentStatusActions
+        appointmentId="appointment-1"
+        currentStatus="SCHEDULED"
+        isUpdating={false}
+        onEdit={onEdit}
+        onStatusChange={onStatusChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /ações do agendamento/i }));
+    await user.click(screen.getByRole("menuitem", { name: /editar agendamento/i }));
+
+    expect(onEdit).toHaveBeenCalledTimes(1);
+    expect(onStatusChange).not.toHaveBeenCalled();
+  });
+
   it("calls onStatusChange for direct status changes", async () => {
     const user = userEvent.setup();
     const onStatusChange = vi.fn();
