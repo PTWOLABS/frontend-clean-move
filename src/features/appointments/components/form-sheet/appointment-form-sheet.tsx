@@ -388,6 +388,7 @@ export function AppointmentFormSheet({
     <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent
         ref={handleSheetContentRef}
+        data-cy="appointment-form-sheet"
         side="right"
         className="flex w-full max-w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
       >
@@ -402,6 +403,7 @@ export function AppointmentFormSheet({
 
         <FormProvider {...methods}>
           <form
+            noValidate
             className="flex flex-1 flex-col gap-6 py-6"
             aria-busy={isSubmitting}
             aria-describedby={isSubmitting ? "appointment-submit-status" : undefined}
