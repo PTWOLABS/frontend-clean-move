@@ -4,6 +4,7 @@ import { RegisterTextField } from "./register-text-field";
 import { StepActions } from "./step-actions";
 import { addressStepSchema, type AddressStepValues } from "../schemas/register-schema";
 import { useZipCodeAutofill } from "../hooks/use-zipcode-autofill";
+import { ZIP_CODE_MASK } from "@/shared/constants/input-masks";
 
 type AddressStepProps = {
   onBack: (values: AddressStepValues) => void;
@@ -20,7 +21,7 @@ export function AddressStep({ onBack, registrationPending = false }: AddressStep
         <RegisterTextField
           id="register-zip-code"
           name="zipCode"
-          mask="_____-___"
+          mask={ZIP_CODE_MASK}
           inputMode="numeric"
           autoComplete="postal-code"
           placeholder="00000-000"

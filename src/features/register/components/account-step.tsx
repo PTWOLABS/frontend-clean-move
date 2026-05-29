@@ -3,6 +3,7 @@ import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/google-signin-button";
 import { useGoogleLogin } from "@/features/auth/hooks/use-google-login";
+import { PHONE_MASK } from "@/shared/constants/input-masks";
 import { RegisterTextField } from "./register-text-field";
 import { StepActions } from "./step-actions";
 import { accountStepSchema, type AccountStepValues } from "../schemas/register-schema";
@@ -40,7 +41,7 @@ export function AccountStep() {
           id="register-phone"
           name="phone"
           type="tel"
-          mask="(__) _____-____"
+          mask={PHONE_MASK}
           inputMode="tel"
           autoComplete="tel"
           placeholder="(00) 00000-0000"
