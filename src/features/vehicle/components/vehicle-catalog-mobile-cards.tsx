@@ -1,4 +1,4 @@
-import { Car, Pencil, Trash2 } from "lucide-react";
+import { Car, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,28 @@ import type { VehicleDto } from "../types";
 
 type CardActionsProps = {
   item: VehicleDto;
+  onAddVehicle: (item: VehicleDto) => void;
   onEdit: (item: VehicleDto) => void;
   onDelete: (item: VehicleDto) => void;
 };
 
-function CardActions({ item, onEdit, onDelete }: CardActionsProps) {
+function CardActions({ item, onAddVehicle, onEdit, onDelete }: CardActionsProps) {
   const canMutate = Boolean(item.id);
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-9 flex-1 gap-2 border-primary/40 bg-background/50 text-primary hover:bg-primary/10 hover:text-primary"
+        disabled={!canMutate}
+        aria-label="Adicionar veículo"
+        onClick={() => onAddVehicle(item)}
+      >
+        <Plus className="size-4 shrink-0" aria-hidden />
+        Adicionar
+      </Button>
       <Button
         type="button"
         variant="outline"
@@ -55,6 +68,8 @@ function CardActions({ item, onEdit, onDelete }: CardActionsProps) {
 
 type VehicleCatalogMobileCardsProps = {
   items: VehicleDto[];
+  getCustomerLabel: (customerId: string) => string | undefined;
+  onAddVehicle: (item: VehicleDto) => void;
   onEdit: (item: VehicleDto) => void;
   onDelete: (item: VehicleDto) => void;
 };
@@ -80,6 +95,8 @@ function formatColorLabel(item: VehicleDto): string {
 
 export function VehicleCatalogMobileCards({
   items,
+  getCustomerLabel,
+  onAddVehicle,
   onEdit,
   onDelete,
 }: VehicleCatalogMobileCardsProps) {
@@ -113,6 +130,9 @@ export function VehicleCatalogMobileCards({
                 <h3 className="truncate text-2xl font-bold uppercase tracking-wide text-foreground">
                   {formatVehiclePlate(item)}
                 </h3>
+                <p className="truncate text-sm text-muted-foreground">
+                  {getCustomerLabel(item.customerId)?.trim() || "—"}
+                </p>
                 <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                   <Car className="size-4 shrink-0" aria-hidden />
                   <span className="truncate">{formatModelLabel(item)}</span>
@@ -139,7 +159,12 @@ export function VehicleCatalogMobileCards({
                 <p className="line-clamp-2 text-sm text-muted-foreground">{item.notes.trim()}</p>
               ) : null}
 
-              <CardActions item={item} onEdit={onEdit} onDelete={onDelete} />
+              <CardActions
+                item={item}
+                onAddVehicle={onAddVehicle}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             </CardContent>
           </Card>
         );
