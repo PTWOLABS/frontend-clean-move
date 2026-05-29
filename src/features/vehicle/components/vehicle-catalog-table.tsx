@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import {
   Table,
@@ -19,11 +19,19 @@ import type { VehicleDto } from "../types";
 
 type VehicleCatalogTableProps = {
   items: VehicleDto[];
+  getCustomerLabel: (customerId: string) => string | undefined;
+  onAddVehicle: (item: VehicleDto) => void;
   onEdit: (item: VehicleDto) => void;
   onDelete: (item: VehicleDto) => void;
 };
 
-export function VehicleCatalogTable({ items, onEdit, onDelete }: VehicleCatalogTableProps) {
+export function VehicleCatalogTable({
+  items,
+  getCustomerLabel,
+  onAddVehicle,
+  onEdit,
+  onDelete,
+}: VehicleCatalogTableProps) {
   return (
     <div className="hidden rounded-lg border border-border md:block">
       <Table>
@@ -31,6 +39,9 @@ export function VehicleCatalogTable({ items, onEdit, onDelete }: VehicleCatalogT
           <TableRow className="hover:bg-transparent">
             <TableHead className="pl-4 text-xs font-medium uppercase tracking-wide text-foreground">
               Placa
+            </TableHead>
+            <TableHead className="text-xs font-medium uppercase tracking-wide text-foreground">
+              Cliente
             </TableHead>
             <TableHead className="text-xs font-medium uppercase tracking-wide text-foreground">
               Marca
@@ -55,6 +66,7 @@ export function VehicleCatalogTable({ items, onEdit, onDelete }: VehicleCatalogT
               <TableCell className="pl-4 font-medium text-foreground">
                 {formatVehiclePlate(item)}
               </TableCell>
+              <TableCell>{getCustomerLabel(item.customerId)?.trim() || "—"}</TableCell>
               <TableCell>{item.brand?.trim() || "—"}</TableCell>
               <TableCell>{item.model?.trim() || formatVehicleName(item)}</TableCell>
               <TableCell>{item.color?.trim() || "—"}</TableCell>
@@ -63,6 +75,12 @@ export function VehicleCatalogTable({ items, onEdit, onDelete }: VehicleCatalogT
                 <RowIconActions
                   className="justify-end"
                   actions={[
+                    {
+                      label: "Adicionar veículo",
+                      icon: Plus,
+                      onClick: () => onAddVehicle(item),
+                      className: "text-primary hover:bg-primary/10 hover:text-primary",
+                    },
                     {
                       label: "Editar",
                       icon: Pencil,
