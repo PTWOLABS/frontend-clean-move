@@ -32,11 +32,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/shared/utils/cn";
-import {
-  getCpfCnpjMask,
-  PHONE_MASK,
-  ZIP_CODE_MASK,
-} from "@/shared/constants/input-masks";
+import { getCpfCnpjMask, PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 
 import { useCreateCustomer } from "../hooks/use-create-customer";
@@ -300,7 +296,10 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                     disabled={addressFieldsDisabled}
                     image={
                       isFetchingAddress ? (
-                        <LoaderCircle aria-hidden className="size-5 animate-spin text-muted-foreground" />
+                        <LoaderCircle
+                          aria-hidden
+                          className="size-5 animate-spin text-muted-foreground"
+                        />
                       ) : undefined
                     }
                   />

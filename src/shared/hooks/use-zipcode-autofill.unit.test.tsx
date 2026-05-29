@@ -89,19 +89,13 @@ describe("useZipCodeAutofill", () => {
 
   it("should not trigger the lookup when the zipcode has fewer than 8 digits", () => {
     const { Wrapper } = buildWrapper({ address: { ...emptyValues.address, zipCode: "1234" } });
-    renderHook(
-      () => useTestZipCodeAutofill({ enabled: true }),
-      { wrapper: Wrapper },
-    );
+    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
     expect(fetchAddressByZipCodeMock).not.toHaveBeenCalled();
   });
 
   it("should not trigger the lookup when enabled is false", async () => {
     const { Wrapper, getMethods } = buildWrapper();
-    renderHook(
-      () => useTestZipCodeAutofill({ enabled: false }),
-      { wrapper: Wrapper },
-    );
+    renderHook(() => useTestZipCodeAutofill({ enabled: false }), { wrapper: Wrapper });
 
     act(() => {
       getMethods().setValue("address.zipCode", "01310-100");
@@ -121,10 +115,7 @@ describe("useZipCodeAutofill", () => {
     });
 
     const { Wrapper, getMethods } = buildWrapper();
-    renderHook(
-      () => useTestZipCodeAutofill({ enabled: true }),
-      { wrapper: Wrapper },
-    );
+    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
 
     act(() => {
       getMethods().setValue("address.zipCode", "01310-100");
@@ -150,10 +141,7 @@ describe("useZipCodeAutofill", () => {
     const { Wrapper, getMethods } = buildWrapper({
       address: { ...emptyValues.address, complement: "Andar 5" },
     });
-    renderHook(
-      () => useTestZipCodeAutofill({ enabled: true }),
-      { wrapper: Wrapper },
-    );
+    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
 
     act(() => {
       getMethods().setValue("address.zipCode", "01310-100");
@@ -170,10 +158,7 @@ describe("useZipCodeAutofill", () => {
   it("should set 'cep não encontrado' error when the service returns null", async () => {
     fetchAddressByZipCodeMock.mockResolvedValue(null);
     const { Wrapper, getMethods } = buildWrapper();
-    renderHook(
-      () => useTestZipCodeAutofill({ enabled: true }),
-      { wrapper: Wrapper },
-    );
+    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
 
     act(() => {
       getMethods().setValue("address.zipCode", "01310-100");
@@ -187,10 +172,9 @@ describe("useZipCodeAutofill", () => {
   it("should expose hasAddressFetchError when the lookup fails", async () => {
     fetchAddressByZipCodeMock.mockRejectedValue(new Error("erro"));
     const { Wrapper, getMethods } = buildWrapper();
-    const { result } = renderHook(
-      () => useTestZipCodeAutofill({ enabled: true }),
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useTestZipCodeAutofill({ enabled: true }), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
       getMethods().setValue("address.zipCode", "01310-100");

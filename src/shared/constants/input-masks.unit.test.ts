@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  CNPJ_MASK,
-  CPF_MASK,
-  getCpfCnpjMask,
-  PHONE_MASK,
-  ZIP_CODE_MASK,
-} from "./input-masks";
+import { CNPJ_MASK, CPF_MASK, getCpfCnpjMask, PHONE_MASK, ZIP_CODE_MASK } from "./input-masks";
 
 describe("input-masks", () => {
   it("should expose stable mask constants", () => {
