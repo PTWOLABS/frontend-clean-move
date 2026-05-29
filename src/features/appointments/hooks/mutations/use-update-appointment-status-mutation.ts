@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
@@ -13,7 +13,7 @@ type UpdateAppointmentStatusRequest = {
   status: AppointmentStatus;
 };
 
-const queriesToInvalidate = [
+const queriesToInvalidate: QueryKey[] = [
   QUERY_KEYS.appointments(),
   QUERY_KEYS.metricsOverview,
   QUERY_KEYS.metricsAppointment,

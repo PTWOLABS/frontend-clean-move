@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
@@ -13,12 +13,10 @@ type UpdateAppointmentRequest = {
   body: UpdateAppointmentRequestBody;
 };
 
-const queriesToInvalidate = [
-  QUERY_KEYS.appointments(),
+const metricsQueriesToInvalidate: QueryKey[] = [
   QUERY_KEYS.metricsOverview,
   QUERY_KEYS.metricsAppointment,
   QUERY_KEYS.revenueAndAppointments,
-  QUERY_KEYS.popularServices,
 ];
 
 export function useUpdateAppointment() {
@@ -28,7 +26,21 @@ export function useUpdateAppointment() {
     mutationFn: async ({ appointmentId, body }: UpdateAppointmentRequest) => {
       return await updateAppointment(appointmentId, body);
     },
-    onSuccess: async () => {
+    onSuccess: async (_, { body }) => {
+      const hasScheduleChange = "startsAt" in body || "endsAt" in body;
+      const hasServiceChange = "serviceIds" in body;
+      const hasRevenueChange = hasScheduleChange || hasServiceChange || "discountValue" in body;
+
+      const queriesToInvalidate: QueryKey[] = [QUERY_KEYS.appointments()];
+
+      if (hasRevenueChange) {
+        queriesToInvalidate.push(...metricsQueriesToInvalidate);
+      }
+
+      if (hasServiceChange) {
+        queriesToInvalidate.push(QUERY_KEYS.popularServices);
+      }
+
       await Promise.all(
         queriesToInvalidate.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
       );
