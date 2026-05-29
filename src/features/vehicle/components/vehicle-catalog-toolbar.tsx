@@ -1,37 +1,26 @@
-"use client";
+import { Search } from "lucide-react";
 
-import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
+import { Input } from "@/components/ui/input";
 
 type VehicleCatalogToolbarProps = {
-  customerLabel: string;
-  onCustomerLabelChange: (value: string) => void;
-  onCustomerSearchChange: (value: string) => void;
-  onCustomerSelect: (option: ComboboxItemOption | null) => void;
-  customerOptions: ComboboxItemOption[];
-  customerEmptyMessage: string;
+  search: string;
+  onSearchChange: (value: string) => void;
 };
 
-export function VehicleCatalogToolbar({
-  customerLabel,
-  onCustomerLabelChange,
-  onCustomerSearchChange,
-  onCustomerSelect,
-  customerOptions,
-  customerEmptyMessage,
-}: VehicleCatalogToolbarProps) {
+export function VehicleCatalogToolbar({ search, onSearchChange }: VehicleCatalogToolbarProps) {
   return (
-    <div className="w-full sm:max-w-md">
-      <Combobox
-        value={customerLabel}
-        onValueChange={onCustomerLabelChange}
-        onDebouncedValueChange={onCustomerSearchChange}
-        onSelectedItemChange={onCustomerSelect}
-        items={customerOptions}
-        placeholder="Digite o nome do cliente"
-        emptyMessage={customerEmptyMessage}
-        autoComplete="name"
-        aria-label="Selecionar cliente"
-        className="w-full"
+    <div className="relative w-full max-w-md">
+      <Search
+        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        aria-hidden
+      />
+      <Input
+        type="search"
+        placeholder="Buscar por nome do cliente..."
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="pl-9"
+        aria-label="Buscar veículos por nome do cliente"
       />
     </div>
   );
