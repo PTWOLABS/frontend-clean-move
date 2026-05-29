@@ -28,7 +28,7 @@ import { VehicleCatalogTable } from "./vehicle-catalog-table";
 import { VehicleCatalogToolbar } from "./vehicle-catalog-toolbar";
 import { VehicleFormSheet } from "./vehicle-form-sheet";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 6;
 const CUSTOMER_LOOKUP_LIMIT = 100;
 const SEARCH_DEBOUNCE_MS = 350;
 
