@@ -1,6 +1,14 @@
 "use client";
 
-import { addDays, startOfDay, startOfMonth } from "date-fns";
+import {
+  addDays,
+  addMonths,
+  endOfDay,
+  isAfter,
+  isSameDay,
+  startOfDay,
+  startOfMonth,
+} from "date-fns";
 import { type DateRange } from "react-day-picker";
 
 import { DatePickerWithRange } from "@/components/ui/calendar/date-picker-with-range";
@@ -21,6 +29,8 @@ import {
 import { Select } from "@/components/ui/select/select";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
+
+const MAX_CUSTOM_DATE_RANGE_MONTHS = 24;
 
 const periodsOptions: {
   label: string;
@@ -66,6 +76,54 @@ function getDateRangeForPeriod(period: DashboardPeriod): DateRange {
   }
 }
 
+export function limitCustomDashboardDateRange(dateRange?: DateRange): DateRange | undefined {
+  if (!dateRange?.from || !dateRange.to) {
+    return dateRange;
+  }
+
+  const maxEndDate = addMonths(startOfDay(dateRange.from), MAX_CUSTOM_DATE_RANGE_MONTHS);
+  const normalizedEndDate = startOfDay(dateRange.to);
+
+  if (!isAfter(normalizedEndDate, maxEndDate)) {
+    return dateRange;
+  }
+
+  return {
+    ...dateRange,
+    to: maxEndDate,
+  };
+}
+
+export function getCustomDashboardDateRangeFilters(
+  dateRange?: DateRange,
+): Pick<DashboardMetricsFiltersBase, "startsAt" | "endsAt"> {
+  const limitedDateRange = limitCustomDashboardDateRange(dateRange);
+
+  return {
+    startsAt: limitedDateRange?.from,
+    endsAt: limitedDateRange?.to ? endOfDay(limitedDateRange.to) : undefined,
+  };
+}
+
+export function getMatchingDashboardPeriodForDateRange(
+  dateRange?: DateRange,
+): DashboardPeriod | undefined {
+  if (!dateRange?.from || !dateRange.to) {
+    return undefined;
+  }
+
+  const matchingPeriod = (["last-7-days", "last-30-days", "this-month"] satisfies DashboardPeriod[])
+    .find((periodOption) => {
+      const periodRange = getDateRangeForPeriod(periodOption);
+
+      return (
+        isSameDay(dateRange.from!, periodRange.from!) && isSameDay(dateRange.to!, periodRange.to!)
+      );
+    });
+
+  return matchingPeriod;
+}
+
 const statusOptions: {
   label: string;
   value: AppointmentStatus;
@@ -102,6 +160,37 @@ const granularityOptions: {
   },
 ];
 
+export function getDashboardMetricsFilters({
+  period,
+  dateRange,
+  status,
+}: {
+  period: DashboardPeriodFilter;
+  dateRange?: DateRange;
+  status: AppointmentStatus;
+}): DashboardMetricsFiltersBase {
+  if (period !== "custom") {
+    return {
+      period,
+      status,
+    };
+  }
+
+  const matchingPeriod = getMatchingDashboardPeriodForDateRange(dateRange);
+
+  if (matchingPeriod) {
+    return {
+      period: matchingPeriod,
+      status,
+    };
+  }
+
+  return {
+    ...getCustomDashboardDateRangeFilters(dateRange),
+    status,
+  };
+}
+
 export function MetricsSections() {
   const [period, setPeriod] = useState<DashboardPeriodFilter>("last-30-days");
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(() =>
@@ -125,17 +214,15 @@ export function MetricsSections() {
     setPeriod(nextPeriod);
   }
 
-  const filters: DashboardMetricsFiltersBase = {
-    ...(isCustomPeriod
-      ? {
-          startsAt: resolvedDateRange?.from,
-          endsAt: resolvedDateRange?.to,
-        }
-      : {
-          period,
-        }),
+  function handleCustomDateRangeChange(nextDateRange: DateRange | undefined) {
+    setCustomDateRange(limitCustomDashboardDateRange(nextDateRange));
+  }
+
+  const filters = getDashboardMetricsFilters({
+    period,
+    dateRange: resolvedDateRange,
     status,
-  };
+  });
 
   return (
     <div className="space-y-4">
@@ -152,7 +239,7 @@ export function MetricsSections() {
             <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.7fr)_minmax(11rem,1fr)_minmax(11rem,1fr)]">
               <DatePickerWithRange
                 value={resolvedDateRange}
-                onChange={setCustomDateRange}
+                onChange={handleCustomDateRangeChange}
                 disabled={!isCustomPeriod}
                 className="h-11 md:w-full md:min-w-0"
               />
