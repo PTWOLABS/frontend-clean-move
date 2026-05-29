@@ -52,6 +52,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const revenueAppointmentsTooltip =
+  "Evolução da receita e dos agendamentos nos filtros selecionados. A granularidade controla o agrupamento dos pontos do gráfico.";
+
 function formatTrend(value: number) {
   const formattedValue = new Intl.NumberFormat("pt-BR", {
     maximumFractionDigits: 1,
@@ -167,6 +170,7 @@ export function RevenueAppointmentsChartCard({
     return (
       <DashboardPanelSkeleton
         title="Receita e agendamentos ao longo do tempo"
+        titleTooltip={revenueAppointmentsTooltip}
         className={className}
         action={action}
       >
@@ -195,6 +199,7 @@ export function RevenueAppointmentsChartCard({
     return (
       <DashboardPanel
         title="Receita e agendamentos ao longo do tempo"
+        titleTooltip={revenueAppointmentsTooltip}
         className={className}
         action={action}
       >
@@ -211,6 +216,7 @@ export function RevenueAppointmentsChartCard({
   return (
     <DashboardPanel
       title="Receita e agendamentos ao longo do tempo"
+      titleTooltip={revenueAppointmentsTooltip}
       className={className}
       action={action}
     >
