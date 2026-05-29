@@ -7,7 +7,7 @@ import { renderWithProviders } from "@/test/test-utils";
 
 const fetchAddressByZipCodeMock = vi.fn();
 
-vi.mock("../api/viacep", () => ({
+vi.mock("@/shared/api/viacep", () => ({
   fetchAddressByZipCode: (...args: unknown[]) => fetchAddressByZipCodeMock(...args),
 }));
 
