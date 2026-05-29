@@ -19,6 +19,13 @@ export type ListVehiclesQuery = {
   size?: number;
 };
 
+export type ListEstablishmentVehiclesQuery = {
+  customerId?: string;
+  name?: string;
+  page?: number;
+  size?: number;
+};
+
 export type ListVehiclesResponse = {
   vehicles: VehicleDto[];
   totalItems: number;
