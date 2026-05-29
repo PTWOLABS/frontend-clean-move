@@ -225,6 +225,11 @@ describe("RevenueAppointmentsChartCard", () => {
         name: /receita e agendamentos ao longo do tempo/i,
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /mais informações sobre receita e agendamentos ao longo do tempo/i,
+      }),
+    ).toBeInTheDocument();
 
     expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
     expect(screen.getByText("Receita (R$)")).toBeInTheDocument();

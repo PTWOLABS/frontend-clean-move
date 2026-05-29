@@ -65,6 +65,9 @@ describe("PopularServicesCard", () => {
     render(<PopularServicesCard />);
 
     expect(screen.getByRole("heading", { name: /serviços populares/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /mais informações sobre serviços populares/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Lavagem Completa")).toBeInTheDocument();
     expect(screen.getByText("Higienização Interna")).toBeInTheDocument();
     expect(
