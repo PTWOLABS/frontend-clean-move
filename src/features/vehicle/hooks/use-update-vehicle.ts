@@ -29,6 +29,7 @@ export function useUpdateVehicle() {
     },
     onSuccess: (_data, { customerId }) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles(customerId) });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehiclesAll() });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
       toast.success("Veículo atualizado com sucesso.");
     },
