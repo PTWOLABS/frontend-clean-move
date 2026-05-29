@@ -174,7 +174,7 @@ export function VehicleCatalog() {
           </CardContent>
         </Card>
       ) : showListSkeleton ? (
-        <VehicleCatalogListSkeleton />
+        <VehicleCatalogListSkeleton count={PAGE_SIZE} />
       ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
