@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { useListCustomerOptions } from "@/features/appointments/hooks/queries/use-list-customer-options";
 import { ApiError } from "@/shared/api/httpClient";
+import { useDebounce } from "@/shared/hooks/use-debounced-value";
 
 import { useDeleteVehicle } from "../hooks/use-delete-vehicle";
-import { useVehicles } from "../hooks/use-vehicles";
+import { useEstablishmentVehicles } from "../hooks/use-establishment-vehicles";
 import type { VehicleDto } from "../types";
 import { VehicleCatalogHeader } from "./vehicle-catalog-header";
 import { VehicleCatalogListSkeleton } from "./vehicle-catalog-list-skeleton";
@@ -29,47 +29,57 @@ import { VehicleCatalogToolbar } from "./vehicle-catalog-toolbar";
 import { VehicleFormSheet } from "./vehicle-form-sheet";
 
 const PAGE_SIZE = 10;
-const CUSTOMER_OPTIONS_LIMIT = 20;
+const CUSTOMER_LOOKUP_LIMIT = 100;
+const SEARCH_DEBOUNCE_MS = 350;
 
 export function VehicleCatalog() {
   const [page, setPage] = useState(1);
-  const [customerLabel, setCustomerLabel] = useState("");
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [search, setSearch] = useState("");
+  const [createCustomerId, setCreateCustomerId] = useState("");
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [vehicleSheetOpen, setVehicleSheetOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VehicleDto | null>(null);
 
-  const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: CUSTOMER_OPTIONS_LIMIT,
-    search: customerSearch || undefined,
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
+
+  const { data: customerLookupOptions } = useListCustomerOptions({
+    limit: CUSTOMER_LOOKUP_LIMIT,
   });
 
-  const customerOptionsItems = useMemo(
-    () =>
-      customerOptions?.customers?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [],
-    [customerOptions],
+  const customerLabelById = useMemo(() => {
+    const map = new Map<string, string>();
+
+    for (const option of customerLookupOptions?.customers ?? []) {
+      map.set(option.id, option.label);
+    }
+
+    return map;
+  }, [customerLookupOptions]);
+
+  const getCustomerLabel = useCallback(
+    (customerId: string) => customerLabelById.get(customerId),
+    [customerLabelById],
   );
 
-  const handleCustomerSelect = useCallback((option: ComboboxItemOption | null) => {
-    setSelectedCustomerId(option?.value ?? "");
-    setPage(1);
+  const openCreateForm = useCallback((customerId: string) => {
+    setEditingVehicle(null);
+    setCreateCustomerId(customerId);
+    setShowCustomerPicker(false);
+    setVehicleSheetOpen(true);
   }, []);
 
-  const getCustomerEmptyMessage = () => {
-    if (isLoadingCustomerOptions) return "Buscando clientes...";
+  const openCreateFormFromHeader = useCallback(() => {
+    setEditingVehicle(null);
+    setCreateCustomerId("");
+    setShowCustomerPicker(true);
+    setVehicleSheetOpen(true);
+  }, []);
 
-    return "Nenhum cliente encontrado.";
-  };
-
-  const vehiclesQuery = useVehicles({
-    customerId: selectedCustomerId,
+  const vehiclesQuery = useEstablishmentVehicles({
     page,
     size: PAGE_SIZE,
-    enabled: Boolean(selectedCustomerId),
+    name: debouncedSearch.trim() || undefined,
   });
 
   const deleteMutation = useDeleteVehicle();
@@ -79,39 +89,48 @@ export function VehicleCatalog() {
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const displayedPage = data?.page ?? page;
-  const hasCustomerSelected = Boolean(selectedCustomerId);
 
-  const showListSkeleton = hasCustomerSelected && vehiclesQuery.isLoading && !data;
-  const showVehiclesError = hasCustomerSelected && vehiclesQuery.isError;
+  const showListSkeleton = vehiclesQuery.isLoading && !data;
+  const showVehiclesError = vehiclesQuery.isError;
+
+  if (showVehiclesError) {
+    const message =
+      vehiclesQuery.error instanceof ApiError
+        ? vehiclesQuery.error.message
+        : "Não foi possível carregar os veículos.";
+
+    return (
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-destructive">Erro ao carregar veículos</CardTitle>
+          <CardDescription className="text-destructive/90">{message}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button type="button" variant="outline" onClick={() => vehiclesQuery.refetch()}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <VehicleCatalogHeader
-        totalCount={hasCustomerSelected ? total : 0}
-        hasCustomerSelected={hasCustomerSelected}
-        onAddVehicle={() => {
-          setEditingVehicle(null);
-          setVehicleSheetOpen(true);
-        }}
-      />
+      <VehicleCatalogHeader totalCount={total} onAddVehicle={openCreateFormFromHeader} />
 
       <VehicleFormSheet
         open={vehicleSheetOpen}
         onOpenChange={(open) => {
           setVehicleSheetOpen(open);
-          if (!open) setEditingVehicle(null);
+          if (!open) {
+            setEditingVehicle(null);
+            setCreateCustomerId("");
+            setShowCustomerPicker(false);
+          }
         }}
-        customerId={selectedCustomerId}
+        customerId={createCustomerId}
+        showCustomerPicker={showCustomerPicker}
         editingVehicle={editingVehicle}
-      />
-
-      <VehicleCatalogToolbar
-        customerLabel={customerLabel}
-        onCustomerLabelChange={setCustomerLabel}
-        onCustomerSearchChange={setCustomerSearch}
-        onCustomerSelect={handleCustomerSelect}
-        customerOptions={customerOptionsItems}
-        customerEmptyMessage={getCustomerEmptyMessage()}
       />
 
       <AlertDialog
@@ -138,9 +157,9 @@ export function VehicleCatalog() {
               variant="destructive"
               disabled={deleteMutation.isPending || !deleteTarget}
               onClick={() => {
-                if (!deleteTarget || !selectedCustomerId) return;
+                if (!deleteTarget) return;
                 deleteMutation.mutate(
-                  { customerId: selectedCustomerId, vehicleId: deleteTarget.id },
+                  { customerId: deleteTarget.customerId, vehicleId: deleteTarget.id },
                   { onSuccess: () => setDeleteTarget(null) },
                 );
               }}
@@ -151,55 +170,50 @@ export function VehicleCatalog() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {!hasCustomerSelected ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Selecione um cliente para ver os veículos.
-          </CardContent>
-        </Card>
-      ) : showVehiclesError ? (
-        <Card className="border-destructive/40">
-          <CardHeader>
-            <CardTitle className="text-destructive">Erro ao carregar veículos</CardTitle>
-            <CardDescription className="text-destructive/90">
-              {vehiclesQuery.error instanceof ApiError
-                ? vehiclesQuery.error.message
-                : "Não foi possível carregar os veículos."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button type="button" variant="outline" onClick={() => vehiclesQuery.refetch()}>
-              Tentar novamente
-            </Button>
-          </CardContent>
-        </Card>
-      ) : showListSkeleton ? (
-        <VehicleCatalogListSkeleton count={PAGE_SIZE} />
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Nenhum veículo cadastrado para este cliente.
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <VehicleCatalogTable
-            items={items}
-            onEdit={(item) => {
-              setEditingVehicle(item);
-              setVehicleSheetOpen(true);
+      <Card>
+        <CardContent className="space-y-6 rounded-lg bg-card/80 p-4 sm:p-6">
+          <VehicleCatalogToolbar
+            search={search}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
             }}
-            onDelete={setDeleteTarget}
           />
-          <VehicleCatalogMobileCards
-            items={items}
-            onEdit={(item) => {
-              setEditingVehicle(item);
-              setVehicleSheetOpen(true);
-            }}
-            onDelete={setDeleteTarget}
-          />
-          {totalPages > 1 || total > PAGE_SIZE ? (
+
+          {showListSkeleton ? (
+            <VehicleCatalogListSkeleton count={PAGE_SIZE} />
+          ) : items.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+              Nenhum veículo encontrado para os filtros atuais.
+            </p>
+          ) : (
+            <>
+              <VehicleCatalogTable
+                items={items}
+                getCustomerLabel={getCustomerLabel}
+                onAddVehicle={(item) => openCreateForm(item.customerId)}
+                onEdit={(item) => {
+                  setEditingVehicle(item);
+                  setShowCustomerPicker(false);
+                  setVehicleSheetOpen(true);
+                }}
+                onDelete={setDeleteTarget}
+              />
+              <VehicleCatalogMobileCards
+                items={items}
+                getCustomerLabel={getCustomerLabel}
+                onAddVehicle={(item) => openCreateForm(item.customerId)}
+                onEdit={(item) => {
+                  setEditingVehicle(item);
+                  setShowCustomerPicker(false);
+                  setVehicleSheetOpen(true);
+                }}
+                onDelete={setDeleteTarget}
+              />
+            </>
+          )}
+
+          {!showListSkeleton && total > 0 ? (
             <VehicleCatalogPagination
               page={displayedPage}
               totalPages={totalPages}
@@ -208,8 +222,8 @@ export function VehicleCatalog() {
               onPageChange={setPage}
             />
           ) : null}
-        </>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
