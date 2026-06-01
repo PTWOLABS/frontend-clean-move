@@ -6,7 +6,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Select } from "@/components/ui/select/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DashboardMetricsRevenueAndAppointments } from "@/features/dashboard/api/types";
+import type { DashboardMetricsRevenueAndAppointments } from "@/features/dashboard/types/api-types";
 import { cn } from "@/shared/utils/cn";
 import { formatCompactCurrency, formatCurrency, formatNumber } from "@/shared/utils/lib";
 import { useState } from "react";
