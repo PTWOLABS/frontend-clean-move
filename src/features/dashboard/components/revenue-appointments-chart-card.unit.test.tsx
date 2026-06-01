@@ -289,9 +289,10 @@ describe("RevenueAppointmentsChartCard", () => {
     expect(rechartsMocks.YAxis).toHaveBeenCalledWith(
       expect.objectContaining({
         yAxisId: "revenue",
-        width: 56,
+        width: 72,
         tickLine: false,
         axisLine: false,
+        tickMargin: 8,
       }),
     );
 

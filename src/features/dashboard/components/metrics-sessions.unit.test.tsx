@@ -77,11 +77,11 @@ describe("getCustomDashboardDateRangeFilters", () => {
           from: new Date(2026, 4, 23),
           to: new Date(2026, 4, 29),
         },
-        status: "DONE",
+        status: "ALL",
       }),
     ).toEqual({
       period: "last-7-days",
-      status: "DONE",
+      status: ["DONE", "SCHEDULED"],
     });
 
     expect(
@@ -95,7 +95,7 @@ describe("getCustomDashboardDateRangeFilters", () => {
       }),
     ).toEqual({
       period: "last-30-days",
-      status: "DONE",
+      status: ["DONE"],
     });
 
     expect(
@@ -105,11 +105,28 @@ describe("getCustomDashboardDateRangeFilters", () => {
           from: new Date(2026, 4, 1),
           to: new Date(2026, 4, 29),
         },
-        status: "DONE",
+        status: "SCHEDULED",
       }),
     ).toEqual({
       period: "this-month",
-      status: "DONE",
+      status: ["SCHEDULED"],
+    });
+  });
+
+  it("resolves all dashboard statuses to done and scheduled only", () => {
+    const filters = getDashboardMetricsFilters({
+      period: "last-30-days",
+      status: "ALL",
+    });
+
+    expect(filters).toEqual({
+      period: "last-30-days",
+      status: ["DONE", "SCHEDULED"],
+    });
+    expect(filters.status).not.toContain("CANCELLED");
+    expect(normalizeQueryParamsFilters(filters)).toEqual({
+      period: "last-30-days",
+      status: ["DONE", "SCHEDULED"],
     });
   });
 
@@ -129,7 +146,7 @@ describe("getCustomDashboardDateRangeFilters", () => {
     expect(filters).toEqual({
       startsAt: new Date(2026, 4, 2),
       endsAt: new Date(2026, 4, 29, 23, 59, 59, 999),
-      status: "DONE",
+      status: ["DONE"],
     });
   });
 });
