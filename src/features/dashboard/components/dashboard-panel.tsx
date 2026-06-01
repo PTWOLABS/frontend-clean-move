@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Info } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import { cn } from "@/shared/utils/cn";
@@ -44,13 +45,15 @@ const DashboardPanel = React.forwardRef<HTMLDivElement, DashboardPanelProps>(
             {titleTooltip ? (
               <HintTooltipProvider>
                 <HintTooltip label={titleTooltip} side="top" className="max-w-72 leading-5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     aria-label={`Mais informações sobre ${title}`}
-                    className="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-card-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                    className="size-6 shrink-0 rounded-full text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                   >
-                    <Info aria-hidden="true" className="size-3.5" />
-                  </button>
+                    <Info aria-hidden="true" className="size-4" />
+                  </Button>
                 </HintTooltip>
               </HintTooltipProvider>
             ) : null}
