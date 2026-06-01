@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import { cn } from "@/shared/utils/cn";
 
 import {
@@ -13,6 +14,9 @@ import {
   getVehicleColorSwatchClass,
 } from "../lib/format-vehicle-catalog";
 import type { VehicleDto } from "../types";
+
+const mobileActionButtonClass =
+  "size-9 shrink-0 rounded-full border-border bg-background/50 text-foreground hover:bg-accent";
 
 type CardActionsProps = {
   item: VehicleDto;
@@ -25,44 +29,67 @@ function CardActions({ item, onAddVehicle, onEdit, onDelete }: CardActionsProps)
   const canMutate = Boolean(item.id);
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-9 flex-1 gap-2 border-primary/40 bg-background/50 text-primary hover:bg-primary/10 hover:text-primary"
-        disabled={!canMutate}
-        aria-label="Adicionar veículo"
-        onClick={() => onAddVehicle(item)}
-      >
-        <Plus className="size-4 shrink-0" aria-hidden />
-        Adicionar
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-9 flex-1 gap-2 border-primary/40 bg-background/50 text-foreground hover:bg-primary/10 hover:text-foreground"
-        disabled={!canMutate}
-        aria-label="Editar veículo"
-        onClick={() => onEdit(item)}
-      >
-        <Pencil className="size-4 shrink-0 text-primary" aria-hidden />
-        Editar
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-9 flex-1 gap-2 border-destructive/40 bg-background/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-        disabled={!canMutate}
-        aria-label="Excluir veículo"
-        onClick={() => onDelete(item)}
-      >
-        <Trash2 className="size-4 shrink-0" aria-hidden />
-        Excluir
-      </Button>
-    </div>
+    <HintTooltipProvider>
+      <div className="flex flex-wrap items-center gap-2">
+        <HintTooltip
+          label={
+            canMutate
+              ? "Adicionar veículo"
+              : "Identificador em falta — não é possível adicionar."
+          }
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className={cn(
+              mobileActionButtonClass,
+              "border-primary/40 text-primary hover:bg-primary/10 hover:text-primary",
+            )}
+            disabled={!canMutate}
+            aria-label="Adicionar veículo"
+            onClick={() => onAddVehicle(item)}
+          >
+            <Plus className="size-4" />
+          </Button>
+        </HintTooltip>
+
+        <HintTooltip
+          label={canMutate ? "Editar" : "Identificador em falta — não é possível editar."}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className={mobileActionButtonClass}
+            disabled={!canMutate}
+            aria-label="Editar veículo"
+            onClick={() => onEdit(item)}
+          >
+            <Pencil className="size-4" />
+          </Button>
+        </HintTooltip>
+
+        <HintTooltip
+          label={canMutate ? "Apagar" : "Identificador em falta — não é possível apagar."}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className={cn(
+              mobileActionButtonClass,
+              "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive",
+            )}
+            disabled={!canMutate}
+            aria-label="Apagar veículo"
+            onClick={() => onDelete(item)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </HintTooltip>
+      </div>
+    </HintTooltipProvider>
   );
 }
 
@@ -106,11 +133,8 @@ export function VehicleCatalogMobileCards({
         const colorLabel = formatColorLabel(item);
 
         return (
-          <Card
-            key={item.id}
-            className="overflow-hidden border-primary/25 bg-card shadow-sm ring-1 ring-primary/10"
-          >
-            <CardContent className="space-y-4 p-4">
+          <Card key={item.id} className="overflow-hidden shadow-sm">
+            <CardContent className="space-y-3 p-4">
               <div className="flex items-center justify-between gap-2">
                 <Badge
                   variant="outline"
@@ -136,28 +160,25 @@ export function VehicleCatalogMobileCards({
                 <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                   <Car className="size-4 shrink-0" aria-hidden />
                   <span className="truncate">{formatModelLabel(item)}</span>
+                  {colorLabel !== "—" ? (
+                    <>
+                      <span className="shrink-0 text-border" aria-hidden>
+                        ·
+                      </span>
+                      <span
+                        className={cn(
+                          "size-2.5 shrink-0 rounded-full ring-1 ring-border/80",
+                          getVehicleColorSwatchClass(item.color),
+                        )}
+                        aria-hidden
+                      />
+                      <span className="truncate font-medium text-foreground">{colorLabel}</span>
+                    </>
+                  ) : null}
                 </div>
               </div>
 
-              <Separator className="bg-border/60" />
-
-              <div className="flex min-w-0 items-center gap-2 text-sm">
-                <span
-                  className={cn(
-                    "size-2.5 shrink-0 rounded-full ring-1 ring-border/80",
-                    getVehicleColorSwatchClass(item.color),
-                  )}
-                  aria-hidden
-                />
-                <p className="truncate text-muted-foreground">
-                  Cor:{" "}
-                  <span className="font-semibold text-foreground">{colorLabel}</span>
-                </p>
-              </div>
-
-              {item.notes?.trim() ? (
-                <p className="line-clamp-2 text-sm text-muted-foreground">{item.notes.trim()}</p>
-              ) : null}
+              <Separator />
 
               <CardActions
                 item={item}
