@@ -39,7 +39,7 @@ export type DashboardMetricsFiltersBase = {
   startsAt?: Date;
   endsAt?: Date;
   categories?: AppointmentCategories[];
-  status?: AppointmentStatus;
+  status?: AppointmentStatus[];
   period?: DashboardPeriod;
   granularity?: DashboardGranularity;
 };

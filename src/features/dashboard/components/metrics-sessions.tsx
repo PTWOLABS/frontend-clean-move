@@ -13,7 +13,6 @@ import { type DateRange } from "react-day-picker";
 
 import { DatePickerWithRange } from "@/components/ui/calendar/date-picker-with-range";
 
-import { CancellationRateCard } from "./cancellation-rate-card";
 import { MetricsOverview } from "./metrics-overview";
 import { PopularServicesCard } from "./popular-services-card";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
@@ -29,6 +28,7 @@ import {
 import { Select } from "@/components/ui/select/select";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
+type DashboardStatusFilter = "ALL" | AppointmentStatus;
 
 const MAX_CUSTOM_DATE_RANGE_MONTHS = 24;
 
@@ -112,22 +112,27 @@ export function getMatchingDashboardPeriodForDateRange(
     return undefined;
   }
 
-  const matchingPeriod = (["last-7-days", "last-30-days", "this-month"] satisfies DashboardPeriod[])
-    .find((periodOption) => {
-      const periodRange = getDateRangeForPeriod(periodOption);
+  const matchingPeriod = (
+    ["last-7-days", "last-30-days", "this-month"] satisfies DashboardPeriod[]
+  ).find((periodOption) => {
+    const periodRange = getDateRangeForPeriod(periodOption);
 
-      return (
-        isSameDay(dateRange.from!, periodRange.from!) && isSameDay(dateRange.to!, periodRange.to!)
-      );
-    });
+    return (
+      isSameDay(dateRange.from!, periodRange.from!) && isSameDay(dateRange.to!, periodRange.to!)
+    );
+  });
 
   return matchingPeriod;
 }
 
 const statusOptions: {
   label: string;
-  value: AppointmentStatus;
+  value: DashboardStatusFilter;
 }[] = [
+  {
+    label: "Todos",
+    value: "ALL",
+  },
   {
     label: "Concluído",
     value: "DONE",
@@ -135,10 +140,6 @@ const statusOptions: {
   {
     label: "Agendados",
     value: "SCHEDULED",
-  },
-  {
-    label: "Cancelados",
-    value: "CANCELLED",
   },
 ];
 
@@ -167,12 +168,14 @@ export function getDashboardMetricsFilters({
 }: {
   period: DashboardPeriodFilter;
   dateRange?: DateRange;
-  status: AppointmentStatus;
+  status: DashboardStatusFilter;
 }): DashboardMetricsFiltersBase {
+  const resolvedStatus: AppointmentStatus[] = status === "ALL" ? ["DONE", "SCHEDULED"] : [status];
+
   if (period !== "custom") {
     return {
       period,
-      status,
+      status: resolvedStatus,
     };
   }
 
@@ -181,13 +184,13 @@ export function getDashboardMetricsFilters({
   if (matchingPeriod) {
     return {
       period: matchingPeriod,
-      status,
+      status: resolvedStatus,
     };
   }
 
   return {
     ...getCustomDashboardDateRangeFilters(dateRange),
-    status,
+    status: resolvedStatus,
   };
 }
 
@@ -196,7 +199,7 @@ export function MetricsSections() {
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(() =>
     getDateRangeForPeriod("last-30-days"),
   );
-  const [status, setStatus] = useState<AppointmentStatus>("DONE");
+  const [status, setStatus] = useState<DashboardStatusFilter>("ALL");
 
   const isCustomPeriod = period === "custom";
   const resolvedDateRange = isCustomPeriod ? customDateRange : getDateRangeForPeriod(period);
@@ -266,7 +269,7 @@ export function MetricsSections() {
           </div>
 
           <div className="w-full sm:w-auto xl:shrink-0 lg:self-start">
-            <Button className="h-11 w-full sm:min-w-[12.5rem]">
+            <Button className="h-11 w-full sm:min-w-50">
               <Plus className="size-4" />
               Novo agendamento
             </Button>
@@ -278,16 +281,15 @@ export function MetricsSections() {
         <MetricsOverview filters={filters} />
 
         <RevenueAppointmentsChartCard
-          className="md:col-span-2 xl:col-span-2"
+          className="md:col-span-2 xl:col-span-3"
           filters={filters}
           granularityOptions={granularityOptions}
           defaultGranularity="daily"
         />
 
-        <CancellationRateCard className="md:col-span-1 xl:col-span-1" filters={filters} />
-
-        <PopularServicesCard className="md:col-span-1 xl:col-span-1" filters={filters} />
+        <PopularServicesCard className="md:col-span-2 xl:col-span-1" filters={filters} />
       </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
     </div>
   );
 }
