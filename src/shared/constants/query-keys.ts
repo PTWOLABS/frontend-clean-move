@@ -1,4 +1,3 @@
-import type { AppointmentsFilters } from "@/features/appointments/types/api-filters";
 import type { ListCustomersQuery } from "@/features/customer/types";
 import type { ListVehiclesQuery, VehicleOptionsQuery } from "@/features/vehicle/types";
 import type { OptionsQuery } from "@/shared/types/options-query";

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -286,6 +286,28 @@ describe("AppointmentFormSheet", () => {
     expect(screen.getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
   });
 
+  it("shows feedback instead of updating when an edit submit has no changed fields", async () => {
+    const mutate = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const submitButton = screen.getByRole("button", { name: "Salvar alterações" });
+
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.submit(submitButton.closest("form")!);
+
+    await waitFor(() => {
+      expect(toastInfoMock).toHaveBeenCalledWith("Nenhuma alteração para salvar.");
+    });
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
   it("does not validate the vehicle field when the customer changes", async () => {
     const user = userEvent.setup();
 
@@ -328,6 +350,25 @@ describe("AppointmentFormSheet", () => {
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
 
     const submitButton = screen.getByRole("button", { name: "Salvando..." });
+
+    expect(submitButton).toBeDisabled();
+    expect(submitButton).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByLabelText(/Nome do cliente/)).toBeDisabled();
+    expect(screen.getByLabelText(/Serviços/)).toBeDisabled();
+  });
+
+  it("blocks editing and communicates progress while updating the appointment", () => {
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: true,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Atualizando agendamento...");
+    expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+
+    const submitButton = screen.getByRole("button", { name: "Atualizando..." });
 
     expect(submitButton).toBeDisabled();
     expect(submitButton).toHaveAttribute("aria-busy", "true");
