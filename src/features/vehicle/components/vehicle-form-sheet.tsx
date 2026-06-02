@@ -142,11 +142,13 @@ export function VehicleFormSheet({
     const targetCustomerId = resolveCreateCustomerId();
     if (!targetCustomerId) return;
 
-    createMutate({ customerId: targetCustomerId, values }, { onSuccess: () => onOpenChange(false) });
+    createMutate(
+      { customerId: targetCustomerId, values },
+      { onSuccess: () => onOpenChange(false) },
+    );
   });
 
-  const canSubmitCreate =
-    !shouldShowCustomerPicker || Boolean(selectedCustomerId);
+  const canSubmitCreate = !shouldShowCustomerPicker || Boolean(selectedCustomerId);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -245,9 +247,7 @@ export function VehicleFormSheet({
                 type="submit"
                 className="w-full sm:w-auto"
                 disabled={
-                  isPending ||
-                  (isEditMode && !isDirty) ||
-                  (!isEditMode && !canSubmitCreate)
+                  isPending || (isEditMode && !isDirty) || (!isEditMode && !canSubmitCreate)
                 }
               >
                 {isPending ? "A guardar..." : isEditMode ? "Guardar alterações" : "Criar veículo"}
