@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   useWatch,
   type Control,
-  type FieldPath,
   type FieldValues,
   type UseFormClearErrors,
   type UseFormGetValues,
