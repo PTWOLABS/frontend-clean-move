@@ -54,7 +54,7 @@ const registerItems: NavigationItem[] = [
 ];
 
 const managementItems: NavigationItem[] = [
-  { label: "Orçamentos", href: "/budgets", icon: FileText },
+  { label: "Orçamentos", href: "/quotes", icon: FileText },
   { label: "Relatórios", href: "/reports", icon: BarChart3 },
   { label: "Configurações", href: "/settings", icon: Settings },
 ];

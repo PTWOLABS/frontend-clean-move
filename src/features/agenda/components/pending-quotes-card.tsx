@@ -1,31 +1,31 @@
+import Link from "next/link";
 import { FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/shared/utils/lib";
 
-export type PendingBudgetItem = {
+export type PendingQuoteItem = {
   id: string;
   title: string;
   sentAtLabel: string;
   amountInCents: number;
 };
 
-type PendingBudgetsCardProps = {
-  budgets: PendingBudgetItem[];
+type PendingQuotesCardProps = {
+  quotes: PendingQuoteItem[];
 };
 
-export function PendingBudgetsCard({ budgets }: PendingBudgetsCardProps) {
-  const visibleBudgets = budgets.slice(0, 3);
-
+export function PendingQuotesCard({ quotes }: PendingQuotesCardProps) {
   return (
-    <Card className="relative h-full overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
+    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-accent/35 to-transparent"
       />
 
-      <CardHeader className="px-4 pb-3 pt-5 sm:px-6">
+      <CardHeader className="shrink-0 px-4 pb-3 pt-5 sm:px-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -43,30 +43,28 @@ export function PendingBudgetsCard({ budgets }: PendingBudgetsCardProps) {
             variant="outline"
             className="rounded-full border-border/70 bg-muted/45 px-2.5 py-1 text-[11px] text-muted-foreground"
           >
-            {budgets.length}
+            {quotes.length}
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 pb-5 pt-0 sm:px-6">
-        {visibleBudgets.length ? (
+      <CardContent className="scrollbar-clean min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-0 sm:px-6">
+        {quotes.length ? (
           <ol className="space-y-3">
-            {visibleBudgets.map((budget) => (
+            {quotes.map((quote) => (
               <li
-                key={budget.id}
+                key={quote.id}
                 className="flex items-start justify-between gap-4 rounded-2xl border border-border/60 bg-background/45 p-3 transition-colors hover:border-accent/40 hover:bg-accent-soft/20"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-card-foreground">
-                    {budget.title}
+                    {quote.title}
                   </p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {budget.sentAtLabel}
-                  </p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{quote.sentAtLabel}</p>
                 </div>
 
                 <p className="shrink-0 text-sm font-semibold tabular-nums text-card-foreground/85">
-                  {formatCurrency(budget.amountInCents)}
+                  {formatCurrency(quote.amountInCents)}
                 </p>
               </li>
             ))}
@@ -77,6 +75,9 @@ export function PendingBudgetsCard({ budgets }: PendingBudgetsCardProps) {
             <p className="mt-1 text-sm text-muted-foreground">
               As propostas aguardando resposta aparecerão aqui.
             </p>
+            <Button asChild variant="outline" className="mt-4 h-10 rounded-xl px-4">
+              <Link href="/quotes">Ver orçamentos</Link>
+            </Button>
           </div>
         )}
       </CardContent>
