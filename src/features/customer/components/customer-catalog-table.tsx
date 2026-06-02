@@ -98,10 +98,7 @@ export function CustomerCatalogTable({
                     onShowAllVehicles={onShowAllVehicles}
                   />
                 </TableCell>
-                <TableCell
-                  className="pr-4 text-right"
-                  onClick={(event) => event.stopPropagation()}
-                >
+                <TableCell className="pr-4 text-right" onClick={(event) => event.stopPropagation()}>
                   <RowIconActions
                     className="justify-end"
                     actions={[
@@ -115,7 +112,8 @@ export function CustomerCatalogTable({
                         label: "Apagar",
                         icon: Trash2,
                         onClick: () => onDelete(item),
-                        className: "text-destructive hover:bg-destructive/10 hover:text-destructive",
+                        className:
+                          "text-destructive hover:bg-destructive/10 hover:text-destructive",
                       },
                     ]}
                   />
