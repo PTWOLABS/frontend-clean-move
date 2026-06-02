@@ -11,7 +11,6 @@ import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
 import {
   getAppointmentAmountInCents,
   getCustomerName,
-  getServiceName,
   getVehicleName,
   getVehiclePlate,
   parseAppointmentDateTime,
@@ -23,6 +22,7 @@ import { AGENDA_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from "../constants";
 import { AgendaAppointmentsPagination } from "./agenda-appointments-pagination";
 import { AgendaAppointmentsToolbar } from "./agenda-appointments-toolbar";
 import { AgendaAppointmentDetailsDialog } from "./agenda-appointment-details-dialog";
+import { AgendaAppointmentServicesDialog } from "./agenda-appointment-services-dialog";
 import {
   AgendaSearchField,
   AgendaStatusFilter,
@@ -77,11 +77,21 @@ function getDefaultAgendaDateRange(): DateRange {
   };
 }
 
+function mapAppointmentServices(appointment: AppointmentListItem): TodayAgendaItem["services"] {
+  return appointment.services.map((service) => ({
+    id: service.id,
+    name: service.name.trim() || "Serviço não informado",
+    durationInMinutes: service.durationInMinutes,
+    priceInCents: service.priceInCents,
+  }));
+}
+
 function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): TodayAgendaItem {
   const startsAt = parseAppointmentDateTime(appointment.startsAt);
   const endsAt = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
   const vehicleName = getVehicleName(appointment);
   const vehiclePlate = getVehiclePlate(appointment);
+  const services = mapAppointmentServices(appointment);
 
   return {
     id: appointment.id,
@@ -94,10 +104,11 @@ function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): Toda
     vehicleName,
     vehicleLabel: `${vehicleName} • ${vehiclePlate}`,
     vehiclePlate,
-    serviceName: getServiceName(appointment),
+    serviceName: services[0]?.name ?? "Serviço não informado",
     amountInCents: getAppointmentAmountInCents(appointment),
     description: appointment.description?.trim() ?? "",
     status: appointment.status,
+    services,
   };
 }
 
@@ -117,6 +128,8 @@ export function TodayAgendaQueryCard() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(getDefaultAgendaDateRange);
   const [page, setPage] = useState(1);
   const [selectedAppointment, setSelectedAppointment] = useState<TodayAgendaItem | null>(null);
+  const [selectedServicesAppointment, setSelectedServicesAppointment] =
+    useState<TodayAgendaItem | null>(null);
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
   const filters = useMemo(
@@ -182,6 +195,7 @@ export function TodayAgendaQueryCard() {
         isLoading={isFetchingPage}
         onRetry={() => void refetch()}
         onAppointmentClick={setSelectedAppointment}
+        onAppointmentServicesClick={setSelectedServicesAppointment}
         pagination={
           <AgendaAppointmentsPagination
             page={page}
@@ -205,6 +219,16 @@ export function TodayAgendaQueryCard() {
             onDateRangeChange={handleDateRangeChange}
           />
         }
+      />
+
+      <AgendaAppointmentServicesDialog
+        appointment={selectedServicesAppointment}
+        open={Boolean(selectedServicesAppointment)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedServicesAppointment(null);
+          }
+        }}
       />
 
       <AgendaAppointmentDetailsDialog
