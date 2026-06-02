@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const loadingRows = ["first", "second", "third", "fourth", "fifth", "sixth"];
+const loadingRows = ["first", "second", "third", "fourth", "fifth"];
 
 export function TodayAgendaLoadingState() {
   return (

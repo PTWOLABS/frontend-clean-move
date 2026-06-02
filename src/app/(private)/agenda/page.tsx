@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import {
+  AgendaSummaryCard,
+  type AgendaSummary,
+} from "@/features/agenda/components/agenda-summary-card";
+import { AgendaNewAppointmentButton } from "@/features/agenda/components/agenda-new-appointment-button";
 import { PendingQuotesCard } from "@/features/agenda/components/pending-quotes-card";
 import { TodayAgendaQueryCard } from "@/features/agenda/components/today-agenda-query-card";
-import { TodayCashCard, type TodayCashSummary } from "@/features/agenda/components/today-cash-card";
 
 export const metadata: Metadata = {
   title: "Agenda",
   description: "Acompanhe os agendamentos, horários e serviços do dia no CleanMove.",
 };
 
-const todayCashPreview: TodayCashSummary = {
-  balanceInCents: 245000,
-  trendPercent: 15,
-  entriesInCents: 280000,
-  exitsInCents: 35000,
+const agendaSummaryPreview: AgendaSummary = {
+  total: 24,
+  scheduled: 12,
+  done: 9,
+  cancelled: 3,
 };
 
 // const pendingQuotesPreview: PendingQuoteItem[] = [
@@ -45,18 +46,13 @@ export default function AgendaPage() {
           </p>
         </div>
 
-        <Button asChild className="h-11 w-full sm:w-auto sm:min-w-50">
-          <Link href="/appointments?new=true">
-            <Plus className="size-4" aria-hidden />
-            Novo agendamento
-          </Link>
-        </Button>
+        <AgendaNewAppointmentButton />
       </header>
 
       <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
         <TodayAgendaQueryCard />
         <div className="grid gap-4 xl:h-full xl:min-h-0 xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
-          <TodayCashCard summary={todayCashPreview} />
+          <AgendaSummaryCard summary={agendaSummaryPreview} />
           <PendingQuotesCard quotes={[]} />
         </div>
       </div>

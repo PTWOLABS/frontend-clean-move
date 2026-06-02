@@ -101,7 +101,7 @@ export function TodayAgendaQueryCard() {
   const [statusFilter, setStatusFilter] = useState<AgendaStatusFilter>("ALL");
   const [searchField, setSearchField] = useState<AgendaSearchField>("serviceName");
   const [search, setSearch] = useState("");
-  const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>("custom");
+  const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(getDefaultAgendaDateRange);
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
