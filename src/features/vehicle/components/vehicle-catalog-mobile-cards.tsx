@@ -49,9 +49,7 @@ function CardActions({ item, onAddVehicle, onEdit, onDelete }: CardActionsProps)
       <div className="flex flex-wrap items-center gap-2">
         <HintTooltip
           label={
-            canMutate
-              ? "Adicionar veículo"
-              : "Identificador em falta — não é possível adicionar."
+            canMutate ? "Adicionar veículo" : "Identificador em falta — não é possível adicionar."
           }
         >
           <Button
