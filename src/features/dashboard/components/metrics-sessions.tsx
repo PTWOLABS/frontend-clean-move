@@ -27,8 +27,8 @@ import {
 } from "../types/dashboard-sections";
 import { Select } from "@/components/ui/select/select";
 import { useRouter } from "next/navigation";
-import { AppointmentsHistoryTable } from "./tables/appointments-history-table";
-import { MostFrequentCustomersTable } from "./tables/most-frequent-customers-table";
+import { AppointmentsHistoryTable } from "./tables/appointments-history/appointments-history-table";
+import { MostFrequentCustomersTable } from "./tables/most-frequent-customers/most-frequent-customers-table";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
 type DashboardStatusFilter = "ALL" | AppointmentStatus;
@@ -304,6 +304,7 @@ export function MetricsSections() {
             endsAt: resolvedDateRange?.to ? endOfDay(resolvedDateRange.to) : undefined,
           }}
         />
+        <MostFrequentCustomersTable filters={filters} />
       </div>
     </div>
   );
