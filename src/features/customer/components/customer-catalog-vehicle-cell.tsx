@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { CatalogVehicleCountTrigger } from "@/shared/components/catalog-vehicle-count-trigger";
 import { cn } from "@/shared/utils/cn";
 
 import { formatVehicleName, getCustomerVehiclesCount } from "../lib/format-customer-catalog";
@@ -38,27 +38,28 @@ export function CustomerCatalogVehicleCell({
     );
   }
 
+  if (vehiclesCount > 1) {
+    return (
+      <CatalogVehicleCountTrigger
+        label={vehicleName}
+        count={vehiclesCount}
+        align={align}
+        ariaLabel={`Ver ${vehiclesCount} veículos de ${customer.fullName}`}
+        onClick={() => onShowAllVehicles(customer)}
+        className={cn(isEndAligned && "w-full max-w-full", className)}
+      />
+    );
+  }
+
   return (
-    <button
-      type="button"
+    <span
       className={cn(
-        "flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 text-foreground transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        isEndAligned
-          ? "ml-auto w-auto max-w-full flex-nowrap justify-end text-right"
-          : "w-full flex-wrap text-left",
+        "text-sm text-foreground",
+        isEndAligned && "ml-auto block max-w-full truncate text-right",
         className,
       )}
-      aria-label={`Ver ${vehiclesCount} veículos de ${customer.fullName}`}
-      onClick={() => onShowAllVehicles(customer)}
     >
-      <span className={cn("text-foreground", isEndAligned ? "truncate text-sm" : "inline-flex")}>
-        {vehicleName}
-      </span>
-      {vehiclesCount > 1 ? (
-        <Badge variant="secondary" className="shrink-0 tabular-nums">
-          {vehiclesCount}
-        </Badge>
-      ) : null}
-    </button>
+      {vehicleName}
+    </span>
   );
 }
