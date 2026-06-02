@@ -15,16 +15,16 @@ import { formatVehicleName } from "@/features/vehicle/lib/format-vehicle-catalog
 import type { VehicleDto } from "@/features/vehicle/types";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
-import { getCustomerVehiclesCount } from "../lib/format-customer-catalog";
-import type { CustomerVehicleDto, CustomerWithPrimaryVehicle } from "../types";
-
 type CustomerVehiclesDialogProps = {
-  customer: CustomerWithPrimaryVehicle | null;
+  customerId: string | null;
+  customerName: string;
+  vehiclesCount?: number;
+  embeddedVehicles?: VehicleDto[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-function VehicleListItem({ vehicle }: { vehicle: CustomerVehicleDto }) {
+function VehicleListItem({ vehicle }: { vehicle: VehicleDto }) {
   const name = formatVehicleName(vehicle);
   const details = [vehicle.plate, vehicle.color, vehicle.year != null ? String(vehicle.year) : null]
     .filter(Boolean)
@@ -40,28 +40,32 @@ function VehicleListItem({ vehicle }: { vehicle: CustomerVehicleDto }) {
 }
 
 export function CustomerVehiclesDialog({
-  customer,
+  customerId,
+  customerName,
+  vehiclesCount,
+  embeddedVehicles,
   open,
   onOpenChange,
 }: CustomerVehiclesDialogProps) {
-  const vehiclesCount = customer ? getCustomerVehiclesCount(customer) : 0;
-  const embeddedCount = customer?.vehicles?.length ?? 0;
-  const needsFetch = Boolean(customer && vehiclesCount > embeddedCount);
+  const embeddedCount = embeddedVehicles?.length ?? 0;
+  const knownCount = vehiclesCount ?? embeddedCount;
+  const needsFetch = Boolean(customerId && knownCount > embeddedCount);
 
   const vehiclesQuery = useQuery({
-    queryKey: QUERY_KEYS.vehicles(customer?.id ?? "", {
+    queryKey: QUERY_KEYS.vehicles(customerId ?? "", {
       page: 1,
-      size: Math.max(vehiclesCount, embeddedCount, 1),
+      size: Math.max(knownCount, embeddedCount, 1),
     }),
     queryFn: ({ signal }) =>
-      listVehicles(customer!.id, { page: 1, size: Math.max(vehiclesCount, 50) }, signal),
-    enabled: open && needsFetch && Boolean(customer?.id),
+      listVehicles(customerId!, { page: 1, size: Math.max(knownCount, 50) }, signal),
+    enabled: open && needsFetch && Boolean(customerId),
   });
 
   const vehicles: VehicleDto[] = needsFetch
     ? (vehiclesQuery.data?.items ?? [])
-    : (customer?.vehicles ?? []);
+    : (embeddedVehicles ?? []);
   const isLoading = needsFetch && vehiclesQuery.isLoading;
+  const displayCount = vehiclesCount ?? vehicles.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,11 +73,11 @@ export function CustomerVehiclesDialog({
         <DialogHeader className="shrink-0">
           <DialogTitle>Veículos do cliente</DialogTitle>
           <DialogDescription>
-            {customer ? (
+            {customerId ? (
               <>
-                <span className="font-medium text-foreground">{customer.fullName}</span>
+                <span className="font-medium text-foreground">{customerName}</span>
                 {" · "}
-                {vehiclesCount} {vehiclesCount === 1 ? "veículo" : "veículos"}
+                {displayCount} {displayCount === 1 ? "veículo" : "veículos"}
               </>
             ) : null}
           </DialogDescription>
