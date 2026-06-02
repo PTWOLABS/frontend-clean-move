@@ -51,12 +51,7 @@ export function CustomerCatalogVehicleCell({
       aria-label={`Ver ${vehiclesCount} veículos de ${customer.fullName}`}
       onClick={() => onShowAllVehicles(customer)}
     >
-      <span
-        className={cn(
-          "text-foreground",
-          isEndAligned ? "truncate text-sm" : "inline-flex",
-        )}
-      >
+      <span className={cn("text-foreground", isEndAligned ? "truncate text-sm" : "inline-flex")}>
         {vehicleName}
       </span>
       {vehiclesCount > 1 ? (
