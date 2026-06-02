@@ -40,32 +40,19 @@ import type { VehicleDto } from "../types";
 
 const CUSTOMER_OPTIONS_LIMIT = 20;
 
-type VehicleFormSheetProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  customerId?: string;
-  showCustomerPicker?: boolean;
-  editingVehicle: VehicleDto | null;
+type VehicleFormCustomerPickerProps = {
+  disabled: boolean;
+  portalContainer: React.RefObject<HTMLDivElement | null>;
+  onSelectionChange: (customerId: string) => void;
 };
 
-export function VehicleFormSheet({
-  open,
-  onOpenChange,
-  customerId = "",
-  showCustomerPicker = false,
-  editingVehicle,
-}: VehicleFormSheetProps) {
-  const sheetContentRef = useRef<HTMLDivElement>(null);
+function VehicleFormCustomerPicker({
+  disabled,
+  portalContainer,
+  onSelectionChange,
+}: VehicleFormCustomerPickerProps) {
   const [customerLabel, setCustomerLabel] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
-  const [selectedCustomerId, setSelectedCustomerId] = useState("");
-
-  const { mutate: createMutate, isPending: isCreatePending } = useCreateVehicle();
-  const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateVehicle();
-
-  const isEditMode = Boolean(editingVehicle?.id);
-  const isPending = isCreatePending || isUpdatePending;
-  const shouldShowCustomerPicker = showCustomerPicker && !isEditMode;
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
     limit: CUSTOMER_OPTIONS_LIMIT,
@@ -79,6 +66,78 @@ export function VehicleFormSheet({
         value: option.id,
       })) ?? [],
     [customerOptions],
+  );
+
+  const handleCustomerSelect = (option: ComboboxItemOption | null) => {
+    onSelectionChange(option?.value ?? "");
+  };
+
+  const emptyMessage = isLoadingCustomerOptions
+    ? "Buscando clientes..."
+    : "Nenhum cliente encontrado.";
+
+  return (
+    <Combobox
+      value={customerLabel}
+      onValueChange={setCustomerLabel}
+      onDebouncedValueChange={setCustomerSearch}
+      onSelectedItemChange={handleCustomerSelect}
+      items={customerOptionsItems}
+      portalContainer={portalContainer}
+      placeholder="Digite o nome do cliente"
+      emptyMessage={emptyMessage}
+      autoComplete="off"
+      disabled={disabled}
+      required
+      aria-label="Selecionar cliente"
+      className="w-full"
+    />
+  );
+}
+
+type VehicleFormSheetProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  customerId?: string;
+  lockedCustomerLabel?: string;
+  showCustomerPicker?: boolean;
+  formSessionKey?: number;
+  editingVehicle: VehicleDto | null;
+};
+
+export function VehicleFormSheet({
+  open,
+  onOpenChange,
+  customerId = "",
+  lockedCustomerLabel,
+  showCustomerPicker = false,
+  formSessionKey = 0,
+  editingVehicle,
+}: VehicleFormSheetProps) {
+  const sheetContentRef = useRef<HTMLDivElement>(null);
+  const [selectionByPickerKey, setSelectionByPickerKey] = useState<Record<string, string>>({});
+
+  const { mutate: createMutate, isPending: isCreatePending } = useCreateVehicle();
+  const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateVehicle();
+
+  const isEditMode = Boolean(editingVehicle?.id);
+  const isPending = isCreatePending || isUpdatePending;
+  const shouldShowCustomerPicker = showCustomerPicker && !isEditMode;
+  const isCustomerLocked = !isEditMode && Boolean(customerId) && !showCustomerPicker;
+  const shouldShowCustomerField = shouldShowCustomerPicker || isCustomerLocked;
+  const lockedCustomerDisplayLabel = lockedCustomerLabel?.trim() || "Cliente selecionado";
+
+  const customerPickerKey = shouldShowCustomerPicker ? `picker-${formSessionKey}` : "";
+  const selectedCustomerId = customerPickerKey
+    ? (selectionByPickerKey[customerPickerKey] ?? "")
+    : "";
+
+  const handlePickerSelectionChange = useCallback(
+    (id: string) => {
+      if (!customerPickerKey) return;
+      setSelectionByPickerKey((current) => ({ ...current, [customerPickerKey]: id }));
+    },
+    [customerPickerKey],
   );
 
   const methods = useForm<VehicleFormInput, undefined, VehicleFormValues>({
@@ -96,34 +155,16 @@ export function VehicleFormSheet({
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
 
-  const resetCustomerPicker = useCallback(() => {
-    setCustomerLabel("");
-    setCustomerSearch("");
-    setSelectedCustomerId("");
-  }, []);
-
   useEffect(() => {
     if (!open) return;
+
     if (editingVehicle?.id) {
       reset(vehicleToFormDefaults(editingVehicle));
-      resetCustomerPicker();
       return;
     }
 
     reset(vehicleFormDefaultValues);
-    resetCustomerPicker();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- redefinir ao abrir ou ao mudar veículo em edição
-  }, [open, editingVehicle?.id, reset, resetCustomerPicker]);
-
-  const handleCustomerSelect = (option: ComboboxItemOption | null) => {
-    setSelectedCustomerId(option?.value ?? "");
-  };
-
-  const getCustomerEmptyMessage = () => {
-    if (isLoadingCustomerOptions) return "Buscando clientes...";
-
-    return "Nenhum cliente encontrado.";
-  };
+  }, [open, editingVehicle, reset]);
 
   const resolveCreateCustomerId = () => {
     if (shouldShowCustomerPicker) return selectedCustomerId;
@@ -161,16 +202,18 @@ export function VehicleFormSheet({
           <SheetDescription>
             {isEditMode
               ? "Atualize os dados do veículo."
-              : shouldShowCustomerPicker
-                ? "Selecione o cliente e preencha os dados do veículo."
-                : "Preencha os dados do veículo para o cliente selecionado."}
+              : isCustomerLocked
+                ? "Cliente definido pela linha selecionada. Preencha os dados do novo veículo."
+                : shouldShowCustomerPicker
+                  ? "Selecione o cliente e preencha os dados do veículo."
+                  : "Preencha os dados do veículo."}
           </SheetDescription>
         </SheetHeader>
 
         <FormProvider {...methods}>
           <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-6 py-6">
             <div className="space-y-4">
-              {shouldShowCustomerPicker ? (
+              {shouldShowCustomerField ? (
                 <div className="space-y-2">
                   <Label>
                     Cliente
@@ -178,21 +221,29 @@ export function VehicleFormSheet({
                       *
                     </span>
                   </Label>
-                  <Combobox
-                    value={customerLabel}
-                    onValueChange={setCustomerLabel}
-                    onDebouncedValueChange={setCustomerSearch}
-                    onSelectedItemChange={handleCustomerSelect}
-                    items={customerOptionsItems}
-                    portalContainer={sheetContentRef}
-                    placeholder="Digite o nome do cliente"
-                    emptyMessage={getCustomerEmptyMessage()}
-                    autoComplete="off"
-                    disabled={isPending}
-                    required
-                    aria-label="Selecionar cliente"
-                    className="w-full"
-                  />
+                  {isCustomerLocked ? (
+                    <Combobox
+                      value={lockedCustomerDisplayLabel}
+                      items={
+                        customerId ? [{ label: lockedCustomerDisplayLabel, value: customerId }] : []
+                      }
+                      portalContainer={sheetContentRef}
+                      autoComplete="off"
+                      disabled
+                      readOnly
+                      showClear={false}
+                      required
+                      aria-label="Cliente selecionado"
+                      className="w-full"
+                    />
+                  ) : (
+                    <VehicleFormCustomerPicker
+                      key={customerPickerKey}
+                      disabled={isPending}
+                      portalContainer={sheetContentRef}
+                      onSelectionChange={handlePickerSelectionChange}
+                    />
+                  )}
                 </div>
               ) : null}
 
