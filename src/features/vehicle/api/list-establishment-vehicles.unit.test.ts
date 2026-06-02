@@ -47,6 +47,23 @@ describe("vehicle/api/list-establishment-vehicles", () => {
     );
   });
 
+  it("includes plate filter independently", async () => {
+    httpClientMock.mockResolvedValue({
+      vehicles: [],
+      totalItems: 0,
+    });
+
+    await listEstablishmentVehicles({
+      plate: "abc-1d23",
+      page: 1,
+      size: 10,
+    });
+
+    expect(httpClientMock).toHaveBeenCalledWith("/vehicles?plate=abc-1d23&page=1&size=10", {
+      signal: undefined,
+    });
+  });
+
   it("returns normalized page", async () => {
     httpClientMock.mockResolvedValue({
       vehicles: [
