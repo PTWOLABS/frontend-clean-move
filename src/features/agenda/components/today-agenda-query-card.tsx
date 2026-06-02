@@ -9,6 +9,7 @@ import type { AppointmentsFilters } from "@/features/appointments/types/api-filt
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
 import {
+  getAppointmentAmountInCents,
   getCustomerName,
   getServiceName,
   getVehicleName,
@@ -21,6 +22,7 @@ import { TodayAgendaCard, type TodayAgendaItem } from "./today-agenda-card";
 import { AGENDA_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from "../constants";
 import { AgendaAppointmentsPagination } from "./agenda-appointments-pagination";
 import { AgendaAppointmentsToolbar } from "./agenda-appointments-toolbar";
+import { AgendaAppointmentDetailsDialog } from "./agenda-appointment-details-dialog";
 import {
   AgendaSearchField,
   AgendaStatusFilter,
@@ -77,14 +79,24 @@ function getDefaultAgendaDateRange(): DateRange {
 
 function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): TodayAgendaItem {
   const startsAt = parseAppointmentDateTime(appointment.startsAt);
+  const endsAt = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
+  const vehicleName = getVehicleName(appointment);
+  const vehiclePlate = getVehiclePlate(appointment);
 
   return {
     id: appointment.id,
+    startsAt,
     time: format(startsAt, "HH:mm"),
+    timeRange: endsAt
+      ? `${format(startsAt, "HH:mm")} - ${format(endsAt, "HH:mm")}`
+      : "Não informado",
     customerName: getCustomerName(appointment),
-    vehicleName: getVehicleName(appointment),
-    vehiclePlate: getVehiclePlate(appointment),
+    vehicleName,
+    vehicleLabel: `${vehicleName} • ${vehiclePlate}`,
+    vehiclePlate,
     serviceName: getServiceName(appointment),
+    amountInCents: getAppointmentAmountInCents(appointment),
+    description: appointment.description?.trim() ?? "",
     status: appointment.status,
   };
 }
@@ -104,6 +116,7 @@ export function TodayAgendaQueryCard() {
   const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(getDefaultAgendaDateRange);
   const [page, setPage] = useState(1);
+  const [selectedAppointment, setSelectedAppointment] = useState<TodayAgendaItem | null>(null);
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
   const filters = useMemo(
@@ -162,34 +175,47 @@ export function TodayAgendaQueryCard() {
   }
 
   return (
-    <TodayAgendaCard
-      appointments={appointments}
-      isError={Boolean(feedback)}
-      isLoading={isFetchingPage}
-      onRetry={() => void refetch()}
-      pagination={
-        <AgendaAppointmentsPagination
-          page={page}
-          totalItems={data?.totalItems}
-          visibleItemsCount={appointments.length}
-          isFetching={isFetchingPage}
-          onPageChange={setPage}
-        />
-      }
-      toolbar={
-        <AgendaAppointmentsToolbar
-          statusFilter={statusFilter}
-          searchField={searchField}
-          search={search}
-          periodMode={periodMode}
-          dateRange={dateRange}
-          onStatusChange={handleStatusChange}
-          onSearchFieldChange={handleSearchFieldChange}
-          onSearchChange={handleSearchChange}
-          onPeriodModeChange={handlePeriodModeChange}
-          onDateRangeChange={handleDateRangeChange}
-        />
-      }
-    />
+    <>
+      <TodayAgendaCard
+        appointments={appointments}
+        isError={Boolean(feedback)}
+        isLoading={isFetchingPage}
+        onRetry={() => void refetch()}
+        onAppointmentClick={setSelectedAppointment}
+        pagination={
+          <AgendaAppointmentsPagination
+            page={page}
+            totalItems={data?.totalItems}
+            visibleItemsCount={appointments.length}
+            isFetching={isFetchingPage}
+            onPageChange={setPage}
+          />
+        }
+        toolbar={
+          <AgendaAppointmentsToolbar
+            statusFilter={statusFilter}
+            searchField={searchField}
+            search={search}
+            periodMode={periodMode}
+            dateRange={dateRange}
+            onStatusChange={handleStatusChange}
+            onSearchFieldChange={handleSearchFieldChange}
+            onSearchChange={handleSearchChange}
+            onPeriodModeChange={handlePeriodModeChange}
+            onDateRangeChange={handleDateRangeChange}
+          />
+        }
+      />
+
+      <AgendaAppointmentDetailsDialog
+        appointment={selectedAppointment}
+        open={Boolean(selectedAppointment)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAppointment(null);
+          }
+        }}
+      />
+    </>
   );
 }

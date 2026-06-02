@@ -9,10 +9,13 @@ export function TodayAgendaLoadingState() {
       {loadingRows.map((row) => (
         <div
           key={row}
-          className="grid gap-3 px-4 py-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_minmax(9rem,auto)] sm:items-center sm:px-6 h-[151.78px] sm:h-[87.5px]"
+          className="grid h-[151.78px] gap-3 px-4 py-4 sm:h-[87.5px] sm:grid-cols-[5rem_minmax(0,1fr)_minmax(9rem,auto)] sm:items-center sm:px-6"
         >
           <div className="flex items-center gap-4 sm:gap-3">
-            <Skeleton className="h-4 w-12" />
+            <div className="flex min-w-12 flex-col">
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="mt-1 h-4 w-12" />
+            </div>
             <Separator className="hidden h-8 sm:block" orientation="vertical" />
           </div>
 
