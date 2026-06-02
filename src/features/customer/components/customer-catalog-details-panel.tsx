@@ -118,7 +118,9 @@ export function CustomerCatalogDetailsPanel({
             </DetailSection>
 
             <DetailSection label="Data de nascimento">
-              <p className="truncate text-sm text-foreground">{formatBirthDate(customer.birthDate)}</p>
+              <p className="truncate text-sm text-foreground">
+                {formatBirthDate(customer.birthDate)}
+              </p>
             </DetailSection>
 
             <DetailSection label="Endereço">

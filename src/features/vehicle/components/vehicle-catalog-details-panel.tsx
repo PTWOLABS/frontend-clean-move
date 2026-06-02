@@ -117,7 +117,10 @@ export function VehicleCatalogDetailsPanel({
               <div className="flex min-w-0 items-center gap-2">
                 {color ? (
                   <span
-                    className={cn("size-3 shrink-0 rounded-full", getVehicleColorSwatchClass(color))}
+                    className={cn(
+                      "size-3 shrink-0 rounded-full",
+                      getVehicleColorSwatchClass(color),
+                    )}
                     aria-hidden
                   />
                 ) : null}
