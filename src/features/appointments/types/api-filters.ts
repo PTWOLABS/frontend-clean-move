@@ -1,9 +1,10 @@
 import type { VehicleOptionsQuery } from "@/features/vehicle/types";
 import type { OptionsQuery } from "@/shared/types/options-query";
 import type { AppointmentStatus } from "@/shared/types/appointments";
+import { PaginationParams } from "@/shared/types/pagination";
 
 export type AppointmentsFilters = {
-  startsAt: string;
+  startsAt?: string;
   endsAt?: string;
   status?: AppointmentStatus[];
   serviceName?: string;
@@ -16,7 +17,7 @@ export type AppointmentsFilters = {
   customerName?: string;
   customerId?: string;
   search?: string; //General text search across customer full name, customer nickname, booked service name, vehicle plate, vehicle brand, and vehicle model. Non-alphanumeric characters are removed when matching against vehicle plate.
-};
+} & PaginationParams;
 
 export type AppointmentsCalendarFilters = {
   startsAt: string;

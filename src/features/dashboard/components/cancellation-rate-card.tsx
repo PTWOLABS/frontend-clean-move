@@ -27,6 +27,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const cancellationRateTooltip =
+  "Percentual de agendamentos cancelados nos filtros selecionados, comparado com a meta retornada pela API.";
+
 function formatPercent(value: number) {
   return `${new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 1,
@@ -62,7 +65,11 @@ export function CancellationRateCard({ className, filters, data }: CancellationR
 
   if (isLoading && !data && !appointmentsData) {
     return (
-      <DashboardPanelSkeleton title="Taxa de cancelamento" className={className}>
+      <DashboardPanelSkeleton
+        title="Taxa de cancelamento"
+        titleTooltip={cancellationRateTooltip}
+        className={className}
+      >
         <div className="mx-auto flex w-full max-w-80 flex-col items-center">
           <Skeleton className="h-64 w-full rounded-full" />
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
@@ -76,7 +83,11 @@ export function CancellationRateCard({ className, filters, data }: CancellationR
 
   if (errorFeedback && !data && !appointmentsData) {
     return (
-      <DashboardPanel title="Taxa de cancelamento" className={className}>
+      <DashboardPanel
+        title="Taxa de cancelamento"
+        titleTooltip={cancellationRateTooltip}
+        className={className}
+      >
         <DashboardQueryErrorState
           title={errorFeedback.title}
           description={errorFeedback.description}
@@ -89,7 +100,11 @@ export function CancellationRateCard({ className, filters, data }: CancellationR
 
   if (!cancellationRateData) {
     return (
-      <DashboardPanel title="Taxa de cancelamento" className={className}>
+      <DashboardPanel
+        title="Taxa de cancelamento"
+        titleTooltip={cancellationRateTooltip}
+        className={className}
+      >
         <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/20 px-4 text-center text-sm text-muted-foreground">
           Sem dados de cancelamento para o período.
         </div>
@@ -103,7 +118,11 @@ export function CancellationRateCard({ className, filters, data }: CancellationR
   const targetPercent = formatPercent(cancellationRateData.targetPercent);
 
   return (
-    <DashboardPanel title="Taxa de cancelamento" className={className}>
+    <DashboardPanel
+      title="Taxa de cancelamento"
+      titleTooltip={cancellationRateTooltip}
+      className={className}
+    >
       <div className="mx-auto flex w-full max-w-80 flex-col items-center">
         <div className="relative h-95 w-full">
           <ChartContainer

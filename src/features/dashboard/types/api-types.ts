@@ -1,3 +1,5 @@
+import { TopCustomer } from "./dashboard-sections";
+
 type MetricPoint = {
   date: string;
   label: string;
@@ -64,4 +66,9 @@ export type DashboardMetricsRevenueAndAppointments = {
     revenueTrendPercent: number | null;
     appointmentsTrendPercent: number | null;
   };
+};
+
+export type TopCustomers = {
+  customers: TopCustomer[];
+  totalCustomers: number;
 };

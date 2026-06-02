@@ -10,6 +10,7 @@ import {
 type SelectOption<TValue extends string> = {
   label: string;
   value: TValue;
+  disabled?: boolean;
 };
 
 type SelectProps<TValue extends string> = {
@@ -34,7 +35,7 @@ export function Select<TValue extends string>({
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </SelectItem>
         ))}

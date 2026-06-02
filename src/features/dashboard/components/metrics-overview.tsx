@@ -5,7 +5,7 @@ import { CalendarDays, DollarSign, Percent, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency, formatNumber, formatPercent } from "@/shared/utils/lib";
 
-import type { DashboardMetricsOverview } from "../api/types";
+import type { DashboardMetricsOverview } from "../types/api-types";
 import { useMetricsOverview } from "../hooks/use-metrics-overview";
 import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
 import { DashboardMetricCardSkeleton, DashboardQueryErrorState } from "./dashboard-query-state";

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DashboardMetricsOverview } from "../api/types";
+import type { DashboardMetricsOverview } from "../types/api-types";
 
 const mocks = vi.hoisted(() => ({
   metricCard: vi.fn(),

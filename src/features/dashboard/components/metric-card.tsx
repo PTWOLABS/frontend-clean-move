@@ -70,7 +70,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
 
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium leading-none text-card-foreground/85">
+            <p className="truncate text-sm font-medium leading-5 text-card-foreground/85">
               {title}
             </p>
             <p className="mt-5 truncate font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground">

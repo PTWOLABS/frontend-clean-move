@@ -1,7 +1,8 @@
 import type { ListCustomersQuery } from "@/features/customer/types";
+import type { DashboardTopCustomersFilters } from "@/features/dashboard/types/dashboard-sections";
 import type { ListVehiclesQuery, VehicleOptionsQuery } from "@/features/vehicle/types";
 import type { OptionsQuery } from "@/shared/types/options-query";
-import { AppointmentsQueryKeyParams } from "../types/appointments";
+import type { AppointmentsQueryKeyParams } from "../types/appointments";
 
 export const QUERY_KEYS = {
   authSession: ["auth", "session"] as const,
@@ -40,6 +41,10 @@ export const QUERY_KEYS = {
     filters ? (["services", filters] as const) : (["services"] as const),
   customers: (filters?: ListCustomersQuery) =>
     filters ? (["customers", filters] as const) : (["customers"] as const),
+  topCustomers: (filters?: DashboardTopCustomersFilters) =>
+    filters
+      ? (["dashboard", "top-customers", filters] as const)
+      : (["dashboard", "top-customers"] as const),
   customerOptions: (filters?: OptionsQuery) =>
     filters ? (["customers", "options", filters] as const) : (["customers", "options"] as const),
   vehicles: (customerId: string, filters?: ListVehiclesQuery) =>

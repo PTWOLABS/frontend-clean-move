@@ -14,6 +14,9 @@ type PopularServicesCardProps = {
   className?: string;
 };
 
+const popularServicesTooltip =
+  "Ranking dos serviços concluídos nos filtros selecionados, com a participação de cada serviço no total do período.";
+
 function getPercentage(value: number, total: number) {
   if (total <= 0) {
     return 0;
@@ -36,7 +39,11 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
 
   if (isLoading && !data) {
     return (
-      <DashboardPanelSkeleton title="Serviços populares" className={className}>
+      <DashboardPanelSkeleton
+        title="Serviços populares"
+        titleTooltip={popularServicesTooltip}
+        className={className}
+      >
         <div className="mt-15 space-y-4">
           {Array.from({ length: 5 }, (_, index) => (
             <div key={index} className="space-y-2">
@@ -59,7 +66,11 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
 
   if (errorFeedback && !data) {
     return (
-      <DashboardPanel title="Serviços populares" className={className}>
+      <DashboardPanel
+        title="Serviços populares"
+        titleTooltip={popularServicesTooltip}
+        className={className}
+      >
         <DashboardQueryErrorState
           title={errorFeedback.title}
           description={errorFeedback.description}
@@ -71,7 +82,11 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
   }
 
   return (
-    <DashboardPanel title="Serviços populares" className={className}>
+    <DashboardPanel
+      title="Serviços populares"
+      titleTooltip={popularServicesTooltip}
+      className={className}
+    >
       {visibleServices.length ? (
         <div className="mt-15 space-y-4">
           {visibleServices.map((service) => {
