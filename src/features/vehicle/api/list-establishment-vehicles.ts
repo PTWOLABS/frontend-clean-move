@@ -1,5 +1,6 @@
 import { httpClient } from "@/shared/api/httpClient";
 
+import { buildEstablishmentVehiclesQueryParams } from "../lib/build-establishment-vehicles-query";
 import { normalizeVehiclesList } from "../lib/normalize-vehicles-list";
 import type {
   ListEstablishmentVehiclesQuery,
@@ -13,14 +14,7 @@ export async function listEstablishmentVehicles(
 ): Promise<VehiclesPage> {
   const page = params.page ?? 1;
   const size = params.size ?? 10;
-  const searchParams = new URLSearchParams();
-
-  if (params.customerId?.trim()) searchParams.set("customerId", params.customerId.trim());
-  if (params.name?.trim()) searchParams.set("name", params.name.trim());
-  searchParams.set("page", String(page));
-  searchParams.set("size", String(size));
-
-  const query = searchParams.toString();
+  const query = buildEstablishmentVehiclesQueryParams({ ...params, page, size }).toString();
   const path = `/vehicles?${query}`;
 
   const raw = await httpClient<ListVehiclesResponse>(path, { signal });
