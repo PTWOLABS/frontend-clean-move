@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RowIconActions } from "@/shared/components/row-icon-actions";
-import { cn } from "@/shared/utils/cn";
+import { catalogTableRowClass } from "@/shared/components/catalog-table-row-selection";
 
 import { formatCpfCnpj, formatPhone } from "../lib/format-customer-catalog";
 import { isSameCustomerItem } from "../lib/is-same-customer-item";
@@ -65,10 +65,7 @@ export function CustomerCatalogTable({
                 role="row"
                 aria-selected={isSelected}
                 tabIndex={0}
-                className={cn(
-                  "cursor-pointer",
-                  isSelected && "bg-primary/5 ring-2 ring-inset ring-primary",
-                )}
+                className={catalogTableRowClass(isSelected)}
                 onClick={() => onSelect(item)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
