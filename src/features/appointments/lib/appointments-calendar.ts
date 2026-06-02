@@ -27,7 +27,7 @@ function getCustomerLabel(appointment: AppointmentListItem) {
   return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
 }
 
-function parseAppointmentDateTime(value: string) {
+export function parseAppointmentDateTime(value: string) {
   const match = API_DATE_TIME_PATTERN.exec(value);
 
   if (!match) {
