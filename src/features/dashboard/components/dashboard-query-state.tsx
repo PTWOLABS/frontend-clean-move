@@ -80,6 +80,7 @@ export function DashboardMetricCardSkeleton() {
 
 type DashboardPanelSkeletonProps = {
   title: string;
+  titleTooltip?: React.ReactNode;
   className?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
@@ -87,12 +88,13 @@ type DashboardPanelSkeletonProps = {
 
 export function DashboardPanelSkeleton({
   title,
+  titleTooltip,
   className,
   action,
   children,
 }: DashboardPanelSkeletonProps) {
   return (
-    <DashboardPanel title={title} className={className} action={action}>
+    <DashboardPanel title={title} titleTooltip={titleTooltip} className={className} action={action}>
       {children}
     </DashboardPanel>
   );

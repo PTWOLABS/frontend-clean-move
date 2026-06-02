@@ -124,6 +124,9 @@ describe("CancellationRateCard", () => {
     render(<CancellationRateCard data={cancellationRateMock} />);
 
     expect(screen.getByRole("heading", { name: /taxa de cancelamento/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /mais informações sobre taxa de cancelamento/i }),
+    ).toBeInTheDocument();
 
     expect(screen.getAllByText("4,2%")).toHaveLength(2);
     expect(screen.getByText("Cancelamentos")).toBeInTheDocument();

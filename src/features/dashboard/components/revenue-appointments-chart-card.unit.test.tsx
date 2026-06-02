@@ -1,12 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type * as React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type MockSelectProps = {
   options: Array<{
     label: string;
     value: string;
+    disabled?: boolean;
   }>;
   value?: string;
   onChange: (value: string) => void;
@@ -118,7 +119,7 @@ vi.mock("@/components/ui/select/select", () => ({
       onChange={(event) => onChange(event.target.value)}
     >
       {options.map((option) => (
-        <option key={option.value} value={option.value}>
+        <option key={option.value} value={option.value} disabled={option.disabled}>
           {option.label}
         </option>
       ))}
@@ -205,6 +206,10 @@ describe("RevenueAppointmentsChartCard", () => {
     mockErrorFeedback();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders title, legend, chart label, and period summary", () => {
     mockRevenueAppointmentsQuery({
       data: {
@@ -223,6 +228,11 @@ describe("RevenueAppointmentsChartCard", () => {
     expect(
       screen.getByRole("heading", {
         name: /receita e agendamentos ao longo do tempo/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /mais informações sobre receita e agendamentos ao longo do tempo/i,
       }),
     ).toBeInTheDocument();
 
@@ -279,9 +289,10 @@ describe("RevenueAppointmentsChartCard", () => {
     expect(rechartsMocks.YAxis).toHaveBeenCalledWith(
       expect.objectContaining({
         yAxisId: "revenue",
-        width: 56,
+        width: 72,
         tickLine: false,
         axisLine: false,
+        tickMargin: 8,
       }),
     );
 
@@ -471,6 +482,266 @@ describe("RevenueAppointmentsChartCard", () => {
 
     expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
       granularity: "weekly",
+    });
+  });
+
+  it("uses only daily granularity for the last 7 days period", () => {
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="weekly"
+        filters={{ period: "last-7-days" }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      period: "last-7-days",
+      granularity: "daily",
+    });
+  });
+
+  it("uses only daily granularity for custom ranges up to 7 days", () => {
+    const startsAt = new Date("2026-01-01T00:00:00");
+    const endsAt = new Date("2026-01-07T23:59:59");
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="monthly"
+        filters={{ startsAt, endsAt }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      startsAt,
+      endsAt,
+      granularity: "daily",
+    });
+  });
+
+  it("uses only daily granularity for this month before the eighth day", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-07T12:00:00"));
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="weekly"
+        filters={{ period: "this-month" }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      period: "this-month",
+      granularity: "daily",
+    });
+  });
+
+  it("enables daily and weekly for the last 30 days period", () => {
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="monthly"
+        filters={{ period: "last-30-days" }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      period: "last-30-days",
+      granularity: "daily",
+    });
+  });
+
+  it("enables daily and weekly for custom ranges from 8 to 31 days", () => {
+    const startsAt = new Date("2026-01-01T00:00:00");
+    const endsAt = new Date("2026-01-08T23:59:59");
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="monthly"
+        filters={{ startsAt, endsAt }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("daily");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      startsAt,
+      endsAt,
+      granularity: "daily",
+    });
+  });
+
+  it("applies the 8 to 31 day range rules to this month from the eighth day", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-08T12:00:00"));
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="weekly"
+        filters={{ period: "this-month" }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("weekly");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      period: "this-month",
+      granularity: "weekly",
+    });
+  });
+
+  it("enables weekly and monthly from 32 to 180 days", () => {
+    const startsAt = new Date("2026-01-01T00:00:00");
+    const endsAt = new Date("2026-02-01T00:00:00");
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="daily"
+        filters={{ startsAt, endsAt }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).not.toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).not.toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("weekly");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      startsAt,
+      endsAt,
+      granularity: "weekly",
+    });
+  });
+
+  it("uses only monthly from 181 days", () => {
+    const startsAt = new Date("2026-01-01T00:00:00");
+    const endsAt = new Date("2026-06-30T00:00:00");
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="weekly"
+        filters={{ startsAt, endsAt }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).not.toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("monthly");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      startsAt,
+      endsAt,
+      granularity: "monthly",
+    });
+  });
+
+  it("keeps monthly granularity available for ranges longer than 24 months", () => {
+    const startsAt = new Date("2024-01-01T00:00:00");
+    const endsAt = new Date("2026-01-01T00:00:00");
+
+    mockRevenueAppointmentsQuery({
+      data: {
+        points: revenueAppointmentsPointsMock,
+        summary: revenueAppointmentsSummaryMock,
+      },
+    });
+
+    render(
+      <RevenueAppointmentsChartCard
+        granularityOptions={granularityOptionsMock.slice()}
+        defaultGranularity="monthly"
+        filters={{ startsAt, endsAt }}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: "Diário" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Semanal" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Mensal" })).not.toBeDisabled();
+    expect(screen.getByRole("combobox", { name: /granularidade/i })).toHaveValue("monthly");
+    expect(vi.mocked(useFetchMetricsRevenueAndAppointment)).toHaveBeenLastCalledWith({
+      startsAt,
+      endsAt,
+      granularity: "monthly",
     });
   });
 });

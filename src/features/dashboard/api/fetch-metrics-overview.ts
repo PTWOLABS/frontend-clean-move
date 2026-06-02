@@ -1,5 +1,5 @@
 import { httpClient } from "@/shared/api/httpClient";
-import { DashboardMetricsOverview } from "./types";
+import { DashboardMetricsOverview } from "../types/api-types";
 import { DashboardMetricsOverviewFilters } from "../types/dashboard-sections";
 
 export async function fetchMetricsOverview(filters?: DashboardMetricsOverviewFilters) {

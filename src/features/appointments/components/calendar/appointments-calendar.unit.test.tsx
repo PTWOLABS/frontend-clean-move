@@ -270,4 +270,19 @@ describe("AppointmentsCalendar", () => {
 
     expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
   });
+
+  it("forwards the selected event from the details popover edit action", async () => {
+    const user = userEvent.setup();
+    const onEditEvent = vi.fn();
+
+    renderCalendar({
+      selectedEventPopoverId: "appointment-1",
+      onEditEvent,
+    });
+
+    await user.click(screen.getByRole("button", { name: /ações do agendamento/i }));
+    await user.click(screen.getByRole("menuitem", { name: /editar agendamento/i }));
+
+    expect(onEditEvent).toHaveBeenCalledWith(appointmentEvent);
+  });
 });

@@ -73,6 +73,46 @@ describe("AppointmentsCalendarToolbar", () => {
     expect(onSelectView).toHaveBeenCalledWith("timeGridWeek");
   });
 
+  it("navigates to the previous and next periods using the calendar api", async () => {
+    const user = userEvent.setup();
+    const previousDate = new Date("2026-04-20T10:00:00.000Z");
+    const nextDate = new Date("2026-06-20T10:00:00.000Z");
+    const prev = vi.fn();
+    const next = vi.fn();
+    const getDate = vi.fn().mockReturnValueOnce(previousDate).mockReturnValueOnce(nextDate);
+    const onSelectDate = vi.fn();
+    const calendarRef = {
+      current: {
+        getApi: () => ({
+          today: vi.fn(),
+          getDate,
+          prev,
+          next,
+          changeView: vi.fn(),
+          gotoDate: vi.fn(),
+        }),
+      },
+    } as unknown as RefObject<FullCalendar | null>;
+
+    render(
+      <AppointmentsCalendarToolbar
+        calendarRef={calendarRef}
+        calendarTitle="maio de 2026"
+        selectedView="dayGridMonth"
+        onSelectDate={onSelectDate}
+        onSelectView={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /período anterior/i }));
+    await user.click(screen.getByRole("button", { name: /próximo período/i }));
+
+    expect(prev).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(onSelectDate).toHaveBeenNthCalledWith(1, previousDate);
+    expect(onSelectDate).toHaveBeenNthCalledWith(2, nextDate);
+  });
+
   it("hides the weekly view when compact options are provided", () => {
     const calendarRef = {
       current: null,

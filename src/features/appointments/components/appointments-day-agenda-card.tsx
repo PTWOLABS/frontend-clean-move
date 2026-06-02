@@ -73,6 +73,7 @@ export function AppointmentsDayAgendaCard({
 
   return (
     <Card
+      data-cy="appointments-day-agenda-card"
       aria-busy={isLoading || isRefreshing}
       className="flex min-h-80 flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs sm:rounded-3xl xl:min-h-0 xl:flex-1 xl:basis-0"
     >
@@ -112,6 +113,7 @@ export function AppointmentsDayAgendaCard({
             return (
               <div
                 key={event.id}
+                data-cy={`appointment-agenda-item-${event.id}`}
                 aria-busy={updatingStatusAppointmentId === event.id}
                 className={cn(
                   "w-full rounded-2xl border border-border/70 bg-background/55 p-4 text-left transition-colors hover:border-accent/40 hover:bg-accent-soft/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
