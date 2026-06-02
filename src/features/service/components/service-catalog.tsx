@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { ApiError } from "@/shared/api/httpClient";
 
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
+import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 import { useDeleteService } from "../hooks/use-delete-service";
 import { useServices } from "../hooks/use-services";
 import { useToggleServiceActive } from "../hooks/use-toggle-service-active";
@@ -92,25 +93,15 @@ export function ServiceCatalog() {
 
   const { data, isLoading, isFetching, isError, error, refetch } = servicesQuery;
   const total = data?.total ?? 0;
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   /** Página alinhada aos dados mostrados (com `keepPreviousData` evita desincronizar lista vs paginação). */
   const displayedPage = data?.page ?? page;
 
-  useEffect(() => {
-    if (items.length === 0) {
-      setSelectedService(null);
-      return;
-    }
-
-    setSelectedService((current) => {
-      if (current) {
-        const match = items.find((item) => isSameServiceItem(item, current));
-        if (match) return match;
-      }
-      return items[0] ?? null;
-    });
-  }, [items]);
+  const resolvedSelectedService = useMemo(
+    () => resolveCatalogSelection(items, selectedService, isSameServiceItem),
+    [items, selectedService],
+  );
 
   if (userLoading) {
     return (
@@ -246,7 +237,7 @@ export function ServiceCatalog() {
                 <>
                   <ServiceCatalogTable
                     items={items}
-                    selectedService={selectedService}
+                    selectedService={resolvedSelectedService}
                     onSelect={setSelectedService}
                     onEdit={(item) => {
                       setDuplicateSource(null);
@@ -285,7 +276,7 @@ export function ServiceCatalog() {
             </div>
 
             <ServiceCatalogDetailsPanel
-              service={selectedService}
+              service={resolvedSelectedService}
               className="hidden w-full shrink-0 lg:block lg:w-80"
             />
           </div>
