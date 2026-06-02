@@ -138,64 +138,64 @@ export function ServiceCatalogTable({
             const isSelected = isSameServiceItem(item, selectedService);
 
             return (
-            <TableRow
-              key={serviceRowKey(item, index)}
-              role="row"
-              aria-selected={isSelected}
-              tabIndex={0}
-              className={cn(
-                "cursor-pointer",
-                isSelected && "bg-primary/5 ring-2 ring-inset ring-primary",
-              )}
-              onClick={() => onSelect(item)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onSelect(item);
-                }
-              }}
-            >
-              <TableCell className="pl-4 align-middle">
-                <div className="min-w-0 space-y-0.5">
-                  <div className="truncate font-medium text-foreground">{item.serviceName}</div>
-                  {item.description ? (
-                    <div className="line-clamp-2 text-sm text-muted-foreground">
-                      {item.description}
-                    </div>
-                  ) : null}
-                </div>
-              </TableCell>
-              <TableCell className="align-middle text-foreground">
-                {formatServiceCategory(item.category)}
-              </TableCell>
-              <TableCell className="align-middle text-foreground">
-                {formatEstimatedDuration(
-                  item.estimatedDuration?.minInMinutes ?? 0,
-                  item.estimatedDuration?.maxInMinutes ?? 0,
+              <TableRow
+                key={serviceRowKey(item, index)}
+                role="row"
+                aria-selected={isSelected}
+                tabIndex={0}
+                className={cn(
+                  "cursor-pointer",
+                  isSelected && "bg-primary/5 ring-2 ring-inset ring-primary",
                 )}
-              </TableCell>
-              <TableCell className="align-middle">
-                <span className="font-semibold tabular-nums text-foreground">
-                  {formatServicePriceBrl(item.price)}
-                </span>
-              </TableCell>
-              <TableCell className="align-middle">
-                <ServiceStatusBadge isActive={item.isActive} />
-              </TableCell>
-              <TableCell
-                className="pr-4 text-right align-middle"
-                onClick={(event) => event.stopPropagation()}
+                onClick={() => onSelect(item)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(item);
+                  }
+                }}
               >
-                <RowActions
-                  item={item}
-                  onEdit={onEdit}
-                  onDuplicate={onDuplicate}
-                  onToggleActive={onToggleActive}
-                  onDelete={onDelete}
-                  isToggling={togglingServiceId === item.id}
-                />
-              </TableCell>
-            </TableRow>
+                <TableCell className="pl-4 align-middle">
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="truncate font-medium text-foreground">{item.serviceName}</div>
+                    {item.description ? (
+                      <div className="line-clamp-2 text-sm text-muted-foreground">
+                        {item.description}
+                      </div>
+                    ) : null}
+                  </div>
+                </TableCell>
+                <TableCell className="align-middle text-foreground">
+                  {formatServiceCategory(item.category)}
+                </TableCell>
+                <TableCell className="align-middle text-foreground">
+                  {formatEstimatedDuration(
+                    item.estimatedDuration?.minInMinutes ?? 0,
+                    item.estimatedDuration?.maxInMinutes ?? 0,
+                  )}
+                </TableCell>
+                <TableCell className="align-middle">
+                  <span className="font-semibold tabular-nums text-foreground">
+                    {formatServicePriceBrl(item.price)}
+                  </span>
+                </TableCell>
+                <TableCell className="align-middle">
+                  <ServiceStatusBadge isActive={item.isActive} />
+                </TableCell>
+                <TableCell
+                  className="pr-4 text-right align-middle"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <RowActions
+                    item={item}
+                    onEdit={onEdit}
+                    onDuplicate={onDuplicate}
+                    onToggleActive={onToggleActive}
+                    onDelete={onDelete}
+                    isToggling={togglingServiceId === item.id}
+                  />
+                </TableCell>
+              </TableRow>
             );
           })}
         </TableBody>
