@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { CatalogVehicleCountTrigger } from "@/shared/components/catalog-vehicle-count-trigger";
 import { cn } from "@/shared/utils/cn";
 
 type VehicleCatalogCustomerCellProps = {
@@ -27,30 +27,23 @@ export function VehicleCatalogCustomerCell({
   const displayName = customerName.trim() || "—";
   const showModalTrigger = !isCountLoading && vehiclesCount != null && vehiclesCount > 1;
 
-  if (!showModalTrigger) {
-    return <span className={cn("text-foreground", className)}>{displayName}</span>;
+  if (showModalTrigger) {
+    return (
+      <CatalogVehicleCountTrigger
+        label={displayName}
+        count={vehiclesCount}
+        ariaLabel={`Ver ${vehiclesCount} veículos de ${displayName}`}
+        onClick={() =>
+          onShowAllVehicles({
+            customerId,
+            customerName: displayName,
+            vehiclesCount,
+          })
+        }
+        className={className}
+      />
+    );
   }
 
-  return (
-    <button
-      type="button"
-      className={cn(
-        "flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 text-left text-foreground transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className,
-      )}
-      aria-label={`Ver ${vehiclesCount} veículos de ${displayName}`}
-      onClick={() =>
-        onShowAllVehicles({
-          customerId,
-          customerName: displayName,
-          vehiclesCount,
-        })
-      }
-    >
-      <span className="truncate">{displayName}</span>
-      <Badge variant="secondary" className="shrink-0 tabular-nums">
-        {vehiclesCount}
-      </Badge>
-    </button>
-  );
+  return <span className={cn("truncate text-foreground", className)}>{displayName}</span>;
 }
