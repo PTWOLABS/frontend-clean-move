@@ -2,11 +2,7 @@ import { httpClient } from "@/shared/api/httpClient";
 
 import { buildEstablishmentVehiclesQueryParams } from "../lib/build-establishment-vehicles-query";
 import { normalizeVehiclesList } from "../lib/normalize-vehicles-list";
-import type {
-  ListEstablishmentVehiclesQuery,
-  ListVehiclesResponse,
-  VehiclesPage,
-} from "../types";
+import type { ListEstablishmentVehiclesQuery, ListVehiclesResponse, VehiclesPage } from "../types";
 
 export async function listEstablishmentVehicles(
   params: ListEstablishmentVehiclesQuery = {},
