@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -17,6 +17,7 @@ import { useListCustomerOptions } from "@/features/appointments/hooks/queries/us
 import { CustomerVehiclesDialog } from "@/features/customer/components/customer-vehicles-dialog";
 import { ApiError } from "@/shared/api/httpClient";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
+import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 
 import { useDeleteVehicle } from "../hooks/use-delete-vehicle";
 import { useCustomerVehicleCounts } from "../hooks/use-customer-vehicle-counts";
@@ -50,6 +51,7 @@ export function VehicleCatalog() {
   const [createCustomerId, setCreateCustomerId] = useState("");
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [vehicleSheetOpen, setVehicleSheetOpen] = useState(false);
+  const [vehicleFormSession, setVehicleFormSession] = useState(0);
   const [editingVehicle, setEditingVehicle] = useState<VehicleDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VehicleDto | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleDto | null>(null);
@@ -78,6 +80,7 @@ export function VehicleCatalog() {
   );
 
   const openCreateForm = useCallback((customerId: string) => {
+    setVehicleFormSession((current) => current + 1);
     setEditingVehicle(null);
     setCreateCustomerId(customerId);
     setShowCustomerPicker(false);
@@ -85,6 +88,7 @@ export function VehicleCatalog() {
   }, []);
 
   const openCreateFormFromHeader = useCallback(() => {
+    setVehicleFormSession((current) => current + 1);
     setEditingVehicle(null);
     setCreateCustomerId("");
     setShowCustomerPicker(true);
@@ -125,20 +129,10 @@ export function VehicleCatalog() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const displayedPage = data?.page ?? page;
 
-  useEffect(() => {
-    if (items.length === 0) {
-      setSelectedVehicle(null);
-      return;
-    }
-
-    setSelectedVehicle((current) => {
-      if (current) {
-        const match = items.find((item) => isSameVehicleItem(item, current));
-        if (match) return match;
-      }
-      return items[0] ?? null;
-    });
-  }, [items]);
+  const resolvedSelectedVehicle = useMemo(
+    () => resolveCatalogSelection(items, selectedVehicle, isSameVehicleItem),
+    [items, selectedVehicle],
+  );
 
   const showListSkeleton = vehiclesQuery.isLoading && !data;
   const showVehiclesError = vehiclesQuery.isError;
@@ -179,7 +173,11 @@ export function VehicleCatalog() {
           }
         }}
         customerId={createCustomerId}
+        lockedCustomerLabel={
+          createCustomerId && !showCustomerPicker ? getCustomerLabel(createCustomerId) : undefined
+        }
         showCustomerPicker={showCustomerPicker}
+        formSessionKey={vehicleFormSession}
         editingVehicle={editingVehicle}
       />
 
@@ -257,7 +255,7 @@ export function VehicleCatalog() {
                 <>
                   <VehicleCatalogTable
                     items={items}
-                    selectedVehicle={selectedVehicle}
+                    selectedVehicle={resolvedSelectedVehicle}
                     onSelect={setSelectedVehicle}
                     getCustomerLabel={getCustomerLabel}
                     customerVehicleCounts={countsByCustomerId}
@@ -265,6 +263,7 @@ export function VehicleCatalog() {
                     onShowAllVehicles={handleShowAllVehicles}
                     onAddVehicle={(item) => openCreateForm(item.customerId)}
                     onEdit={(item) => {
+                      setVehicleFormSession((current) => current + 1);
                       setEditingVehicle(item);
                       setShowCustomerPicker(false);
                       setVehicleSheetOpen(true);
@@ -279,6 +278,7 @@ export function VehicleCatalog() {
                     onShowAllVehicles={handleShowAllVehicles}
                     onAddVehicle={(item) => openCreateForm(item.customerId)}
                     onEdit={(item) => {
+                      setVehicleFormSession((current) => current + 1);
                       setEditingVehicle(item);
                       setShowCustomerPicker(false);
                       setVehicleSheetOpen(true);
@@ -300,29 +300,19 @@ export function VehicleCatalog() {
             </div>
 
             <VehicleCatalogDetailsPanel
-              vehicle={selectedVehicle}
+              vehicle={resolvedSelectedVehicle}
               customerLabel={
-                selectedVehicle ? getCustomerLabel(selectedVehicle.customerId) : undefined
-              }
-              vehiclesCount={
-                selectedVehicle ? countsByCustomerId.get(selectedVehicle.customerId) : undefined
-              }
-              isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
-              onShowAllVehicles={
-                selectedVehicle
-                  ? () => {
-                      const count = countsByCustomerId.get(selectedVehicle.customerId);
-                      const name = getCustomerLabel(selectedVehicle.customerId)?.trim();
-                      if (count != null && count > 1 && name) {
-                        handleShowAllVehicles({
-                          customerId: selectedVehicle.customerId,
-                          customerName: name,
-                          vehiclesCount: count,
-                        });
-                      }
-                    }
+                resolvedSelectedVehicle
+                  ? getCustomerLabel(resolvedSelectedVehicle.customerId)
                   : undefined
               }
+              vehiclesCount={
+                resolvedSelectedVehicle
+                  ? countsByCustomerId.get(resolvedSelectedVehicle.customerId)
+                  : undefined
+              }
+              isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
+              onShowAllVehicles={handleShowAllVehicles}
               className="hidden w-full shrink-0 lg:block lg:w-80"
             />
           </div>
