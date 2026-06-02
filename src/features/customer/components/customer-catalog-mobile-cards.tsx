@@ -106,10 +106,7 @@ export function CustomerCatalogMobileCards({
                 </div>
               </div>
 
-              <CustomerCatalogVehicleCell
-                customer={item}
-                onShowAllVehicles={onShowAllVehicles}
-              />
+              <CustomerCatalogVehicleCell customer={item} onShowAllVehicles={onShowAllVehicles} />
             </div>
 
             <Separator />
