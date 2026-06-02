@@ -42,7 +42,7 @@ describe("vehicle/api/list-establishment-vehicles", () => {
     });
 
     expect(httpClientMock).toHaveBeenCalledWith(
-      "/vehicles?customerId=customer-1&name=Maria&page=1&size=20",
+      "/vehicles?name=Maria&customerId=customer-1&page=1&size=20",
       { signal: undefined },
     );
   });
