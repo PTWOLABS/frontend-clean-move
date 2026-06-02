@@ -3,10 +3,7 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/shared/utils/cn";
 
-import {
-  formatServiceCategory,
-  formatServicePriceBrl,
-} from "../lib/format-catalog";
+import { formatServiceCategory, formatServicePriceBrl } from "../lib/format-catalog";
 import type { ServiceItem } from "../types";
 
 import { ServiceCatalogItemThumb } from "./service-catalog-item-thumb";
@@ -17,13 +14,7 @@ type ServiceCatalogDetailsPanelProps = {
   className?: string;
 };
 
-function DetailSection({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function DetailSection({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
@@ -36,16 +27,16 @@ function formatMinutesLabel(minutes: number): string {
   return `${minutes} min`;
 }
 
-export function ServiceCatalogDetailsPanel({ service, className }: ServiceCatalogDetailsPanelProps) {
+export function ServiceCatalogDetailsPanel({
+  service,
+  className,
+}: ServiceCatalogDetailsPanelProps) {
   const minMinutes = service?.estimatedDuration?.minInMinutes ?? 0;
   const maxMinutes = service?.estimatedDuration?.maxInMinutes ?? minMinutes;
 
   return (
     <aside
-      className={cn(
-        "rounded-lg border border-border bg-card/80 p-4 sm:p-5",
-        className,
-      )}
+      className={cn("rounded-lg border border-border bg-card/80 p-4 sm:p-5", className)}
       aria-label="Detalhes do serviço"
     >
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -66,9 +57,7 @@ export function ServiceCatalogDetailsPanel({ service, className }: ServiceCatalo
           </div>
 
           <DetailSection label="Descrição">
-            <p className="text-sm text-foreground">
-              {service.description?.trim() || "—"}
-            </p>
+            <p className="text-sm text-foreground">{service.description?.trim() || "—"}</p>
           </DetailSection>
 
           <DetailSection label="Categoria">
