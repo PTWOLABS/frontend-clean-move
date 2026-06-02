@@ -12,17 +12,13 @@ export type UseEstablishmentVehiclesArgs = ListEstablishmentVehiclesQuery & {
 };
 
 export function useEstablishmentVehicles({
-  customerId,
-  name,
-  page = 1,
-  size = 10,
   enabled = true,
+  ...filters
 }: UseEstablishmentVehiclesArgs) {
   return useQuery({
-    queryKey: QUERY_KEYS.vehiclesAll({ customerId, name, page, size }),
+    queryKey: QUERY_KEYS.vehiclesAll(filters),
     placeholderData: keepPreviousData,
-    queryFn: ({ signal }) =>
-      listEstablishmentVehicles({ customerId, name, page, size }, signal),
+    queryFn: ({ signal }) => listEstablishmentVehicles(filters, signal),
     enabled,
   });
 }
