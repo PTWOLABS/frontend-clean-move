@@ -1,4 +1,3 @@
-import type { AppointmentsFilters } from "@/features/appointments/types/api-filters";
 import type { ListCustomersQuery } from "@/features/customer/types";
 import type {
   ListEstablishmentVehiclesQuery,
