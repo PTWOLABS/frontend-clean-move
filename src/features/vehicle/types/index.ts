@@ -19,9 +19,17 @@ export type ListVehiclesQuery = {
   size?: number;
 };
 
+/** Campo de filtro dedicado em GET /vehicles (um param por chave). */
+export type VehicleSearchType = "plate" | "name" | "model" | "brand" | "color" | "year";
+
 export type ListEstablishmentVehiclesQuery = {
-  customerId?: string;
+  plate?: string;
   name?: string;
+  model?: string;
+  brand?: string;
+  color?: string;
+  year?: string;
+  customerId?: string;
   page?: number;
   size?: number;
 };
