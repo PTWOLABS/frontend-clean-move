@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CountBadgeTrigger } from "@/shared/components/count-badge-trigger";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 import { cn } from "@/shared/utils/cn";
 import { TodayAgendaLoadingState } from "./today-agenda-loading-state";
@@ -27,6 +28,14 @@ export type TodayAgendaItem = {
   amountInCents: number;
   description: string;
   status: TodayAgendaStatus;
+  services: TodayAgendaService[];
+};
+
+export type TodayAgendaService = {
+  id: string;
+  name: string;
+  durationInMinutes: number | null;
+  priceInCents: number;
 };
 
 type TodayAgendaCardProps = {
@@ -35,6 +44,7 @@ type TodayAgendaCardProps = {
   isError?: boolean;
   onRetry?: () => void;
   onAppointmentClick?: (appointment: TodayAgendaItem) => void;
+  onAppointmentServicesClick?: (appointment: TodayAgendaItem) => void;
   toolbar?: ReactNode;
   pagination?: ReactNode;
 };
@@ -74,6 +84,7 @@ export function TodayAgendaCard({
   isError = false,
   onRetry,
   onAppointmentClick,
+  onAppointmentServicesClick,
   toolbar,
   pagination,
 }: TodayAgendaCardProps) {
@@ -132,14 +143,21 @@ export function TodayAgendaCard({
             {appointments.map((appointment) => {
               const status = statusMeta[appointment.status];
               const appointmentDate = formatAppointmentDate(appointment.startsAt);
+              const extraServicesCount = Math.max(appointment.services.length - 1, 0);
 
               return (
-                <li key={appointment.id} className="transition-colors hover:bg-accent-soft/20">
+                <li
+                  key={appointment.id}
+                  className="relative transition-colors hover:bg-accent-soft/20"
+                >
                   <button
                     type="button"
-                    className="grid w-full gap-3 px-4 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[5rem_minmax(0,1fr)_minmax(9rem,auto)] sm:items-center sm:px-6"
+                    className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    aria-label={`Ver detalhes do agendamento de ${appointment.customerName}`}
                     onClick={() => onAppointmentClick?.(appointment)}
-                  >
+                  />
+
+                  <div className="pointer-events-none relative z-10 grid gap-3 px-4 py-4 text-left sm:grid-cols-[5rem_minmax(0,1fr)_minmax(9rem,auto)] sm:items-center sm:px-6">
                     <div className="flex items-center gap-4 sm:gap-3">
                       <time
                         dateTime={appointment.startsAt.toISOString()}
@@ -178,11 +196,23 @@ export function TodayAgendaCard({
                       >
                         {status.label}
                       </Badge>
-                      <p className="min-w-0 truncate text-sm font-medium text-card-foreground/85">
-                        {appointment.serviceName}
-                      </p>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="min-w-0 truncate text-sm font-medium text-card-foreground/85">
+                          {appointment.serviceName}
+                        </p>
+                        {extraServicesCount > 0 ? (
+                          <CountBadgeTrigger
+                            count={extraServicesCount}
+                            ariaLabel={`Ver ${extraServicesCount} serviços adicionais`}
+                            onClick={() => onAppointmentServicesClick?.(appointment)}
+                            align="end"
+                            className="pointer-events-auto"
+                            tooltipLabel={`${extraServicesCount} serviços adicionais`}
+                          />
+                        ) : null}
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 </li>
               );
             })}
