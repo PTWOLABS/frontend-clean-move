@@ -31,10 +31,7 @@ export function CatalogVehicleCountTrigger({
       )}
     >
       <span
-        className={cn(
-          "min-w-0 truncate text-sm text-foreground",
-          isEndAligned && "text-right",
-        )}
+        className={cn("min-w-0 truncate text-sm text-foreground", isEndAligned && "text-right")}
       >
         {label}
       </span>

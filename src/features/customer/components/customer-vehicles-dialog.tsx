@@ -10,7 +10,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { listVehicles } from "@/features/vehicle/api/list-vehicles";
 import { formatVehicleName } from "@/features/vehicle/lib/format-vehicle-catalog";
 import type { VehicleDto } from "@/features/vehicle/types";
@@ -51,7 +58,8 @@ function VehicleColorCell({ color }: { color?: string | null }) {
     return <span className="text-muted-foreground">—</span>;
   }
 
-  const colorClass = COLOR_DOT_CLASSES[normalizeColorKey(sanitizedColor)] ?? "bg-slate-500 ring-white/20";
+  const colorClass =
+    COLOR_DOT_CLASSES[normalizeColorKey(sanitizedColor)] ?? "bg-slate-500 ring-white/20";
 
   return (
     <span className="inline-flex items-center gap-2">
@@ -97,7 +105,9 @@ export function CustomerVehiclesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden px-4 pb-4 pt-5 sm:max-w-4xl sm:px-6 sm:pb-6">
         <DialogHeader className="shrink-0 space-y-0.5">
-          <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">Veículos do cliente</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">
+            Veículos do cliente
+          </DialogTitle>
           <DialogDescription>
             {customerId ? (
               <span className="text-sm text-muted-foreground">
@@ -111,7 +121,11 @@ export function CustomerVehiclesDialog({
 
         <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="overflow-x-auto rounded-xl border border-border/80" aria-busy="true" aria-label="A carregar veículos">
+            <div
+              className="overflow-x-auto rounded-xl border border-border/80"
+              aria-busy="true"
+              aria-label="A carregar veículos"
+            >
               <div className="min-w-160">
                 <div className="grid grid-cols-[2fr_1.2fr_1.2fr_0.8fr] border-b border-border/70 bg-muted/20 px-5 py-3">
                   <Skeleton className="h-4 w-24" />
