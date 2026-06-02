@@ -50,12 +50,16 @@ export function CustomerVehiclesDialog({
   const embeddedCount = embeddedVehicles?.length ?? 0;
   const knownCount = vehiclesCount ?? embeddedCount;
   const needsFetch = Boolean(customerId && knownCount > embeddedCount);
+  const listFilters = {
+    page: 1,
+    size: Math.max(knownCount, embeddedCount, 1),
+  };
+  const vehiclesQueryKey = customerId
+    ? QUERY_KEYS.vehicles(customerId, listFilters)
+    : (["vehicles", "customer-dialog", "idle", listFilters] as const);
 
   const vehiclesQuery = useQuery({
-    queryKey: QUERY_KEYS.vehicles(customerId ?? "", {
-      page: 1,
-      size: Math.max(knownCount, embeddedCount, 1),
-    }),
+    queryKey: vehiclesQueryKey,
     queryFn: ({ signal }) =>
       listVehicles(customerId!, { page: 1, size: Math.max(knownCount, 50) }, signal),
     enabled: open && needsFetch && Boolean(customerId),
