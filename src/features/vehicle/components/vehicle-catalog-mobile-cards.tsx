@@ -14,6 +14,22 @@ import {
   getVehicleColorSwatchClass,
 } from "../lib/format-vehicle-catalog";
 import type { VehicleDto } from "../types";
+import { VehicleCatalogCustomerCell } from "./vehicle-catalog-customer-cell";
+
+type VehicleCatalogMobileCardsProps = {
+  items: VehicleDto[];
+  getCustomerLabel: (customerId: string) => string | undefined;
+  customerVehicleCounts: Map<string, number>;
+  isCustomerVehicleCountsLoading: boolean;
+  onShowAllVehicles: (payload: {
+    customerId: string;
+    customerName: string;
+    vehiclesCount: number;
+  }) => void;
+  onAddVehicle: (item: VehicleDto) => void;
+  onEdit: (item: VehicleDto) => void;
+  onDelete: (item: VehicleDto) => void;
+};
 
 const mobileActionButtonClass =
   "size-9 shrink-0 rounded-full border-border bg-background/50 text-foreground hover:bg-accent";
@@ -93,14 +109,6 @@ function CardActions({ item, onAddVehicle, onEdit, onDelete }: CardActionsProps)
   );
 }
 
-type VehicleCatalogMobileCardsProps = {
-  items: VehicleDto[];
-  getCustomerLabel: (customerId: string) => string | undefined;
-  onAddVehicle: (item: VehicleDto) => void;
-  onEdit: (item: VehicleDto) => void;
-  onDelete: (item: VehicleDto) => void;
-};
-
 function formatBrandLabel(item: VehicleDto): string {
   return item.brand?.trim().toUpperCase() || "—";
 }
@@ -123,6 +131,9 @@ function formatColorLabel(item: VehicleDto): string {
 export function VehicleCatalogMobileCards({
   items,
   getCustomerLabel,
+  customerVehicleCounts,
+  isCustomerVehicleCountsLoading,
+  onShowAllVehicles,
   onAddVehicle,
   onEdit,
   onDelete,
@@ -154,9 +165,15 @@ export function VehicleCatalogMobileCards({
                 <h3 className="truncate text-2xl font-bold uppercase tracking-wide text-foreground">
                   {formatVehiclePlate(item)}
                 </h3>
-                <p className="truncate text-sm text-muted-foreground">
-                  {getCustomerLabel(item.customerId)?.trim() || "—"}
-                </p>
+                <div className="truncate text-sm">
+                  <VehicleCatalogCustomerCell
+                    customerId={item.customerId}
+                    customerName={getCustomerLabel(item.customerId) ?? ""}
+                    vehiclesCount={customerVehicleCounts.get(item.customerId)}
+                    isCountLoading={isCustomerVehicleCountsLoading}
+                    onShowAllVehicles={onShowAllVehicles}
+                  />
+                </div>
                 <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                   <Car className="size-4 shrink-0" aria-hidden />
                   <span className="truncate">{formatModelLabel(item)}</span>
