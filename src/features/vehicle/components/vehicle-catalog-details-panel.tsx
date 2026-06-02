@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { Car } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/shared/utils/cn";
 
 import {
@@ -12,13 +11,18 @@ import {
   getVehicleColorSwatchClass,
 } from "../lib/format-vehicle-catalog";
 import type { VehicleDto } from "../types";
+import { VehicleCatalogCustomerCell } from "./vehicle-catalog-customer-cell";
 
 type VehicleCatalogDetailsPanelProps = {
   vehicle: VehicleDto | null;
   customerLabel?: string;
   vehiclesCount?: number;
   isCustomerVehicleCountsLoading?: boolean;
-  onShowAllVehicles?: () => void;
+  onShowAllVehicles?: (payload: {
+    customerId: string;
+    customerName: string;
+    vehiclesCount: number;
+  }) => void;
   className?: string;
 };
 
@@ -41,8 +45,6 @@ export function VehicleCatalogDetailsPanel({
 }: VehicleCatalogDetailsPanelProps) {
   const color = vehicle?.color?.trim();
   const displayCustomerName = customerLabel?.trim() || "—";
-  const showAllVehiclesButton =
-    !isCustomerVehicleCountsLoading && vehiclesCount != null && vehiclesCount > 1;
 
   return (
     <aside
@@ -75,14 +77,17 @@ export function VehicleCatalogDetailsPanel({
           </div>
 
           <DetailSection label="Cliente">
-            <div className="space-y-2">
+            {vehicle && onShowAllVehicles ? (
+              <VehicleCatalogCustomerCell
+                customerId={vehicle.customerId}
+                customerName={displayCustomerName}
+                vehiclesCount={vehiclesCount}
+                isCountLoading={isCustomerVehicleCountsLoading}
+                onShowAllVehicles={onShowAllVehicles}
+              />
+            ) : (
               <p className="text-sm text-foreground">{displayCustomerName}</p>
-              {showAllVehiclesButton && onShowAllVehicles ? (
-                <Button type="button" variant="outline" size="sm" onClick={onShowAllVehicles}>
-                  Ver {vehiclesCount} veículos
-                </Button>
-              ) : null}
-            </div>
+            )}
           </DetailSection>
 
           <DetailSection label="Marca">
