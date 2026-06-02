@@ -46,9 +46,8 @@ const nestedAddressFields = {
 
 function buildWrapper(initialValues: Partial<NestedAddressFormValues> = {}) {
   const client = createTestQueryClient();
-  let methodsRef: ReturnType<typeof useForm<NestedAddressFormValues>> | null = null;
 
-  function FormProviderWrapper({ children }: { children: ReactNode }) {
+  function Wrapper({ children }: { children: ReactNode }) {
     const methods = useForm<NestedAddressFormValues>({
       defaultValues: {
         ...emptyValues,
@@ -56,30 +55,26 @@ function buildWrapper(initialValues: Partial<NestedAddressFormValues> = {}) {
         address: { ...emptyValues.address, ...initialValues.address },
       },
     });
-    methodsRef = methods;
-    return <FormProvider {...methods}>{children}</FormProvider>;
-  }
 
-  function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={client}>
-        <FormProviderWrapper>{children}</FormProviderWrapper>
+        <FormProvider {...methods}>{children}</FormProvider>
       </QueryClientProvider>
     );
   }
 
-  return {
-    Wrapper,
-    getMethods: () => {
-      if (!methodsRef) throw new Error("Form methods not ready");
-      return methodsRef;
-    },
-  };
+  return { Wrapper };
 }
 
-function useTestZipCodeAutofill(options?: { enabled?: boolean }) {
+function useTestZipCodeHarness(options?: { enabled?: boolean }) {
   const form = useFormContext<NestedAddressFormValues>();
-  return useZipCodeAutofill(form as unknown as ZipCodeAutofillForm, nestedAddressFields, options);
+  const autofill = useZipCodeAutofill(
+    form as unknown as ZipCodeAutofillForm,
+    nestedAddressFields,
+    options,
+  );
+
+  return { form, autofill };
 }
 
 describe("useZipCodeAutofill", () => {
@@ -89,16 +84,18 @@ describe("useZipCodeAutofill", () => {
 
   it("should not trigger the lookup when the zipcode has fewer than 8 digits", () => {
     const { Wrapper } = buildWrapper({ address: { ...emptyValues.address, zipCode: "1234" } });
-    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
+    renderHook(() => useTestZipCodeHarness({ enabled: true }), { wrapper: Wrapper });
     expect(fetchAddressByZipCodeMock).not.toHaveBeenCalled();
   });
 
   it("should not trigger the lookup when enabled is false", async () => {
-    const { Wrapper, getMethods } = buildWrapper();
-    renderHook(() => useTestZipCodeAutofill({ enabled: false }), { wrapper: Wrapper });
+    const { Wrapper } = buildWrapper();
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: false }), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
-      getMethods().setValue("address.zipCode", "01310-100");
+      result.current.form.setValue("address.zipCode", "01310-100");
     });
 
     await waitFor(() => {
@@ -114,19 +111,21 @@ describe("useZipCodeAutofill", () => {
       complement: "Sala 1",
     });
 
-    const { Wrapper, getMethods } = buildWrapper();
-    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
+    const { Wrapper } = buildWrapper();
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
-      getMethods().setValue("address.zipCode", "01310-100");
+      result.current.form.setValue("address.zipCode", "01310-100");
     });
 
     await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalled());
     await waitFor(() => {
-      expect(getMethods().getValues("address.street")).toBe("Av. Paulista");
-      expect(getMethods().getValues("address.city")).toBe("São Paulo");
-      expect(getMethods().getValues("address.state")).toBe("SP");
-      expect(getMethods().getValues("address.complement")).toBe("Sala 1");
+      expect(result.current.form.getValues("address.street")).toBe("Av. Paulista");
+      expect(result.current.form.getValues("address.city")).toBe("São Paulo");
+      expect(result.current.form.getValues("address.state")).toBe("SP");
+      expect(result.current.form.getValues("address.complement")).toBe("Sala 1");
     });
   });
 
@@ -138,48 +137,54 @@ describe("useZipCodeAutofill", () => {
       complement: "Andar 2",
     });
 
-    const { Wrapper, getMethods } = buildWrapper({
+    const { Wrapper } = buildWrapper({
       address: { ...emptyValues.address, complement: "Andar 5" },
     });
-    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
-      getMethods().setValue("address.zipCode", "01310-100");
+      result.current.form.setValue("address.zipCode", "01310-100");
     });
 
     await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalled());
     await waitFor(() => {
-      expect(getMethods().getValues("address.street")).toBe("Av. Paulista");
+      expect(result.current.form.getValues("address.street")).toBe("Av. Paulista");
     });
 
-    expect(getMethods().getValues("address.complement")).toBe("Andar 5");
+    expect(result.current.form.getValues("address.complement")).toBe("Andar 5");
   });
 
   it("should set 'cep não encontrado' error when the service returns null", async () => {
     fetchAddressByZipCodeMock.mockResolvedValue(null);
-    const { Wrapper, getMethods } = buildWrapper();
-    renderHook(() => useTestZipCodeAutofill({ enabled: true }), { wrapper: Wrapper });
+    const { Wrapper } = buildWrapper();
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
-      getMethods().setValue("address.zipCode", "01310-100");
+      result.current.form.setValue("address.zipCode", "01310-100");
     });
 
     await waitFor(() => {
-      expect(getMethods().formState.errors.address?.zipCode?.message).toBe("CEP não encontrado.");
+      expect(result.current.form.formState.errors.address?.zipCode?.message).toBe(
+        "CEP não encontrado.",
+      );
     });
   });
 
   it("should expose hasAddressFetchError when the lookup fails", async () => {
     fetchAddressByZipCodeMock.mockRejectedValue(new Error("erro"));
-    const { Wrapper, getMethods } = buildWrapper();
-    const { result } = renderHook(() => useTestZipCodeAutofill({ enabled: true }), {
+    const { Wrapper } = buildWrapper();
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
       wrapper: Wrapper,
     });
 
     act(() => {
-      getMethods().setValue("address.zipCode", "01310-100");
+      result.current.form.setValue("address.zipCode", "01310-100");
     });
 
-    await waitFor(() => expect(result.current.hasAddressFetchError).toBe(true));
+    await waitFor(() => expect(result.current.autofill.hasAddressFetchError).toBe(true));
   });
 });
