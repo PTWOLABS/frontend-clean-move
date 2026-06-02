@@ -41,13 +41,23 @@ export function CustomerCatalogListSkeleton({ count = 10 }: CustomerCatalogListS
         {rows.map((i) => (
           <Card key={`card-${i}`} className="overflow-hidden border-border shadow-sm">
             <CardContent className="space-y-3 p-4">
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-3 w-2/3" />
-              <Skeleton className="h-3 w-1/3" />
+              <div className="space-y-2">
+                <div className="flex min-w-0 gap-2">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-4 w-3/4 max-w-40" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end py-0.5">
+                    <Skeleton className="h-4 w-28 sm:h-5" />
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-28" />
+              </div>
               <Separator />
               <div className="flex gap-2">
-                <Skeleton className="size-9 rounded-full" />
-                <Skeleton className="size-9 rounded-full" />
+                <Skeleton className="size-9 shrink-0 rounded-full" />
+                <Skeleton className="size-9 shrink-0 rounded-full" />
               </div>
             </CardContent>
           </Card>

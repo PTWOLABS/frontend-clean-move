@@ -15,10 +15,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiError } from "@/shared/api/httpClient";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
+import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 
 import { useCustomers } from "../hooks/use-customers";
 import { useDeleteCustomer } from "../hooks/use-delete-customer";
+import { getCustomerVehiclesCount } from "../lib/format-customer-catalog";
+import { isSameCustomerItem } from "../lib/is-same-customer-item";
 import type { CustomerWithPrimaryVehicle } from "../types";
+import { CustomerCatalogDetailsPanel } from "./customer-catalog-details-panel";
 import { CustomerCatalogHeader } from "./customer-catalog-header";
 import { CustomerCatalogListSkeleton } from "./customer-catalog-list-skeleton";
 import { CustomerCatalogMobileCards } from "./customer-catalog-mobile-cards";
@@ -39,6 +43,7 @@ export function CustomerCatalog() {
   const [deleteTarget, setDeleteTarget] = useState<CustomerWithPrimaryVehicle | null>(null);
   const [vehiclesDialogCustomer, setVehiclesDialogCustomer] =
     useState<CustomerWithPrimaryVehicle | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithPrimaryVehicle | null>(null);
 
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
@@ -55,6 +60,11 @@ export function CustomerCatalog() {
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const displayedPage = data?.page ?? page;
+
+  const resolvedSelectedCustomer = useMemo(
+    () => resolveCatalogSelection(items, selectedCustomer, isSameCustomerItem),
+    [items, selectedCustomer],
+  );
 
   if (customersQuery.isError) {
     const message =
@@ -99,7 +109,12 @@ export function CustomerCatalog() {
       />
 
       <CustomerVehiclesDialog
-        customer={vehiclesDialogCustomer}
+        customerId={vehiclesDialogCustomer?.id ?? null}
+        customerName={vehiclesDialogCustomer?.fullName ?? ""}
+        vehiclesCount={
+          vehiclesDialogCustomer ? getCustomerVehiclesCount(vehiclesDialogCustomer) : undefined
+        }
+        embeddedVehicles={vehiclesDialogCustomer?.vehicles}
         open={vehiclesDialogCustomer !== null}
         onOpenChange={(open) => {
           if (!open) setVehiclesDialogCustomer(null);
@@ -149,44 +164,55 @@ export function CustomerCatalog() {
             }}
           />
 
-          {showListSkeleton ? (
-            <CustomerCatalogListSkeleton count={PAGE_SIZE} />
-          ) : items.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-              Nenhum cliente encontrado para os filtros atuais.
-            </p>
-          ) : (
-            <>
-              <CustomerCatalogTable
-                items={items}
-                onEdit={(item) => {
-                  setEditingCustomer(item);
-                  setCustomerSheetOpen(true);
-                }}
-                onDelete={(item) => setDeleteTarget(item)}
-                onShowAllVehicles={setVehiclesDialogCustomer}
-              />
-              <CustomerCatalogMobileCards
-                items={items}
-                onEdit={(item) => {
-                  setEditingCustomer(item);
-                  setCustomerSheetOpen(true);
-                }}
-                onDelete={(item) => setDeleteTarget(item)}
-                onShowAllVehicles={setVehiclesDialogCustomer}
-              />
-            </>
-          )}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <div className="min-w-0 flex-1 space-y-6">
+              {showListSkeleton ? (
+                <CustomerCatalogListSkeleton count={PAGE_SIZE} />
+              ) : items.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                  Nenhum cliente encontrado para os filtros atuais.
+                </p>
+              ) : (
+                <>
+                  <CustomerCatalogTable
+                    items={items}
+                    selectedCustomer={resolvedSelectedCustomer}
+                    onSelect={setSelectedCustomer}
+                    onEdit={(item) => {
+                      setEditingCustomer(item);
+                      setCustomerSheetOpen(true);
+                    }}
+                    onDelete={(item) => setDeleteTarget(item)}
+                    onShowAllVehicles={setVehiclesDialogCustomer}
+                  />
+                  <CustomerCatalogMobileCards
+                    items={items}
+                    onEdit={(item) => {
+                      setEditingCustomer(item);
+                      setCustomerSheetOpen(true);
+                    }}
+                    onDelete={(item) => setDeleteTarget(item)}
+                    onShowAllVehicles={setVehiclesDialogCustomer}
+                  />
+                </>
+              )}
 
-          {!showListSkeleton && total > 0 ? (
-            <CustomerCatalogPagination
-              page={displayedPage}
-              totalPages={totalPages}
-              total={total}
-              isFetching={customersQuery.isFetching}
-              onPageChange={setPage}
+              {!showListSkeleton && total > 0 ? (
+                <CustomerCatalogPagination
+                  page={displayedPage}
+                  totalPages={totalPages}
+                  total={total}
+                  isFetching={customersQuery.isFetching}
+                  onPageChange={setPage}
+                />
+              ) : null}
+            </div>
+
+            <CustomerCatalogDetailsPanel
+              customer={resolvedSelectedCustomer}
+              className="hidden w-full shrink-0 lg:block lg:w-80"
             />
-          ) : null}
+          </div>
         </CardContent>
       </Card>
     </div>

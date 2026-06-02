@@ -10,11 +10,12 @@ export async function listVehicles(
 ): Promise<VehiclesPage> {
   const page = params.page ?? 1;
   const size = params.size ?? 10;
-  const searchParams = new URLSearchParams();
-  searchParams.set("page", String(page));
-  searchParams.set("size", String(size));
-
-  const path = `/customers/${customerId}/vehicles?${searchParams.toString()}`;
-  const raw = await httpClient<ListVehiclesResponse>(path, { signal });
+  const raw = await httpClient<ListVehiclesResponse, ListVehiclesQuery>(
+    `/customers/${customerId}/vehicles`,
+    {
+      signal,
+      filters: { page, size },
+    },
+  );
   return normalizeVehiclesList(raw, page, size);
 }

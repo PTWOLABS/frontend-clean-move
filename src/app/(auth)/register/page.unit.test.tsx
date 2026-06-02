@@ -23,7 +23,7 @@ vi.mock("next/image", () => ({
 vi.mock("@/features/register/api/brasilapi", () => ({
   fetchCompanyByCnpj: vi.fn(),
 }));
-vi.mock("@/features/register/api/viacep", () => ({
+vi.mock("@/shared/api/viacep", () => ({
   fetchAddressByZipCode: vi.fn(),
 }));
 

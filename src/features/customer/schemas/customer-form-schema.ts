@@ -125,6 +125,15 @@ export const customerFormSchema = customerFormBaseSchema.superRefine((data, ctx)
         });
       }
     }
+
+    const zipDigits = onlyDigits(data.address.zipCode ?? "");
+    if (data.address.zipCode?.trim() && zipDigits.length !== 8) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["address", "zipCode"],
+        message: "Informe um CEP válido.",
+      });
+    }
   }
 
   if (!data.includeVehicle) return;

@@ -22,7 +22,7 @@ const registerEstablishmentMock = vi.fn();
 vi.mock("../api/brasilapi", () => ({
   fetchCompanyByCnpj: (...args: unknown[]) => fetchCompanyByCnpjMock(...args),
 }));
-vi.mock("../api/viacep", () => ({
+vi.mock("@/shared/api/viacep", () => ({
   fetchAddressByZipCode: (...args: unknown[]) => fetchAddressByZipCodeMock(...args),
 }));
 vi.mock("../api/establishment", () => ({

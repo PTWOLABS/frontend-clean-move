@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { format, isValid, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, LoaderCircle } from "lucide-react";
 import {
   FormProvider,
   useForm,
@@ -32,6 +32,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/shared/utils/cn";
+import { getCpfCnpjMask, PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
+import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 
 import { useCreateCustomer } from "../hooks/use-create-customer";
 import { useUpdateCustomer } from "../hooks/use-update-customer";
@@ -70,12 +72,35 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
     reValidateMode: "onChange",
   });
 
-  const { control, reset, handleSubmit, setValue, formState } = methods;
+  const { control, reset, handleSubmit, setValue, formState, clearErrors, getValues, setError } =
+    methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
+  const zipCodeAutofillForm = {
+    clearErrors,
+    control: fieldControl,
+    getValues,
+    setError,
+    setValue,
+  } as unknown as ZipCodeAutofillForm;
 
   const includeAddress = useWatch({ control, name: "includeAddress" });
   const includeVehicle = useWatch({ control, name: "includeVehicle" });
+  const cpfCnpj = useWatch({ control, name: "cpfCnpj" });
+
+  const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(
+    zipCodeAutofillForm,
+    {
+      zipCode: "address.zipCode",
+      street: "address.street",
+      city: "address.city",
+      state: "address.state",
+      complement: "address.complement",
+    },
+    { enabled: includeAddress },
+  );
+
+  const addressFieldsDisabled = isFetchingAddress;
 
   useEffect(() => {
     if (!open) return;
@@ -165,7 +190,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   name="phone"
                   label="Telefone"
                   required
-                  mask="(__) _____-____"
+                  mask={PHONE_MASK}
                   inputMode="tel"
                 />
                 <InputField
@@ -182,7 +207,8 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   control={fieldControl}
                   name="cpfCnpj"
                   label="CPF/CNPJ"
-                  placeholder="Somente números"
+                  mask={getCpfCnpjMask(cpfCnpj ?? "")}
+                  inputMode="numeric"
                 />
                 <InputField
                   control={fieldControl}
@@ -259,34 +285,70 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
               {includeAddress ? (
                 <div className="space-y-4 rounded-lg border border-border p-4">
                   <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
-                  <InputField control={fieldControl} name="address.street" label="Rua" required />
+                  <InputField
+                    control={fieldControl}
+                    name="address.zipCode"
+                    label="CEP"
+                    required
+                    mask={ZIP_CODE_MASK}
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    disabled={addressFieldsDisabled}
+                    image={
+                      isFetchingAddress ? (
+                        <LoaderCircle
+                          aria-hidden
+                          className="size-5 animate-spin text-muted-foreground"
+                        />
+                      ) : undefined
+                    }
+                  />
+                  {isFetchingAddress || hasAddressFetchError ? (
+                    <p className="-mt-2 text-xs font-medium text-muted-foreground">
+                      {isFetchingAddress
+                        ? "Buscando endereço pelo CEP..."
+                        : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
+                    </p>
+                  ) : null}
+                  <InputField
+                    control={fieldControl}
+                    name="address.street"
+                    label="Rua"
+                    required
+                    autoComplete="address-line1"
+                    disabled={addressFieldsDisabled}
+                  />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <InputField
                       control={fieldControl}
                       name="address.city"
                       label="Cidade"
                       required
-                    />
-                    <InputField control={fieldControl} name="address.state" label="UF" required />
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <InputField
-                      control={fieldControl}
-                      name="address.zipCode"
-                      label="CEP"
-                      required
+                      autoComplete="address-level2"
+                      disabled={addressFieldsDisabled}
                     />
                     <InputField
                       control={fieldControl}
-                      name="address.country"
-                      label="País"
+                      name="address.state"
+                      label="UF"
                       required
+                      autoComplete="address-level1"
+                      disabled={addressFieldsDisabled}
                     />
                   </div>
                   <InputField
                     control={fieldControl}
+                    name="address.country"
+                    label="País"
+                    required
+                    disabled={addressFieldsDisabled}
+                  />
+                  <InputField
+                    control={fieldControl}
                     name="address.complement"
                     label="Complemento"
+                    autoComplete="address-line3"
+                    disabled={addressFieldsDisabled}
                   />
                 </div>
               ) : null}

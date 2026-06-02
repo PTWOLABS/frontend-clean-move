@@ -9,13 +9,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RowIconActions } from "@/shared/components/row-icon-actions";
+import { catalogTableRowClass } from "@/shared/components/catalog-table-row-selection";
 
 import { formatCpfCnpj, formatPhone } from "../lib/format-customer-catalog";
+import { isSameCustomerItem } from "../lib/is-same-customer-item";
 import type { CustomerWithPrimaryVehicle } from "../types";
 import { CustomerCatalogVehicleCell } from "./customer-catalog-vehicle-cell";
 
 type CustomerCatalogTableProps = {
   items: CustomerWithPrimaryVehicle[];
+  selectedCustomer: CustomerWithPrimaryVehicle | null;
+  onSelect: (item: CustomerWithPrimaryVehicle) => void;
   onEdit: (item: CustomerWithPrimaryVehicle) => void;
   onDelete: (item: CustomerWithPrimaryVehicle) => void;
   onShowAllVehicles: (item: CustomerWithPrimaryVehicle) => void;
@@ -23,6 +27,8 @@ type CustomerCatalogTableProps = {
 
 export function CustomerCatalogTable({
   items,
+  selectedCustomer,
+  onSelect,
   onEdit,
   onDelete,
   onShowAllVehicles,
@@ -50,47 +56,68 @@ export function CustomerCatalogTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="pl-4">
-                <div className="space-y-0.5">
-                  <p className="font-medium text-foreground">{item.fullName}</p>
-                  {item.nickname ? (
-                    <p className="text-sm text-muted-foreground">Apelido: {item.nickname}</p>
-                  ) : null}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="space-y-0.5">
-                  <p className="text-foreground">{formatPhone(item.phone)}</p>
-                  <p className="text-sm text-muted-foreground">{item.email}</p>
-                </div>
-              </TableCell>
-              <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>
-              <TableCell>
-                <CustomerCatalogVehicleCell customer={item} onShowAllVehicles={onShowAllVehicles} />
-              </TableCell>
-              <TableCell className="pr-4 text-right">
-                <RowIconActions
-                  className="justify-end"
-                  actions={[
-                    {
-                      label: "Editar",
-                      icon: Pencil,
-                      onClick: () => onEdit(item),
-                      className: "text-foreground hover:bg-accent hover:text-foreground",
-                    },
-                    {
-                      label: "Apagar",
-                      icon: Trash2,
-                      onClick: () => onDelete(item),
-                      className: "text-destructive hover:bg-destructive/10 hover:text-destructive",
-                    },
-                  ]}
-                />
-              </TableCell>
-            </TableRow>
-          ))}
+          {items.map((item) => {
+            const isSelected = isSameCustomerItem(item, selectedCustomer);
+
+            return (
+              <TableRow
+                key={item.id}
+                role="row"
+                aria-selected={isSelected}
+                tabIndex={0}
+                className={catalogTableRowClass(isSelected)}
+                onClick={() => onSelect(item)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(item);
+                  }
+                }}
+              >
+                <TableCell className="pl-4">
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-foreground">{item.fullName}</p>
+                    {item.nickname ? (
+                      <p className="text-sm text-muted-foreground">Apelido: {item.nickname}</p>
+                    ) : null}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-0.5">
+                    <p className="text-foreground">{formatPhone(item.phone)}</p>
+                    <p className="text-sm text-muted-foreground">{item.email}</p>
+                  </div>
+                </TableCell>
+                <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
+                  <CustomerCatalogVehicleCell
+                    customer={item}
+                    onShowAllVehicles={onShowAllVehicles}
+                  />
+                </TableCell>
+                <TableCell className="pr-4 text-right" onClick={(event) => event.stopPropagation()}>
+                  <RowIconActions
+                    className="justify-end"
+                    actions={[
+                      {
+                        label: "Editar",
+                        icon: Pencil,
+                        onClick: () => onEdit(item),
+                        className: "text-foreground hover:bg-accent hover:text-foreground",
+                      },
+                      {
+                        label: "Apagar",
+                        icon: Trash2,
+                        onClick: () => onDelete(item),
+                        className:
+                          "text-destructive hover:bg-destructive/10 hover:text-destructive",
+                      },
+                    ]}
+                  />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

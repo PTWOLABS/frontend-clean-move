@@ -56,6 +56,23 @@ describe("customerFormSchema", () => {
     const result = customerFormSchema.safeParse(baseValues);
     expect(result.success).toBe(true);
   });
+
+  it("fails when includeAddress is true and zipCode format is invalid", () => {
+    const result = customerFormSchema.safeParse({
+      ...baseValues,
+      includeAddress: true,
+      address: {
+        ...baseValues.address,
+        zipCode: "1234",
+      },
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const message = result.error.issues.find((issue) => issue.path[1] === "zipCode")?.message;
+      expect(message).toBe("Informe um CEP válido.");
+    }
+  });
 });
 
 describe("mapCustomerFormToPayload", () => {

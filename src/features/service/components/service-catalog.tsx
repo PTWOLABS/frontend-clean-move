@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -18,11 +18,15 @@ import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { ApiError } from "@/shared/api/httpClient";
 
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
+import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 import { useDeleteService } from "../hooks/use-delete-service";
 import { useServices } from "../hooks/use-services";
 import { useToggleServiceActive } from "../hooks/use-toggle-service-active";
 import type { ServiceItem } from "../types";
 
+import { isSameServiceItem } from "../lib/is-same-service-item";
+
+import { ServiceCatalogDetailsPanel } from "./service-catalog-details-panel";
 import { ServiceCatalogHeader } from "./service-catalog-header";
 import { ServiceCatalogListSkeleton } from "./service-catalog-list-skeleton";
 import { ServiceCatalogMobileCards } from "./service-catalog-mobile-cards";
@@ -51,6 +55,7 @@ export function ServiceCatalog() {
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [duplicateSource, setDuplicateSource] = useState<ServiceItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ServiceItem | null>(null);
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
 
   const deleteMutation = useDeleteService();
   const toggleActiveMutation = useToggleServiceActive();
@@ -88,10 +93,15 @@ export function ServiceCatalog() {
 
   const { data, isLoading, isFetching, isError, error, refetch } = servicesQuery;
   const total = data?.total ?? 0;
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   /** Página alinhada aos dados mostrados (com `keepPreviousData` evita desincronizar lista vs paginação). */
   const displayedPage = data?.page ?? page;
+
+  const resolvedSelectedService = useMemo(
+    () => resolveCatalogSelection(items, selectedService, isSameServiceItem),
+    [items, selectedService],
+  );
 
   if (userLoading) {
     return (
@@ -215,50 +225,61 @@ export function ServiceCatalog() {
             onActiveFilterChange={setActiveFilter}
           />
 
-          {showListSkeleton ? (
-            <ServiceCatalogListSkeleton count={PAGE_SIZE} />
-          ) : items.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-              Nenhum serviço encontrado para os filtros atuais.
-            </p>
-          ) : (
-            <>
-              <ServiceCatalogTable
-                items={items}
-                onEdit={(item) => {
-                  setDuplicateSource(null);
-                  setEditingService(item);
-                  setServiceSheetOpen(true);
-                }}
-                onDuplicate={handleDuplicate}
-                onToggleActive={handleToggleActive}
-                onDelete={(item) => setDeleteTarget(item)}
-                togglingServiceId={togglingServiceId}
-              />
-              <ServiceCatalogMobileCards
-                items={items}
-                onEdit={(item) => {
-                  setDuplicateSource(null);
-                  setEditingService(item);
-                  setServiceSheetOpen(true);
-                }}
-                onDuplicate={handleDuplicate}
-                onToggleActive={handleToggleActive}
-                onDelete={(item) => setDeleteTarget(item)}
-                togglingServiceId={togglingServiceId}
-              />
-            </>
-          )}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <div className="min-w-0 flex-1 space-y-6">
+              {showListSkeleton ? (
+                <ServiceCatalogListSkeleton count={PAGE_SIZE} />
+              ) : items.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                  Nenhum serviço encontrado para os filtros atuais.
+                </p>
+              ) : (
+                <>
+                  <ServiceCatalogTable
+                    items={items}
+                    selectedService={resolvedSelectedService}
+                    onSelect={setSelectedService}
+                    onEdit={(item) => {
+                      setDuplicateSource(null);
+                      setEditingService(item);
+                      setServiceSheetOpen(true);
+                    }}
+                    onDuplicate={handleDuplicate}
+                    onToggleActive={handleToggleActive}
+                    onDelete={(item) => setDeleteTarget(item)}
+                    togglingServiceId={togglingServiceId}
+                  />
+                  <ServiceCatalogMobileCards
+                    items={items}
+                    onEdit={(item) => {
+                      setDuplicateSource(null);
+                      setEditingService(item);
+                      setServiceSheetOpen(true);
+                    }}
+                    onDuplicate={handleDuplicate}
+                    onToggleActive={handleToggleActive}
+                    onDelete={(item) => setDeleteTarget(item)}
+                    togglingServiceId={togglingServiceId}
+                  />
+                </>
+              )}
 
-          {!showListSkeleton && total > 0 ? (
-            <ServiceCatalogPagination
-              page={displayedPage}
-              totalPages={totalPages}
-              total={total}
-              isFetching={isFetching}
-              onPageChange={setPage}
+              {!showListSkeleton && total > 0 ? (
+                <ServiceCatalogPagination
+                  page={displayedPage}
+                  totalPages={totalPages}
+                  total={total}
+                  isFetching={isFetching}
+                  onPageChange={setPage}
+                />
+              ) : null}
+            </div>
+
+            <ServiceCatalogDetailsPanel
+              service={resolvedSelectedService}
+              className="hidden w-full shrink-0 lg:block lg:w-80"
             />
-          ) : null}
+          </div>
         </CardContent>
       </Card>
     </div>
