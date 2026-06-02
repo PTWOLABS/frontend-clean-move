@@ -4,6 +4,7 @@ import {
   TodayAgendaCard,
   type TodayAgendaItem,
 } from "@/features/agenda/components/today-agenda-card";
+import { TodayCashCard, type TodayCashSummary } from "@/features/agenda/components/today-cash-card";
 
 export const metadata: Metadata = {
   title: "Agenda",
@@ -40,6 +41,13 @@ const todayAgendaPreview: TodayAgendaItem[] = [
   },
 ];
 
+const todayCashPreview: TodayCashSummary = {
+  balanceInCents: 245000,
+  trendPercent: 15,
+  entriesInCents: 280000,
+  exitsInCents: 35000,
+};
+
 export default function AgendaPage() {
   return (
     <section className="space-y-6">
@@ -52,6 +60,7 @@ export default function AgendaPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
         <TodayAgendaCard appointments={todayAgendaPreview} />
+        <TodayCashCard summary={todayCashPreview} />
       </div>
     </section>
   );
