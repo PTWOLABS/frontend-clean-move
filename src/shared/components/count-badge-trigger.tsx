@@ -64,7 +64,7 @@ function CountBadgeButton({
           countClassName,
         )}
       >
-        +{count}
+        {count}
       </span>
     </button>
   );
