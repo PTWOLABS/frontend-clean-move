@@ -305,9 +305,7 @@ export function VehicleCatalog() {
                 selectedVehicle ? getCustomerLabel(selectedVehicle.customerId) : undefined
               }
               vehiclesCount={
-                selectedVehicle
-                  ? countsByCustomerId.get(selectedVehicle.customerId)
-                  : undefined
+                selectedVehicle ? countsByCustomerId.get(selectedVehicle.customerId) : undefined
               }
               isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
               onShowAllVehicles={
