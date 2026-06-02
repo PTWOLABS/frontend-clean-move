@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
 import {
+  PendingBudgetsCard,
+  type PendingBudgetItem,
+} from "@/features/agenda/components/pending-budgets-card";
+import {
   TodayAgendaCard,
   type TodayAgendaItem,
 } from "@/features/agenda/components/today-agenda-card";
@@ -48,6 +52,21 @@ const todayCashPreview: TodayCashSummary = {
   exitsInCents: 35000,
 };
 
+const pendingBudgetsPreview: PendingBudgetItem[] = [
+  {
+    id: "audi-q5-higienizacao",
+    title: "Audi Q5 - Higienização",
+    sentAtLabel: "Enviado há 2h",
+    amountInCents: 85000,
+  },
+  {
+    id: "hilux-polimento",
+    title: "Hilux - Polimento",
+    sentAtLabel: "Enviado ontem",
+    amountInCents: 120000,
+  },
+];
+
 export default function AgendaPage() {
   return (
     <section className="space-y-6">
@@ -60,7 +79,10 @@ export default function AgendaPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
         <TodayAgendaCard appointments={todayAgendaPreview} />
-        <TodayCashCard summary={todayCashPreview} />
+        <div className="grid gap-4">
+          <TodayCashCard summary={todayCashPreview} />
+          <PendingBudgetsCard budgets={pendingBudgetsPreview} />
+        </div>
       </div>
     </section>
   );
