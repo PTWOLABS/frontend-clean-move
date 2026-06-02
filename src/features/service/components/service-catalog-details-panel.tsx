@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import { cn } from "@/shared/utils/cn";
 
 import { formatServiceCategory, formatServicePriceBrl } from "../lib/format-catalog";
@@ -36,7 +37,10 @@ export function ServiceCatalogDetailsPanel({
 
   return (
     <aside
-      className={cn("rounded-lg border border-border bg-card/80 p-4 sm:p-5", className)}
+      className={cn(
+        "flex h-full min-w-0 flex-col rounded-lg border border-border bg-card/80 p-4 sm:p-5",
+        className,
+      )}
       aria-label="Detalhes do serviço"
     >
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -44,55 +48,69 @@ export function ServiceCatalogDetailsPanel({
       </p>
 
       {!service ? (
-        <p className="mt-6 text-sm text-muted-foreground">
-          Selecione um serviço na tabela para ver os detalhes.
-        </p>
-      ) : (
-        <div className="mt-4 space-y-5">
-          <div className="flex items-start gap-3">
-            <ServiceCatalogItemThumb className="size-11" />
-            <h3 className="pt-1 text-lg font-semibold leading-tight text-foreground">
-              {service.serviceName}
-            </h3>
-          </div>
-
-          <DetailSection label="Descrição">
-            <p className="text-sm text-foreground">{service.description?.trim() || "—"}</p>
-          </DetailSection>
-
-          <DetailSection label="Categoria">
-            <Badge variant="secondary" className="font-medium">
-              {formatServiceCategory(service.category)}
-            </Badge>
-          </DetailSection>
-
-          <DetailSection label="Duração">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-0.5">
-                <p className="text-xs text-muted-foreground">Mínima</p>
-                <p className="text-sm font-medium text-foreground">
-                  {formatMinutesLabel(minMinutes)}
-                </p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-xs text-muted-foreground">Máxima</p>
-                <p className="text-sm font-medium text-foreground">
-                  {formatMinutesLabel(maxMinutes)}
-                </p>
-              </div>
-            </div>
-          </DetailSection>
-
-          <DetailSection label="Preço">
-            <p className="text-2xl font-semibold tabular-nums text-primary">
-              {formatServicePriceBrl(service.price)}
-            </p>
-          </DetailSection>
-
-          <DetailSection label="Status">
-            <ServiceStatusBadge isActive={service.isActive} />
-          </DetailSection>
+        <div className="mt-4 min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+          <p className="text-sm text-muted-foreground">
+            Selecione um serviço na tabela para ver os detalhes.
+          </p>
         </div>
+      ) : (
+        <HintTooltipProvider>
+          <div className="mt-4 min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto pr-1">
+            <div className="flex min-w-0 items-start gap-3">
+              <ServiceCatalogItemThumb className="size-11" />
+              <HintTooltip label={service.serviceName}>
+                <h3 className="min-w-0 max-w-full truncate pt-1 text-lg font-semibold leading-tight text-foreground">
+                  {service.serviceName}
+                </h3>
+              </HintTooltip>
+            </div>
+
+            <DetailSection label="Descrição">
+              {service.description?.trim() ? (
+                <HintTooltip label={service.description}>
+                  <p className="line-clamp-3 min-w-0 max-w-full text-sm text-foreground">
+                    {service.description}
+                  </p>
+                </HintTooltip>
+              ) : (
+                <p className="text-sm text-foreground">—</p>
+              )}
+            </DetailSection>
+
+            <DetailSection label="Categoria">
+              <Badge variant="secondary" className="max-w-full truncate font-medium">
+                {formatServiceCategory(service.category)}
+              </Badge>
+            </DetailSection>
+
+            <DetailSection label="Duração">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Mínima</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatMinutesLabel(minMinutes)}
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Máxima</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatMinutesLabel(maxMinutes)}
+                  </p>
+                </div>
+              </div>
+            </DetailSection>
+
+            <DetailSection label="Preço">
+              <p className="text-2xl font-semibold tabular-nums text-primary">
+                {formatServicePriceBrl(service.price)}
+              </p>
+            </DetailSection>
+
+            <DetailSection label="Status">
+              <ServiceStatusBadge isActive={service.isActive} />
+            </DetailSection>
+          </div>
+        </HintTooltipProvider>
       )}
     </aside>
   );

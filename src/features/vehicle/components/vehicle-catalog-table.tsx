@@ -99,7 +99,7 @@ export function VehicleCatalogTable({
                 <TableCell className="pl-4 font-medium text-foreground">
                   {formatVehiclePlate(item)}
                 </TableCell>
-                <TableCell onClick={(event) => event.stopPropagation()}>
+                <TableCell>
                   <VehicleCatalogCustomerCell
                     customerId={item.customerId}
                     customerName={getCustomerLabel(item.customerId) ?? ""}

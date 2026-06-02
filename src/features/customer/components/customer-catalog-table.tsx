@@ -89,7 +89,7 @@ export function CustomerCatalogTable({
                   </div>
                 </TableCell>
                 <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>
-                <TableCell onClick={(event) => event.stopPropagation()}>
+                <TableCell>
                   <CustomerCatalogVehicleCell
                     customer={item}
                     onShowAllVehicles={onShowAllVehicles}
