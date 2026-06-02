@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiError } from "@/shared/api/httpClient";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
+import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 
 import { useCustomers } from "../hooks/use-customers";
 import { useDeleteCustomer } from "../hooks/use-delete-customer";
@@ -60,20 +61,10 @@ export function CustomerCatalog() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const displayedPage = data?.page ?? page;
 
-  useEffect(() => {
-    if (items.length === 0) {
-      setSelectedCustomer(null);
-      return;
-    }
-
-    setSelectedCustomer((current) => {
-      if (current) {
-        const match = items.find((item) => isSameCustomerItem(item, current));
-        if (match) return match;
-      }
-      return items[0] ?? null;
-    });
-  }, [items]);
+  const resolvedSelectedCustomer = useMemo(
+    () => resolveCatalogSelection(items, selectedCustomer, isSameCustomerItem),
+    [items, selectedCustomer],
+  );
 
   if (customersQuery.isError) {
     const message =
@@ -185,7 +176,7 @@ export function CustomerCatalog() {
                 <>
                   <CustomerCatalogTable
                     items={items}
-                    selectedCustomer={selectedCustomer}
+                    selectedCustomer={resolvedSelectedCustomer}
                     onSelect={setSelectedCustomer}
                     onEdit={(item) => {
                       setEditingCustomer(item);
@@ -218,7 +209,7 @@ export function CustomerCatalog() {
             </div>
 
             <CustomerCatalogDetailsPanel
-              customer={selectedCustomer}
+              customer={resolvedSelectedCustomer}
               className="hidden w-full shrink-0 lg:block lg:w-80"
             />
           </div>
