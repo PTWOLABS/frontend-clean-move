@@ -102,9 +102,7 @@ export function VehicleCatalogTable({
                 <TableCell className="pl-4 font-medium text-foreground">
                   {formatVehiclePlate(item)}
                 </TableCell>
-                <TableCell
-                  onClick={(event) => event.stopPropagation()}
-                >
+                <TableCell onClick={(event) => event.stopPropagation()}>
                   <VehicleCatalogCustomerCell
                     customerId={item.customerId}
                     customerName={getCustomerLabel(item.customerId) ?? ""}
@@ -117,10 +115,7 @@ export function VehicleCatalogTable({
                 <TableCell>{item.model?.trim() || formatVehicleName(item)}</TableCell>
                 <TableCell>{item.color?.trim() || "—"}</TableCell>
                 <TableCell>{formatVehicleYear(item)}</TableCell>
-                <TableCell
-                  className="pr-4 text-right"
-                  onClick={(event) => event.stopPropagation()}
-                >
+                <TableCell className="pr-4 text-right" onClick={(event) => event.stopPropagation()}>
                   <RowIconActions
                     className="justify-end"
                     actions={[
@@ -140,7 +135,8 @@ export function VehicleCatalogTable({
                         label: "Apagar",
                         icon: Trash2,
                         onClick: () => onDelete(item),
-                        className: "text-destructive hover:bg-destructive/10 hover:text-destructive",
+                        className:
+                          "text-destructive hover:bg-destructive/10 hover:text-destructive",
                       },
                     ]}
                   />
