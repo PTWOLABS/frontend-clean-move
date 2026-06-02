@@ -27,7 +27,9 @@ function mapMetricsToAgendaSummary(data: {
 }
 
 export function AgendaSummaryQueryCard() {
-  const { data, error, isPending, refetch } = useFetchMetricsAppointment();
+  const { data, error, isPending, refetch } = useFetchMetricsAppointment({
+    period: "this-month",
+  });
   const summary = data ? mapMetricsToAgendaSummary(data) : undefined;
 
   return (

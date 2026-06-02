@@ -1,4 +1,7 @@
+"use client";
+
 import { CalendarCheck2 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +45,8 @@ const summaryRows: Array<{
   },
 ];
 
+const entranceEase = [0.16, 1, 0.3, 1] as const;
+
 function normalizePercent(value: number | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return 0;
@@ -56,7 +61,33 @@ export function AgendaSummaryCard({
   isError = false,
   onRetry,
 }: AgendaSummaryCardProps) {
+  const shouldReduceMotion = useReducedMotion();
   const completionRate = normalizePercent(summary?.completionRate);
+  const contentMotion = shouldReduceMotion
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 0.12, ease: "easeOut" as const },
+      }
+    : {
+        initial: { opacity: 0, y: 8 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.3, ease: entranceEase },
+      };
+
+  function getRowMotion(index: number) {
+    return shouldReduceMotion
+      ? {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          transition: { duration: 0.12, ease: "easeOut" as const },
+        }
+      : {
+          initial: { opacity: 0, y: 6 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.24, ease: entranceEase, delay: 0.08 + index * 0.04 },
+        };
+  }
 
   return (
     <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
@@ -75,7 +106,7 @@ export function AgendaSummaryCard({
               Resumo da Agenda
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Volume e evolução dos agendamentos no recorte atual.
+              Volume e evolução dos agendamentos no mês atual.
             </p>
           </div>
         </div>
@@ -115,24 +146,28 @@ export function AgendaSummaryCard({
             ) : null}
           </div>
         ) : (
-          <>
+          <motion.div {...contentMotion} className="flex min-h-0 flex-1 flex-col">
             <div className="space-y-2">
               <p className="font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground sm:text-4xl">
                 {summary.total}
               </p>
               <p className="text-sm font-medium text-muted-foreground">
-                {summary.total === 1 ? "agendamento" : "agendamentos"} no período
+                {summary.total === 1 ? "agendamento" : "agendamentos"} no mês atual
               </p>
             </div>
 
             <dl className="mt-6 space-y-3 border-t border-border/70 pt-4">
-              {summaryRows.map((row) => (
-                <div key={row.key} className="flex items-center justify-between gap-4">
+              {summaryRows.map((row, index) => (
+                <motion.div
+                  key={row.key}
+                  {...getRowMotion(index)}
+                  className="flex items-center justify-between gap-4"
+                >
                   <dt className="text-sm text-muted-foreground">{row.label}</dt>
                   <dd className={cn("font-semibold tabular-nums", row.className)}>
                     {summary[row.key]}
                   </dd>
-                </div>
+                </motion.div>
               ))}
             </dl>
 
@@ -149,13 +184,19 @@ export function AgendaSummaryCard({
                 className="mt-3 h-2 rounded-full bg-muted"
                 role="progressbar"
               >
-                <div
+                <motion.div
+                  initial={{ width: shouldReduceMotion ? `${completionRate}%` : "0%" }}
+                  animate={{ width: `${completionRate}%` }}
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0.12, ease: "easeOut" as const }
+                      : { duration: 0.65, ease: entranceEase, delay: 0.18 }
+                  }
                   className="h-full rounded-full bg-success transition-[width] duration-300"
-                  style={{ width: `${completionRate}%` }}
                 />
               </div>
             </div>
-          </>
+          </motion.div>
         )}
       </CardContent>
     </Card>
