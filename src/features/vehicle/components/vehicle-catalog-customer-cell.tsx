@@ -28,11 +28,7 @@ export function VehicleCatalogCustomerCell({
   const showModalTrigger = !isCountLoading && vehiclesCount != null && vehiclesCount > 1;
 
   if (!showModalTrigger) {
-    return (
-      <span className={cn("text-foreground", className)}>
-        {displayName}
-      </span>
-    );
+    return <span className={cn("text-foreground", className)}>{displayName}</span>;
   }
 
   return (
