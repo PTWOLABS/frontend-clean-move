@@ -11,10 +11,7 @@ import { listEstablishmentVehicles } from "../api/list-establishment-vehicles";
 const COUNT_STALE_TIME_MS = 60_000;
 
 export function useCustomerVehicleCounts(customerIds: string[]) {
-  const uniqueIds = useMemo(
-    () => [...new Set(customerIds.filter(Boolean))],
-    [customerIds],
-  );
+  const uniqueIds = useMemo(() => [...new Set(customerIds.filter(Boolean))], [customerIds]);
 
   const queries = useQueries({
     queries: uniqueIds.map((customerId) => ({
