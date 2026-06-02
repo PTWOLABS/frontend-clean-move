@@ -16,6 +16,7 @@ import {
   formatServiceCategory,
   formatServicePriceBrl,
 } from "../lib/format-catalog";
+import { isSameServiceItem } from "../lib/is-same-service-item";
 import type { ServiceItem } from "../types";
 
 import { ServiceStatusBadge } from "./service-status-badge";
@@ -88,6 +89,8 @@ function RowActions({
 
 type ServiceCatalogTableProps = {
   items: ServiceItem[];
+  selectedService: ServiceItem | null;
+  onSelect: (item: ServiceItem) => void;
   onEdit: (item: ServiceItem) => void;
   onDuplicate: (item: ServiceItem) => void;
   onToggleActive: (item: ServiceItem) => void;
@@ -97,6 +100,8 @@ type ServiceCatalogTableProps = {
 
 export function ServiceCatalogTable({
   items,
+  selectedService,
+  onSelect,
   onEdit,
   onDuplicate,
   onToggleActive,
@@ -129,8 +134,27 @@ export function ServiceCatalogTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item, index) => (
-            <TableRow key={serviceRowKey(item, index)}>
+          {items.map((item, index) => {
+            const isSelected = isSameServiceItem(item, selectedService);
+
+            return (
+            <TableRow
+              key={serviceRowKey(item, index)}
+              role="row"
+              aria-selected={isSelected}
+              tabIndex={0}
+              className={cn(
+                "cursor-pointer",
+                isSelected && "bg-primary/5 ring-2 ring-inset ring-primary",
+              )}
+              onClick={() => onSelect(item)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelect(item);
+                }
+              }}
+            >
               <TableCell className="pl-4 align-middle">
                 <div className="min-w-0 space-y-0.5">
                   <div className="truncate font-medium text-foreground">{item.serviceName}</div>
@@ -158,7 +182,10 @@ export function ServiceCatalogTable({
               <TableCell className="align-middle">
                 <ServiceStatusBadge isActive={item.isActive} />
               </TableCell>
-              <TableCell className="pr-4 text-right align-middle">
+              <TableCell
+                className="pr-4 text-right align-middle"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <RowActions
                   item={item}
                   onEdit={onEdit}
@@ -169,7 +196,8 @@ export function ServiceCatalogTable({
                 />
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </div>
