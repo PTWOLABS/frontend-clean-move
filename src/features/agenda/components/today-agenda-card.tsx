@@ -17,7 +17,10 @@ type TodayAgendaStatus = AppointmentStatus | "in-progress";
 
 export type TodayAgendaItem = {
   id: string;
+  customerId: string;
+  vehicleId: string;
   startsAt: Date;
+  endsAt: Date | null;
   time: string;
   timeRange: string;
   customerName: string;
@@ -26,6 +29,7 @@ export type TodayAgendaItem = {
   vehiclePlate: string;
   serviceName: string;
   amountInCents: number;
+  discountValue: string;
   description: string;
   status: TodayAgendaStatus;
   services: TodayAgendaService[];
@@ -143,7 +147,7 @@ export function TodayAgendaCard({
             {appointments.map((appointment) => {
               const status = statusMeta[appointment.status];
               const appointmentDate = formatAppointmentDate(appointment.startsAt);
-              const extraServicesCount = Math.max(appointment.services.length - 1, 0);
+              const servicesCount = appointment.services.length;
 
               return (
                 <li
@@ -200,14 +204,14 @@ export function TodayAgendaCard({
                         <p className="min-w-0 truncate text-sm font-medium text-card-foreground/85">
                           {appointment.serviceName}
                         </p>
-                        {extraServicesCount > 0 ? (
+                        {servicesCount > 1 ? (
                           <CountBadgeTrigger
-                            count={extraServicesCount}
-                            ariaLabel={`Ver ${extraServicesCount} serviços adicionais`}
+                            count={servicesCount}
+                            ariaLabel={`Ver ${servicesCount} serviços do agendamento`}
                             onClick={() => onAppointmentServicesClick?.(appointment)}
                             align="end"
                             className="pointer-events-auto"
-                            tooltipLabel={`${extraServicesCount} serviços adicionais`}
+                            tooltipLabel={`${servicesCount} serviços do agendamento`}
                           />
                         ) : null}
                       </div>
