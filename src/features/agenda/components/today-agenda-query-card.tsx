@@ -4,10 +4,18 @@ import { addDays, endOfDay, format, startOfDay } from "date-fns";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
+import { AppointmentFormSheet } from "@/features/appointments/components/form-sheet/appointment-form-sheet";
 import { useListAppointments } from "@/features/appointments/hooks/queries/use-list-appointments";
+import { useUpdateAppointmentStatus } from "@/features/appointments/hooks/mutations/use-update-appointment-status-mutation";
 import type { AppointmentsFilters } from "@/features/appointments/types/api-filters";
+import type {
+  AppointmentCalendarEvent,
+  AppointmentTone,
+} from "@/features/appointments/types/appointment-calendar";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
+import { formatReaisToBrlInput } from "@/shared/money/format-brl-money";
+import type { AppointmentStatus } from "@/shared/types/appointments";
 import {
   getAppointmentAmountInCents,
   getCustomerName,
@@ -86,6 +94,17 @@ function mapAppointmentServices(appointment: AppointmentListItem): TodayAgendaIt
   }));
 }
 
+function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
+  switch (status) {
+    case "DONE":
+      return "success";
+    case "CANCELLED":
+      return "danger";
+    case "SCHEDULED":
+      return "info";
+  }
+}
+
 function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): TodayAgendaItem {
   const startsAt = parseAppointmentDateTime(appointment.startsAt);
   const endsAt = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
@@ -95,7 +114,10 @@ function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): Toda
 
   return {
     id: appointment.id,
+    customerId: appointment.customerId,
+    vehicleId: appointment.vehicleId ?? "",
     startsAt,
+    endsAt,
     time: format(startsAt, "HH:mm"),
     timeRange: endsAt
       ? `${format(startsAt, "HH:mm")} - ${format(endsAt, "HH:mm")}`
@@ -106,9 +128,43 @@ function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): Toda
     vehiclePlate,
     serviceName: services[0]?.name ?? "Serviço não informado",
     amountInCents: getAppointmentAmountInCents(appointment),
+    discountValue:
+      appointment.discountInCents === null || appointment.discountInCents === undefined
+        ? ""
+        : formatReaisToBrlInput(appointment.discountInCents / 100),
     description: appointment.description?.trim() ?? "",
     status: appointment.status,
     services,
+  };
+}
+
+function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): AppointmentCalendarEvent {
+  const servicesLabel = appointment.services.map((service) => service.name).join(", ");
+  const appointmentStatus: AppointmentStatus =
+    appointment.status === "in-progress" ? "SCHEDULED" : appointment.status;
+
+  return {
+    id: appointment.id,
+    title: appointment.serviceName,
+    startsAt: appointment.startsAt,
+    end: appointment.endsAt ?? appointment.startsAt,
+    extendedProps: {
+      customerId: appointment.customerId,
+      customer: appointment.customerName,
+      serviceIds: appointment.services.map((service) => ({
+        value: service.id,
+        label: service.name,
+      })),
+      service: servicesLabel || appointment.serviceName,
+      vehicleId: appointment.vehicleId,
+      vehicle: appointment.vehicleLabel,
+      endsAt: appointment.endsAt,
+      description: appointment.description,
+      discountValue: appointment.discountValue,
+      notes: appointment.description || "Sem observações operacionais.",
+      tone: getAppointmentTone(appointmentStatus),
+      status: appointmentStatus,
+    },
   };
 }
 
@@ -127,9 +183,12 @@ export function TodayAgendaQueryCard() {
   const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(getDefaultAgendaDateRange);
   const [page, setPage] = useState(1);
-  const [selectedAppointment, setSelectedAppointment] = useState<TodayAgendaItem | null>(null);
-  const [selectedServicesAppointment, setSelectedServicesAppointment] =
-    useState<TodayAgendaItem | null>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [selectedServicesAppointmentId, setSelectedServicesAppointmentId] = useState<string | null>(
+    null,
+  );
+  const [appointmentToEdit, setAppointmentToEdit] = useState<AppointmentCalendarEvent | null>(null);
+  const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
   const filters = useMemo(
@@ -145,6 +204,7 @@ export function TodayAgendaQueryCard() {
   );
 
   const { data, error, isPending, isPlaceholderData, refetch } = useListAppointments(filters);
+  const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
   const feedback = useQueryFeedbackError({
     error,
@@ -156,9 +216,33 @@ export function TodayAgendaQueryCard() {
     () => mapAppointmentsToTodayAgendaItems(data?.appointments),
     [data?.appointments],
   );
+  const selectedAppointment = useMemo(
+    () =>
+      selectedAppointmentId
+        ? (appointments.find((appointment) => appointment.id === selectedAppointmentId) ?? null)
+        : null,
+    [appointments, selectedAppointmentId],
+  );
+  const selectedServicesAppointment = useMemo(
+    () =>
+      selectedServicesAppointmentId
+        ? (appointments.find((appointment) => appointment.id === selectedServicesAppointmentId) ??
+          null)
+        : null,
+    [appointments, selectedServicesAppointmentId],
+  );
   const isFetchingPage = isPending || isPlaceholderData;
+  const updatingStatusAppointmentId = updateAppointmentStatusMutation.isPending
+    ? (updateAppointmentStatusMutation.variables?.appointmentId ?? null)
+    : null;
+
+  function clearSelectedAppointments() {
+    setSelectedAppointmentId(null);
+    setSelectedServicesAppointmentId(null);
+  }
 
   function resetPage() {
+    clearSelectedAppointments();
     setPage(1);
   }
 
@@ -187,6 +271,31 @@ export function TodayAgendaQueryCard() {
     resetPage();
   }
 
+  function handleEditAppointment(appointment: TodayAgendaItem) {
+    setAppointmentToEdit(mapAgendaItemToCalendarEvent(appointment));
+    setSelectedAppointmentId(null);
+    setAppointmentSheetOpen(true);
+  }
+
+  function handleAppointmentSheetOpenChange(open: boolean) {
+    setAppointmentSheetOpen(open);
+
+    if (!open) {
+      setAppointmentToEdit(null);
+    }
+  }
+
+  async function handleAppointmentStatusChange(appointmentId: string, status: AppointmentStatus) {
+    await updateAppointmentStatusMutation.mutateAsync({
+      appointmentId,
+      status,
+    });
+
+    if (statusFilter !== "ALL" && statusFilter !== status) {
+      setSelectedAppointmentId(null);
+    }
+  }
+
   return (
     <>
       <TodayAgendaCard
@@ -194,15 +303,20 @@ export function TodayAgendaQueryCard() {
         isError={Boolean(feedback)}
         isLoading={isFetchingPage}
         onRetry={() => void refetch()}
-        onAppointmentClick={setSelectedAppointment}
-        onAppointmentServicesClick={setSelectedServicesAppointment}
+        onAppointmentClick={(appointment) => setSelectedAppointmentId(appointment.id)}
+        onAppointmentServicesClick={(appointment) =>
+          setSelectedServicesAppointmentId(appointment.id)
+        }
         pagination={
           <AgendaAppointmentsPagination
             page={page}
             totalItems={data?.totalItems}
             visibleItemsCount={appointments.length}
             isFetching={isFetchingPage}
-            onPageChange={setPage}
+            onPageChange={(nextPage) => {
+              clearSelectedAppointments();
+              setPage(nextPage);
+            }}
           />
         }
         toolbar={
@@ -226,7 +340,7 @@ export function TodayAgendaQueryCard() {
         open={Boolean(selectedServicesAppointment)}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedServicesAppointment(null);
+            setSelectedServicesAppointmentId(null);
           }
         }}
       />
@@ -234,11 +348,20 @@ export function TodayAgendaQueryCard() {
       <AgendaAppointmentDetailsDialog
         appointment={selectedAppointment}
         open={Boolean(selectedAppointment)}
+        isUpdatingStatus={updatingStatusAppointmentId === selectedAppointment?.id}
+        onEdit={handleEditAppointment}
+        onStatusChange={handleAppointmentStatusChange}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedAppointment(null);
+            setSelectedAppointmentId(null);
           }
         }}
+      />
+
+      <AppointmentFormSheet
+        open={appointmentSheetOpen}
+        onOpenChange={handleAppointmentSheetOpenChange}
+        appointment={appointmentToEdit}
       />
     </>
   );

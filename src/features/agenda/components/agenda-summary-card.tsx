@@ -1,6 +1,8 @@
 import { CalendarCheck2 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/shared/utils/cn";
 
 export type AgendaSummary = {
@@ -8,10 +10,14 @@ export type AgendaSummary = {
   scheduled: number;
   done: number;
   cancelled: number;
+  completionRate: number;
 };
 
 type AgendaSummaryCardProps = {
-  summary: AgendaSummary;
+  summary?: AgendaSummary;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 };
 
 const summaryRows: Array<{
@@ -36,16 +42,21 @@ const summaryRows: Array<{
   },
 ];
 
-function getCompletionRate(summary: AgendaSummary) {
-  if (summary.total <= 0) {
+function normalizePercent(value: number | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
     return 0;
   }
 
-  return Math.round((summary.done / summary.total) * 100);
+  return Math.max(0, Math.min(value, 100));
 }
 
-export function AgendaSummaryCard({ summary }: AgendaSummaryCardProps) {
-  const completionRate = getCompletionRate(summary);
+export function AgendaSummaryCard({
+  summary,
+  isLoading = false,
+  isError = false,
+  onRetry,
+}: AgendaSummaryCardProps) {
+  const completionRate = normalizePercent(summary?.completionRate);
 
   return (
     <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border-border/80 bg-card/80 shadow-card backdrop-blur-sm">
@@ -71,45 +82,81 @@ export function AgendaSummaryCard({ summary }: AgendaSummaryCardProps) {
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col px-4 pb-5 pt-0 sm:px-6">
-        <div className="space-y-2">
-          <p className="font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground sm:text-4xl">
-            {summary.total}
-          </p>
-          <p className="text-sm font-medium text-muted-foreground">
-            {summary.total === 1 ? "agendamento" : "agendamentos"} no período
-          </p>
-        </div>
-
-        <dl className="mt-6 space-y-3 border-t border-border/70 pt-4">
-          {summaryRows.map((row) => (
-            <div key={row.key} className="flex items-center justify-between gap-4">
-              <dt className="text-sm text-muted-foreground">{row.label}</dt>
-              <dd className={cn("font-semibold tabular-nums", row.className)}>
-                {summary[row.key]}
-              </dd>
+        {isLoading ? (
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-4 w-40" />
             </div>
-          ))}
-        </dl>
+            <div className="space-y-3 border-t border-border/70 pt-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+            <div className="border-t border-border/70 pt-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="mt-3 h-2 w-full rounded-full" />
+            </div>
+          </div>
+        ) : isError || !summary ? (
+          <div className="flex min-h-52 flex-col justify-center rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
+            <p className="font-medium text-card-foreground">Não foi possível carregar o resumo.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Atualize os dados para tentar novamente.
+            </p>
+            {onRetry ? (
+              <Button
+                className="mt-4 h-10 w-fit rounded-xl px-4"
+                variant="outline"
+                onClick={onRetry}
+              >
+                Tentar novamente
+              </Button>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <p className="font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground sm:text-4xl">
+                {summary.total}
+              </p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {summary.total === 1 ? "agendamento" : "agendamentos"} no período
+              </p>
+            </div>
 
-        <div className="mt-auto border-t border-border/70 pt-4">
-          <div className="flex items-center justify-between gap-4 text-sm">
-            <p className="text-muted-foreground">Taxa de conclusão</p>
-            <p className="font-semibold tabular-nums text-card-foreground">{completionRate}%</p>
-          </div>
-          <div
-            aria-label={`Taxa de conclusão: ${completionRate}%`}
-            aria-valuemax={100}
-            aria-valuemin={0}
-            aria-valuenow={completionRate}
-            className="mt-3 h-2 rounded-full bg-muted"
-            role="progressbar"
-          >
-            <div
-              className="h-full rounded-full bg-success transition-[width] duration-300"
-              style={{ width: `${completionRate}%` }}
-            />
-          </div>
-        </div>
+            <dl className="mt-6 space-y-3 border-t border-border/70 pt-4">
+              {summaryRows.map((row) => (
+                <div key={row.key} className="flex items-center justify-between gap-4">
+                  <dt className="text-sm text-muted-foreground">{row.label}</dt>
+                  <dd className={cn("font-semibold tabular-nums", row.className)}>
+                    {summary[row.key]}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-auto border-t border-border/70 pt-4">
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <p className="text-muted-foreground">Taxa de conclusão</p>
+                <p className="font-semibold tabular-nums text-card-foreground">{completionRate}%</p>
+              </div>
+              <div
+                aria-label={`Taxa de conclusão: ${completionRate}%`}
+                aria-valuemax={100}
+                aria-valuemin={0}
+                aria-valuenow={completionRate}
+                className="mt-3 h-2 rounded-full bg-muted"
+                role="progressbar"
+              >
+                <div
+                  className="h-full rounded-full bg-success transition-[width] duration-300"
+                  style={{ width: `${completionRate}%` }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

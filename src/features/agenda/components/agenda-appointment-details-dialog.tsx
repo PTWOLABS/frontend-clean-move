@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarClock, CarFront, FileText, UserRound, Wrench } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useRef } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AppointmentStatusActions } from "@/features/appointments/components/appointment-status-actions";
+import type { AppointmentStatus } from "@/shared/types/appointments";
 import { formatCurrency } from "@/shared/utils/lib";
 import { cn } from "@/shared/utils/cn";
 
@@ -22,6 +25,9 @@ type AgendaAppointmentDetailsDialogProps = {
   appointment: TodayAgendaItem | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isUpdatingStatus?: boolean;
+  onEdit?: (appointment: TodayAgendaItem) => void;
+  onStatusChange?: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
 const statusClassName: Record<TodayAgendaItem["status"], string> = {
@@ -39,6 +45,10 @@ const statusLabel: Record<TodayAgendaItem["status"], string> = {
 };
 
 const entranceEase = [0.16, 1, 0.3, 1] as const;
+
+function isAppointmentStatus(status: TodayAgendaItem["status"]): status is AppointmentStatus {
+  return status !== "in-progress";
+}
 
 function DetailRow({
   icon: Icon,
@@ -64,8 +74,12 @@ export function AgendaAppointmentDetailsDialog({
   appointment,
   open,
   onOpenChange,
+  isUpdatingStatus = false,
+  onEdit,
+  onStatusChange,
 }: AgendaAppointmentDetailsDialogProps) {
   const shouldReduceMotion = useReducedMotion();
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
 
   if (!appointment) {
     return null;
@@ -87,10 +101,20 @@ export function AgendaAppointmentDetailsDialog({
       ? { duration: 0.12, ease: "easeOut" as const }
       : { duration: 0.28, ease: entranceEase, delay },
   });
+  const actionableStatus = isAppointmentStatus(appointment.status) ? appointment.status : null;
+  const canShowActions = actionableStatus && onStatusChange;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border-border/80 bg-card p-0 shadow-xl data-[state=closed]:animate-none data-[state=open]:animate-none sm:max-w-2xl">
+      <DialogContent
+        ref={dialogContentRef}
+        tabIndex={-1}
+        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border-border/80 bg-card p-0 shadow-xl outline-none data-[state=closed]:animate-none data-[state=open]:animate-none sm:max-w-2xl"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          dialogContentRef.current?.focus();
+        }}
+      >
         <motion.div
           initial={modalInitial}
           animate={modalAnimate}
@@ -108,15 +132,27 @@ export function AgendaAppointmentDetailsDialog({
                 </DialogDescription>
               </div>
 
-              <Badge
-                variant="outline"
-                className={cn(
-                  "w-fit shrink-0 rounded-full px-2.5 py-1 text-[11px]",
-                  statusClassName[appointment.status],
-                )}
-              >
-                {statusLabel[appointment.status]}
-              </Badge>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "w-fit shrink-0 rounded-full px-2.5 py-1 text-[11px]",
+                    statusClassName[appointment.status],
+                  )}
+                >
+                  {statusLabel[appointment.status]}
+                </Badge>
+
+                {canShowActions ? (
+                  <AppointmentStatusActions
+                    appointmentId={appointment.id}
+                    currentStatus={actionableStatus}
+                    isUpdating={isUpdatingStatus}
+                    onEdit={onEdit ? () => onEdit(appointment) : undefined}
+                    onStatusChange={onStatusChange}
+                  />
+                ) : null}
+              </div>
             </div>
           </DialogHeader>
 

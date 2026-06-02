@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarClock, CheckCircle2, Loader2, Pencil, Settings, XCircle } from "lucide-react";
 
 import {
@@ -32,7 +32,7 @@ type AppointmentStatusActionsProps = {
   currentStatus: AppointmentStatus;
   isUpdating: boolean;
   onEdit?: () => void;
-  onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
+  onStatusChange: (appointmentId: string, status: AppointmentStatus) => Promise<void> | void;
 };
 
 const appointmentStatusActions: Array<{
@@ -65,6 +65,15 @@ export function AppointmentStatusActions({
   onStatusChange,
 }: AppointmentStatusActionsProps) {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const mountedRef = useRef(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   function handleStatusAction(status: AppointmentStatus) {
     if (status === currentStatus || isUpdating) {
@@ -76,12 +85,17 @@ export function AppointmentStatusActions({
       return;
     }
 
-    onStatusChange(appointmentId, status);
+    void Promise.resolve(onStatusChange(appointmentId, status)).catch(() => undefined);
   }
 
   function handleConfirmCancellation() {
-    onStatusChange(appointmentId, "CANCELLED");
-    setConfirmationOpen(false);
+    void Promise.resolve(onStatusChange(appointmentId, "CANCELLED"))
+      .then(() => {
+        if (mountedRef.current) {
+          setConfirmationOpen(false);
+        }
+      })
+      .catch(() => undefined);
   }
 
   const availableActions = appointmentStatusActions.filter(
@@ -89,9 +103,19 @@ export function AppointmentStatusActions({
   );
   const actionsLabel = onEdit ? "Ações do agendamento" : "Alterar status";
   const actionsAriaLabel = onEdit ? "Ações do agendamento" : "Alterar status do agendamento";
+  const isCancellationPending = confirmationOpen && isUpdating;
 
   return (
-    <AlertDialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
+    <AlertDialog
+      open={confirmationOpen}
+      onOpenChange={(open) => {
+        if (isUpdating) {
+          return;
+        }
+
+        setConfirmationOpen(open);
+      }}
+    >
       <DropdownMenu>
         <HintTooltipProvider>
           <HintTooltip label={actionsLabel} side="left">
@@ -161,8 +185,12 @@ export function AppointmentStatusActions({
           <AlertDialogAction
             className="bg-danger text-danger-foreground hover:bg-danger/90"
             disabled={isUpdating}
-            onClick={handleConfirmCancellation}
+            onClick={(event) => {
+              event.preventDefault();
+              handleConfirmCancellation();
+            }}
           >
+            {isCancellationPending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
             Cancelar agendamento
           </AlertDialogAction>
         </AlertDialogFooter>
