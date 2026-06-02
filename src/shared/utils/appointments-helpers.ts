@@ -120,8 +120,6 @@ export function getVehicleName(appointment: AppointmentListItem) {
   return vehicleName || fallbackVehicleLabel;
 }
 
-
-
 export function getVehiclePlate(appointment: AppointmentListItem) {
   return appointment.vehicle?.plate?.trim() || fallbackPlateLabel;
 }
