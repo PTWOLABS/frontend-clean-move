@@ -1,7 +1,7 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import type FullCalendar from "@fullcalendar/react";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode, RefObject } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -346,6 +346,36 @@ describe("AppointmentsCalendar", () => {
     await user.click(screen.getByRole("button", { name: /fechar detalhes do agendamento/i }));
 
     expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("prevents interactions inside selected event details from closing parent calendar popovers", () => {
+    const documentPointerDown = vi.fn();
+    const documentMouseDown = vi.fn();
+    const documentClick = vi.fn();
+
+    document.addEventListener("pointerdown", documentPointerDown);
+    document.addEventListener("mousedown", documentMouseDown);
+    document.addEventListener("click", documentClick);
+
+    try {
+      renderCalendar({
+        selectedEventPopoverId: "appointment-1",
+      });
+
+      const dialog = screen.getByRole("dialog", { name: /detalhes do agendamento/i });
+
+      fireEvent.pointerDown(dialog);
+      fireEvent.mouseDown(dialog);
+      fireEvent.click(dialog);
+
+      expect(documentPointerDown).not.toHaveBeenCalled();
+      expect(documentMouseDown).not.toHaveBeenCalled();
+      expect(documentClick).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener("pointerdown", documentPointerDown);
+      document.removeEventListener("mousedown", documentMouseDown);
+      document.removeEventListener("click", documentClick);
+    }
   });
 
   it("clears selected event details before opening the more appointments popover", async () => {

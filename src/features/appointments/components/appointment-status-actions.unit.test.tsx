@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -72,6 +72,58 @@ describe("AppointmentStatusActions", () => {
       expect(onStatusChange).toHaveBeenCalledWith("appointment-1", "DONE");
     } finally {
       document.removeEventListener("mousedown", documentMouseDown);
+    }
+  });
+
+  it("closes only the dropdown when clicking outside the actions menu", async () => {
+    const user = userEvent.setup();
+    const onStatusChange = vi.fn();
+    const documentPointerDown = vi.fn();
+    const documentMouseDown = vi.fn();
+    const documentClick = vi.fn();
+
+    document.addEventListener("pointerdown", documentPointerDown);
+    document.addEventListener("mousedown", documentMouseDown);
+    document.addEventListener("click", documentClick);
+
+    try {
+      render(
+        <div>
+          <AppointmentStatusActions
+            appointmentId="appointment-1"
+            currentStatus="SCHEDULED"
+            isUpdating={false}
+            onStatusChange={onStatusChange}
+          />
+          <button type="button">Área fora do menu</button>
+        </div>,
+      );
+
+      await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
+
+      expect(screen.getByRole("menuitem", { name: /marcar como concluído/i })).toBeInTheDocument();
+
+      documentPointerDown.mockClear();
+      documentMouseDown.mockClear();
+      documentClick.mockClear();
+
+      const outsideButton = screen.getByText("Área fora do menu");
+
+      fireEvent.pointerDown(outsideButton);
+      fireEvent.mouseDown(outsideButton);
+      fireEvent.click(outsideButton);
+
+      expect(documentPointerDown).not.toHaveBeenCalled();
+      expect(documentMouseDown).not.toHaveBeenCalled();
+      expect(documentClick).not.toHaveBeenCalled();
+      expect(
+        screen.queryByRole("menuitem", { name: /marcar como concluído/i }),
+      ).not.toBeInTheDocument();
+      expect(onStatusChange).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener("pointerdown", documentPointerDown);
+      document.removeEventListener("mousedown", documentMouseDown);
+      document.removeEventListener("click", documentClick);
     }
   });
 

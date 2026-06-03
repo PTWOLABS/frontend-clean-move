@@ -69,14 +69,23 @@ function eventMountArg(eventId: string, element: HTMLElement) {
   } as EventMountArg;
 }
 
-function renderPopoverHook(container: HTMLElement) {
+function renderPopoverHook(
+  container: HTMLElement,
+  selectedEventId: string | null = "appointment-1",
+) {
   const containerRef = { current: container } as RefObject<HTMLElement | null>;
 
-  return renderHook(() =>
-    useSelectedCalendarEventPopover({
-      containerRef,
-      selectedEventId: "appointment-1",
-    }),
+  return renderHook(
+    ({ selectedEventId }: { selectedEventId: string | null }) =>
+      useSelectedCalendarEventPopover({
+        containerRef,
+        selectedEventId,
+      }),
+    {
+      initialProps: {
+        selectedEventId,
+      },
+    },
   );
 }
 
@@ -222,6 +231,48 @@ describe("useSelectedCalendarEventPopover", () => {
       expect(result.current.popoverStyle).toMatchObject({
         left: "248px",
         top: "38px",
+        visibility: "visible",
+      });
+    });
+  });
+
+  it("keeps the popover element registered while changing the selected event", async () => {
+    const { anchor, container, popover } = makePopoverDom({
+      anchorRect: { left: 80, top: 80, width: 80, height: 24 },
+      containerRect: { left: 0, top: 0, width: 620, height: 420 },
+      popoverRect: { left: 0, top: 0, width: 180, height: 120 },
+    });
+    const nextAnchor = document.createElement("button");
+    setRect(nextAnchor, { left: 360, top: 220, width: 80, height: 24 });
+    container.appendChild(nextAnchor);
+    const { result, rerender } = renderPopoverHook(container);
+
+    act(() => {
+      result.current.handleEventDidMount(eventMountArg("appointment-1", anchor));
+      result.current.handleEventDidMount(eventMountArg("appointment-2", nextAnchor));
+      result.current.setPopoverElement(popover);
+    });
+
+    await waitFor(() => {
+      expect(result.current.popoverStyle).toMatchObject({
+        left: "168px",
+        top: "32px",
+        visibility: "visible",
+      });
+    });
+
+    const initialSetPopoverElement = result.current.setPopoverElement;
+
+    act(() => {
+      rerender({ selectedEventId: "appointment-2" });
+    });
+
+    expect(result.current.setPopoverElement).toBe(initialSetPopoverElement);
+
+    await waitFor(() => {
+      expect(result.current.popoverStyle).toMatchObject({
+        left: "172px",
+        top: "172px",
         visibility: "visible",
       });
     });

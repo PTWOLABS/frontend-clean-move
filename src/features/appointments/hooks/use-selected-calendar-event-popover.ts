@@ -233,14 +233,21 @@ export function useSelectedCalendarEventPopover({
       visibility: "visible",
     });
   }, [containerRef, getSelectedEventElement, selectedEventId]);
+  const positionPopoverRef = useRef(positionPopover);
+
+  useLayoutEffect(() => {
+    positionPopoverRef.current = positionPopover;
+  }, [positionPopover]);
 
   const schedulePositionPopover = useCallback(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    window.requestAnimationFrame(positionPopover);
-  }, [positionPopover]);
+    window.requestAnimationFrame(() => {
+      positionPopoverRef.current();
+    });
+  }, []);
 
   const setPopoverElement = useCallback(
     (element: HTMLDivElement | null) => {

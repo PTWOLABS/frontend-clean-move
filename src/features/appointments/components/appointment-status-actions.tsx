@@ -57,7 +57,7 @@ const appointmentStatusActions: Array<{
   },
 ];
 
-function stopNativeMouseDownPropagation(event: globalThis.MouseEvent) {
+function stopNativeEventPropagation(event: Event) {
   event.stopPropagation();
   event.stopImmediatePropagation();
 }
@@ -66,19 +66,23 @@ function useNativeMouseDownPropagationStopper<TElement extends HTMLElement>() {
   const elementRef = useRef<TElement | null>(null);
 
   const setElement = useCallback((nextElement: TElement | null) => {
-    elementRef.current?.removeEventListener("mousedown", stopNativeMouseDownPropagation);
+    elementRef.current?.removeEventListener("mousedown", stopNativeEventPropagation);
     elementRef.current = nextElement;
-    elementRef.current?.addEventListener("mousedown", stopNativeMouseDownPropagation);
+    elementRef.current?.addEventListener("mousedown", stopNativeEventPropagation);
   }, []);
 
   useEffect(
     () => () => {
-      elementRef.current?.removeEventListener("mousedown", stopNativeMouseDownPropagation);
+      elementRef.current?.removeEventListener("mousedown", stopNativeEventPropagation);
     },
     [],
   );
 
   return setElement;
+}
+
+function isTargetInsideElement(element: HTMLElement | null, target: EventTarget | null) {
+  return target instanceof Node && Boolean(element?.contains(target));
 }
 
 export function AppointmentStatusActions({
@@ -88,18 +92,103 @@ export function AppointmentStatusActions({
   onEdit,
   onStatusChange,
 }: AppointmentStatusActionsProps) {
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const mountedRef = useRef(false);
+  const consumeOutsideInteractionFollowUpRef = useRef(false);
+  const clearOutsideInteractionFollowUpTimeoutRef = useRef<ReturnType<
+    typeof globalThis.setTimeout
+  > | null>(null);
+  const actionsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const actionsContentRef = useRef<HTMLDivElement | null>(null);
   const setActionsTriggerElement = useNativeMouseDownPropagationStopper<HTMLButtonElement>();
   const setActionsContentElement = useNativeMouseDownPropagationStopper<HTMLDivElement>();
+
+  const handleActionsTriggerElement = useCallback(
+    (element: HTMLButtonElement | null) => {
+      actionsTriggerRef.current = element;
+      setActionsTriggerElement(element);
+    },
+    [setActionsTriggerElement],
+  );
+
+  const handleActionsContentElement = useCallback(
+    (element: HTMLDivElement | null) => {
+      actionsContentRef.current = element;
+      setActionsContentElement(element);
+    },
+    [setActionsContentElement],
+  );
 
   useEffect(() => {
     mountedRef.current = true;
 
     return () => {
       mountedRef.current = false;
+
+      if (clearOutsideInteractionFollowUpTimeoutRef.current !== null) {
+        globalThis.clearTimeout(clearOutsideInteractionFollowUpTimeoutRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    const handleOutsideInteractionFollowUp = (event: Event) => {
+      if (!consumeOutsideInteractionFollowUpRef.current) {
+        return;
+      }
+
+      stopNativeEventPropagation(event);
+
+      if (event.type === "click") {
+        consumeOutsideInteractionFollowUpRef.current = false;
+      }
+    };
+    const listenerOptions = { capture: true };
+
+    document.addEventListener("mousedown", handleOutsideInteractionFollowUp, listenerOptions);
+    document.addEventListener("click", handleOutsideInteractionFollowUp, listenerOptions);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideInteractionFollowUp, listenerOptions);
+      document.removeEventListener("click", handleOutsideInteractionFollowUp, listenerOptions);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!actionsMenuOpen) {
+      return;
+    }
+
+    const handleOutsideInteraction = (event: Event) => {
+      if (
+        isTargetInsideElement(actionsTriggerRef.current, event.target) ||
+        isTargetInsideElement(actionsContentRef.current, event.target)
+      ) {
+        return;
+      }
+
+      consumeOutsideInteractionFollowUpRef.current = true;
+
+      if (clearOutsideInteractionFollowUpTimeoutRef.current !== null) {
+        globalThis.clearTimeout(clearOutsideInteractionFollowUpTimeoutRef.current);
+      }
+
+      clearOutsideInteractionFollowUpTimeoutRef.current = globalThis.setTimeout(() => {
+        consumeOutsideInteractionFollowUpRef.current = false;
+        clearOutsideInteractionFollowUpTimeoutRef.current = null;
+      }, 500);
+      setActionsMenuOpen(false);
+      stopNativeEventPropagation(event);
+    };
+    const listenerOptions = { capture: true };
+
+    document.addEventListener("pointerdown", handleOutsideInteraction, listenerOptions);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideInteraction, listenerOptions);
+    };
+  }, [actionsMenuOpen]);
 
   function handleStatusAction(status: AppointmentStatus) {
     if (status === currentStatus || isUpdating) {
@@ -142,12 +231,12 @@ export function AppointmentStatusActions({
         setConfirmationOpen(open);
       }}
     >
-      <DropdownMenu>
+      <DropdownMenu open={actionsMenuOpen} onOpenChange={setActionsMenuOpen}>
         <HintTooltipProvider>
           <HintTooltip label={actionsLabel} side="left">
             <DropdownMenuTrigger asChild>
               <Button
-                ref={setActionsTriggerElement}
+                ref={handleActionsTriggerElement}
                 type="button"
                 variant="outline"
                 size="icon"
@@ -164,7 +253,7 @@ export function AppointmentStatusActions({
             </DropdownMenuTrigger>
           </HintTooltip>
         </HintTooltipProvider>
-        <DropdownMenuContent ref={setActionsContentElement} align="end" className="w-56">
+        <DropdownMenuContent ref={handleActionsContentElement} align="end" className="w-56">
           {onEdit ? (
             <>
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
