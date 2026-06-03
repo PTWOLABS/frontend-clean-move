@@ -72,7 +72,7 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: /clientes/i })).toHaveAttribute("href", "/customers");
     expect(screen.getByRole("link", { name: /veículos/i })).toHaveAttribute("href", "/vehicles");
     expect(screen.getByRole("link", { name: /serviços/i })).toHaveAttribute("href", "/services");
-    expect(screen.getByRole("link", { name: /orçamentos/i })).toHaveAttribute("href", "/budgets");
+    expect(screen.getByRole("link", { name: /orçamentos/i })).toHaveAttribute("href", "/quotes");
     expect(screen.getByRole("link", { name: /relatórios/i })).toHaveAttribute("href", "/reports");
     expect(screen.getByRole("link", { name: /configurações/i })).toHaveAttribute(
       "href",

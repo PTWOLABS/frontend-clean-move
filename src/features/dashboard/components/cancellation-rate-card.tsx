@@ -57,9 +57,9 @@ export function CancellationRateCard({ className, filters, data }: CancellationR
     data ??
     (appointmentsData
       ? {
-          currentPercent: appointmentsData.cancellationRate.currentPercent,
-          targetPercent: appointmentsData.cancellationRate.comparisonPercentPoints || 0,
-          comparisonPercentPoints: appointmentsData.cancellationRate.comparisonPercentPoints || 0,
+          currentPercent: appointmentsData.rates.cancellation,
+          targetPercent: 0,
+          comparisonPercentPoints: 0,
         }
       : null);
 

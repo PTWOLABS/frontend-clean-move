@@ -10,6 +10,9 @@ export type AppointmentHistoryStatusMeta = {
   className: string;
 };
 
+const fallbackVehicleLabel = "Veículo não informado";
+const fallbackPlateLabel = "Sem placa";
+
 export const API_DATE_TIME_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
 
@@ -102,4 +105,21 @@ export function getAppointmentAmountInCents(appointment: AppointmentListItem) {
   );
 
   return Math.max(servicesAmountInCents - (appointment.discountInCents ?? 0), 0);
+}
+
+export function getVehicleName(appointment: AppointmentListItem) {
+  if (!appointment.vehicle) {
+    return fallbackVehicleLabel;
+  }
+
+  const vehicleName = [appointment.vehicle.brand, appointment.vehicle.model]
+    .filter((value) => typeof value === "string" && value.trim().length > 0)
+    .map((value) => value!.trim())
+    .join(" ");
+
+  return vehicleName || fallbackVehicleLabel;
+}
+
+export function getVehiclePlate(appointment: AppointmentListItem) {
+  return appointment.vehicle?.plate?.trim() || fallbackPlateLabel;
 }
