@@ -17,11 +17,13 @@ import { useCalendarMoreLink } from "../../hooks/use-calendar-more-link";
 import { useFullCalendarResize } from "../../hooks/use-full-calendar-resize";
 import { useMonthCellIndicators } from "../../hooks/use-month-cell-indicators";
 import { useSelectedCalendarEventPopover } from "../../hooks/use-selected-calendar-event-popover";
-import { getCalendarEventClassNames } from "../../lib/appointments-page.helpers";
+import {
+  getCalendarEventClassNames
+} from "../../lib/appointments-page.helpers";
 import type {
   AppointmentCalendarEvent,
   AppointmentCalendarView,
-  AppointmentExtendedProps,
+  AppointmentExtendedProps
 } from "../../types/appointment-calendar";
 import { CalendarEventContent } from "./calendar-event-content";
 import { CalendarEventDetailsPopover } from "./calendar-event-details-popover";
@@ -38,6 +40,7 @@ import {
 } from "./appointments-calendar.config";
 import { CalendarMoreLinkContent } from "./calendar-more-link-content";
 import { CalendarSlotOverlay } from "./calendar-slot-overlay";
+import { CalendarListView } from "./calendar-list-view";
 
 type AppointmentsCalendarProps = {
   calendarRef: RefObject<FullCalendar | null>;
@@ -56,13 +59,17 @@ type AppointmentsCalendarProps = {
   onDateClick: (info: DateClickArg) => void;
   onDatesSet: (arg: DatesSetArg) => void;
   onEventClick: (info: EventClickArg) => void;
+  onDayNumberClick: (date: Date) => void;
   onClearSelectedEvent: () => void;
   onEditEvent: (event: AppointmentCalendarEvent) => void;
   onMonthCellPress: (date: Date) => void;
   onSlotPress: (date: Date) => void;
   onCellAddIndicatorPress: (open: boolean) => void;
+  onListEventSelect: (event: AppointmentCalendarEvent) => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
+
+
 
 export function AppointmentsCalendar({
   calendarRef,
@@ -81,17 +88,20 @@ export function AppointmentsCalendar({
   onDateClick,
   onDatesSet,
   onEventClick,
+  onDayNumberClick,
   onClearSelectedEvent,
   onEditEvent,
   onMonthCellPress,
   onSlotPress,
   onCellAddIndicatorPress,
+  onListEventSelect,
   onStatusChange,
 }: AppointmentsCalendarProps) {
   const { state: sidebarState } = useSidebar();
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
   const moreLinkMouseDownClearTimestampRef = useRef(0);
   const isMonthGridView = selectedView === "dayGridMonth";
+  const initialCalendarDate = selectedView === "listWeek" ? initialSelectedDate : selectedDate;
   const fullCalendarEvents = useMemo<EventInput[]>(
     () =>
       events.map((event) => ({
@@ -155,6 +165,11 @@ export function AppointmentsCalendar({
 
     handleEventClickAnchor(info);
     onEventClick(info);
+  }
+
+  function handleCalendarNavLinkDayClick(date: Date, jsEvent: UIEvent) {
+    jsEvent.preventDefault();
+    onDayNumberClick(date);
   }
 
   function handleCalendarMoreLinkClick(arg: Parameters<typeof handleMoreLinkClick>[0]) {
@@ -233,19 +248,27 @@ export function AppointmentsCalendar({
               Tentar novamente
             </Button>
           </div>
+        ) : selectedView === "listWeek" ? (
+          <CalendarListView
+            events={events}
+            selectedDate={selectedDate}
+            selectedEventId={selectedEventId}
+            onSelectEvent={onListEventSelect}
+          />
         ) : (
           <FullCalendar
             ref={calendarRef}
             plugins={appointmentsCalendarPlugins}
             locale={appointmentsCalendarLocale}
             headerToolbar={false}
-            initialView="dayGridMonth"
-            initialDate={initialSelectedDate}
+            initialView={selectedView}
+            initialDate={initialCalendarDate}
             allDaySlot={false}
             firstDay={0}
             nowIndicator
             weekends
             navLinks
+            navLinkDayClick={handleCalendarNavLinkDayClick}
             editable={false}
             selectable={false}
             stickyHeaderDates={false}
@@ -302,7 +325,7 @@ export function AppointmentsCalendar({
             Carregando agendamentos...
           </div>
         ) : null}
-        {selectedPopoverEvent && hasSelectedEventAnchor ? (
+        {selectedView !== "listWeek" && selectedPopoverEvent && hasSelectedEventAnchor ? (
           <CalendarEventDetailsPopover
             event={selectedPopoverEvent}
             placement={popoverPlacement}

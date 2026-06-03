@@ -3,7 +3,16 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
-import { format, isSameDay, isSameMonth, isSameYear, startOfMonth, subDays } from "date-fns";
+import {
+  addDays,
+  format,
+  isSameDay,
+  isSameMonth,
+  isSameYear,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -89,19 +98,29 @@ function getInitialVisibleRange(date: Date) {
   };
 }
 
+function getListWeekVisibleRange(date: Date) {
+  const start = startOfWeek(normalizeCalendarDate(date), { weekStartsOn: 0 });
+
+  return {
+    start,
+    end: addDays(start, 7),
+  };
+}
+
 function capitalizeFirst(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function isAppointmentCalendarView(view: string): view is AppointmentCalendarView {
-  return view === "dayGridMonth" || view === "timeGridWeek" || view === "timeGridDay";
+  return (
+    view === "dayGridMonth" ||
+    view === "timeGridWeek" ||
+    view === "timeGridDay" ||
+    view === "listWeek"
+  );
 }
 
-function resolveAppointmentCalendarView(
-  view: string,
-  rawStart: Date,
-  rawEndExclusive: Date,
-): AppointmentCalendarView {
+function resolveAppointmentCalendarView(view: string): AppointmentCalendarView {
   if (isAppointmentCalendarView(view)) {
     return view;
   }
@@ -112,14 +131,15 @@ function resolveAppointmentCalendarView(
     return "dayGridMonth";
   }
 
+  if (normalizedView.includes("list")) {
+    return "listWeek";
+  }
+
   if (normalizedView.includes("week")) {
     return "timeGridWeek";
   }
 
-  const start = normalizeCalendarDate(rawStart);
-  const end = subDays(normalizeCalendarDate(rawEndExclusive), 1);
-
-  if (normalizedView.includes("day") || normalizedView.includes("list") || isSameDay(start, end)) {
+  if (normalizedView.includes("day")) {
     return "timeGridDay";
   }
 
@@ -383,6 +403,13 @@ export function AppointmentsPage() {
     setSelectedEventId(null);
     setSelectedSlotKey(null);
     syncSelection(date);
+
+    if (selectedView === "listWeek") {
+      const nextRange = getListWeekVisibleRange(date);
+
+      setCalendarTitle(formatCalendarToolbarTitle(nextRange.start, nextRange.end, selectedView));
+      setVisibleRange(nextRange);
+    }
   }
 
   const clearCalendarPopovers = useCallback(() => {
@@ -403,12 +430,36 @@ export function AppointmentsPage() {
 
     const calendarApi = calendarRef.current?.getApi();
 
+    if (nextView === "listWeek") {
+      const nextDate = calendarApi?.getDate() ?? selectedDate;
+      const nextRange = getListWeekVisibleRange(nextDate);
+
+      setSelectionSource("manual");
+      setCalendarTitle(formatCalendarToolbarTitle(nextRange.start, nextRange.end, nextView));
+      setVisibleRange(nextRange);
+      syncSelection(nextDate);
+
+      return;
+    }
+
     if (!calendarApi) {
       return;
     }
 
     calendarApi.changeView(nextView);
     syncSelection(calendarApi.getDate());
+  }
+
+  function handleCalendarDayNumberClick(date: Date) {
+    const nextDate = normalizeCalendarDate(date);
+    const nextRange = getListWeekVisibleRange(nextDate);
+
+    clearCalendarPopovers();
+    setSelectionSource("manual");
+    setSelectedView("listWeek");
+    setCalendarTitle(formatCalendarToolbarTitle(nextRange.start, nextRange.end, "listWeek"));
+    setVisibleRange(nextRange);
+    syncSelection(nextDate);
   }
 
   function handleStatusFilterChange(nextStatus: AppointmentStatusFilter) {
@@ -453,7 +504,7 @@ export function AppointmentsPage() {
   }
 
   function handleDatesSet(arg: DatesSetArg) {
-    const nextView = resolveAppointmentCalendarView(arg.view.type, arg.start, arg.end);
+    const nextView = resolveAppointmentCalendarView(arg.view.type);
 
     if (nextView !== selectedView) {
       clearCalendarPopovers();
@@ -617,6 +668,7 @@ export function AppointmentsPage() {
             <AppointmentsCalendarToolbar
               calendarRef={calendarRef}
               calendarTitle={calendarTitle}
+              selectedDate={resolvedSelectedDate}
               selectedView={selectedView}
               viewOptions={availableViewToggleOptions}
               onSelectDate={handleSelectDate}
@@ -641,12 +693,14 @@ export function AppointmentsPage() {
               updatingStatusAppointmentId={updatingStatusAppointmentId}
               onClearSelectedEvent={handleClearSelectedEvent}
               onDateClick={handleDateClick}
+              onDayNumberClick={handleCalendarDayNumberClick}
               onDatesSet={handleDatesSet}
               onEventClick={handleEventClick}
               onMonthCellPress={handleMonthCellPress}
               onSlotPress={handleSlotPress}
               onCellAddIndicatorPress={handleCreateAppointmentSheetOpen}
               onEditEvent={handleEditAppointmentFromPopover}
+              onListEventSelect={handleSelectEvent}
               onStatusChange={handleAppointmentStatusChange}
             />
             <CalendarStatusLegend />

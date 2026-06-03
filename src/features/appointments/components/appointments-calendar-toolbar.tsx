@@ -1,6 +1,7 @@
 "use client";
 
 import type FullCalendar from "@fullcalendar/react";
+import { addDays } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type RefObject } from "react";
 
@@ -19,6 +20,7 @@ type ViewToggleOption = {
 type AppointmentsCalendarToolbarProps = {
   calendarRef: RefObject<FullCalendar | null>;
   calendarTitle: string;
+  selectedDate: Date;
   selectedView: AppointmentCalendarView;
   viewOptions?: ViewToggleOption[];
   onSelectDate: (date: Date) => void;
@@ -28,6 +30,7 @@ type AppointmentsCalendarToolbarProps = {
 export function AppointmentsCalendarToolbar({
   calendarRef,
   calendarTitle,
+  selectedDate,
   selectedView,
   viewOptions: availableViewOptions = viewToggleOptions,
   onSelectDate,
@@ -38,6 +41,12 @@ export function AppointmentsCalendarToolbar({
   }
 
   function handleToday() {
+    if (selectedView === "listWeek") {
+      onSelectDate(new Date());
+
+      return;
+    }
+
     const calendarApi = getCalendarApi();
 
     if (!calendarApi) {
@@ -49,6 +58,12 @@ export function AppointmentsCalendarToolbar({
   }
 
   function handleNavigate(direction: "prev" | "next") {
+    if (selectedView === "listWeek") {
+      onSelectDate(addDays(selectedDate, direction === "prev" ? -7 : 7));
+
+      return;
+    }
+
     const calendarApi = getCalendarApi();
 
     if (!calendarApi) {
@@ -99,9 +114,10 @@ export function AppointmentsCalendarToolbar({
         <div
           className={cn(
             "grid h-9 min-w-0 rounded-lg border border-border/70 bg-background/60 p-1 shadow-xs",
-            availableViewOptions.length === 2
-              ? "grid-cols-2 min-[420px]:w-36"
-              : "grid-cols-2 min-[420px]:w-44 md:w-[12.25rem] md:grid-cols-3",
+            availableViewOptions.length === 2 && "grid-cols-2 min-[420px]:w-36",
+            availableViewOptions.length === 3 && "grid-cols-3 min-[420px]:w-48",
+            availableViewOptions.length >= 4 &&
+              "grid-cols-3 min-[420px]:w-52 md:w-[16rem] md:grid-cols-4",
           )}
           role="group"
           aria-label="Visualização do calendário"
