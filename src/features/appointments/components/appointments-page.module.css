@@ -116,6 +116,24 @@
   overscroll-behavior: contain;
 }
 
+.calendarFrame :global(.fc .fc-dayGridMonth-view .fc-scrollgrid-section-body .fc-scroller) {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+.calendarFrame
+  :global(.fc .fc-dayGridMonth-view .fc-scrollgrid-section-body .fc-scroller::-webkit-scrollbar) {
+  width: 0;
+  height: 0;
+}
+
+.calendarFrame :global(.fc .fc-dayGridMonth-view .fc-col-header),
+.calendarFrame :global(.fc .fc-dayGridMonth-view .fc-daygrid-body),
+.calendarFrame :global(.fc .fc-dayGridMonth-view .fc-daygrid-body > table) {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
 .calendarFrame :global(.fc .fc-col-header-cell) {
   background: hsl(var(--muted) / 0.32);
 }

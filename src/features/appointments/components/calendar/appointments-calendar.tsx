@@ -221,8 +221,9 @@ export function AppointmentsCalendar({
   return (
     <div
       className={cn(
-        "scrollbar-clean rounded-2xl border border-border/70 bg-background/40",
+        "rounded-2xl border border-border/70 bg-background/40",
         styles.calendarViewport,
+        !isMonthGridView && "scrollbar-clean",
       )}
     >
       <div
