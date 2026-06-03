@@ -92,7 +92,12 @@ export function AppointmentsDayAgendaCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="scrollbar-clean min-h-0 flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0">
+      <CardContent
+        className={cn(
+          selectedDayAppointments.length <= 3 ? "min-h-fit" : "min-h-90",
+          "scrollbar-clean flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0",
+        )}
+      >
         {isLoading || isRefreshing ? (
           <DayAgendaLoadingState />
         ) : isError ? (

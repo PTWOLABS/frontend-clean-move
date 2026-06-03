@@ -200,19 +200,19 @@ export function AppointmentFormSheet({
   }, [appointment, formDefaultValues, open, reset]);
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: 5,
+    limit: 1000,
     search: customerSearch || undefined,
   });
 
   const { data: vehicleOptions, isPending: isLoadingCustomerVehicleOptions } =
     useListCustomerVehicleOptions({
       customerId: selectedCustomerId ?? undefined,
-      limit: 5,
+      limit: 1000,
       search: vehicleSearch || undefined,
     });
 
   const { data: serviceOptions, isPending: isLoadingServiceOptions } = useListServiceOptions({
-    limit: 5,
+    limit: 1000,
     search: serviceSearch || undefined,
   });
   const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();

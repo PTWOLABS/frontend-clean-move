@@ -158,8 +158,7 @@ export function AppointmentsCalendar({
   }
 
   function handleCalendarMoreLinkClick(arg: Parameters<typeof handleMoreLinkClick>[0]) {
-    const didClearOnMouseDown =
-      Date.now() - moreLinkMouseDownClearTimestampRef.current < 1000;
+    const didClearOnMouseDown = Date.now() - moreLinkMouseDownClearTimestampRef.current < 1000;
 
     if (didClearOnMouseDown) {
       moreLinkMouseDownClearTimestampRef.current = 0;
