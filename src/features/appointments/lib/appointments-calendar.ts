@@ -193,6 +193,8 @@ export function getViewLabel(view: AppointmentCalendarView) {
       return "Visão semanal";
     case "timeGridDay":
       return "Visão diária";
+    case "listWeek":
+      return "Visão em lista";
   }
 }
 

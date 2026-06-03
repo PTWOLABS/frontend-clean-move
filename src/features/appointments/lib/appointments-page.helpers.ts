@@ -27,6 +27,10 @@ export const viewOptions: Array<{
     label: "Visualização: Dia",
     value: "timeGridDay",
   },
+  {
+    label: "Visualização: Lista",
+    value: "listWeek",
+  },
 ];
 
 export const compactViewOptions = viewOptions.filter((option) => option.value !== "timeGridWeek");
@@ -46,6 +50,10 @@ export const viewToggleOptions: Array<{
   {
     label: "Dia",
     value: "timeGridDay",
+  },
+  {
+    label: "Lista",
+    value: "listWeek",
   },
 ];
 

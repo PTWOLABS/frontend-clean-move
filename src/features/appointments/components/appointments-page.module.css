@@ -375,6 +375,140 @@
   height: 2.25rem;
 }
 
+.calendarListView {
+  height: 100%;
+  overflow-y: auto;
+  border: 1px solid hsl(var(--border) / 0.82);
+  border-radius: 1rem;
+  background: hsl(var(--background) / 0.44);
+}
+
+.calendarListDayGroup {
+  border-bottom: 1px solid hsl(var(--border) / 0.72);
+}
+
+.calendarListDayGroup:last-child {
+  border-bottom: 0;
+}
+
+.calendarListDayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.15rem;
+  padding: 0.42rem 0.9rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.72);
+  background: hsl(var(--muted) / 0.34);
+  color: hsl(var(--foreground));
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.calendarListDayHeader span:last-child {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.calendarListEventRow {
+  display: grid;
+  grid-template-columns: minmax(5.4rem, 7rem) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.48rem 0.9rem;
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border) / 0.62);
+  background: transparent;
+  color: hsl(var(--foreground));
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.calendarListDayGroup :global([role="listitem"]:last-child) .calendarListEventRow {
+  border-bottom: 0;
+}
+
+.calendarListEventRow:hover {
+  background: hsl(var(--accent-soft) / 0.3);
+}
+
+.calendarListEventRow:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: none;
+  box-shadow: inset 0 0 0 2px hsl(var(--ring) / 0.7);
+}
+
+.calendarListEventSelected {
+  background: hsl(var(--accent-soft) / 0.42);
+  box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.36);
+}
+
+.calendarListEventTime {
+  min-width: 0;
+  overflow: hidden;
+  color: hsl(var(--foreground));
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendarListEventDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--appointment-event-border, hsl(var(--accent)));
+}
+
+.calendarListEventContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.calendarListEventTitle,
+.calendarListEventMeta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendarListEventTitle {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.calendarListEventMeta {
+  font-size: 0.72rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.calendarListEmptyState {
+  display: flex;
+  height: 100%;
+  min-height: 18rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border: 1px dashed hsl(var(--border) / 0.8);
+  border-radius: 1rem;
+  background: hsl(var(--background) / 0.44);
+  text-align: center;
+}
+
 .eventAddIndicator {
   position: absolute;
   right: 0.3rem;

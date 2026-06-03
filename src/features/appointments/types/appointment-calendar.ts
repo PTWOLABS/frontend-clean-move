@@ -1,7 +1,7 @@
 import type { EventInput } from "@fullcalendar/core/index.js";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 
-export type AppointmentCalendarView = "dayGridMonth" | "timeGridWeek" | "timeGridDay";
+export type AppointmentCalendarView = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek";
 
 export type AppointmentTone = "primary" | "accent" | "success" | "warning" | "danger" | "info";
 
