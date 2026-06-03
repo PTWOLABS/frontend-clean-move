@@ -457,6 +457,7 @@ export function AppointmentFormSheet({
                         setServiceInputValue("");
                       }}
                       options={serviceOptionsItems}
+                      portalContainer={sheetContentElement}
                       placeholder="Selecione os serviços"
                       emptyIndicator={getServiceEmptyIndicator()}
                       disabled={isSubmitting}
