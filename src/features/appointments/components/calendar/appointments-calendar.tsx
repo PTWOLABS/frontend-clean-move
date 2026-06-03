@@ -1,6 +1,11 @@
 "use client";
 
-import type { DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core/index.js";
+import type {
+  DatesSetArg,
+  EventClickArg,
+  EventDropArg,
+  EventInput,
+} from "@fullcalendar/core/index.js";
 import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
@@ -39,6 +44,8 @@ import {
 import { CalendarMoreLinkContent } from "./calendar-more-link-content";
 import { CalendarSlotOverlay } from "./calendar-slot-overlay";
 import { CalendarListView } from "./calendar-list-view";
+import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
+import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 type AppointmentsCalendarProps = {
   calendarRef: RefObject<FullCalendar | null>;
@@ -218,6 +225,23 @@ export function AppointmentsCalendar({
     return [];
   }
 
+  const { mutateAsync: updateAppointment, isPending: updatingAppointment } = useUpdateAppointment();
+
+  async function handleEventDrop(info: EventDropArg) {
+    try {
+
+      await updateAppointment({
+        appointmentId: info.event.id,
+        body: {
+          ...(info.event.start ? {startsAt: formatLocalDateTimeAsUtcISOString(info.event.start)} : {}),
+          ...(info.event.end ? {endsAt: formatLocalDateTimeAsUtcISOString(info.event.end)} : {}) 
+        },
+      });
+    } catch {
+      info.revert();
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -262,13 +286,14 @@ export function AppointmentsCalendar({
             headerToolbar={false}
             initialView={selectedView}
             initialDate={initialCalendarDate}
-            allDaySlot={false}
             firstDay={0}
             nowIndicator
             weekends
             navLinks
             navLinkDayClick={handleCalendarNavLinkDayClick}
-            editable={false}
+            editable={true}
+            allDaySlot={false}
+            eventDrop={handleEventDrop}
             selectable={false}
             stickyHeaderDates={false}
             slotDuration={appointmentsCalendarSlotDuration}
@@ -319,7 +344,7 @@ export function AppointmentsCalendar({
             }}
           />
         )}
-        {isLoading ? (
+        {isLoading || updatingAppointment ? (
           <div className="pointer-events-none absolute inset-x-4 top-4 z-20 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             Carregando agendamentos...
           </div>
