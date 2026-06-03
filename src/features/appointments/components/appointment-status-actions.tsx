@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CalendarClock, CheckCircle2, Loader2, Pencil, Settings, XCircle } from "lucide-react";
 
 import {
@@ -57,6 +57,30 @@ const appointmentStatusActions: Array<{
   },
 ];
 
+function stopNativeMouseDownPropagation(event: globalThis.MouseEvent) {
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+}
+
+function useNativeMouseDownPropagationStopper<TElement extends HTMLElement>() {
+  const elementRef = useRef<TElement | null>(null);
+
+  const setElement = useCallback((nextElement: TElement | null) => {
+    elementRef.current?.removeEventListener("mousedown", stopNativeMouseDownPropagation);
+    elementRef.current = nextElement;
+    elementRef.current?.addEventListener("mousedown", stopNativeMouseDownPropagation);
+  }, []);
+
+  useEffect(
+    () => () => {
+      elementRef.current?.removeEventListener("mousedown", stopNativeMouseDownPropagation);
+    },
+    [],
+  );
+
+  return setElement;
+}
+
 export function AppointmentStatusActions({
   appointmentId,
   currentStatus,
@@ -66,6 +90,8 @@ export function AppointmentStatusActions({
 }: AppointmentStatusActionsProps) {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const mountedRef = useRef(false);
+  const setActionsTriggerElement = useNativeMouseDownPropagationStopper<HTMLButtonElement>();
+  const setActionsContentElement = useNativeMouseDownPropagationStopper<HTMLDivElement>();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -121,6 +147,7 @@ export function AppointmentStatusActions({
           <HintTooltip label={actionsLabel} side="left">
             <DropdownMenuTrigger asChild>
               <Button
+                ref={setActionsTriggerElement}
                 type="button"
                 variant="outline"
                 size="icon"
@@ -137,7 +164,7 @@ export function AppointmentStatusActions({
             </DropdownMenuTrigger>
           </HintTooltip>
         </HintTooltipProvider>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent ref={setActionsContentElement} align="end" className="w-56">
           {onEdit ? (
             <>
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">

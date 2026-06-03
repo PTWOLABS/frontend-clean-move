@@ -46,6 +46,35 @@ describe("AppointmentStatusActions", () => {
     expect(onStatusChange).toHaveBeenCalledWith("appointment-1", "DONE");
   });
 
+  it("prevents dropdown mouse down from closing parent calendar popovers before selecting an action", async () => {
+    const user = userEvent.setup();
+    const onStatusChange = vi.fn();
+    const documentMouseDown = vi.fn();
+
+    document.addEventListener("mousedown", documentMouseDown);
+
+    try {
+      render(
+        <AppointmentStatusActions
+          appointmentId="appointment-1"
+          currentStatus="SCHEDULED"
+          isUpdating={false}
+          onStatusChange={onStatusChange}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
+      documentMouseDown.mockClear();
+
+      await user.click(screen.getByRole("menuitem", { name: /marcar como concluído/i }));
+
+      expect(documentMouseDown).not.toHaveBeenCalled();
+      expect(onStatusChange).toHaveBeenCalledWith("appointment-1", "DONE");
+    } finally {
+      document.removeEventListener("mousedown", documentMouseDown);
+    }
+  });
+
   it("asks for confirmation before cancelling an appointment", async () => {
     const user = userEvent.setup();
     const onStatusChange = vi.fn();
