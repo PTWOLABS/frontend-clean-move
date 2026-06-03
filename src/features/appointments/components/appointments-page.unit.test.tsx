@@ -91,6 +91,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
     selectedEventId,
     selectedEventPopoverId,
     selectedSlotKey,
+    createAppointmentOnMonthCellClick,
     updatingStatusAppointmentId,
     onClearSelectedEvent,
     onEditEvent,
@@ -105,6 +106,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
     selectedEventId: string | null;
     selectedEventPopoverId: string | null;
     selectedSlotKey: string | null;
+    createAppointmentOnMonthCellClick: boolean;
     updatingStatusAppointmentId: string | null;
     isLoading: boolean;
     isError: boolean;
@@ -124,6 +126,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
       <p>Evento selecionado no calendário: {selectedEventId ?? "nenhum"}</p>
       <p>Popover selecionado no calendário: {selectedEventPopoverId ?? "nenhum"}</p>
       <p>Slot selecionado no calendário: {selectedSlotKey ?? "nenhum"}</p>
+      <p>Criação por célula mensal: {createAppointmentOnMonthCellClick ? "sim" : "não"}</p>
       <p>Status atualizando no calendário: {updatingStatusAppointmentId ?? "nenhum"}</p>
       <button
         type="button"
@@ -319,9 +322,11 @@ vi.mock("./appointments-day-agenda-card", () => ({
 vi.mock("./form-sheet/appointment-form-sheet", () => ({
   AppointmentFormSheet: ({
     appointment,
+    defaultStartsAt,
     open,
   }: {
     appointment?: AppointmentEventMock | null;
+    defaultStartsAt: Date;
     open: boolean;
     onOpenChange: (open: boolean) => void;
   }) => (
@@ -329,6 +334,7 @@ vi.mock("./form-sheet/appointment-form-sheet", () => ({
       data-testid="appointment-form-sheet"
       data-open={String(open)}
       data-appointment-id={appointment?.id ?? ""}
+      data-default-starts-at={defaultStartsAt.toISOString()}
     />
   ),
 }));
@@ -381,6 +387,22 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
   },
 ];
 
+function mockMatchMedia(matches: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 function makeFutureAppointmentEvent({
   id,
   serviceName,
@@ -421,6 +443,7 @@ function makeFutureAppointmentEvent({
 
 describe("AppointmentsPage", () => {
   beforeEach(() => {
+    mockMatchMedia(false);
     updateAppointmentStatusMutateMock.mockClear();
     useQueryFeedbackErrorMock.mockReturnValue(null);
     useUpdateAppointmentStatusMock.mockReturnValue({
@@ -632,6 +655,23 @@ describe("AppointmentsPage", () => {
     await user.click(screen.getByRole("button", { name: /selecionar célula mensal/i }));
 
     expect(screen.getByText("Slot selecionado no calendário: nenhum")).toBeInTheDocument();
+  });
+
+  it("opens appointment creation from month cell clicks on compact screens", async () => {
+    const user = userEvent.setup();
+
+    mockMatchMedia(true);
+    render(<AppointmentsPage />);
+
+    expect(screen.getByText("Criação por célula mensal: sim")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /clicar data mensal/i }));
+
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute("data-open", "true");
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute(
+      "data-default-starts-at",
+      "2026-05-20T00:00:00.000Z",
+    );
   });
 
   it("refetches appointments from child retry actions", async () => {

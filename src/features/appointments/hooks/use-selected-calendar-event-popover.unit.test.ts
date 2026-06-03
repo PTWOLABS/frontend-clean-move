@@ -173,4 +173,33 @@ describe("useSelectedCalendarEventPopover", () => {
       });
     });
   });
+
+  it("prefers event anchors rendered inside the more popover", async () => {
+    const { anchor, container, popover } = makePopoverDom({
+      anchorRect: { left: 120, top: 100, width: 80, height: 24 },
+      containerRect: { left: 0, top: 0, width: 600, height: 420 },
+      popoverRect: { left: 0, top: 0, width: 200, height: 160 },
+    });
+    const morePopover = document.createElement("div");
+    morePopover.className = "fc-more-popover";
+    const morePopoverAnchor = document.createElement("button");
+    setRect(morePopoverAnchor, { left: 320, top: 180, width: 120, height: 24 });
+    morePopover.appendChild(morePopoverAnchor);
+    container.appendChild(morePopover);
+    const { result } = renderPopoverHook(container);
+
+    act(() => {
+      result.current.handleEventDidMount(eventMountArg("appointment-1", anchor));
+      result.current.handleEventDidMount(eventMountArg("appointment-1", morePopoverAnchor));
+      result.current.setPopoverElement(popover);
+    });
+
+    await waitFor(() => {
+      expect(result.current.popoverStyle).toMatchObject({
+        left: "112px",
+        top: "112px",
+        visibility: "visible",
+      });
+    });
+  });
 });

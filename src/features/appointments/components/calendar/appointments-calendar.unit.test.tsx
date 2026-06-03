@@ -13,6 +13,7 @@ vi.mock("@/components/ui/sidebar", () => ({
 vi.mock("../../hooks/use-calendar-more-link", () => ({
   useCalendarMoreLink: () => ({
     isMorePopoverOpen: false,
+    closeActiveMorePopover: vi.fn(),
     handleMoreLinkDidMount: vi.fn(),
     handleMoreLinkWillUnmount: vi.fn(),
     handleMoreLinkClick: vi.fn(),
@@ -52,6 +53,7 @@ vi.mock("@fullcalendar/react", () => ({
     datesSet,
     eventContent,
     moreLinkContent,
+    moreLinkClick,
     eventClassNames,
     height,
   }: {
@@ -77,6 +79,12 @@ vi.mock("@fullcalendar/react", () => ({
       view: { type: string };
     }) => ReactNode;
     moreLinkContent: (arg: { num: number; view: { type: string } }) => ReactNode;
+    moreLinkClick: (arg: {
+      jsEvent: {
+        currentTarget: EventTarget | null;
+        target: EventTarget | null;
+      };
+    }) => void;
     eventClassNames: (arg: {
       event: { id: string; extendedProps: Record<string, unknown> };
     }) => string[];
@@ -122,6 +130,20 @@ vi.mock("@fullcalendar/react", () => ({
         <div data-testid="more-link">
           {moreLinkContent({ num: 2, view: { type: "dayGridMonth" } })}
         </div>
+        <button
+          type="button"
+          className="fc-more-link"
+          onClick={(event) =>
+            moreLinkClick({
+              jsEvent: {
+                currentTarget: event.currentTarget,
+                target: event.target,
+              },
+            })
+          }
+        >
+          Abrir mais agendamentos
+        </button>
         <button
           type="button"
           onClick={() =>
@@ -187,6 +209,7 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     selectedEventPopoverId: null,
     selectedSlotKey: null,
     selectedView: "dayGridMonth",
+    createAppointmentOnMonthCellClick: false,
     updatingStatusAppointmentId: null,
     onClearSelectedEvent: vi.fn(),
     onDateClick: vi.fn(),
@@ -267,6 +290,22 @@ describe("AppointmentsCalendar", () => {
     expect(screen.getByText("Sem observações.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /fechar detalhes do agendamento/i }));
+
+    expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears selected event details before opening the more appointments popover", async () => {
+    const user = userEvent.setup();
+    const onClearSelectedEvent = vi.fn();
+
+    renderCalendar({
+      selectedEventPopoverId: "appointment-1",
+      onClearSelectedEvent,
+    });
+
+    expect(screen.getByRole("dialog", { name: /detalhes do agendamento/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /abrir mais agendamentos/i }));
 
     expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
   });
