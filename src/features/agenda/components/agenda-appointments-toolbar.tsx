@@ -38,6 +38,7 @@ export function AgendaAppointmentsToolbar({
   onDateRangeChange,
 }: AgendaAppointmentsToolbarProps) {
   const hasAllPeriod = periodMode === "all";
+  const displayedDateRange = hasAllPeriod ? { from: undefined, to: undefined } : dateRange;
 
   return (
     <div className="grid gap-3 lg:grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,0.9fr)_minmax(0,1.7fr)_auto] lg:items-end">
@@ -114,7 +115,7 @@ export function AgendaAppointmentsToolbar({
                 className="h-10 w-full border-border/80 bg-background/60 shadow-xs md:min-w-0"
                 disabled={hasAllPeriod}
                 placeholder="Todo o período"
-                value={dateRange}
+                value={displayedDateRange}
                 onChange={onDateRangeChange}
               />
             </label>

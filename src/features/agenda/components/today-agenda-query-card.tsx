@@ -108,6 +108,7 @@ function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
 function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): TodayAgendaItem {
   const startsAt = parseAppointmentDateTime(appointment.startsAt);
   const endsAt = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
+  const startTime = format(startsAt, "HH:mm");
   const vehicleName = getVehicleName(appointment);
   const vehiclePlate = getVehiclePlate(appointment);
   const services = mapAppointmentServices(appointment);
@@ -118,10 +119,8 @@ function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): Toda
     vehicleId: appointment.vehicleId ?? "",
     startsAt,
     endsAt,
-    time: format(startsAt, "HH:mm"),
-    timeRange: endsAt
-      ? `${format(startsAt, "HH:mm")} - ${format(endsAt, "HH:mm")}`
-      : "Não informado",
+    time: startTime,
+    timeRange: endsAt ? `${startTime} - ${format(endsAt, "HH:mm")}` : startTime,
     customerName: getCustomerName(appointment),
     vehicleName,
     vehicleLabel: `${vehicleName} • ${vehiclePlate}`,
@@ -173,7 +172,7 @@ function mapAppointmentsToTodayAgendaItems(
 ): TodayAgendaItem[] {
   return (appointments ?? [])
     .map(mapAppointmentToTodayAgendaItem)
-    .sort((left, right) => left.time.localeCompare(right.time));
+    .sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
 }
 
 export function TodayAgendaQueryCard() {

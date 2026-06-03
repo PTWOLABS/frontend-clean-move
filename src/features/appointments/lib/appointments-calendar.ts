@@ -10,12 +10,12 @@ import type {
   AppointmentCalendarView,
   AppointmentTone,
 } from "../types/appointment-calendar";
+import { parseAppointmentDateTime } from "@/shared/utils/appointments-helpers";
 
 type AppointmentListItem = AppointmentDTO["appointments"][number];
 
 const DEFAULT_APPOINTMENT_DURATION_IN_MINUTES = 60;
 const FALLBACK_CUSTOMER_LABEL = "Cliente não informado";
-const API_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
 
 function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: AppointmentCalendarEvent) {
   return left.startsAt.getTime() - right.startsAt.getTime();
@@ -25,27 +25,6 @@ function getCustomerLabel(appointment: AppointmentListItem) {
   const customerLabel = appointment.customer?.fullName;
 
   return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
-}
-
-export function parseAppointmentDateTime(value: string) {
-  const match = API_DATE_TIME_PATTERN.exec(value);
-
-  if (!match) {
-    return new Date(value);
-  }
-
-  const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = match;
-
-  // Appointment times are scheduled wall-clock values; keep the API components intact.
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-    Number(millisecond.slice(0, 3).padEnd(3, "0")),
-  );
 }
 
 function getServicesSummary(appointment: AppointmentListItem) {
