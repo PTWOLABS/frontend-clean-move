@@ -6,7 +6,7 @@ import FullCalendar from "@fullcalendar/react";
 import { format, isSameDay, isSameMonth, isSameYear, startOfMonth, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -385,6 +385,11 @@ export function AppointmentsPage() {
     syncSelection(date);
   }
 
+  const clearCalendarPopovers = useCallback(() => {
+    setSelectedEventId(null);
+    setSelectedSlotKey(null);
+  }, []);
+
   function handleDateFilterSelect(date: Date) {
     const selectedDate = normalizeCalendarDate(date);
 
@@ -393,6 +398,7 @@ export function AppointmentsPage() {
   }
 
   function handleCalendarViewChange(nextView: AppointmentCalendarView) {
+    clearCalendarPopovers();
     setSelectedView(nextView);
 
     const calendarApi = calendarRef.current?.getApi();
@@ -419,6 +425,7 @@ export function AppointmentsPage() {
 
     // Ao entrar no layout compacto, a visão semanal sai da navegação.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- sincronização explícita com breakpoint responsivo
+    clearCalendarPopovers();
     setSelectedView("dayGridMonth");
 
     const calendarApi = calendarRef.current?.getApi();
@@ -429,7 +436,7 @@ export function AppointmentsPage() {
 
     calendarApi.changeView("dayGridMonth");
     setSelectedDate(calendarApi.getDate());
-  }, [isCompactCalendarNavigation, selectedView]);
+  }, [clearCalendarPopovers, isCompactCalendarNavigation, selectedView]);
 
   function handleSlotPress(date: Date) {
     setSelectionSource("manual");
@@ -448,6 +455,10 @@ export function AppointmentsPage() {
   function handleDatesSet(arg: DatesSetArg) {
     const nextView = resolveAppointmentCalendarView(arg.view.type, arg.start, arg.end);
 
+    if (nextView !== selectedView) {
+      clearCalendarPopovers();
+    }
+
     setCalendarTitle(resolveCalendarToolbarTitle(arg, nextView));
     setSelectedView(nextView);
     setVisibleRange({
@@ -459,6 +470,11 @@ export function AppointmentsPage() {
   function handleDateClick(info: DateClickArg) {
     if (info.view.type === "dayGridMonth") {
       handleMonthCellPress(info.date);
+
+      if (isCompactCalendarNavigation) {
+        handleCreateAppointmentSheetOpen(true);
+      }
+
       return;
     }
 
@@ -621,6 +637,7 @@ export function AppointmentsPage() {
               selectedEventPopoverId={selectedEventFromState?.id ?? null}
               selectedSlotKey={selectedSlotKey}
               selectedView={selectedView}
+              createAppointmentOnMonthCellClick={isCompactCalendarNavigation}
               updatingStatusAppointmentId={updatingStatusAppointmentId}
               onClearSelectedEvent={handleClearSelectedEvent}
               onDateClick={handleDateClick}

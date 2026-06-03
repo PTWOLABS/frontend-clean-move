@@ -42,6 +42,7 @@
 }
 
 .calendarFrame :global(.fc .fc-popover) {
+  z-index: 40;
   width: max-content;
   min-width: min(14rem, calc(100vw - 1.25rem));
   max-width: min(18rem, calc(100vw - 1.25rem));
@@ -720,7 +721,7 @@
 
 .eventDetailsPopover {
   position: absolute;
-  z-index: 35;
+  z-index: 45;
   width: min(18.5rem, calc(100vw - 1.25rem));
   min-width: min(15.5rem, calc(100vw - 1.25rem));
   overflow-x: hidden;
