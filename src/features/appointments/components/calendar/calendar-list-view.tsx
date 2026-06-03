@@ -1,9 +1,12 @@
 import { addDays, format, isSameDay, startOfWeek } from "date-fns";
-import { AppointmentCalendarEvent, AppointmentTone } from "../../types/appointment-calendar";
-import styles from '../appointments-page.module.css'
 import { ptBR } from "date-fns/locale";
-import { formatAppointmentTimeRange } from "../../lib/appointments-page.helpers";
+import { useCallback } from "react";
+
 import { cn } from "@/shared/utils/cn";
+
+import styles from "../appointments-page.module.css";
+import { formatAppointmentTimeRange } from "../../lib/appointments-page.helpers";
+import { AppointmentCalendarEvent, AppointmentTone } from "../../types/appointment-calendar";
 
 const calendarListToneClassName: Record<AppointmentTone, string> = {
   primary: styles.eventTonePrimary,
@@ -22,13 +25,61 @@ type CalendarListViewProps = {
   events: AppointmentCalendarEvent[];
   selectedDate: Date;
   selectedEventId: string | null;
+  onEventAnchorChange?: (eventId: string, element: HTMLElement | null) => void;
   onSelectEvent: (event: AppointmentCalendarEvent) => void;
 };
+
+type CalendarListEventRowProps = {
+  event: AppointmentCalendarEvent;
+  isActive: boolean;
+  onEventAnchorChange?: (eventId: string, element: HTMLElement | null) => void;
+  onSelectEvent: (event: AppointmentCalendarEvent) => void;
+};
+
+function CalendarListEventRow({
+  event,
+  isActive,
+  onEventAnchorChange,
+  onSelectEvent,
+}: CalendarListEventRowProps) {
+  const setAnchorElement = useCallback(
+    (element: HTMLButtonElement | null) => {
+      onEventAnchorChange?.(event.id, element);
+    },
+    [event.id, onEventAnchorChange],
+  );
+
+  return (
+    <div role="listitem">
+      <button
+        type="button"
+        ref={setAnchorElement}
+        data-cy={`calendar-list-event-${event.id}`}
+        className={cn(styles.calendarListEventRow, isActive && styles.calendarListEventSelected)}
+        onClick={() => onSelectEvent(event)}
+      >
+        <span className={styles.calendarListEventTime}>{formatAppointmentTimeRange(event)}</span>
+        <span
+          className={cn(
+            styles.calendarListEventDot,
+            calendarListToneClassName[event.extendedProps.tone],
+          )}
+          aria-hidden
+        />
+        <span className={styles.calendarListEventContent}>
+          <span className={styles.calendarListEventTitle}>{event.title}</span>
+          <span className={styles.calendarListEventMeta}>{event.extendedProps.customer}</span>
+        </span>
+      </button>
+    </div>
+  );
+}
 
 export function CalendarListView({
   events,
   selectedDate,
   selectedEventId,
+  onEventAnchorChange,
   onSelectEvent,
 }: CalendarListViewProps) {
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
@@ -36,9 +87,7 @@ export function CalendarListView({
   const dayGroups = days
     .map((day) => ({
       day,
-      events: events
-        .filter((event) => isSameDay(event.startsAt, day))
-        .sort(sortEventsByStart),
+      events: events.filter((event) => isSameDay(event.startsAt, day)).sort(sortEventsByStart),
     }))
     .filter((group) => group.events.length > 0);
 
@@ -54,7 +103,12 @@ export function CalendarListView({
   }
 
   return (
-    <div className={styles.calendarListView} role="list" aria-label="Agendamentos em lista">
+    <div
+      className={styles.calendarListView}
+      role="list"
+      aria-label="Agendamentos em lista"
+      data-calendar-event-popover-scroll-container="true"
+    >
       {dayGroups.map(({ day, events: dayEvents }) => (
         <section key={day.toISOString()} className={styles.calendarListDayGroup}>
           <header className={styles.calendarListDayHeader}>
@@ -67,34 +121,13 @@ export function CalendarListView({
               const isActive = selectedEventId === event.id;
 
               return (
-                <div key={event.id} role="listitem">
-                  <button
-                    type="button"
-                    data-cy={`calendar-list-event-${event.id}`}
-                    className={cn(
-                      styles.calendarListEventRow,
-                      isActive && styles.calendarListEventSelected,
-                    )}
-                    onClick={() => onSelectEvent(event)}
-                  >
-                    <span className={styles.calendarListEventTime}>
-                      {formatAppointmentTimeRange(event)}
-                    </span>
-                    <span
-                      className={cn(
-                        styles.calendarListEventDot,
-                        calendarListToneClassName[event.extendedProps.tone],
-                      )}
-                      aria-hidden
-                    />
-                    <span className={styles.calendarListEventContent}>
-                      <span className={styles.calendarListEventTitle}>{event.title}</span>
-                      <span className={styles.calendarListEventMeta}>
-                        {event.extendedProps.customer}
-                      </span>
-                    </span>
-                  </button>
-                </div>
+                <CalendarListEventRow
+                  key={event.id}
+                  event={event}
+                  isActive={isActive}
+                  onEventAnchorChange={onEventAnchorChange}
+                  onSelectEvent={onSelectEvent}
+                />
               );
             })}
           </div>

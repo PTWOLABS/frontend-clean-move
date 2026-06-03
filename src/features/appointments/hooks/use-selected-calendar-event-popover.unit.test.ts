@@ -202,4 +202,28 @@ describe("useSelectedCalendarEventPopover", () => {
       });
     });
   });
+
+  it("positions the popover from a controlled event anchor", async () => {
+    const { anchor, container, popover } = makePopoverDom({
+      anchorRect: { left: 80, top: 90, width: 160, height: 36 },
+      containerRect: { left: 0, top: 0, width: 620, height: 420 },
+      popoverRect: { left: 0, top: 0, width: 220, height: 140 },
+    });
+    const { result } = renderPopoverHook(container);
+
+    act(() => {
+      result.current.setEventAnchorElement("appointment-1", anchor);
+      result.current.setPopoverElement(popover);
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasSelectedEventAnchor).toBe(true);
+      expect(result.current.popoverPlacement).toBe("right");
+      expect(result.current.popoverStyle).toMatchObject({
+        left: "248px",
+        top: "38px",
+        visibility: "visible",
+      });
+    });
+  });
 });

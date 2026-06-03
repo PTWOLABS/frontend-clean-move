@@ -17,13 +17,11 @@ import { useCalendarMoreLink } from "../../hooks/use-calendar-more-link";
 import { useFullCalendarResize } from "../../hooks/use-full-calendar-resize";
 import { useMonthCellIndicators } from "../../hooks/use-month-cell-indicators";
 import { useSelectedCalendarEventPopover } from "../../hooks/use-selected-calendar-event-popover";
-import {
-  getCalendarEventClassNames
-} from "../../lib/appointments-page.helpers";
+import { getCalendarEventClassNames } from "../../lib/appointments-page.helpers";
 import type {
   AppointmentCalendarEvent,
   AppointmentCalendarView,
-  AppointmentExtendedProps
+  AppointmentExtendedProps,
 } from "../../types/appointment-calendar";
 import { CalendarEventContent } from "./calendar-event-content";
 import { CalendarEventDetailsPopover } from "./calendar-event-details-popover";
@@ -68,8 +66,6 @@ type AppointmentsCalendarProps = {
   onListEventSelect: (event: AppointmentCalendarEvent) => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
-
-
 
 export function AppointmentsCalendar({
   calendarRef,
@@ -149,6 +145,7 @@ export function AppointmentsCalendar({
     handleEventWillUnmount,
     popoverPlacement,
     popoverStyle,
+    setEventAnchorElement,
     setPopoverElement,
   } = useSelectedCalendarEventPopover({
     containerRef: calendarResizeRef,
@@ -253,6 +250,7 @@ export function AppointmentsCalendar({
             events={events}
             selectedDate={selectedDate}
             selectedEventId={selectedEventId}
+            onEventAnchorChange={setEventAnchorElement}
             onSelectEvent={onListEventSelect}
           />
         ) : (
@@ -325,7 +323,7 @@ export function AppointmentsCalendar({
             Carregando agendamentos...
           </div>
         ) : null}
-        {selectedView !== "listWeek" && selectedPopoverEvent && hasSelectedEventAnchor ? (
+        {selectedPopoverEvent && hasSelectedEventAnchor ? (
           <CalendarEventDetailsPopover
             event={selectedPopoverEvent}
             placement={popoverPlacement}

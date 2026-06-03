@@ -1,7 +1,7 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import type FullCalendar from "@fullcalendar/react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode, RefObject } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -41,6 +41,7 @@ vi.mock("../../hooks/use-selected-calendar-event-popover", () => ({
     handleEventWillUnmount: vi.fn(),
     popoverPlacement: "right",
     popoverStyle: {},
+    setEventAnchorElement: vi.fn(),
     setPopoverElement: vi.fn(),
   }),
 }));
@@ -267,6 +268,18 @@ describe("AppointmentsCalendar", () => {
     await user.click(screen.getByRole("button", { name: /lavagem tecnica/i }));
 
     expect(onListEventSelect).toHaveBeenCalledWith(appointmentEvent);
+  });
+
+  it("renders the selected event details popover in the weekly list view", async () => {
+    renderCalendar({
+      selectedView: "listWeek",
+      selectedEventPopoverId: "appointment-1",
+    });
+
+    const dialog = screen.getByRole("dialog", { name: /detalhes do agendamento/i });
+
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText("Ana Martins")).toBeInTheDocument();
   });
 
   it("calls onDayNumberClick when a calendar day number nav link is clicked", async () => {

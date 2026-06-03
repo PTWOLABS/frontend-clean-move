@@ -95,7 +95,7 @@ export function AppointmentsDayAgendaCard({
       <CardContent
         className={cn(
           selectedDayAppointments.length <= 3 ? "min-h-fit" : "min-h-90",
-          "scrollbar-clean flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0",
+          "scrollbar-clean flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0 xl:min-h-0 xl:",
         )}
       >
         {isLoading || isRefreshing ? (
