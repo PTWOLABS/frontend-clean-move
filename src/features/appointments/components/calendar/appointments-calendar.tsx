@@ -5,7 +5,7 @@ import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
 import { isSameDay as isSameDayDateFns } from "date-fns";
-import { useMemo, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, type MouseEvent, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -51,6 +51,7 @@ type AppointmentsCalendarProps = {
   selectedEventPopoverId: string | null;
   selectedSlotKey: string | null;
   selectedView: AppointmentCalendarView;
+  createAppointmentOnMonthCellClick: boolean;
   updatingStatusAppointmentId: string | null;
   onDateClick: (info: DateClickArg) => void;
   onDatesSet: (arg: DatesSetArg) => void;
@@ -75,6 +76,7 @@ export function AppointmentsCalendar({
   selectedEventPopoverId,
   selectedSlotKey,
   selectedView,
+  createAppointmentOnMonthCellClick,
   updatingStatusAppointmentId,
   onDateClick,
   onDatesSet,
@@ -88,6 +90,7 @@ export function AppointmentsCalendar({
 }: AppointmentsCalendarProps) {
   const { state: sidebarState } = useSidebar();
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
+  const moreLinkMouseDownClearTimestampRef = useRef(0);
   const isMonthGridView = selectedView === "dayGridMonth";
   const fullCalendarEvents = useMemo<EventInput[]>(
     () =>
@@ -97,8 +100,13 @@ export function AppointmentsCalendar({
       })),
     [events],
   );
-  const { handleMoreLinkDidMount, handleMoreLinkWillUnmount, handleMoreLinkClick } =
-    useCalendarMoreLink();
+  const {
+    isMorePopoverOpen,
+    closeActiveMorePopover,
+    handleMoreLinkDidMount,
+    handleMoreLinkWillUnmount,
+    handleMoreLinkClick,
+  } = useCalendarMoreLink();
   const selectedPopoverEvent =
     (selectedEventPopoverId ? events.find((event) => event.id === selectedEventPopoverId) : null) ??
     null;
@@ -108,6 +116,7 @@ export function AppointmentsCalendar({
     handleMonthCellWillUnmount,
     renderMonthDayCellContent,
   } = useMonthCellIndicators({
+    isHidden: isMorePopoverOpen || createAppointmentOnMonthCellClick,
     onMonthCellPress,
     onCellAddIndicatorPress,
   });
@@ -119,6 +128,10 @@ export function AppointmentsCalendar({
     selectedView,
     sidebarState,
   });
+
+  useEffect(() => {
+    closeActiveMorePopover();
+  }, [closeActiveMorePopover, selectedView]);
   const {
     hasSelectedEventAnchor,
     handleEventClickAnchor,
@@ -133,8 +146,37 @@ export function AppointmentsCalendar({
   });
 
   function handleCalendarEventClick(info: EventClickArg) {
+    const eventElement = info.el instanceof Element ? info.el : null;
+    const eventTarget = info.jsEvent.target instanceof Element ? info.jsEvent.target : eventElement;
+
+    if (eventTarget?.closest(".fc-more-popover") || eventElement?.closest(".fc-more-popover")) {
+      info.jsEvent.stopPropagation();
+    }
+
     handleEventClickAnchor(info);
     onEventClick(info);
+  }
+
+  function handleCalendarMoreLinkClick(arg: Parameters<typeof handleMoreLinkClick>[0]) {
+    const didClearOnMouseDown =
+      Date.now() - moreLinkMouseDownClearTimestampRef.current < 1000;
+
+    if (didClearOnMouseDown) {
+      moreLinkMouseDownClearTimestampRef.current = 0;
+    } else {
+      onClearSelectedEvent();
+    }
+
+    handleMoreLinkClick(arg);
+  }
+
+  function handleCalendarMouseDownCapture(event: MouseEvent<HTMLDivElement>) {
+    if (!(event.target instanceof Element) || !event.target.closest(".fc-more-link")) {
+      return;
+    }
+
+    moreLinkMouseDownClearTimestampRef.current = Date.now();
+    onClearSelectedEvent();
   }
 
   function renderDayCellContent(arg: DayCellContentArg) {
@@ -175,6 +217,7 @@ export function AppointmentsCalendar({
       <div
         ref={calendarResizeRef}
         className={cn("relative h-full overflow-hidden", styles.calendarFrame)}
+        onMouseDownCapture={handleCalendarMouseDownCapture}
       >
         {monthCellIndicatorPortals}
         {isError ? (
@@ -230,7 +273,7 @@ export function AppointmentsCalendar({
             }
             moreLinkDidMount={handleMoreLinkDidMount}
             moreLinkWillUnmount={handleMoreLinkWillUnmount}
-            moreLinkClick={handleMoreLinkClick}
+            moreLinkClick={handleCalendarMoreLinkClick}
             events={fullCalendarEvents}
             dateClick={onDateClick}
             eventClick={handleCalendarEventClick}

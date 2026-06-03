@@ -48,6 +48,15 @@ export function CalendarEventDetailsPopover({
       data-placement={placement}
       className={styles.eventDetailsPopover}
       style={style}
+      onClick={(popoverEvent) => {
+        popoverEvent.stopPropagation();
+      }}
+      onDoubleClick={(popoverEvent) => {
+        popoverEvent.stopPropagation();
+      }}
+      onPointerDown={(popoverEvent) => {
+        popoverEvent.stopPropagation();
+      }}
     >
       <div className={styles.eventDetailsHeader}>
         <div className="min-w-0">

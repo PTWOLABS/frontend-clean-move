@@ -78,7 +78,13 @@ function getConnectedEventElement(elements: Set<HTMLElement> | undefined) {
     return null;
   }
 
-  return Array.from(elements).find((element) => element.isConnected) ?? null;
+  const connectedElements = Array.from(elements).filter((element) => element.isConnected);
+
+  return (
+    connectedElements.find((element) => element.closest(".fc-more-popover")) ??
+    connectedElements[0] ??
+    null
+  );
 }
 
 function getPreferredPlacement({
