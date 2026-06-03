@@ -68,9 +68,10 @@ vi.mock("./appointments-calendar-toolbar", () => ({
   }: {
     calendarRef: RefObject<FullCalendar | null>;
     calendarTitle: string;
+    selectedDate: Date;
     selectedView: string;
     onSelectDate: (date: Date) => void;
-    onSelectView: (view: "dayGridMonth" | "timeGridWeek" | "timeGridDay") => void;
+    onSelectView: (view: "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek") => void;
   }) => (
     <div>
       <p>Título do calendário: {calendarTitle}</p>
@@ -94,10 +95,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
     createAppointmentOnMonthCellClick,
     updatingStatusAppointmentId,
     onClearSelectedEvent,
+    onDayNumberClick,
     onEditEvent,
     onDateClick,
     onDatesSet,
     onEventClick,
+    onListEventSelect,
     onSlotPress,
     onMonthCellPress,
     onRetry,
@@ -111,10 +114,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
     isLoading: boolean;
     isError: boolean;
     onClearSelectedEvent: () => void;
+    onDayNumberClick: (date: Date) => void;
     onEditEvent: (event: AppointmentEventMock) => void;
     onDateClick: (info: DateClickArg) => void;
     onDatesSet: (arg: DatesSetArg) => void;
     onEventClick: (info: EventClickArg) => void;
+    onListEventSelect: (event: AppointmentEventMock) => void;
     onSlotPress: (date: Date) => void;
     onMonthCellPress: (date: Date) => void;
     onRetry: () => void;
@@ -144,6 +149,9 @@ vi.mock("./calendar/appointments-calendar", () => ({
       </button>
       <button type="button" onClick={() => onMonthCellPress(new Date("2026-05-21T00:00:00.000Z"))}>
         Selecionar célula mensal
+      </button>
+      <button type="button" onClick={() => onDayNumberClick(new Date("2026-05-22T00:00:00.000Z"))}>
+        Clicar número do dia
       </button>
       <button
         type="button"
@@ -184,12 +192,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
         onClick={() =>
           onDatesSet({
             start: new Date("2026-05-08T00:00:00.000Z"),
-            end: new Date("2026-05-09T00:00:00.000Z"),
-            view: { title: "8 de maio de 2026", type: "listDay" },
+            end: new Date("2026-05-15T00:00:00.000Z"),
+            view: { title: "8 - 14 de maio de 2026", type: "listWeek" },
           } as DatesSetArg)
         }
       >
-        Atualizar dia em lista
+        Atualizar semana em lista
       </button>
       <button
         type="button"
@@ -217,6 +225,9 @@ vi.mock("./calendar/appointments-calendar", () => ({
       </button>
       <button type="button" onClick={onRetry}>
         Recarregar calendário
+      </button>
+      <button type="button" onClick={() => onListEventSelect(appointmentEvents[0]!)}>
+        Selecionar evento da lista
       </button>
       <button type="button" onClick={onClearSelectedEvent}>
         Fechar popover do calendário
@@ -562,16 +573,29 @@ describe("AppointmentsPage", () => {
     expect(screen.queryByText("Próximos agendamentos: Polimento filtrado")).not.toBeInTheDocument();
   });
 
-  it("keeps list-like day ranges mapped to the day view filter and full date title", async () => {
+  it("keeps list ranges mapped to the list view filter and weekly title", async () => {
     const user = userEvent.setup();
 
     render(<AppointmentsPage />);
 
-    await user.click(screen.getByRole("button", { name: /atualizar dia em lista/i }));
+    await user.click(screen.getByRole("button", { name: /atualizar semana em lista/i }));
 
-    expect(screen.getByText("Título do calendário: 8 de maio de 2026")).toBeInTheDocument();
-    expect(screen.getByLabelText("Visualização")).toHaveValue("timeGridDay");
-    expect(screen.getByDisplayValue("Visualização: Dia")).toBeInTheDocument();
+    expect(screen.getByText("Título do calendário: 8 - 14 de mai de 2026")).toBeInTheDocument();
+    expect(screen.getByLabelText("Visualização")).toHaveValue("listWeek");
+    expect(screen.getByDisplayValue("Visualização: Lista")).toBeInTheDocument();
+  });
+
+  it("switches to list view when the user clicks a day number in the calendar", async () => {
+    const user = userEvent.setup();
+
+    render(<AppointmentsPage />);
+
+    await user.click(screen.getByRole("button", { name: /clicar número do dia/i }));
+
+    expect(screen.getByText("Título do calendário: 17 - 23 de mai de 2026")).toBeInTheDocument();
+    expect(screen.getByLabelText("Visualização")).toHaveValue("listWeek");
+    expect(screen.getByDisplayValue("Visualização: Lista")).toBeInTheDocument();
+    expect(screen.getByText("Slot selecionado no calendário: nenhum")).toBeInTheDocument();
   });
 
   it("uses the current month for the monthly title instead of the visible grid start", async () => {

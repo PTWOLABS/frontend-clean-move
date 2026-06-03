@@ -55,6 +55,7 @@ vi.mock("@fullcalendar/react", () => ({
     moreLinkContent,
     moreLinkClick,
     eventClassNames,
+    navLinkDayClick,
     height,
   }: {
     events: Array<{
@@ -88,6 +89,7 @@ vi.mock("@fullcalendar/react", () => ({
     eventClassNames: (arg: {
       event: { id: string; extendedProps: Record<string, unknown> };
     }) => string[];
+    navLinkDayClick: (date: Date, jsEvent: UIEvent) => void;
     height: string | number;
   }) => {
     const firstEvent = events[0];
@@ -167,6 +169,14 @@ vi.mock("@fullcalendar/react", () => ({
         >
           Disparar período
         </button>
+        <button
+          type="button"
+          onClick={() =>
+            navLinkDayClick(new Date("2026-05-22T00:00:00.000Z"), new UIEvent("click"))
+          }
+        >
+          Clicar número do dia
+        </button>
       </div>
     );
   },
@@ -213,12 +223,14 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     updatingStatusAppointmentId: null,
     onClearSelectedEvent: vi.fn(),
     onDateClick: vi.fn(),
+    onDayNumberClick: vi.fn(),
     onDatesSet: vi.fn(),
     onEventClick: vi.fn(),
     onEditEvent: vi.fn(),
     onMonthCellPress: vi.fn(),
     onSlotPress: vi.fn(),
     onCellAddIndicatorPress: vi.fn(),
+    onListEventSelect: vi.fn(),
     onStatusChange: vi.fn(),
   };
 
@@ -237,6 +249,35 @@ describe("AppointmentsCalendar", () => {
     await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
 
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the weekly list view and selects an event", async () => {
+    const user = userEvent.setup();
+    const onListEventSelect = vi.fn();
+
+    renderCalendar({
+      selectedView: "listWeek",
+      onListEventSelect,
+    });
+
+    expect(screen.getByRole("list", { name: /agendamentos em lista/i })).toBeInTheDocument();
+    expect(screen.getByText("quarta-feira")).toBeInTheDocument();
+    expect(screen.getByText("20 de maio de 2026")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /lavagem tecnica/i }));
+
+    expect(onListEventSelect).toHaveBeenCalledWith(appointmentEvent);
+  });
+
+  it("calls onDayNumberClick when a calendar day number nav link is clicked", async () => {
+    const user = userEvent.setup();
+    const onDayNumberClick = vi.fn();
+
+    renderCalendar({ onDayNumberClick });
+
+    await user.click(screen.getByRole("button", { name: /clicar número do dia/i }));
+
+    expect(onDayNumberClick).toHaveBeenCalledWith(new Date("2026-05-22T00:00:00.000Z"));
   });
 
   it("renders the calendar content and loading overlay", () => {

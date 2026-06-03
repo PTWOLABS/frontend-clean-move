@@ -30,6 +30,7 @@ describe("AppointmentsCalendarToolbar", () => {
       <AppointmentsCalendarToolbar
         calendarRef={calendarRef}
         calendarTitle="maio de 2026"
+        selectedDate={new Date("2026-05-20T10:00:00.000Z")}
         selectedView="dayGridMonth"
         onSelectDate={onSelectDate}
         onSelectView={onSelectView}
@@ -62,6 +63,7 @@ describe("AppointmentsCalendarToolbar", () => {
       <AppointmentsCalendarToolbar
         calendarRef={calendarRef}
         calendarTitle="maio de 2026"
+        selectedDate={new Date("2026-05-20T10:00:00.000Z")}
         selectedView="dayGridMonth"
         onSelectDate={vi.fn()}
         onSelectView={onSelectView}
@@ -98,6 +100,7 @@ describe("AppointmentsCalendarToolbar", () => {
       <AppointmentsCalendarToolbar
         calendarRef={calendarRef}
         calendarTitle="maio de 2026"
+        selectedDate={new Date("2026-05-20T10:00:00.000Z")}
         selectedView="dayGridMonth"
         onSelectDate={onSelectDate}
         onSelectView={vi.fn()}
@@ -122,10 +125,12 @@ describe("AppointmentsCalendarToolbar", () => {
       <AppointmentsCalendarToolbar
         calendarRef={calendarRef}
         calendarTitle="maio de 2026"
+        selectedDate={new Date("2026-05-20T10:00:00.000Z")}
         selectedView="dayGridMonth"
         viewOptions={[
           { label: "Mês", value: "dayGridMonth" },
           { label: "Dia", value: "timeGridDay" },
+          { label: "Lista", value: "listWeek" },
         ]}
         onSelectDate={vi.fn()}
         onSelectView={vi.fn()}
@@ -135,5 +140,31 @@ describe("AppointmentsCalendarToolbar", () => {
     expect(screen.getByRole("button", { name: /mês/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /semana/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /dia/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /lista/i })).toBeInTheDocument();
+  });
+
+  it("navigates by week when the list view is selected", async () => {
+    const user = userEvent.setup();
+    const onSelectDate = vi.fn();
+    const calendarRef = {
+      current: null,
+    } as unknown as RefObject<FullCalendar | null>;
+
+    render(
+      <AppointmentsCalendarToolbar
+        calendarRef={calendarRef}
+        calendarTitle="17 - 23 de mai de 2026"
+        selectedDate={new Date("2026-05-20T10:00:00.000Z")}
+        selectedView="listWeek"
+        onSelectDate={onSelectDate}
+        onSelectView={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /período anterior/i }));
+    await user.click(screen.getByRole("button", { name: /próximo período/i }));
+
+    expect(onSelectDate).toHaveBeenNthCalledWith(1, new Date("2026-05-13T10:00:00.000Z"));
+    expect(onSelectDate).toHaveBeenNthCalledWith(2, new Date("2026-05-27T10:00:00.000Z"));
   });
 });
