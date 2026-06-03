@@ -547,10 +547,10 @@ export function AppointmentsPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-              Agendamentos
+              Calendário
             </h1>
             <p className="text-sm leading-6 text-muted-foreground">
-              Visualize e gerencie todos os agendamentos da sua operação.
+              Visualize e organize os agendamentos da sua operação por data e horário.
             </p>
           </div>
 
