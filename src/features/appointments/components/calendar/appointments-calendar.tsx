@@ -10,7 +10,7 @@ import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
 import { isSameDay as isSameDayDateFns } from "date-fns";
-import { useEffect, useMemo, useRef, type MouseEvent, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -46,6 +46,7 @@ import { CalendarSlotOverlay } from "./calendar-slot-overlay";
 import { CalendarListView } from "./calendar-list-view";
 import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 
 type AppointmentsCalendarProps = {
   calendarRef: RefObject<FullCalendar | null>;
@@ -100,18 +101,31 @@ export function AppointmentsCalendar({
   onListEventSelect,
   onStatusChange,
 }: AppointmentsCalendarProps) {
+  const [openConfirmEventDropDialog, setOpenConfirmEventDropDialog] = useState(false);
+  const [eventToDropUpdate, setEventToDropUpdate] = useState<EventDropArg | null>(null);
+
   const { state: sidebarState } = useSidebar();
+
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
   const moreLinkMouseDownClearTimestampRef = useRef(0);
+
   const isMonthGridView = selectedView === "dayGridMonth";
   const initialCalendarDate = selectedView === "listWeek" ? initialSelectedDate : selectedDate;
+
   const fullCalendarEvents = useMemo<EventInput[]>(
     () =>
       events.map((event) => ({
-        ...event,
+        id: event.id,
+        title: event.title,
         start: event.startsAt,
+        end: event.end,
+        allDay: false,
+        editable: isMonthGridView,
+        startEditable: isMonthGridView,
+        durationEditable: isMonthGridView,
+        extendedProps: event.extendedProps,
       })),
-    [events],
+    [events, isMonthGridView],
   );
   const {
     isMorePopoverOpen,
@@ -227,18 +241,26 @@ export function AppointmentsCalendar({
 
   const { mutateAsync: updateAppointment, isPending: updatingAppointment } = useUpdateAppointment();
 
-  async function handleEventDrop(info: EventDropArg) {
-    try {
+  function handleEventDrop(info: EventDropArg) {
+    setEventToDropUpdate(info);
+    setOpenConfirmEventDropDialog(true);
+  }
 
+  async function handleConfirmEventDrop(info: EventDropArg) {
+    try {
       await updateAppointment({
         appointmentId: info.event.id,
         body: {
-          ...(info.event.start ? {startsAt: formatLocalDateTimeAsUtcISOString(info.event.start)} : {}),
-          ...(info.event.end ? {endsAt: formatLocalDateTimeAsUtcISOString(info.event.end)} : {}) 
+          ...(info.event.start
+            ? { startsAt: formatLocalDateTimeAsUtcISOString(info.event.start) }
+            : {}),
+          ...(info.event.end ? { endsAt: formatLocalDateTimeAsUtcISOString(info.event.end) } : {}),
         },
       });
     } catch {
       info.revert();
+    } finally {
+      setOpenConfirmEventDropDialog(false);
     }
   }
 
@@ -257,7 +279,7 @@ export function AppointmentsCalendar({
       >
         {monthCellIndicatorPortals}
         {isError ? (
-          <div className="flex h-full min-h-[28rem] flex-col items-center justify-center gap-3 px-6 text-center">
+          <div className="flex h-full min-h-112 flex-col items-center justify-center gap-3 px-6 text-center">
             <div>
               <p className="text-sm font-medium text-card-foreground">
                 Não foi possível carregar os agendamentos.
@@ -275,6 +297,7 @@ export function AppointmentsCalendar({
             events={events}
             selectedDate={selectedDate}
             selectedEventId={selectedEventId}
+            isLoading={isLoading}
             onEventAnchorChange={setEventAnchorElement}
             onSelectEvent={onListEventSelect}
           />
@@ -284,6 +307,7 @@ export function AppointmentsCalendar({
             plugins={appointmentsCalendarPlugins}
             locale={appointmentsCalendarLocale}
             headerToolbar={false}
+            fixedMirrorParent={document.body}
             initialView={selectedView}
             initialDate={initialCalendarDate}
             firstDay={0}
@@ -291,9 +315,11 @@ export function AppointmentsCalendar({
             weekends
             navLinks
             navLinkDayClick={handleCalendarNavLinkDayClick}
-            editable={true}
+            editable={isMonthGridView}
+            eventStartEditable={isMonthGridView}
+            eventDurationEditable={false}
+            eventDrop={isMonthGridView ? handleEventDrop : undefined}
             allDaySlot={false}
-            eventDrop={handleEventDrop}
             selectable={false}
             stickyHeaderDates={false}
             slotDuration={appointmentsCalendarSlotDuration}
@@ -362,6 +388,32 @@ export function AppointmentsCalendar({
           />
         ) : null}
       </div>
+      <AlertDialog
+        open={openConfirmEventDropDialog}
+        onOpenChange={setOpenConfirmEventDropDialog}
+        title="Atualizar agendamento"
+        descriptionContent={
+          <>
+            Tem certeza que deseja alterar a data do agendamento de{" "}
+            <span className="font-medium text-foreground">
+              {eventToDropUpdate?.event._def.extendedProps.customer}?
+            </span>
+          </>
+        }
+        onConfirm={() => {
+          const shouldConfirm = !!eventToDropUpdate;
+
+          if (shouldConfirm) {
+            handleConfirmEventDrop(eventToDropUpdate);
+          }
+        }}
+        isLoading={updatingAppointment}
+        actionMessage={updatingAppointment ? "Atualizando..." : "Confirmar"}
+        onCancel={() => {
+          eventToDropUpdate?.revert();
+          setOpenConfirmEventDropDialog(false);
+        }}
+      />
     </div>
   );
 }

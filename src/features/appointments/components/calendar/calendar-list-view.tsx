@@ -25,6 +25,7 @@ type CalendarListViewProps = {
   events: AppointmentCalendarEvent[];
   selectedDate: Date;
   selectedEventId: string | null;
+  isLoading: boolean;
   onEventAnchorChange?: (eventId: string, element: HTMLElement | null) => void;
   onSelectEvent: (event: AppointmentCalendarEvent) => void;
 };
@@ -81,6 +82,7 @@ export function CalendarListView({
   selectedEventId,
   onEventAnchorChange,
   onSelectEvent,
+  isLoading,
 }: CalendarListViewProps) {
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
   const days = Array.from({ length: 7 }, (_item, index) => addDays(weekStart, index));
@@ -91,7 +93,7 @@ export function CalendarListView({
     }))
     .filter((group) => group.events.length > 0);
 
-  if (!dayGroups.length) {
+  if (!dayGroups.length && !isLoading) {
     return (
       <div className={styles.calendarListEmptyState}>
         <p className="font-medium text-card-foreground">Nenhum agendamento nesta semana.</p>
