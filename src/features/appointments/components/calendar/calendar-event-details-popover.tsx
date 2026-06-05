@@ -164,7 +164,9 @@ export function CalendarEventDetailsPopover({
           <div className={styles.eventDetailsInfoRow}>
             <CarFront className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0">
-              <p className={styles.eventDetailsInfoPrimary}>{event.extendedProps.vehicle}</p>
+              <p className={styles.eventDetailsInfoPrimary}>
+                {event.extendedProps.vehicle.displayName}
+              </p>
               <p className={styles.eventDetailsInfoSecondary}>Veículo</p>
             </div>
           </div>

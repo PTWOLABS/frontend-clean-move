@@ -195,12 +195,6 @@ function resolveCalendarToolbarTitle(arg: DatesSetArg, view: AppointmentCalendar
   return formatCalendarToolbarTitle(titleStart, titleEnd, view);
 }
 
-function getVehiclePlate(vehicle: string) {
-  const plate = vehicle.trim().slice(-7);
-
-  return plate;
-}
-
 type AppointmentsDateFilterProps = {
   value: Date;
   onChange: (date: Date) => void;
@@ -375,10 +369,7 @@ export function AppointmentsPage() {
         id: event.id,
         startsAt: event.startsAt,
         serviceName: event.extendedProps.service,
-        vehiclePlate:
-          event.extendedProps.vehicle === "Veículo não informado"
-            ? "-------"
-            : getVehiclePlate(event.extendedProps.vehicle),
+        vehiclePlate: event.extendedProps.vehicle.plate || "-------",
         tone: event.extendedProps.tone,
         customerName: event.extendedProps.customer,
       }));

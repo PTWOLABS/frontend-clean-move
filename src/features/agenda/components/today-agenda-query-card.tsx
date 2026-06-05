@@ -111,6 +111,12 @@ function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): Toda
   const startTime = format(startsAt, "HH:mm");
   const vehicleName = getVehicleName(appointment);
   const vehiclePlate = getVehiclePlate(appointment);
+  const vehicleRawPlate = appointment.vehicle?.plate?.trim() ?? "";
+  const vehicleBrand = appointment.vehicle?.brand?.trim() ?? "";
+  const vehicleModel = appointment.vehicle?.model?.trim() ?? "";
+  const vehicleDisplayName =
+    [vehicleBrand, vehicleModel, vehicleRawPlate].filter(Boolean).join(" • ") ||
+    "Veículo não informado";
   const services = mapAppointmentServices(appointment);
 
   return {
@@ -125,6 +131,10 @@ function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): Toda
     vehicleName,
     vehicleLabel: `${vehicleName} • ${vehiclePlate}`,
     vehiclePlate,
+    vehicleRawPlate,
+    vehicleBrand,
+    vehicleModel,
+    vehicleDisplayName,
     serviceName: services[0]?.name ?? "Serviço não informado",
     amountInCents: getAppointmentAmountInCents(appointment),
     discountValue:
@@ -156,7 +166,12 @@ function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): Appointment
       })),
       service: servicesLabel || appointment.serviceName,
       vehicleId: appointment.vehicleId,
-      vehicle: appointment.vehicleLabel,
+      vehicle: {
+        plate: appointment.vehicleRawPlate,
+        brand: appointment.vehicleBrand,
+        model: appointment.vehicleModel,
+        displayName: appointment.vehicleDisplayName,
+      },
       endsAt: appointment.endsAt,
       description: appointment.description,
       discountValue: appointment.discountValue,

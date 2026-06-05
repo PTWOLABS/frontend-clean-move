@@ -193,7 +193,7 @@ export function AppointmentFormSheet({
     setCustomerSearch("");
     setCustomerLabel(appointment?.extendedProps.customer ?? "");
     setVehicleSearch("");
-    setVehicleLabel(appointment?.extendedProps.vehicle ?? "");
+    setVehicleLabel(appointment?.extendedProps.vehicle.displayName ?? "");
     setServiceInputValue("");
     setSelectedCustomerId(formDefaultValues.customerId || null);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -248,7 +248,7 @@ export function AppointmentFormSheet({
       appointment && appointment.extendedProps.vehicleId
         ? [
             {
-              label: appointment.extendedProps.vehicle,
+              label: appointment.extendedProps.vehicle.displayName,
               value: appointment.extendedProps.vehicleId,
             },
           ]

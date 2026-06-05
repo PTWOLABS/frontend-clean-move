@@ -145,7 +145,9 @@ export function AppointmentsDayAgendaCard({
                       </span>
                       <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
                         <CarFront className="size-3.5 shrink-0" />
-                        <span className="truncate">{event.extendedProps.vehicle}</span>
+                        <span className="truncate">
+                          {event.extendedProps.vehicle.plate || "-------"}
+                        </span>
                       </span>
                     </div>
                   </button>
