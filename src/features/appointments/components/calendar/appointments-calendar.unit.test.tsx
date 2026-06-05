@@ -1,10 +1,22 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
+import type { DayCellContentArg, EventDropArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import type FullCalendar from "@fullcalendar/react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode, RefObject } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
+
+const updateAppointmentMutationMock = vi.hoisted(() => ({
+  isPending: false,
+  mutateAsync: vi.fn(),
+}));
+
+const fullCalendarMock = vi.hoisted(() => ({
+  eventDropRevert: vi.fn(),
+}));
 
 vi.mock("@/components/ui/sidebar", () => ({
   useSidebar: () => ({ state: "expanded" }),
@@ -46,6 +58,13 @@ vi.mock("../../hooks/use-selected-calendar-event-popover", () => ({
   }),
 }));
 
+vi.mock("../../hooks/mutations/use-update-appointment-mutation", () => ({
+  useUpdateAppointment: () => ({
+    isPending: updateAppointmentMutationMock.isPending,
+    mutateAsync: updateAppointmentMutationMock.mutateAsync,
+  }),
+}));
+
 vi.mock("@fullcalendar/react", () => ({
   default: ({
     events,
@@ -57,6 +76,10 @@ vi.mock("@fullcalendar/react", () => ({
     moreLinkClick,
     eventClassNames,
     navLinkDayClick,
+    dayCellContent,
+    eventDragStart,
+    eventDragStop,
+    eventDrop,
     height,
   }: {
     events: Array<{
@@ -64,6 +87,10 @@ vi.mock("@fullcalendar/react", () => ({
       title: string;
       start: Date;
       end: Date;
+      allDay: boolean;
+      editable: boolean;
+      startEditable: boolean;
+      durationEditable: boolean;
       extendedProps: Record<string, unknown>;
     }>;
     dateClick: (arg: DateClickArg) => void;
@@ -91,9 +118,15 @@ vi.mock("@fullcalendar/react", () => ({
       event: { id: string; extendedProps: Record<string, unknown> };
     }) => string[];
     navLinkDayClick: (date: Date, jsEvent: UIEvent) => void;
+    dayCellContent: (arg: DayCellContentArg) => ReactNode;
+    eventDragStart: () => void;
+    eventDragStop: () => void;
+    eventDrop: (arg: EventDropArg) => void;
     height: string | number;
   }) => {
     const firstEvent = events[0];
+    const droppedStart = new Date("2026-05-21T13:30:00.000Z");
+    const droppedEnd = new Date("2026-05-21T14:30:00.000Z");
 
     return (
       <div>
@@ -102,6 +135,8 @@ vi.mock("@fullcalendar/react", () => ({
         {firstEvent ? (
           <>
             <p data-testid="event-start">{firstEvent.start.toISOString()}</p>
+            <p data-testid="event-editable">{String(firstEvent.editable)}</p>
+            <p data-testid="event-all-day">{String(firstEvent.allDay)}</p>
             <div data-testid="event-content">
               {eventContent({
                 event: firstEvent,
@@ -128,8 +163,38 @@ vi.mock("@fullcalendar/react", () => ({
             >
               Disparar evento
             </button>
+            <button type="button" onClick={eventDragStart}>
+              Disparar início do arraste
+            </button>
+            <button type="button" onClick={eventDragStop}>
+              Disparar fim do arraste
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                eventDrop({
+                  event: {
+                    id: firstEvent.id,
+                    start: droppedStart,
+                    end: droppedEnd,
+                    _def: {
+                      extendedProps: firstEvent.extendedProps,
+                    },
+                  },
+                  revert: fullCalendarMock.eventDropRevert,
+                } as unknown as EventDropArg)
+              }
+            >
+              Disparar drop
+            </button>
           </>
         ) : null}
+        <div data-testid="time-grid-day-cell">
+          {dayCellContent({
+            date: new Date(2026, 4, 20),
+            view: { type: "timeGridWeek" },
+          } as DayCellContentArg)}
+        </div>
         <div data-testid="more-link">
           {moreLinkContent({ num: 2, view: { type: "dayGridMonth" } })}
         </div>
@@ -197,7 +262,12 @@ const appointmentEvent: AppointmentCalendarEvent = {
     serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
     service: "Lavagem tecnica",
     vehicleId: "vehicle-1",
-    vehicle: "ABC-1234",
+    vehicle: {
+      plate: "ABC-1234",
+      brand: "",
+      model: "",
+      displayName: "ABC-1234",
+    },
     endsAt: new Date("2026-05-20T10:00:00.000Z"),
     description: "Sem observações.",
     discountValue: "",
@@ -239,6 +309,13 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
 }
 
 describe("AppointmentsCalendar", () => {
+  beforeEach(() => {
+    updateAppointmentMutationMock.isPending = false;
+    updateAppointmentMutationMock.mutateAsync.mockReset();
+    updateAppointmentMutationMock.mutateAsync.mockResolvedValue(undefined);
+    fullCalendarMock.eventDropRevert.mockReset();
+  });
+
   it("renders an error state and calls onRetry", async () => {
     const user = userEvent.setup();
     const onRetry = vi.fn();
@@ -301,6 +378,8 @@ describe("AppointmentsCalendar", () => {
     expect(screen.getByText("Carregando agendamentos...")).toBeInTheDocument();
     expect(screen.getByText("Lavagem tecnica")).toBeInTheDocument();
     expect(screen.getByTestId("event-start")).toHaveTextContent("2026-05-20T09:00:00.000Z");
+    expect(screen.getByTestId("event-editable")).toHaveTextContent("true");
+    expect(screen.getByTestId("event-all-day")).toHaveTextContent("false");
     expect(screen.getByText("mais 2 agendamentos...")).toHaveClass("sr-only");
     expect(screen.getByText("+2 ag.")).toBeInTheDocument();
     expect(screen.getByTestId("event-class-names").textContent).toContain("eventSelected");
@@ -328,6 +407,56 @@ describe("AppointmentsCalendar", () => {
         end: new Date("2026-06-01T00:00:00.000Z"),
       }),
     );
+  });
+
+  it("updates an appointment from eventDrop with the dropped date/time", async () => {
+    const user = userEvent.setup();
+    const droppedStart = new Date("2026-05-21T13:30:00.000Z");
+    const droppedEnd = new Date("2026-05-21T14:30:00.000Z");
+
+    renderCalendar();
+
+    await user.click(screen.getByRole("button", { name: /disparar drop/i }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    await waitFor(() => {
+      expect(updateAppointmentMutationMock.mutateAsync).toHaveBeenCalledWith({
+        appointmentId: "appointment-1",
+        body: {
+          startsAt: formatLocalDateTimeAsUtcISOString(droppedStart),
+          endsAt: formatLocalDateTimeAsUtcISOString(droppedEnd),
+        },
+      });
+    });
+    expect(fullCalendarMock.eventDropRevert).not.toHaveBeenCalled();
+  });
+
+  it("reverts the dropped event when updating the appointment fails", async () => {
+    const user = userEvent.setup();
+
+    updateAppointmentMutationMock.mutateAsync.mockRejectedValueOnce(new Error("Erro no update"));
+
+    renderCalendar();
+
+    await user.click(screen.getByRole("button", { name: /disparar drop/i }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    await waitFor(() => {
+      expect(fullCalendarMock.eventDropRevert).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("marks the calendar frame while an event is being dragged", async () => {
+    const user = userEvent.setup();
+    const { container } = renderCalendar();
+
+    expect(container.querySelector('[data-event-dragging="true"]')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /disparar início do arraste/i }));
+
+    await user.click(screen.getByRole("button", { name: /disparar fim do arraste/i }));
+
+    expect(container.querySelector('[data-event-dragging="true"]')).not.toBeInTheDocument();
   });
 
   it("renders the selected event details popover and closes it", async () => {

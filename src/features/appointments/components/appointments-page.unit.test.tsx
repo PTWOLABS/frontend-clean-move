@@ -212,7 +212,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
               extendedProps: {
                 customer: "Bruno Lima",
                 service: "Polimento",
-                vehicle: "XYZ-9876",
+                vehicle: {
+                  plate: "XYZ-9876",
+                  brand: "",
+                  model: "",
+                  displayName: "XYZ-9876",
+                },
                 notes: "Sem observações.",
                 tone: "success",
                 status: "DONE",
@@ -249,7 +254,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
               serviceIds: [{ value: "service-2", label: "Polimento" }],
               service: "Polimento",
               vehicleId: "vehicle-2",
-              vehicle: "XYZ-9876",
+              vehicle: {
+                plate: "XYZ-9876",
+                brand: "",
+                model: "",
+                displayName: "XYZ-9876",
+              },
               endsAt: new Date("2026-05-21T12:00:00.000Z"),
               description: "Sem observações.",
               discountValue: "",
@@ -271,7 +281,7 @@ vi.mock("./upcoming-appointments-card", () => ({
     appointments,
     isLoading,
   }: {
-    appointments: Array<{ serviceName: string }>;
+    appointments: Array<{ serviceName: string; vehiclePlate: string }>;
     isLoading?: boolean;
   }) => (
     <div>
@@ -279,6 +289,10 @@ vi.mock("./upcoming-appointments-card", () => ({
       <p>
         Próximos agendamentos:{" "}
         {appointments.map((appointment) => appointment.serviceName).join(", ") || "nenhum"}
+      </p>
+      <p>
+        Placas dos próximos:{" "}
+        {appointments.map((appointment) => appointment.vehiclePlate).join(", ") || "nenhum"}
       </p>
     </div>
   ),
@@ -367,7 +381,12 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
       serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
       service: "Lavagem tecnica",
       vehicleId: "vehicle-1",
-      vehicle: "ABC-1234",
+      vehicle: {
+        plate: "ABC-1234",
+        brand: "",
+        model: "",
+        displayName: "ABC-1234",
+      },
       endsAt: new Date("2026-05-20T10:00:00.000Z"),
       description: "Sem observações.",
       discountValue: "",
@@ -387,7 +406,12 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
       serviceIds: [{ value: "service-2", label: "Polimento" }],
       service: "Polimento",
       vehicleId: "vehicle-2",
-      vehicle: "XYZ-9876",
+      vehicle: {
+        plate: "XYZ-9876",
+        brand: "",
+        model: "",
+        displayName: "XYZ-9876",
+      },
       endsAt: new Date("2026-05-21T12:00:00.000Z"),
       description: "Sem observações.",
       discountValue: "",
@@ -416,10 +440,12 @@ function mockMatchMedia(matches: boolean) {
 
 function makeFutureAppointmentEvent({
   id,
+  plate = "ABC-1234",
   serviceName,
   daysFromNow,
 }: {
   id: string;
+  plate?: string;
   serviceName: string;
   daysFromNow: number;
 }): AppointmentCalendarEvent {
@@ -441,7 +467,12 @@ function makeFutureAppointmentEvent({
       serviceIds: [{ value: "service-1", label: serviceName }],
       service: serviceName,
       vehicleId: "vehicle-1",
-      vehicle: "ABC-1234",
+      vehicle: {
+        plate,
+        brand: "Toyota",
+        model: "Corolla",
+        displayName: plate ? `Toyota • Corolla • ${plate}` : "Toyota • Corolla",
+      },
       endsAt: end,
       description: "Sem observações.",
       discountValue: "",
@@ -571,6 +602,28 @@ describe("AppointmentsPage", () => {
 
     expect(screen.getByText("Próximos agendamentos: Lavagem inicial")).toBeInTheDocument();
     expect(screen.queryByText("Próximos agendamentos: Polimento filtrado")).not.toBeInTheDocument();
+  });
+
+  it("uses the separated vehicle plate for upcoming appointments", async () => {
+    useListCalendarAppointmentsMock.mockReturnValue({
+      data: [
+        makeFutureAppointmentEvent({
+          id: "without-plate",
+          plate: "",
+          serviceName: "Lavagem sem placa",
+          daysFromNow: 1,
+        }),
+      ],
+      isPending: false,
+      isFetching: false,
+      isError: false,
+      refetch: vi.fn(),
+      error: null,
+    });
+
+    render(<AppointmentsPage />);
+
+    expect(await screen.findByText("Placas dos próximos: -------")).toBeInTheDocument();
   });
 
   it("keeps list ranges mapped to the list view filter and weekly title", async () => {

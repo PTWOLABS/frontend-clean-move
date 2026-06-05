@@ -31,7 +31,12 @@ function makeEventContentArg({
         serviceIds: [{ value: "service-1", label: "Lavagem completa" }],
         service: "Lavagem completa",
         vehicleId: "vehicle-1",
-        vehicle: "ABC-1234",
+        vehicle: {
+          plate: "ABC-1234",
+          brand: "",
+          model: "",
+          displayName: "ABC-1234",
+        },
         endsAt: end,
         description: "Sem observações.",
         discountValue: "",

@@ -16,7 +16,12 @@ const appointmentEvent: AppointmentCalendarEvent = {
     serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
     service: "Lavagem tecnica, Higienizacao",
     vehicleId: "vehicle-1",
-    vehicle: "Veículo não informado",
+    vehicle: {
+      plate: "",
+      brand: "",
+      model: "",
+      displayName: "Veículo não informado",
+    },
     endsAt: new Date("2026-05-20T10:15:00.000Z"),
     description: "",
     discountValue: "",

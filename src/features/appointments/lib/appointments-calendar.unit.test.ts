@@ -126,11 +126,40 @@ describe("appointments-calendar helpers", () => {
       { value: "service-3", label: "Higienizacao" },
     ]);
     expect(appointments[1]?.extendedProps.vehicleId).toBe("");
-    expect(appointments[1]?.extendedProps.vehicle).toBe("Veículo não informado");
+    expect(appointments[1]?.extendedProps.vehicle).toEqual({
+      plate: "",
+      brand: "",
+      model: "",
+      displayName: "Veículo não informado",
+    });
     expect(appointments[1]?.extendedProps.endsAt).toBeNull();
     expect(appointments[1]?.extendedProps.description).toBe("");
     expect(appointments[1]?.extendedProps.discountValue).toBe("");
     expect(appointments[1]?.extendedProps.notes).toBe("Sem observações operacionais.");
+  });
+
+  it("keeps vehicle plate separated from the display name", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[0]!,
+          vehicle: {
+            plate: null,
+            brand: "Toyota",
+            model: "Corolla",
+            color: "Preto",
+            year: 2024,
+          },
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.vehicle).toEqual({
+      plate: "",
+      brand: "Toyota",
+      model: "Corolla",
+      displayName: "Toyota • Corolla",
+    });
   });
 
   it("filters only the appointments of the selected day", () => {
