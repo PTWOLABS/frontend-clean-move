@@ -17,6 +17,7 @@ export type AuthSessionResponse = {
 
 export type GoogleLoginPayload = {
   idToken: string;
+  role: "CUSTOMER" | "ESTABLISHMENT";
 };
 
 /** @deprecated Preferir AuthSessionResponse. */
