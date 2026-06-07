@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ApiError } from "@/shared/api/httpClient";
 import { getMutationFeedbackError } from "@/shared/hooks/use-mutation-feedback-error";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
+import type { Establishment } from "@/features/establishment/types";
 
 import { uploadEstablishmentBanner } from "../api/upload-establishment-banner";
 
@@ -21,12 +22,21 @@ export function useUploadEstablishmentBanner() {
     mutationFn: ({ establishmentId, file }: UploadBannerVariables) =>
       uploadEstablishmentBanner(establishmentId, file),
     onSuccess: (data, { establishmentId }) => {
-      // GET /establishments/:id não devolve bannerImageUrl; persistimos só no cache da sessão.
-      queryClient.setQueryData<string | null>(
-        QUERY_KEYS.establishmentBanner(establishmentId),
-        data.url,
+      queryClient.setQueryData<Establishment | undefined>(
+        QUERY_KEYS.establishment(establishmentId),
+        (current) => {
+          if (!current) return current;
+
+          return {
+            ...current,
+            bannerImageUrl: data.url,
+          };
+        },
       );
 
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.establishment(establishmentId),
+      });
       toast.success("Configurações salvas com sucesso.");
     },
     onError: (error) => {

@@ -1,7 +1,7 @@
 "use client";
 
+import { useEstablishment } from "@/features/establishment/hooks/use-establishment";
 import type { User } from "@/features/user/types";
-import { useEstablishmentBannerUrl } from "@/features/establishment/hooks/use-establishment-banner-url";
 
 import { useUploadEstablishmentBanner } from "../hooks/use-upload-establishment-banner";
 import { useUploadUserProfileImage } from "../hooks/use-upload-user-profile-image";
@@ -18,7 +18,7 @@ export function SettingsAppearanceTab({ user, showBannerUpload }: SettingsAppear
   const { mutate: uploadBanner, isPending: isBannerPending } = useUploadEstablishmentBanner();
 
   const establishmentId = user.establishmentId;
-  const { data: bannerUrl } = useEstablishmentBannerUrl(establishmentId);
+  const { data: establishment } = useEstablishment(showBannerUpload ? establishmentId : null);
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,7 @@ export function SettingsAppearanceTab({ user, showBannerUpload }: SettingsAppear
       {showBannerUpload ? (
         <SettingsAppearanceUploadSection
           variant="banner"
-          existingImageUrl={bannerUrl ?? null}
+          existingImageUrl={establishment?.bannerImageUrl ?? null}
           disabled={!establishmentId}
           disabledMessage="Estabelecimento não encontrado. Complete o cadastro comercial para enviar o banner."
           isPending={isBannerPending}

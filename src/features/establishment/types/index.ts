@@ -4,6 +4,7 @@ export type Establishment = {
   legalBusinessName: string | null;
   cnpj: string | null;
   slug: string | null;
+  bannerImageUrl: string | null;
 };
 
 export type GetEstablishmentResponse = {

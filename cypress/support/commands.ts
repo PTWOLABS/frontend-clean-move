@@ -106,6 +106,7 @@ function buildEstablishmentResponse() {
       legalBusinessName: "CleanMove LTDA",
       cnpj: "12345678000190",
       slug: "cleanmove-auto-center",
+      bannerImageUrl: null,
     },
   };
 }
