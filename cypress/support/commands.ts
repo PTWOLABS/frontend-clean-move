@@ -73,17 +73,19 @@ function buildUserMeResponse(overrides: { id?: string; name?: string; email?: st
   return {
     user: {
       id,
+      establishmentId: "6eaf3de8-8216-4a55-8cee-b1d374e07c6e",
       name,
       email,
-      role: "CUSTOMER",
-      phone: "",
+      role: "ESTABLISHMENT",
+      profileImageUrl: null,
+      phone: "11987654321",
       address: {
-        street: "",
-        complement: "",
-        country: "",
-        state: "",
-        zipCode: "",
-        city: "",
+        street: "Estrada Farmaceutico Oswaldo Paiva",
+        complement: null,
+        country: "Brasil",
+        state: "SP",
+        zipCode: "13963060",
+        city: "Socorro",
       },
       socialAccounts: [],
       profileComplete: true,
@@ -91,6 +93,64 @@ function buildUserMeResponse(overrides: { id?: string; name?: string; email?: st
       updatedAt: "2026-01-01T00:00:00.000Z",
     },
   };
+}
+
+const defaultEstablishmentId = "6eaf3de8-8216-4a55-8cee-b1d374e07c6e";
+
+/** Corpo de `GET /establishments/:id` para stubs E2E. */
+function buildEstablishmentResponse() {
+  return {
+    establishment: {
+      id: defaultEstablishmentId,
+      tradeName: "CleanMove Auto Center",
+      legalBusinessName: "CleanMove LTDA",
+      cnpj: "12345678000190",
+      slug: "cleanmove-auto-center",
+    },
+  };
+}
+
+function stubAuthenticatedUserEndpoints(
+  userOverrides: { id?: string; name?: string; email?: string } = {},
+) {
+  cy.intercept("GET", "**/user/me", {
+    statusCode: 200,
+    body: buildUserMeResponse(userOverrides),
+  });
+  cy.intercept("GET", "**/establishments/*", {
+    statusCode: 200,
+    body: buildEstablishmentResponse(),
+  });
+  cy.intercept("PATCH", "**/establishments/*", (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        establishment: {
+          ...buildEstablishmentResponse().establishment,
+          ...(req.body as Record<string, unknown>),
+        },
+      },
+    });
+  });
+  cy.intercept("PATCH", "**/user/me", (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        user: {
+          ...buildUserMeResponse(userOverrides).user,
+          ...(req.body as Record<string, unknown>),
+        },
+      },
+    });
+  });
+  cy.intercept("POST", "**/user/profile-image", {
+    statusCode: 201,
+    body: { url: "https://cdn.example.com/profile.jpg" },
+  });
+  cy.intercept("POST", "**/establishments/*/banner-image", {
+    statusCode: 201,
+    body: { url: "https://cdn.example.com/banner.jpg" },
+  });
 }
 
 Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" } = {}) => {
@@ -107,10 +167,7 @@ Cypress.Commands.add("stubLogin", ({ status = 200, body, alias = "loginRequest" 
         userId: String(responseBody.userId ?? "1"),
       },
     });
-    cy.intercept("GET", "**/user/me", {
-      statusCode: 200,
-      body: buildUserMeResponse(),
-    });
+    stubAuthenticatedUserEndpoints();
   }
 
   cy.intercept("POST", "**/auth/login", {
@@ -145,13 +202,10 @@ Cypress.Commands.add(
           userId: String(responseBody.userId ?? "google-user-1"),
         },
       });
-      cy.intercept("GET", "**/user/me", {
-        statusCode: 200,
-        body: buildUserMeResponse({
-          id: "google-user-1",
-          name: "João Google",
-          email: "joao@email.com",
-        }),
+      stubAuthenticatedUserEndpoints({
+        id: "google-user-1",
+        name: "João Google",
+        email: "joao@email.com",
       });
     }
 
