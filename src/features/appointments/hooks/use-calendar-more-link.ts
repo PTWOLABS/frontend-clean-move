@@ -439,6 +439,7 @@ export function useCalendarMoreLink() {
 
   return {
     isMorePopoverOpen,
+    closeActiveMorePopover,
     handleMoreLinkDidMount,
     handleMoreLinkWillUnmount,
     handleMoreLinkClick,

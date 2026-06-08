@@ -27,6 +27,10 @@ export type TodayAgendaItem = {
   vehicleName: string;
   vehicleLabel: string;
   vehiclePlate: string;
+  vehicleRawPlate: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehicleDisplayName: string;
   serviceName: string;
   amountInCents: number;
   discountValue: string;

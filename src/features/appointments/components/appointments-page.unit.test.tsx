@@ -68,9 +68,10 @@ vi.mock("./appointments-calendar-toolbar", () => ({
   }: {
     calendarRef: RefObject<FullCalendar | null>;
     calendarTitle: string;
+    selectedDate: Date;
     selectedView: string;
     onSelectDate: (date: Date) => void;
-    onSelectView: (view: "dayGridMonth" | "timeGridWeek" | "timeGridDay") => void;
+    onSelectView: (view: "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek") => void;
   }) => (
     <div>
       <p>Título do calendário: {calendarTitle}</p>
@@ -91,12 +92,15 @@ vi.mock("./calendar/appointments-calendar", () => ({
     selectedEventId,
     selectedEventPopoverId,
     selectedSlotKey,
+    createAppointmentOnMonthCellClick,
     updatingStatusAppointmentId,
     onClearSelectedEvent,
+    onDayNumberClick,
     onEditEvent,
     onDateClick,
     onDatesSet,
     onEventClick,
+    onListEventSelect,
     onSlotPress,
     onMonthCellPress,
     onRetry,
@@ -105,14 +109,17 @@ vi.mock("./calendar/appointments-calendar", () => ({
     selectedEventId: string | null;
     selectedEventPopoverId: string | null;
     selectedSlotKey: string | null;
+    createAppointmentOnMonthCellClick: boolean;
     updatingStatusAppointmentId: string | null;
     isLoading: boolean;
     isError: boolean;
     onClearSelectedEvent: () => void;
+    onDayNumberClick: (date: Date) => void;
     onEditEvent: (event: AppointmentEventMock) => void;
     onDateClick: (info: DateClickArg) => void;
     onDatesSet: (arg: DatesSetArg) => void;
     onEventClick: (info: EventClickArg) => void;
+    onListEventSelect: (event: AppointmentEventMock) => void;
     onSlotPress: (date: Date) => void;
     onMonthCellPress: (date: Date) => void;
     onRetry: () => void;
@@ -124,6 +131,7 @@ vi.mock("./calendar/appointments-calendar", () => ({
       <p>Evento selecionado no calendário: {selectedEventId ?? "nenhum"}</p>
       <p>Popover selecionado no calendário: {selectedEventPopoverId ?? "nenhum"}</p>
       <p>Slot selecionado no calendário: {selectedSlotKey ?? "nenhum"}</p>
+      <p>Criação por célula mensal: {createAppointmentOnMonthCellClick ? "sim" : "não"}</p>
       <p>Status atualizando no calendário: {updatingStatusAppointmentId ?? "nenhum"}</p>
       <button
         type="button"
@@ -141,6 +149,9 @@ vi.mock("./calendar/appointments-calendar", () => ({
       </button>
       <button type="button" onClick={() => onMonthCellPress(new Date("2026-05-21T00:00:00.000Z"))}>
         Selecionar célula mensal
+      </button>
+      <button type="button" onClick={() => onDayNumberClick(new Date("2026-05-22T00:00:00.000Z"))}>
+        Clicar número do dia
       </button>
       <button
         type="button"
@@ -181,12 +192,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
         onClick={() =>
           onDatesSet({
             start: new Date("2026-05-08T00:00:00.000Z"),
-            end: new Date("2026-05-09T00:00:00.000Z"),
-            view: { title: "8 de maio de 2026", type: "listDay" },
+            end: new Date("2026-05-15T00:00:00.000Z"),
+            view: { title: "8 - 14 de maio de 2026", type: "listWeek" },
           } as DatesSetArg)
         }
       >
-        Atualizar dia em lista
+        Atualizar semana em lista
       </button>
       <button
         type="button"
@@ -201,7 +212,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
               extendedProps: {
                 customer: "Bruno Lima",
                 service: "Polimento",
-                vehicle: "XYZ-9876",
+                vehicle: {
+                  plate: "XYZ-9876",
+                  brand: "",
+                  model: "",
+                  displayName: "XYZ-9876",
+                },
                 notes: "Sem observações.",
                 tone: "success",
                 status: "DONE",
@@ -214,6 +230,9 @@ vi.mock("./calendar/appointments-calendar", () => ({
       </button>
       <button type="button" onClick={onRetry}>
         Recarregar calendário
+      </button>
+      <button type="button" onClick={() => onListEventSelect(appointmentEvents[0]!)}>
+        Selecionar evento da lista
       </button>
       <button type="button" onClick={onClearSelectedEvent}>
         Fechar popover do calendário
@@ -235,7 +254,12 @@ vi.mock("./calendar/appointments-calendar", () => ({
               serviceIds: [{ value: "service-2", label: "Polimento" }],
               service: "Polimento",
               vehicleId: "vehicle-2",
-              vehicle: "XYZ-9876",
+              vehicle: {
+                plate: "XYZ-9876",
+                brand: "",
+                model: "",
+                displayName: "XYZ-9876",
+              },
               endsAt: new Date("2026-05-21T12:00:00.000Z"),
               description: "Sem observações.",
               discountValue: "",
@@ -257,7 +281,7 @@ vi.mock("./upcoming-appointments-card", () => ({
     appointments,
     isLoading,
   }: {
-    appointments: Array<{ serviceName: string }>;
+    appointments: Array<{ serviceName: string; vehiclePlate: string }>;
     isLoading?: boolean;
   }) => (
     <div>
@@ -265,6 +289,10 @@ vi.mock("./upcoming-appointments-card", () => ({
       <p>
         Próximos agendamentos:{" "}
         {appointments.map((appointment) => appointment.serviceName).join(", ") || "nenhum"}
+      </p>
+      <p>
+        Placas dos próximos:{" "}
+        {appointments.map((appointment) => appointment.vehiclePlate).join(", ") || "nenhum"}
       </p>
     </div>
   ),
@@ -319,9 +347,11 @@ vi.mock("./appointments-day-agenda-card", () => ({
 vi.mock("./form-sheet/appointment-form-sheet", () => ({
   AppointmentFormSheet: ({
     appointment,
+    defaultStartsAt,
     open,
   }: {
     appointment?: AppointmentEventMock | null;
+    defaultStartsAt: Date;
     open: boolean;
     onOpenChange: (open: boolean) => void;
   }) => (
@@ -329,6 +359,7 @@ vi.mock("./form-sheet/appointment-form-sheet", () => ({
       data-testid="appointment-form-sheet"
       data-open={String(open)}
       data-appointment-id={appointment?.id ?? ""}
+      data-default-starts-at={defaultStartsAt.toISOString()}
     />
   ),
 }));
@@ -350,7 +381,12 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
       serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
       service: "Lavagem tecnica",
       vehicleId: "vehicle-1",
-      vehicle: "ABC-1234",
+      vehicle: {
+        plate: "ABC-1234",
+        brand: "",
+        model: "",
+        displayName: "ABC-1234",
+      },
       endsAt: new Date("2026-05-20T10:00:00.000Z"),
       description: "Sem observações.",
       discountValue: "",
@@ -370,7 +406,12 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
       serviceIds: [{ value: "service-2", label: "Polimento" }],
       service: "Polimento",
       vehicleId: "vehicle-2",
-      vehicle: "XYZ-9876",
+      vehicle: {
+        plate: "XYZ-9876",
+        brand: "",
+        model: "",
+        displayName: "XYZ-9876",
+      },
       endsAt: new Date("2026-05-21T12:00:00.000Z"),
       description: "Sem observações.",
       discountValue: "",
@@ -381,12 +422,30 @@ const appointmentEvents: AppointmentCalendarEvent[] = [
   },
 ];
 
+function mockMatchMedia(matches: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 function makeFutureAppointmentEvent({
   id,
+  plate = "ABC-1234",
   serviceName,
   daysFromNow,
 }: {
   id: string;
+  plate?: string;
   serviceName: string;
   daysFromNow: number;
 }): AppointmentCalendarEvent {
@@ -408,7 +467,12 @@ function makeFutureAppointmentEvent({
       serviceIds: [{ value: "service-1", label: serviceName }],
       service: serviceName,
       vehicleId: "vehicle-1",
-      vehicle: "ABC-1234",
+      vehicle: {
+        plate,
+        brand: "Toyota",
+        model: "Corolla",
+        displayName: plate ? `Toyota • Corolla • ${plate}` : "Toyota • Corolla",
+      },
       endsAt: end,
       description: "Sem observações.",
       discountValue: "",
@@ -421,6 +485,7 @@ function makeFutureAppointmentEvent({
 
 describe("AppointmentsPage", () => {
   beforeEach(() => {
+    mockMatchMedia(false);
     updateAppointmentStatusMutateMock.mockClear();
     useQueryFeedbackErrorMock.mockReturnValue(null);
     useUpdateAppointmentStatusMock.mockReturnValue({
@@ -539,16 +604,51 @@ describe("AppointmentsPage", () => {
     expect(screen.queryByText("Próximos agendamentos: Polimento filtrado")).not.toBeInTheDocument();
   });
 
-  it("keeps list-like day ranges mapped to the day view filter and full date title", async () => {
+  it("uses the separated vehicle plate for upcoming appointments", async () => {
+    useListCalendarAppointmentsMock.mockReturnValue({
+      data: [
+        makeFutureAppointmentEvent({
+          id: "without-plate",
+          plate: "",
+          serviceName: "Lavagem sem placa",
+          daysFromNow: 1,
+        }),
+      ],
+      isPending: false,
+      isFetching: false,
+      isError: false,
+      refetch: vi.fn(),
+      error: null,
+    });
+
+    render(<AppointmentsPage />);
+
+    expect(await screen.findByText("Placas dos próximos: -------")).toBeInTheDocument();
+  });
+
+  it("keeps list ranges mapped to the list view filter and weekly title", async () => {
     const user = userEvent.setup();
 
     render(<AppointmentsPage />);
 
-    await user.click(screen.getByRole("button", { name: /atualizar dia em lista/i }));
+    await user.click(screen.getByRole("button", { name: /atualizar semana em lista/i }));
 
-    expect(screen.getByText("Título do calendário: 8 de maio de 2026")).toBeInTheDocument();
-    expect(screen.getByLabelText("Visualização")).toHaveValue("timeGridDay");
-    expect(screen.getByDisplayValue("Visualização: Dia")).toBeInTheDocument();
+    expect(screen.getByText("Título do calendário: 8 - 14 de mai de 2026")).toBeInTheDocument();
+    expect(screen.getByLabelText("Visualização")).toHaveValue("listWeek");
+    expect(screen.getByDisplayValue("Visualização: Lista")).toBeInTheDocument();
+  });
+
+  it("switches to list view when the user clicks a day number in the calendar", async () => {
+    const user = userEvent.setup();
+
+    render(<AppointmentsPage />);
+
+    await user.click(screen.getByRole("button", { name: /clicar número do dia/i }));
+
+    expect(screen.getByText("Título do calendário: 17 - 23 de mai de 2026")).toBeInTheDocument();
+    expect(screen.getByLabelText("Visualização")).toHaveValue("listWeek");
+    expect(screen.getByDisplayValue("Visualização: Lista")).toBeInTheDocument();
+    expect(screen.getByText("Slot selecionado no calendário: nenhum")).toBeInTheDocument();
   });
 
   it("uses the current month for the monthly title instead of the visible grid start", async () => {
@@ -632,6 +732,23 @@ describe("AppointmentsPage", () => {
     await user.click(screen.getByRole("button", { name: /selecionar célula mensal/i }));
 
     expect(screen.getByText("Slot selecionado no calendário: nenhum")).toBeInTheDocument();
+  });
+
+  it("opens appointment creation from month cell clicks on compact screens", async () => {
+    const user = userEvent.setup();
+
+    mockMatchMedia(true);
+    render(<AppointmentsPage />);
+
+    expect(screen.getByText("Criação por célula mensal: sim")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /clicar data mensal/i }));
+
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute("data-open", "true");
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute(
+      "data-default-starts-at",
+      "2026-05-20T00:00:00.000Z",
+    );
   });
 
   it("refetches appointments from child retry actions", async () => {

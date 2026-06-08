@@ -3,10 +3,19 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
-import { format, isSameDay, isSameMonth, isSameYear, startOfMonth, subDays } from "date-fns";
+import {
+  addDays,
+  format,
+  isSameDay,
+  isSameMonth,
+  isSameYear,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,19 +98,29 @@ function getInitialVisibleRange(date: Date) {
   };
 }
 
+function getListWeekVisibleRange(date: Date) {
+  const start = startOfWeek(normalizeCalendarDate(date), { weekStartsOn: 0 });
+
+  return {
+    start,
+    end: addDays(start, 7),
+  };
+}
+
 function capitalizeFirst(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function isAppointmentCalendarView(view: string): view is AppointmentCalendarView {
-  return view === "dayGridMonth" || view === "timeGridWeek" || view === "timeGridDay";
+  return (
+    view === "dayGridMonth" ||
+    view === "timeGridWeek" ||
+    view === "timeGridDay" ||
+    view === "listWeek"
+  );
 }
 
-function resolveAppointmentCalendarView(
-  view: string,
-  rawStart: Date,
-  rawEndExclusive: Date,
-): AppointmentCalendarView {
+function resolveAppointmentCalendarView(view: string): AppointmentCalendarView {
   if (isAppointmentCalendarView(view)) {
     return view;
   }
@@ -112,14 +131,15 @@ function resolveAppointmentCalendarView(
     return "dayGridMonth";
   }
 
+  if (normalizedView.includes("list")) {
+    return "listWeek";
+  }
+
   if (normalizedView.includes("week")) {
     return "timeGridWeek";
   }
 
-  const start = normalizeCalendarDate(rawStart);
-  const end = subDays(normalizeCalendarDate(rawEndExclusive), 1);
-
-  if (normalizedView.includes("day") || normalizedView.includes("list") || isSameDay(start, end)) {
+  if (normalizedView.includes("day")) {
     return "timeGridDay";
   }
 
@@ -173,12 +193,6 @@ function resolveCalendarToolbarTitle(arg: DatesSetArg, view: AppointmentCalendar
   const titleEnd = view === "dayGridMonth" ? arg.view.currentEnd : arg.end;
 
   return formatCalendarToolbarTitle(titleStart, titleEnd, view);
-}
-
-function getVehiclePlate(vehicle: string) {
-  const plate = vehicle.trim().slice(-7);
-
-  return plate;
 }
 
 type AppointmentsDateFilterProps = {
@@ -355,10 +369,7 @@ export function AppointmentsPage() {
         id: event.id,
         startsAt: event.startsAt,
         serviceName: event.extendedProps.service,
-        vehiclePlate:
-          event.extendedProps.vehicle === "Veículo não informado"
-            ? "-------"
-            : getVehiclePlate(event.extendedProps.vehicle),
+        vehiclePlate: event.extendedProps.vehicle.plate || "-------",
         tone: event.extendedProps.tone,
         customerName: event.extendedProps.customer,
       }));
@@ -383,7 +394,19 @@ export function AppointmentsPage() {
     setSelectedEventId(null);
     setSelectedSlotKey(null);
     syncSelection(date);
+
+    if (selectedView === "listWeek") {
+      const nextRange = getListWeekVisibleRange(date);
+
+      setCalendarTitle(formatCalendarToolbarTitle(nextRange.start, nextRange.end, selectedView));
+      setVisibleRange(nextRange);
+    }
   }
+
+  const clearCalendarPopovers = useCallback(() => {
+    setSelectedEventId(null);
+    setSelectedSlotKey(null);
+  }, []);
 
   function handleDateFilterSelect(date: Date) {
     const selectedDate = normalizeCalendarDate(date);
@@ -393,9 +416,22 @@ export function AppointmentsPage() {
   }
 
   function handleCalendarViewChange(nextView: AppointmentCalendarView) {
+    clearCalendarPopovers();
     setSelectedView(nextView);
 
     const calendarApi = calendarRef.current?.getApi();
+
+    if (nextView === "listWeek") {
+      const nextDate = calendarApi?.getDate() ?? selectedDate;
+      const nextRange = getListWeekVisibleRange(nextDate);
+
+      setSelectionSource("manual");
+      setCalendarTitle(formatCalendarToolbarTitle(nextRange.start, nextRange.end, nextView));
+      setVisibleRange(nextRange);
+      syncSelection(nextDate);
+
+      return;
+    }
 
     if (!calendarApi) {
       return;
@@ -403,6 +439,18 @@ export function AppointmentsPage() {
 
     calendarApi.changeView(nextView);
     syncSelection(calendarApi.getDate());
+  }
+
+  function handleCalendarDayNumberClick(date: Date) {
+    const nextDate = normalizeCalendarDate(date);
+    const nextRange = getListWeekVisibleRange(nextDate);
+
+    clearCalendarPopovers();
+    setSelectionSource("manual");
+    setSelectedView("listWeek");
+    setCalendarTitle(formatCalendarToolbarTitle(nextRange.start, nextRange.end, "listWeek"));
+    setVisibleRange(nextRange);
+    syncSelection(nextDate);
   }
 
   function handleStatusFilterChange(nextStatus: AppointmentStatusFilter) {
@@ -419,6 +467,7 @@ export function AppointmentsPage() {
 
     // Ao entrar no layout compacto, a visão semanal sai da navegação.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- sincronização explícita com breakpoint responsivo
+    clearCalendarPopovers();
     setSelectedView("dayGridMonth");
 
     const calendarApi = calendarRef.current?.getApi();
@@ -429,7 +478,7 @@ export function AppointmentsPage() {
 
     calendarApi.changeView("dayGridMonth");
     setSelectedDate(calendarApi.getDate());
-  }, [isCompactCalendarNavigation, selectedView]);
+  }, [clearCalendarPopovers, isCompactCalendarNavigation, selectedView]);
 
   function handleSlotPress(date: Date) {
     setSelectionSource("manual");
@@ -446,7 +495,11 @@ export function AppointmentsPage() {
   }
 
   function handleDatesSet(arg: DatesSetArg) {
-    const nextView = resolveAppointmentCalendarView(arg.view.type, arg.start, arg.end);
+    const nextView = resolveAppointmentCalendarView(arg.view.type);
+
+    if (nextView !== selectedView) {
+      clearCalendarPopovers();
+    }
 
     setCalendarTitle(resolveCalendarToolbarTitle(arg, nextView));
     setSelectedView(nextView);
@@ -459,6 +512,11 @@ export function AppointmentsPage() {
   function handleDateClick(info: DateClickArg) {
     if (info.view.type === "dayGridMonth") {
       handleMonthCellPress(info.date);
+
+      if (isCompactCalendarNavigation) {
+        handleCreateAppointmentSheetOpen(true);
+      }
+
       return;
     }
 
@@ -547,10 +605,10 @@ export function AppointmentsPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-              Agendamentos
+              Calendário
             </h1>
             <p className="text-sm leading-6 text-muted-foreground">
-              Visualize e gerencie todos os agendamentos da sua operação.
+              Visualize e organize os agendamentos da sua operação por data e horário.
             </p>
           </div>
 
@@ -601,6 +659,7 @@ export function AppointmentsPage() {
             <AppointmentsCalendarToolbar
               calendarRef={calendarRef}
               calendarTitle={calendarTitle}
+              selectedDate={resolvedSelectedDate}
               selectedView={selectedView}
               viewOptions={availableViewToggleOptions}
               onSelectDate={handleSelectDate}
@@ -621,15 +680,18 @@ export function AppointmentsPage() {
               selectedEventPopoverId={selectedEventFromState?.id ?? null}
               selectedSlotKey={selectedSlotKey}
               selectedView={selectedView}
+              createAppointmentOnMonthCellClick={isCompactCalendarNavigation}
               updatingStatusAppointmentId={updatingStatusAppointmentId}
               onClearSelectedEvent={handleClearSelectedEvent}
               onDateClick={handleDateClick}
+              onDayNumberClick={handleCalendarDayNumberClick}
               onDatesSet={handleDatesSet}
               onEventClick={handleEventClick}
               onMonthCellPress={handleMonthCellPress}
               onSlotPress={handleSlotPress}
               onCellAddIndicatorPress={handleCreateAppointmentSheetOpen}
               onEditEvent={handleEditAppointmentFromPopover}
+              onListEventSelect={handleSelectEvent}
               onStatusChange={handleAppointmentStatusChange}
             />
             <CalendarStatusLegend />

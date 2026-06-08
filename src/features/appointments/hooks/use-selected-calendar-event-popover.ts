@@ -12,6 +12,8 @@ import {
 const EVENT_POPOVER_VIEWPORT_PADDING = 10;
 const EVENT_POPOVER_ANCHOR_GAP = 8;
 const EVENT_POPOVER_MIN_SIDE_SPACE = 144;
+const EVENT_POPOVER_SCROLL_CONTAINER_SELECTOR =
+  ".fc-scroller, [data-calendar-event-popover-scroll-container='true']";
 
 type EventPopoverPlacement = "bottom" | "left" | "right" | "top";
 
@@ -78,7 +80,13 @@ function getConnectedEventElement(elements: Set<HTMLElement> | undefined) {
     return null;
   }
 
-  return Array.from(elements).find((element) => element.isConnected) ?? null;
+  const connectedElements = Array.from(elements).filter((element) => element.isConnected);
+
+  return (
+    connectedElements.find((element) => element.closest(".fc-more-popover")) ??
+    connectedElements[0] ??
+    null
+  );
 }
 
 function getPreferredPlacement({
@@ -159,6 +167,7 @@ export function useSelectedCalendarEventPopover({
   selectedEventId,
 }: UseSelectedCalendarEventPopoverArgs) {
   const eventElementsRef = useRef(new Map<string, Set<HTMLElement>>());
+  const controlledAnchorElementsRef = useRef(new Map<string, HTMLElement>());
   const activeAnchorRef = useRef<{ eventId: string; element: HTMLElement } | null>(null);
   const popoverElementRef = useRef<HTMLDivElement | null>(null);
   const [anchorVersion, setAnchorVersion] = useState(0);
@@ -224,14 +233,21 @@ export function useSelectedCalendarEventPopover({
       visibility: "visible",
     });
   }, [containerRef, getSelectedEventElement, selectedEventId]);
+  const positionPopoverRef = useRef(positionPopover);
+
+  useLayoutEffect(() => {
+    positionPopoverRef.current = positionPopover;
+  }, [positionPopover]);
 
   const schedulePositionPopover = useCallback(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    window.requestAnimationFrame(positionPopover);
-  }, [positionPopover]);
+    window.requestAnimationFrame(() => {
+      positionPopoverRef.current();
+    });
+  }, []);
 
   const setPopoverElement = useCallback(
     (element: HTMLDivElement | null) => {
@@ -241,11 +257,10 @@ export function useSelectedCalendarEventPopover({
     [schedulePositionPopover],
   );
 
-  const handleEventDidMount = useCallback((arg: EventMountArg) => {
-    const eventId = arg.event.id;
+  const registerEventElement = useCallback((eventId: string, element: HTMLElement) => {
     const eventElements = eventElementsRef.current.get(eventId) ?? new Set<HTMLElement>();
 
-    eventElements.add(arg.el);
+    eventElements.add(element);
     eventElementsRef.current.set(eventId, eventElements);
     setMountedEventIds((currentEventIds) => {
       if (currentEventIds.has(eventId)) {
@@ -260,11 +275,10 @@ export function useSelectedCalendarEventPopover({
     setAnchorVersion((currentVersion) => currentVersion + 1);
   }, []);
 
-  const handleEventWillUnmount = useCallback((arg: EventMountArg) => {
-    const eventId = arg.event.id;
+  const unregisterEventElement = useCallback((eventId: string, element: HTMLElement) => {
     const eventElements = eventElementsRef.current.get(eventId);
 
-    eventElements?.delete(arg.el);
+    eventElements?.delete(element);
 
     if (!eventElements?.size) {
       eventElementsRef.current.delete(eventId);
@@ -280,13 +294,50 @@ export function useSelectedCalendarEventPopover({
       });
     }
 
-    if (activeAnchorRef.current?.element === arg.el) {
+    if (activeAnchorRef.current?.element === element) {
       activeAnchorRef.current = null;
       setActiveAnchorEventId(null);
     }
 
     setAnchorVersion((currentVersion) => currentVersion + 1);
   }, []);
+
+  const handleEventDidMount = useCallback(
+    (arg: EventMountArg) => {
+      registerEventElement(arg.event.id, arg.el);
+    },
+    [registerEventElement],
+  );
+
+  const handleEventWillUnmount = useCallback(
+    (arg: EventMountArg) => {
+      unregisterEventElement(arg.event.id, arg.el);
+    },
+    [unregisterEventElement],
+  );
+
+  const setEventAnchorElement = useCallback(
+    (eventId: string, element: HTMLElement | null) => {
+      const previousElement = controlledAnchorElementsRef.current.get(eventId);
+
+      if (previousElement && previousElement !== element) {
+        unregisterEventElement(eventId, previousElement);
+        controlledAnchorElementsRef.current.delete(eventId);
+      }
+
+      if (!element) {
+        return;
+      }
+
+      if (previousElement === element) {
+        return;
+      }
+
+      controlledAnchorElementsRef.current.set(eventId, element);
+      registerEventElement(eventId, element);
+    },
+    [registerEventElement, unregisterEventElement],
+  );
 
   const handleEventClickAnchor = useCallback((arg: EventClickArg) => {
     activeAnchorRef.current = {
@@ -309,7 +360,7 @@ export function useSelectedCalendarEventPopover({
     }
 
     const scrollContainers = Array.from(
-      containerElement.querySelectorAll<HTMLElement>(".fc-scroller"),
+      containerElement.querySelectorAll<HTMLElement>(EVENT_POPOVER_SCROLL_CONTAINER_SELECTOR),
     );
     const listenerOptions = { capture: true, passive: true };
 
@@ -336,6 +387,7 @@ export function useSelectedCalendarEventPopover({
     handleEventWillUnmount,
     popoverPlacement,
     popoverStyle,
+    setEventAnchorElement,
     setPopoverElement,
   };
 }

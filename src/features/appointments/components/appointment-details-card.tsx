@@ -92,7 +92,7 @@ export function AppointmentDetailsCard({
                 <CarFront className="mt-0.5 size-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-card-foreground">
-                    {selectedEvent.extendedProps.vehicle}
+                    {selectedEvent.extendedProps.vehicle.displayName}
                   </p>
                   <p className="text-xs text-muted-foreground">Veículo vinculado</p>
                 </div>

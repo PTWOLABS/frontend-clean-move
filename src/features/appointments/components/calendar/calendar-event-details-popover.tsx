@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useCallback, useEffect, useRef, type CSSProperties } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarClock, CarFront, UserRound, Wrench, X } from "lucide-react";
@@ -30,6 +30,44 @@ type CalendarEventDetailsPopoverProps = {
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
+function stopNativePopoverInteraction(event: Event) {
+  if (
+    event.target instanceof Element &&
+    event.target.closest("button[aria-haspopup='menu'], [data-radix-menu-content]")
+  ) {
+    return;
+  }
+
+  event.stopPropagation();
+}
+
+function useCalendarEventDetailsPopoverRef(popoverRef: (element: HTMLDivElement | null) => void) {
+  const elementRef = useRef<HTMLDivElement | null>(null);
+
+  const setElement = useCallback(
+    (element: HTMLDivElement | null) => {
+      elementRef.current?.removeEventListener("pointerdown", stopNativePopoverInteraction);
+      elementRef.current?.removeEventListener("mousedown", stopNativePopoverInteraction);
+      elementRef.current = element;
+      elementRef.current?.addEventListener("pointerdown", stopNativePopoverInteraction);
+      elementRef.current?.addEventListener("mousedown", stopNativePopoverInteraction);
+      popoverRef(element);
+    },
+    [popoverRef],
+  );
+
+  useEffect(
+    () => () => {
+      elementRef.current?.removeEventListener("pointerdown", stopNativePopoverInteraction);
+      elementRef.current?.removeEventListener("mousedown", stopNativePopoverInteraction);
+      popoverRef(null);
+    },
+    [popoverRef],
+  );
+
+  return setElement;
+}
+
 export function CalendarEventDetailsPopover({
   event,
   placement,
@@ -40,14 +78,25 @@ export function CalendarEventDetailsPopover({
   onEdit,
   onStatusChange,
 }: CalendarEventDetailsPopoverProps) {
+  const setPopoverElement = useCalendarEventDetailsPopoverRef(popoverRef);
+
   return (
     <div
-      ref={popoverRef}
+      ref={setPopoverElement}
       role="dialog"
       aria-label="Detalhes do agendamento"
       data-placement={placement}
       className={styles.eventDetailsPopover}
       style={style}
+      onClick={(popoverEvent) => {
+        popoverEvent.stopPropagation();
+      }}
+      onDoubleClick={(popoverEvent) => {
+        popoverEvent.stopPropagation();
+      }}
+      onPointerDown={(popoverEvent) => {
+        popoverEvent.stopPropagation();
+      }}
     >
       <div className={styles.eventDetailsHeader}>
         <div className="min-w-0">
@@ -115,7 +164,9 @@ export function CalendarEventDetailsPopover({
           <div className={styles.eventDetailsInfoRow}>
             <CarFront className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0">
-              <p className={styles.eventDetailsInfoPrimary}>{event.extendedProps.vehicle}</p>
+              <p className={styles.eventDetailsInfoPrimary}>
+                {event.extendedProps.vehicle.displayName}
+              </p>
               <p className={styles.eventDetailsInfoSecondary}>Veículo</p>
             </div>
           </div>

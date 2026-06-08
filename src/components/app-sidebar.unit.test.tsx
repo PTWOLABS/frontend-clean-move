@@ -65,7 +65,7 @@ describe("AppSidebar", () => {
     expect(screen.getByText("Gestão")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("href", "/dashboard");
     expect(screen.getByRole("link", { name: /^agenda$/i })).toHaveAttribute("href", "/agenda");
-    expect(screen.getByRole("link", { name: /^agendamentos$/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^calendário$/i })).toHaveAttribute(
       "href",
       "/appointments",
     );
