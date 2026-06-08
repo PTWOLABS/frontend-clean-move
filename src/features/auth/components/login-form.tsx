@@ -31,7 +31,7 @@ export function LoginForm() {
 
   useEffect(() => {
     if (isSuccess) {
-      router.replace("/home");
+      router.replace("/onboarding");
     }
   }, [isSuccess, router]);
 

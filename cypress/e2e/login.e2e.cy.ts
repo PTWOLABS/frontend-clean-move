@@ -38,7 +38,7 @@ describe("Login flow", () => {
     cy.contains(/informe um e-mail válido/i).should("be.visible");
   });
 
-  it("should redirect to /home after a successful login", () => {
+  it("should redirect to /onboarding after a successful login", () => {
     cy.stubLogin();
 
     cy.get('input[name="email"]').type("joao@email.com");
@@ -50,7 +50,7 @@ describe("Login flow", () => {
       password: "supersenha",
     });
 
-    cy.url().should("include", "/home");
+    cy.url().should("include", "/onboarding");
   });
 
   it("should show an invalid credentials toast when the api responds with 400", () => {

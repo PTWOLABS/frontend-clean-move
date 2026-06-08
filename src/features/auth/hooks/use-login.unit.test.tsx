@@ -51,7 +51,7 @@ describe("useLogin", () => {
     loginApiMock.mockReset();
   });
 
-  it("should persist the access token and redirect to /home on success", async () => {
+  it("should persist the access token and redirect to /onboarding on success", async () => {
     loginApiMock.mockResolvedValueOnce({
       accessToken: "token-de-acesso",
       userId: "1",
@@ -65,7 +65,7 @@ describe("useLogin", () => {
     });
 
     expect(setAccessTokenMock).toHaveBeenCalledWith("token-de-acesso");
-    expect(pushMock).toHaveBeenCalledWith("/home");
+    expect(pushMock).toHaveBeenCalledWith("/onboarding");
   });
 
   it("should show an invalid credentials toast when the api responds with 400", async () => {

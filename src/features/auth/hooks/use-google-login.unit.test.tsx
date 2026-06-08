@@ -51,7 +51,7 @@ describe("useGoogleLogin", () => {
     loginWithGoogleApiMock.mockReset();
   });
 
-  it("should persist the access token and redirect to /home on success", async () => {
+  it("should persist the access token and redirect to /onboarding on success", async () => {
     loginWithGoogleApiMock.mockResolvedValueOnce({
       accessToken: "google-access",
       userId: "u-1",
@@ -66,7 +66,7 @@ describe("useGoogleLogin", () => {
 
     expect(loginWithGoogleApiMock.mock.calls[0]?.[0]).toEqual({ idToken: "id-jwt" });
     expect(setAccessTokenMock).toHaveBeenCalledWith("google-access");
-    expect(pushMock).toHaveBeenCalledWith("/home");
+    expect(pushMock).toHaveBeenCalledWith("/onboarding");
   });
 
   it("should show a specific toast when the api responds with 400", async () => {

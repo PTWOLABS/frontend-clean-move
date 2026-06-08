@@ -359,7 +359,7 @@ function visitAppointments() {
   cy.get('input[name="password"]').type("supersenha");
   cy.contains("button", /^entrar$/i).click();
   cy.wait("@loginRequest");
-  cy.url().should("include", "/home");
+  cy.url().should("include", "/onboarding");
   cy.get("body").then(($body) => {
     if ($body.find('button[aria-label="Abrir menu lateral"]:visible').length) {
       cy.get('button[aria-label="Abrir menu lateral"]').click();
