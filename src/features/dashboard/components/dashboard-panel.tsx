@@ -26,7 +26,7 @@ const DashboardPanel = React.forwardRef<HTMLDivElement, DashboardPanelProps>(
     <Card
       ref={ref}
       className={cn(
-        "relative h-full overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-card backdrop-blur-sm sm:p-5",
+        "relative h-full overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm sm:p-5",
         className,
       )}
       {...props}
