@@ -1,6 +1,6 @@
 "use client";
 
-import { addDays, endOfDay, format, startOfDay } from "date-fns";
+import { addDays, endOfDay, startOfDay } from "date-fns";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
@@ -12,17 +12,10 @@ import type {
   AppointmentCalendarEvent,
   AppointmentTone,
 } from "@/features/appointments/types/appointment-calendar";
+import { mapAppointmentListItemToPresentationItem } from "@/shared/components/appointments/appointment-presenters";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
-import { formatReaisToBrlInput } from "@/shared/money/format-brl-money";
 import type { AppointmentStatus } from "@/shared/types/appointments";
-import {
-  getAppointmentAmountInCents,
-  getCustomerName,
-  getVehicleName,
-  getVehiclePlate,
-  parseAppointmentDateTime,
-} from "@/shared/utils/appointments-helpers";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 import { TodayAgendaCard, type TodayAgendaItem } from "./today-agenda-card";
@@ -85,15 +78,6 @@ function getDefaultAgendaDateRange(): DateRange {
   };
 }
 
-function mapAppointmentServices(appointment: AppointmentListItem): TodayAgendaItem["services"] {
-  return appointment.services.map((service) => ({
-    id: service.id,
-    name: service.name.trim() || "Serviço não informado",
-    durationInMinutes: service.durationInMinutes,
-    priceInCents: service.priceInCents,
-  }));
-}
-
 function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
   switch (status) {
     case "DONE":
@@ -105,52 +89,10 @@ function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
   }
 }
 
-function mapAppointmentToTodayAgendaItem(appointment: AppointmentListItem): TodayAgendaItem {
-  const startsAt = parseAppointmentDateTime(appointment.startsAt);
-  const endsAt = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
-  const startTime = format(startsAt, "HH:mm");
-  const vehicleName = getVehicleName(appointment);
-  const vehiclePlate = getVehiclePlate(appointment);
-  const vehicleRawPlate = appointment.vehicle?.plate?.trim() ?? "";
-  const vehicleBrand = appointment.vehicle?.brand?.trim() ?? "";
-  const vehicleModel = appointment.vehicle?.model?.trim() ?? "";
-  const vehicleDisplayName =
-    [vehicleBrand, vehicleModel, vehicleRawPlate].filter(Boolean).join(" • ") ||
-    "Veículo não informado";
-  const services = mapAppointmentServices(appointment);
-
-  return {
-    id: appointment.id,
-    customerId: appointment.customerId,
-    vehicleId: appointment.vehicleId ?? "",
-    startsAt,
-    endsAt,
-    time: startTime,
-    timeRange: endsAt ? `${startTime} - ${format(endsAt, "HH:mm")}` : startTime,
-    customerName: getCustomerName(appointment),
-    vehicleName,
-    vehicleLabel: `${vehicleName} • ${vehiclePlate}`,
-    vehiclePlate,
-    vehicleRawPlate,
-    vehicleBrand,
-    vehicleModel,
-    vehicleDisplayName,
-    serviceName: services[0]?.name ?? "Serviço não informado",
-    amountInCents: getAppointmentAmountInCents(appointment),
-    discountValue:
-      appointment.discountInCents === null || appointment.discountInCents === undefined
-        ? ""
-        : formatReaisToBrlInput(appointment.discountInCents / 100),
-    description: appointment.description?.trim() ?? "",
-    status: appointment.status,
-    services,
-  };
-}
-
 function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): AppointmentCalendarEvent {
   const servicesLabel = appointment.services.map((service) => service.name).join(", ");
   const appointmentStatus: AppointmentStatus =
-    appointment.status === "in-progress" ? "SCHEDULED" : appointment.status;
+    appointment.status === "IN_PROGRESS" ? "SCHEDULED" : appointment.status;
 
   return {
     id: appointment.id,
@@ -186,7 +128,7 @@ function mapAppointmentsToTodayAgendaItems(
   appointments: AppointmentListItem[] | undefined,
 ): TodayAgendaItem[] {
   return (appointments ?? [])
-    .map(mapAppointmentToTodayAgendaItem)
+    .map(mapAppointmentListItemToPresentationItem)
     .sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
 }
 
