@@ -36,20 +36,49 @@ export function MostFrequentCustomerRow({ customer }: { customer: TopCustomer })
           {getCustomerInitials(customerName)}
         </span>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <div
+          className="
+            flex min-w-0 flex-1 flex-col gap-0.5
+            sm:flex-row sm:items-center sm:justify-between sm:gap-3
+            xl:flex-col xl:items-start xl:justify-start xl:gap-1
+            min-[1530px]:!flex-row min-[1530px]:!items-center min-[1530px]:!justify-between min-[1530px]:!gap-3
+          "
+        >
           <div className="min-w-0 sm:flex-1">
-            <HintTooltip label={customerName} className="max-w-72 break-words leading-5">
-              <span className="block truncate font-medium text-foreground max-w-[144px]">
+            <HintTooltip label={customerName} className="max-w-72 wrap-break-word leading-5">
+              <span
+                className="
+                  block truncate font-medium text-foreground
+                  max-w-36
+                  md:max-w-30
+                  min-[850px]:max-w-50!
+                  min-[1530px]:max-w-20!
+                  min-[1730px]:max-w-39!
+                "
+              >
                 {customerName}
               </span>
             </HintTooltip>
           </div>
 
-          <div className="shrink-0 text-left leading-tight sm:text-right">
+          <div
+            className="
+              shrink-0 text-left leading-tight
+              sm:text-right
+              xl:text-left
+              min-[1530px]:text-right
+            "
+          >
             <p className="font-semibold tabular-nums text-success">
               {getVisitsLabel(customer.completedAppointmentsCount)}
             </p>
-            <p className="text-sm text-muted-foreground sm:whitespace-nowrap">
+
+            <p
+              className="
+                text-sm text-muted-foreground
+                sm:whitespace-nowrap
+              "
+            >
               Total gasto: {formatBrlFromCents(customer.totalSpentInCents)}
             </p>
           </div>
