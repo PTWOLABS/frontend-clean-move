@@ -10,21 +10,6 @@ export const metadata: Metadata = {
   description: "Acompanhe os agendamentos, horários e serviços do dia no CleanMove.",
 };
 
-// const pendingQuotesPreview: PendingQuoteItem[] = [
-//   {
-//     id: "audi-q5-higienizacao",
-//     title: "Audi Q5 - Higienização",
-//     sentAtLabel: "Enviado há 2h",
-//     amountInCents: 85000,
-//   },
-//   {
-//     id: "hilux-polimento",
-//     title: "Hilux - Polimento",
-//     sentAtLabel: "Enviado ontem",
-//     amountInCents: 120000,
-//   },
-// ];
-
 export default function AgendaPage() {
   return (
     <section className="space-y-6">
