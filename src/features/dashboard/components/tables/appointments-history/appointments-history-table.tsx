@@ -151,7 +151,10 @@ export function AppointmentsHistoryTable({ className, filters }: AppointmentsHis
                       const status = appointmentsHistoryStatusMeta[appointment.status];
 
                       return (
-                        <TableRow key={appointment.id} className="hover:bg-muted/30">
+                        <TableRow
+                          key={appointment.id}
+                          className="hover:bg-muted/30 h-14 xl:h-20.5 min-[1530px]:h-14!"
+                        >
                           <TableCell className="pl-6 align-middle">
                             <div className="flex flex-col gap-0.5 whitespace-nowrap tabular-nums leading-tight">
                               <span className="text-xs font-medium text-foreground">
