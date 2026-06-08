@@ -26,9 +26,9 @@ import {
   DashboardPeriod,
 } from "../types/dashboard-sections";
 import { Select } from "@/components/ui/select/select";
-import { useRouter } from "next/navigation";
 import { AppointmentsHistoryTable } from "./tables/appointments-history/appointments-history-table";
 import { MostFrequentCustomersTable } from "./tables/most-frequent-customers/most-frequent-customers-table";
+import Link from "next/link";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
 type DashboardStatusFilter = "ALL" | AppointmentStatus;
@@ -198,7 +198,6 @@ export function getDashboardMetricsFilters({
 }
 
 export function MetricsSections() {
-  const router = useRouter();
   const [period, setPeriod] = useState<DashboardPeriodFilter>("last-30-days");
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(() =>
     getDateRangeForPeriod("last-30-days"),
@@ -230,10 +229,6 @@ export function MetricsSections() {
     dateRange: resolvedDateRange,
     status,
   });
-
-  function onNewAppointmentClick() {
-    router.push("/appointments?new=true");
-  }
 
   return (
     <div className="space-y-4">
@@ -277,7 +272,8 @@ export function MetricsSections() {
           </div>
 
           <div className="w-full sm:w-auto xl:shrink-0 lg:self-start">
-            <Button className="h-11 w-full sm:min-w-50" onClick={() => onNewAppointmentClick()}>
+            <Button className="h-11 w-full sm:min-w-50" asChild>
+                <Link href="/appointments?new=true"/>
               <Plus className="size-4" />
               Novo agendamento
             </Button>
