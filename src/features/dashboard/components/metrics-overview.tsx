@@ -80,7 +80,7 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
       title: "Taxa de cancelamento",
       value: formatPercent(metricsOverview?.cancellationRate.value ?? 0),
       icon: Percent,
-      trend: buildTrend(metricsOverview?.cancellationRate.variationPercentage ?? null, {
+      trend: buildTrend(metricsOverview?.cancellationRate.variationInPercentagePoints ?? null, {
         invertDirection: true,
       }),
       chartData: mapMetricPoints(metricsOverview?.cancellationRate.points),
