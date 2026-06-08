@@ -33,7 +33,7 @@ export function MostFrequentCustomersRank({ position }: { position: number }) {
   if (topThree.includes(position)) {
     return (
       <span
-        className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden"
+        className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden mt-1.5 sm:mt-0 "
         aria-label={`${position}ª posição`}
       >
         <RankBadgeIcon
@@ -54,7 +54,7 @@ export function MostFrequentCustomersRank({ position }: { position: number }) {
 
   return (
     <span
-      className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border"
+      className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border mt-1.5 sm:mt-0"
       aria-label={`${position}ª posição`}
     >
       <span

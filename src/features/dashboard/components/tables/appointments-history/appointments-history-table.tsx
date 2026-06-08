@@ -33,6 +33,7 @@ import {
 } from "@/shared/utils/appointments-helpers";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 import type { DashboardMetricsFiltersBase } from "../../../types/dashboard-sections";
+import Link from "next/link";
 
 type TruncatedResourceLabelProps = {
   label: string;
@@ -93,8 +94,8 @@ export function AppointmentsHistoryTable({ className, filters }: AppointmentsHis
     <Card className={cn("h-full min-w-0 md:col-span-2 xl:col-span-4", className)}>
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-3">
         <CardTitle className="text-base font-semibold">Histórico de agendamentos</CardTitle>
-        <Button type="button" variant="outline" size="sm" className="shrink-0">
-          Ver todos
+        <Button type="button" variant="outline" size="sm" className="shrink-0" asChild>
+          <Link href="/agenda">Ver todos</Link>
         </Button>
       </CardHeader>
 

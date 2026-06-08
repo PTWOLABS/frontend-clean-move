@@ -13,6 +13,7 @@ import { useDashboardQueryErrorFeedback } from "../../../hooks/use-dashboard-que
 import { useListTopCustomers } from "../../../hooks/use-list-top-customers";
 import { MostFrequentCustomersSkeletonRows } from "./most-frequent-customers-skeleton-rows";
 import { MostFrequentCustomerRow } from "./most-frequent-customers-rows";
+import Link from "next/link";
 
 type MostFrequentCustomersTableProps = {
   className?: string;
@@ -60,7 +61,7 @@ export function MostFrequentCustomersTable({
 
   return (
     <Card className={cn("h-full min-w-0 md:col-span-2 xl:col-span-2", className)}>
-      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-3">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 px-4 pb-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-2">
           <CardTitle className="truncate text-base font-semibold">
             Clientes que mais frequentam
@@ -80,12 +81,12 @@ export function MostFrequentCustomersTable({
           </HintTooltipProvider>
         </div>
 
-        <Button type="button" variant="outline" size="sm" className="shrink-0">
-          Ver todos
+        <Button type="button" variant="outline" size="sm" className="shrink-0" asChild>
+          <Link href="/customers">Ver todos</Link>
         </Button>
       </CardHeader>
 
-      <CardContent className="px-6 pb-6 pt-1">
+      <CardContent className="px-4 pb-6 pt-1 sm:px-6">
         <HintTooltipProvider>
           {showSkeletonRows ? <MostFrequentCustomersSkeletonRows /> : null}
           {!showSkeletonRows && feedback ? (
