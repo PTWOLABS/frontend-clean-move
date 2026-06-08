@@ -273,9 +273,10 @@ export function MetricsSections() {
 
           <div className="w-full sm:w-auto xl:shrink-0 lg:self-start">
             <Button className="h-11 w-full sm:min-w-50" asChild>
-                <Link href="/appointments?new=true"/>
-              <Plus className="size-4" />
-              Novo agendamento
+              <Link href="/appointments?new=true">
+                <Plus className="size-4" />
+                Novo agendamento
+              </Link>
             </Button>
           </div>
         </div>
