@@ -8,12 +8,12 @@ import { listServices } from "../api/list-services";
 import type { ListServicesQuery } from "../types";
 
 export type UseServicesArgs = ListServicesQuery & {
-  ownerId: string;
+  establishmentId: string;
   enabled?: boolean;
 };
 
 export function useServices({
-  ownerId,
+  establishmentId,
   enabled = true,
   page = 1,
   size = 5,
@@ -25,7 +25,7 @@ export function useServices({
     placeholderData: keepPreviousData,
     queryFn: ({ signal }) =>
       listServices(
-        ownerId,
+        establishmentId,
         {
           page,
           size,
@@ -34,6 +34,6 @@ export function useServices({
         },
         signal,
       ),
-    enabled: enabled && Boolean(ownerId),
+    enabled: enabled && Boolean(establishmentId),
   });
 }

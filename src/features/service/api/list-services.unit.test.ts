@@ -15,7 +15,7 @@ describe("service/api/list-services", () => {
     httpClientMock.mockReset();
   });
 
-  it("calls GET /establishments/:ownerId with query string", async () => {
+  it("calls GET /services/:establishmentId with query string", async () => {
     httpClientMock.mockResolvedValueOnce({
       items: [],
       total: 0,
@@ -29,7 +29,7 @@ describe("service/api/list-services", () => {
     });
 
     expect(httpClientMock).toHaveBeenCalledWith(
-      "/establishments/abc-uuid?page=2&size=10&name=lavagem&isActive=true",
+      "/services/abc-uuid?page=2&size=10&name=lavagem&isActive=true",
       { signal: undefined },
     );
   });
@@ -37,7 +37,7 @@ describe("service/api/list-services", () => {
   it("omits isActive when undefined", async () => {
     httpClientMock.mockResolvedValueOnce({ items: [], total: 0 });
     await listServices("id-1", { page: 1, size: 5 });
-    expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=5", {
+    expect(httpClientMock).toHaveBeenCalledWith("/services/id-1?page=1&size=5", {
       signal: undefined,
     });
   });
@@ -45,7 +45,7 @@ describe("service/api/list-services", () => {
   it("uses default size 5 when size is omitted", async () => {
     httpClientMock.mockResolvedValueOnce({ items: [], total: 0 });
     await listServices("id-1", { page: 1 });
-    expect(httpClientMock).toHaveBeenCalledWith("/establishments/id-1?page=1&size=5", {
+    expect(httpClientMock).toHaveBeenCalledWith("/services/id-1?page=1&size=5", {
       signal: undefined,
     });
   });

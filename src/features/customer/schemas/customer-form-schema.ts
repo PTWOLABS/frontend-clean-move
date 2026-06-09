@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { formatCpfCnpj } from "@/features/customer/lib/format-customer-catalog";
+import { formatIsoDateToBr, parseBrDateToIso } from "@/shared/lib/br-date-input";
+
 import {
   emptyVehicleFormValues,
   hasVehicleData,
@@ -57,8 +60,12 @@ const birthDateField = z
     const parsed = value?.trim();
     return parsed ? parsed : null;
   })
-  .refine((value) => !value || !Number.isNaN(Date.parse(value)), {
+  .refine((value) => !value || parseBrDateToIso(value) !== null, {
     message: "Informe uma data de nascimento válida.",
+  })
+  .transform((value) => {
+    if (!value) return null;
+    return parseBrDateToIso(value);
   });
 
 const addressFieldsSchema = z.object({
@@ -185,9 +192,9 @@ export function customerToFormDefaults(
     fullName: customer.fullName ?? "",
     phone: customer.phone ?? "",
     email: customer.email ?? "",
-    cpfCnpj: customer.cpfCnpj ?? "",
+    cpfCnpj: customer.cpfCnpj ? formatCpfCnpj(customer.cpfCnpj) : "",
     nickname: customer.nickname ?? "",
-    birthDate: customer.birthDate ? customer.birthDate.slice(0, 10) : "",
+    birthDate: customer.birthDate ? formatIsoDateToBr(customer.birthDate) : "",
     includeAddress: hasCompleteAddress(customer.address),
     includeVehicle: hasVehicleData(primaryVehicle),
     address: {

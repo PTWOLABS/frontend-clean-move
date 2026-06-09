@@ -45,7 +45,7 @@ function filterToIsActive(filter: ServiceActiveFilter): boolean | undefined {
 
 export function ServiceCatalog() {
   const { data: user, isLoading: userLoading } = useCurrentUser();
-  const ownerId = user?.id;
+  const establishmentId = user?.establishmentId;
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -83,8 +83,8 @@ export function ServiceCatalog() {
   const isActiveParam = filterToIsActive(activeFilter);
 
   const servicesQuery = useServices({
-    ownerId: ownerId ?? "",
-    enabled: Boolean(ownerId) && !userLoading,
+    establishmentId: establishmentId ?? "",
+    enabled: Boolean(establishmentId) && !userLoading,
     page,
     size: PAGE_SIZE,
     name: debouncedSearch.trim() || undefined,
@@ -114,14 +114,14 @@ export function ServiceCatalog() {
     );
   }
 
-  if (!ownerId) {
+  if (!establishmentId) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Perfil indisponível</CardTitle>
+          <CardTitle>Estabelecimento indisponível</CardTitle>
           <CardDescription>
-            Não foi possível obter o identificador da sua conta. Atualize a página ou volte a
-            iniciar sessão.
+            Não foi possível obter o identificador do seu estabelecimento. Atualize a página ou
+            volte a iniciar sessão.
           </CardDescription>
         </CardHeader>
       </Card>

@@ -1,6 +1,6 @@
 import { ComponentProps, ReactNode } from "react";
 import { Input } from "../input";
-import { InputMask } from "@react-input/mask";
+import { InputMask, type Modify } from "@react-input/mask";
 import { FormControl } from "./form-primitives";
 import { FormField } from "./field";
 import { cn } from "@/shared/utils/cn";
@@ -8,6 +8,7 @@ import { cn } from "@/shared/utils/cn";
 type InputFieldProps = Omit<ComponentProps<typeof FormField>, "children" | "className"> &
   Omit<ComponentProps<typeof Input>, "className" | "name"> & {
     mask?: string;
+    modify?: Modify;
     icon?: ReactNode;
     image?: ReactNode;
     className?: string;
@@ -26,6 +27,7 @@ export const InputField = ({
   wrapperClassName,
   imageClassName,
   mask,
+  modify,
   icon,
   image,
   ...props
@@ -49,6 +51,7 @@ export const InputField = ({
             <FormControl>
               <InputMask
                 mask={mask}
+                modify={modify}
                 component={Input}
                 replacement={{ _: /\d/ }}
                 {...field}

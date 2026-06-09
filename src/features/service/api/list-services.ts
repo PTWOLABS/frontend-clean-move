@@ -8,7 +8,7 @@ import type {
   ServicesPage,
 } from "../types";
 
-const LIST_PATH = "/establishments";
+const LIST_PATH = "/services";
 
 function buildQuery(params: ListServicesQuery): string {
   const search = new URLSearchParams();
@@ -26,16 +26,16 @@ function buildQuery(params: ListServicesQuery): string {
 
 /**
  * Lista serviços do estabelecimento (paginação e filtros no backend).
- * Path: `GET /establishments/{ownerId}` — `ownerId` corresponde ao dono (ex.: `user.id`).
+ * Path: `GET /services/{establishmentId}` — `establishmentId` vem de `GET /user/me`.
  */
 export async function listServices(
-  ownerId: string,
+  establishmentId: string,
   params: ListServicesQuery = {},
   signal?: AbortSignal,
 ): Promise<ServicesPage> {
   const page = params.page ?? 1;
   const size = params.size ?? 5;
-  const path = `${LIST_PATH}/${ownerId}${buildQuery({ ...params, page, size })}`;
+  const path = `${LIST_PATH}/${establishmentId}${buildQuery({ ...params, page, size })}`;
   const raw = await httpClient<ServicesListApiResponse | ServiceItem[]>(path, { signal });
   return normalizeServicesList(raw, page, size);
 }

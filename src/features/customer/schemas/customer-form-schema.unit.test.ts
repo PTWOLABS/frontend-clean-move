@@ -57,6 +57,68 @@ describe("customerFormSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts formatted CPF with 11 digits", () => {
+    const result = customerFormSchema.safeParse({
+      ...baseValues,
+      cpfCnpj: "123.456.789-01",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.cpfCnpj).toBe("12345678901");
+    }
+  });
+
+  it("accepts formatted CNPJ with 14 digits", () => {
+    const result = customerFormSchema.safeParse({
+      ...baseValues,
+      cpfCnpj: "12.345.678/0001-90",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.cpfCnpj).toBe("12345678000190");
+    }
+  });
+
+  it("rejects CPF/CNPJ with invalid digit count", () => {
+    const result = customerFormSchema.safeParse({
+      ...baseValues,
+      cpfCnpj: "123.456.789",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const message = result.error.issues.find((issue) => issue.path[0] === "cpfCnpj")?.message;
+      expect(message).toBe("Informe um CPF ou CNPJ válido.");
+    }
+  });
+
+  it("accepts birthDate in dd/MM/yyyy and normalizes to ISO", () => {
+    const result = customerFormSchema.safeParse({
+      ...baseValues,
+      birthDate: "15/01/1990",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.birthDate).toBe("1990-01-15");
+    }
+  });
+
+  it("rejects invalid birthDate", () => {
+    const result = customerFormSchema.safeParse({
+      ...baseValues,
+      birthDate: "31/02/2000",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const message = result.error.issues.find((issue) => issue.path[0] === "birthDate")?.message;
+      expect(message).toBe("Informe uma data de nascimento válida.");
+    }
+  });
+
   it("fails when includeAddress is true and zipCode format is invalid", () => {
     const result = customerFormSchema.safeParse({
       ...baseValues,

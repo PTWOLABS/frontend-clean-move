@@ -5,6 +5,8 @@ import { Mail, User } from "lucide-react";
 import { describe, expect, it } from "vitest";
 import type { ReactNode } from "react";
 
+import { CNPJ_MASK } from "@/shared/constants/input-masks";
+
 import { RegisterTextField } from "./register-text-field";
 
 function FormWrapper({
@@ -59,6 +61,19 @@ describe("RegisterTextField", () => {
     const input = screen.getByLabelText("Telefone") as HTMLInputElement;
     await user.type(input, "11999991234");
     expect(input.value).toBe("(11) 99999-1234");
+  });
+
+  it("should apply CNPJ mask with 14 digits", async () => {
+    const user = userEvent.setup();
+    render(
+      <FormWrapper>
+        <RegisterTextField name="cnpj" label="CNPJ" mask={CNPJ_MASK} inputMode="numeric" />
+      </FormWrapper>,
+    );
+
+    const input = screen.getByLabelText("CNPJ") as HTMLInputElement;
+    await user.type(input, "12345678000190");
+    expect(input.value).toBe("12.345.678/0001-90");
   });
 
   it("should accept a custom node in 'image' rendered on the right slot", () => {
