@@ -2,9 +2,10 @@
 
 import { CarFront, Info, Mail, Palette, Phone, UserRound } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/shared/utils/cn";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
+import { StepHeader } from "./step-header";
 
 type CustomerAndVehicleStepProps = {
   title: string;
@@ -19,21 +20,7 @@ export function CustomerAndVehicleStep({
 }: CustomerAndVehicleStepProps) {
   return (
     <Card className={cn("border-border/70 bg-card/60 shadow-sm backdrop-blur-xl", className)}>
-      <CardHeader className="pb-6">
-        <div className="flex items-start gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
-            <UserRound aria-hidden className="size-5" strokeWidth={2.2} />
-          </div>
-
-          <div className="space-y-1">
-            <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
-              {title}
-            </CardTitle>
-
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
-        </div>
-      </CardHeader>
+      <StepHeader title={title} description={description} />
 
       <CardContent className="space-y-6">
         <section className="space-y-5">
@@ -92,18 +79,18 @@ export function CustomerAndVehicleStep({
             </p>
           </div>
 
-          <StandartInputField
-            id="onboarding-vehicle-plate"
-            name="vehiclePlate"
-            label="Placa"
-            maxLength={7}
-            placeholder="Ex.: ABC1D23"
-            autoComplete="off"
-            icon={CarFront}
-            className="uppercase shadow-xs"
-          />
+          <div className="grid gap-5 md:grid-cols-3">
+            <StandartInputField
+              id="onboarding-vehicle-plate"
+              name="vehiclePlate"
+              label="Placa"
+              maxLength={7}
+              placeholder="Ex.: ABC1D23"
+              autoComplete="off"
+              icon={CarFront}
+              className="uppercase shadow-xs"
+            />
 
-          <div className="grid gap-5 md:grid-cols-2">
             <StandartInputField
               id="onboarding-vehicle-model"
               name="vehicleModel"

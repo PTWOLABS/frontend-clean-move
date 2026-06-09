@@ -53,15 +53,39 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
       <StepHeader title={title} description={description} />
 
       <CardContent className="space-y-5">
-        <StandartInputField
-          id="onboarding-service-name"
-          name="name"
-          label="Nome do serviço"
-          placeholder="Ex.: Lavagem premium"
-          autoComplete="off"
-          icon={Droplets}
-          className="shadow-xs"
-        />
+        <div className="grid gap-5 md:grid-cols-2">
+          <StandartInputField
+            id="onboarding-service-name"
+            name="name"
+            label="Nome do serviço"
+            placeholder="Ex.: Lavagem premium"
+            autoComplete="off"
+            icon={Droplets}
+            className="shadow-xs"
+          />
+
+          <FormField
+            control={control}
+            name="category"
+            label="Categoria"
+            id="onboarding-service-category"
+            renderControl={false}
+          >
+            {({ field }) => (
+              <FormControl>
+                <Select
+                  id="onboarding-service-category"
+                  className="shadow-xs w-full"
+                  options={serviceCategoryOptions}
+                  placeholder="Selecione a categoria"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              </FormControl>
+            )}
+          </FormField>
+        </div>
 
         <FormField
           control={control}
@@ -77,36 +101,14 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
                 id="onboarding-service-description"
                 placeholder="Descreva o que está incluído neste serviço."
                 rows={4}
-                className="resize-y shadow-xs"
+                className="resize-y  shadow-xs"
                 value={field.value ?? ""}
               />
             </FormControl>
           )}
         </FormField>
 
-        <FormField
-          control={control}
-          name="category"
-          label="Categoria"
-          id="onboarding-service-category"
-          renderControl={false}
-        >
-          {({ field }) => (
-            <FormControl>
-              <Select
-                id="onboarding-service-category"
-                className="shadow-xs"
-                options={serviceCategoryOptions}
-                placeholder="Selecione a categoria"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-              />
-            </FormControl>
-          )}
-        </FormField>
-
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-3">
           <StandartInputField
             id="onboarding-service-min-duration"
             name="minDurationInMinutes"
@@ -128,17 +130,16 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
             placeholder="60"
             className="shadow-xs"
           />
+          <StandartInputField
+            id="onboarding-service-price"
+            name="price"
+            label="Preço (R$)"
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder="30,00"
+            className="tabular-nums shadow-xs"
+          />
         </div>
-
-        <StandartInputField
-          id="onboarding-service-price"
-          name="price"
-          label="Preço (R$)"
-          inputMode="decimal"
-          autoComplete="off"
-          placeholder="30,00"
-          className="tabular-nums shadow-xs"
-        />
 
         <FormField
           control={control}
