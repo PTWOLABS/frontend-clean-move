@@ -1,6 +1,12 @@
 import { onlyDigits } from "@/shared/utils/lib";
 import { parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
 import { optionalText } from "@/shared/utils/required-text";
+import {
+  customerEmailField,
+  customerFullNameField,
+  customerPhoneField,
+} from "@/features/customer/schemas/customer-form-schema";
+import { normalizePlate } from "@/features/vehicle/schemas/vehicle-form-schema";
 import z from "zod";
 
 const onboardingServiceCategoryCodes = [
@@ -147,9 +153,82 @@ export const onboardingServiceStepSchema = z
     }
   });
 
+export const onboardingCustomerVehicleStepSchema = z
+  .object({
+    customerFullName: optionalTrimmedText,
+    customerPhone: optionalTrimmedText,
+    customerEmail: z.preprocess(emptyStringToUndefined, customerEmailField.optional()),
+
+    vehiclePlate: optionalTrimmedText,
+    vehicleModel: optionalTrimmedText,
+    vehicleColor: optionalTrimmedText,
+  })
+  .superRefine((data, ctx) => {
+    const hasCustomerData = Boolean(
+      data.customerFullName || data.customerPhone || data.customerEmail,
+    );
+    const hasVehicleData = Boolean(data.vehiclePlate || data.vehicleModel || data.vehicleColor);
+    const hasAnyStepData = hasCustomerData || hasVehicleData;
+    const normalizedPlate = normalizePlate(data.vehiclePlate);
+
+    if (!hasAnyStepData) return;
+
+    if (!data.customerFullName) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Informe o nome completo.",
+        path: ["customerFullName"],
+      });
+    } else {
+      const fullNameResult = customerFullNameField.safeParse(data.customerFullName);
+
+      if (!fullNameResult.success) {
+        ctx.addIssue({
+          code: "custom",
+          message: fullNameResult.error.issues[0]?.message ?? "Informe o nome completo.",
+          path: ["customerFullName"],
+        });
+      }
+    }
+
+    if (!data.customerPhone) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Informe o telefone do cliente.",
+        path: ["customerPhone"],
+      });
+    } else {
+      const phoneResult = customerPhoneField.safeParse(data.customerPhone);
+
+      if (!phoneResult.success) {
+        ctx.addIssue({
+          code: "custom",
+          message: phoneResult.error.issues[0]?.message ?? "Informe um telefone válido.",
+          path: ["customerPhone"],
+        });
+      }
+    }
+
+    if (normalizedPlate && normalizedPlate.length !== 7) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Placa inválida. Informe 7 caracteres.",
+        path: ["vehiclePlate"],
+      });
+    }
+
+    if (data.vehicleColor && !data.vehicleModel) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Informe marca/modelo para adicionar a cor do veículo.",
+        path: ["vehicleModel"],
+      });
+    }
+  });
+
 export const onboardingSchema = z.intersection(
-  onboardingCompanyStepSchema,
-  onboardingServiceStepSchema,
+  z.intersection(onboardingCompanyStepSchema, onboardingServiceStepSchema),
+  onboardingCustomerVehicleStepSchema,
 );
 
 export type OnboardingFormValues = z.input<typeof onboardingSchema>;
