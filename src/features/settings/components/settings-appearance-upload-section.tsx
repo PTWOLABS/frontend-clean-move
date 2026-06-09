@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Info, Save, Upload } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,20 @@ import {
   DropzoneUploadIcon,
   DropzoneZone,
 } from "@/components/ui/dropzone";
+import {
+  FileList,
+  FileListAction,
+  FileListActions,
+  FileListDescription,
+  FileListDescriptionSeparator,
+  FileListDescriptionText,
+  FileListHeader,
+  FileListIcon,
+  FileListInfo,
+  FileListItem,
+  FileListName,
+  FileListSize,
+} from "@/components/ui/file-list";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/shared/utils/cn";
 
@@ -156,18 +170,17 @@ export function SettingsAppearanceUploadSection({
                 setValidationError(getImageRejectionMessage(code));
               }}
             >
-              <DropzoneZone className="min-h-[10rem] w-full">
+              <DropzoneZone className="min-h-40 w-full">
                 <DropzoneInput />
-                <DropzoneGroup className="gap-3 py-6">
-                  <DropzoneUploadIcon className="size-8 text-primary" />
-                  <DropzoneGroup className="gap-1">
-                    <DropzoneTitle className="flex items-center justify-center gap-2 text-sm">
-                      <Upload aria-hidden className="size-4 text-muted-foreground" />
+                <DropzoneGroup className="w-full gap-3 px-3 py-6">
+                  <DropzoneUploadIcon className="size-8 shrink-0 text-primary" />
+                  <DropzoneGroup className="w-full min-w-0 gap-1">
+                    <DropzoneTitle className="text-center text-sm text-balance">
                       {pendingFile
                         ? "Arraste ou clique para substituir a imagem"
                         : "Arraste uma imagem ou clique para selecionar"}
                     </DropzoneTitle>
-                    <DropzoneDescription className="text-center">
+                    <DropzoneDescription className="text-center text-balance">
                       PNG, JPG, JPEG ou WEBP — máximo 5 MB.
                     </DropzoneDescription>
                   </DropzoneGroup>
@@ -181,10 +194,52 @@ export function SettingsAppearanceUploadSection({
               </p>
             ) : null}
 
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
-              <span>{config.recommendation}</span>
-            </div>
+            <FileList className="gap-0">
+              <FileListItem className="gap-0 rounded-lg p-2.5 shadow-none">
+                <FileListHeader className="gap-2.5">
+                  <FileListIcon className="size-8 rounded-md [&>svg:not([class*='size-'])]:size-4" />
+                  <FileListInfo className="min-w-0 gap-0.5">
+                    {pendingFile ? (
+                      <>
+                        <FileListName className="truncate text-xs">{pendingFile.name}</FileListName>
+                        <FileListDescription>
+                          <FileListSize>{pendingFile.size}</FileListSize>
+                          {isPending ? (
+                            <>
+                              <FileListDescriptionSeparator />
+                              <FileListDescriptionText>Enviando...</FileListDescriptionText>
+                            </>
+                          ) : null}
+                        </FileListDescription>
+                      </>
+                    ) : (
+                      <>
+                        <FileListName className="text-xs text-muted-foreground">
+                          Nenhum arquivo selecionado
+                        </FileListName>
+                        <FileListDescription>
+                          <FileListDescriptionText>{config.recommendation}</FileListDescriptionText>
+                        </FileListDescription>
+                      </>
+                    )}
+                  </FileListInfo>
+                  {pendingFile ? (
+                    <FileListActions>
+                      <FileListAction
+                        type="button"
+                        onClick={clearPendingFile}
+                        disabled={isPending}
+                        className="size-6 shrink-0 [&_svg:not([class*='size-'])]:size-3"
+                        aria-label="Remover arquivo"
+                      >
+                        <X aria-hidden className="size-3" />
+                        <span className="sr-only">Remover</span>
+                      </FileListAction>
+                    </FileListActions>
+                  ) : null}
+                </FileListHeader>
+              </FileListItem>
+            </FileList>
 
             <Button
               type="button"
