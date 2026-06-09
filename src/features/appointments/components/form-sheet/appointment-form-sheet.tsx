@@ -47,6 +47,7 @@ import { useListServiceOptions } from "../../hooks/queries/use-list-service-opti
 import { useCreateAppointment } from "../../hooks/mutations/use-create-appointment-mutation";
 import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
 import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
 
 type AppointmentFormSheetProps = {
   open: boolean;
@@ -54,12 +55,6 @@ type AppointmentFormSheetProps = {
   defaultStartsAt?: Date;
   appointment?: AppointmentCalendarEvent | null;
 };
-
-function mergeOptionItems(options: Option[], selectedOptions: Option[]) {
-  const selectedValues = new Set(selectedOptions.map((option) => option.value));
-
-  return [...selectedOptions, ...options.filter((option) => !selectedValues.has(option.value))];
-}
 
 function getAppointmentFormDefaultValues(
   appointment: AppointmentCalendarEvent,
