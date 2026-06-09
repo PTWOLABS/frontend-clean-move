@@ -2,10 +2,8 @@
 
 import { useEffect } from "react";
 
-import { format, isValid, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import {
   FormProvider,
   useForm,
@@ -17,10 +15,8 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -31,8 +27,13 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/shared/utils/cn";
-import { getCpfCnpjMask, PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
+import {
+  CPF_MASK,
+  cpfCnpjMaskModify,
+  DATE_MASK,
+  PHONE_MASK,
+  ZIP_CODE_MASK,
+} from "@/shared/constants/input-masks";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 
 import { useCreateCustomer } from "../hooks/use-create-customer";
@@ -86,7 +87,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
 
   const includeAddress = useWatch({ control, name: "includeAddress" });
   const includeVehicle = useWatch({ control, name: "includeVehicle" });
-  const cpfCnpj = useWatch({ control, name: "cpfCnpj" });
 
   const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(
     zipCodeAutofillForm,
@@ -207,7 +207,8 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   control={fieldControl}
                   name="cpfCnpj"
                   label="CPF/CNPJ"
-                  mask={getCpfCnpjMask(cpfCnpj ?? "")}
+                  mask={CPF_MASK}
+                  modify={cpfCnpjMaskModify}
                   inputMode="numeric"
                 />
                 <InputField
@@ -217,51 +218,14 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   placeholder="Como prefere ser chamado"
                 />
               </div>
-              <FormField
+              <InputField
                 control={fieldControl}
                 name="birthDate"
                 label="Data de nascimento"
-                renderControl={false}
-              >
-                {({ field }) => {
-                  const selectedDate =
-                    typeof field.value === "string" && field.value
-                      ? parseISO(field.value)
-                      : undefined;
-                  const hasValidDate = selectedDate ? isValid(selectedDate) : false;
-                  const displayDate = hasValidDate ? selectedDate : undefined;
-
-                  return (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className={cn(
-                            "h-10 w-full justify-start text-left font-normal",
-                            !hasValidDate && "text-muted-foreground",
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {displayDate
-                            ? format(displayDate, "dd/MM/yyyy", { locale: ptBR })
-                            : "dd/mm/aaaa"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          locale={ptBR}
-                          selected={displayDate}
-                          onSelect={(date) => {
-                            field.onChange(date ? format(date, "yyyy-MM-dd") : "");
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  );
-                }}
-              </FormField>
+                mask={DATE_MASK}
+                placeholder="dd/mm/aaaa"
+                inputMode="numeric"
+              />
             </div>
 
             <div className="space-y-4">
