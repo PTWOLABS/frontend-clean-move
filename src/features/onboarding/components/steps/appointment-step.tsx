@@ -254,7 +254,7 @@ export function AppointmentStep({ title, description, className }: AppointmentSt
           )}
         </FormField>
 
-        <div className="space-y-1.5">
+        <div className="space-y-5">
           <AppointmentDateField
             control={fieldControl}
             name="startsAt"
