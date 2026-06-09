@@ -9,13 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/shared/utils/cn";
 
 function FileList({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="file-list"
-      className={cn("grid gap-4", className)}
-      {...props}
-    />
-  );
+  return <div data-slot="file-list" className={cn("grid gap-4", className)} {...props} />;
 }
 
 function FileListItem({ className, ...props }: React.ComponentProps<"div">) {
@@ -41,11 +35,7 @@ function FileListHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FileListIcon({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div">) {
+function FileListIcon({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="file-list-icon"
@@ -62,11 +52,7 @@ function FileListIcon({
 
 function FileListInfo({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="file-list-info"
-      className={cn("grid flex-1 gap-1", className)}
-      {...props}
-    />
+    <div data-slot="file-list-info" className={cn("grid flex-1 gap-1", className)} {...props} />
   );
 }
 
@@ -74,35 +60,23 @@ function FileListName({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="file-list-name"
-      className={cn(
-        "text-sm leading-none font-medium tracking-tight",
-        className,
-      )}
+      className={cn("text-sm leading-none font-medium tracking-tight", className)}
       {...props}
     />
   );
 }
 
-function FileListDescription({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function FileListDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="file-list-description"
-      className={cn(
-        "text-muted-foreground flex items-center gap-2 text-xs",
-        className,
-      )}
+      className={cn("text-muted-foreground flex items-center gap-2 text-xs", className)}
       {...props}
     />
   );
 }
 
-function FileListDescriptionSeparator({
-  children,
-  ...props
-}: React.ComponentProps<"span">) {
+function FileListDescriptionSeparator({ children, ...props }: React.ComponentProps<"span">) {
   return (
     <span data-slot="file-list-description-separator" {...props}>
       {children ?? "•"}
@@ -122,30 +96,15 @@ function FileListSize({ children, ...props }: FileListSizeProps) {
   );
 }
 
-function FileListProgress({
-  className,
-  ...props
-}: React.ComponentProps<typeof Progress>) {
-  return (
-    <Progress
-      data-slot="file-list-progress"
-      className={cn("h-1", className)}
-      {...props}
-    />
-  );
+function FileListProgress({ className, ...props }: React.ComponentProps<typeof Progress>) {
+  return <Progress data-slot="file-list-progress" className={cn("h-1", className)} {...props} />;
 }
 
-function FileListDescriptionText({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function FileListDescriptionText({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="file-list-description-text"
-      className={cn(
-        "flex items-center gap-1.5 [&>svg:not([class*='size-'])]:size-3",
-        className,
-      )}
+      className={cn("flex items-center gap-1.5 [&>svg:not([class*='size-'])]:size-3", className)}
       {...props}
     />
   );
