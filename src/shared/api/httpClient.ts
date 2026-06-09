@@ -149,7 +149,7 @@ export async function httpClient<TResponse, TFilters extends object = Record<str
 ): Promise<TResponse> {
   const requestHeaders = headersInitToRecord(headers);
 
-  if (!hasHeaderCaseInsensitive(requestHeaders, "Content-Type")) {
+  if (!(body instanceof FormData) && !hasHeaderCaseInsensitive(requestHeaders, "Content-Type")) {
     requestHeaders["Content-Type"] = "application/json";
   }
 
