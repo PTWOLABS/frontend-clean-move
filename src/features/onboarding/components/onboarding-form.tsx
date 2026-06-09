@@ -8,9 +8,11 @@ import { CompanyDataStep } from "./steps/company-data-step";
 import { ServiceStep } from "./steps/service-step";
 import {
   onboardingCompanyStepSchema,
+  onboardingCustomerVehicleStepSchema,
   onboardingServiceStepSchema,
 } from "../schemas/onboarding-schema";
 import { StepActions } from "./steps/step-actions";
+import { CustomerAndVehicleStep } from "./steps/customer-and-vehicle-step";
 
 const stepHeaders = [
   {
@@ -38,7 +40,11 @@ const stepHeaders = [
   },
 ] as const;
 
-const stepSchemas = [onboardingCompanyStepSchema, onboardingServiceStepSchema] as const;
+const stepSchemas = [
+  onboardingCompanyStepSchema,
+  onboardingServiceStepSchema,
+  onboardingCustomerVehicleStepSchema,
+] as const;
 
 export function OnboardingForm() {
   const [step, setStep] = useState(1);
@@ -46,6 +52,10 @@ export function OnboardingForm() {
   const currentStepIndex = step - 1;
   const currentSchema = stepSchemas[currentStepIndex];
   const lastStep = stepHeaders.length;
+
+  const currentStepHeaders = useMemo(() => {
+    return { title: stepHeaders[step].title, description: stepHeaders[step].description };
+  }, [step]);
 
   function onSubmit(data: unknown) {
     console.log(data);
@@ -65,19 +75,17 @@ export function OnboardingForm() {
   const currentStepContent = useMemo(() => {
     switch (step) {
       case 1:
-        return (
-          <CompanyDataStep title={stepHeaders[0].title} description={stepHeaders[0].description} />
-        );
+        return <CompanyDataStep {...currentStepHeaders} />;
 
       case 2:
-        return (
-          <ServiceStep title={stepHeaders[1].title} description={stepHeaders[1].description} />
-        );
+        return <ServiceStep {...currentStepHeaders} />;
+      case 3:
+        return <CustomerAndVehicleStep {...currentStepHeaders} />;
 
       default:
         return null;
     }
-  }, [step]);
+  }, [step, currentStepHeaders]);
 
   return (
     <div className="space-y-8">
