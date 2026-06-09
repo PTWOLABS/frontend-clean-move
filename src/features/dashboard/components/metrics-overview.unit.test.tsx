@@ -97,7 +97,7 @@ const metricsOverviewMock: DashboardMetricsOverview = {
   },
   cancellationRate: {
     value: 4.2,
-    variationPercentage: -1.6,
+    variationInPercentagePoints: -1.6,
     points: [
       {
         date: "2026-05-01",

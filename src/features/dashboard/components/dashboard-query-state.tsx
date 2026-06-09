@@ -51,7 +51,7 @@ export function DashboardQueryErrorState({
 
 export function DashboardMetricCardSkeleton() {
   return (
-    <Card className="relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-card backdrop-blur-sm sm:p-5">
+    <Card className="relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm sm:p-5">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"

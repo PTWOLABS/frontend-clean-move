@@ -1,38 +1,14 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AppointmentStatus } from "../types/appointments";
 import { AppointmentDTO } from "@/features/appointments/types/appointments-dto";
 
 export type AppointmentListItem = AppointmentDTO["appointments"][number];
-
-export type AppointmentHistoryStatusMeta = {
-  label: string;
-  className: string;
-};
 
 const fallbackVehicleLabel = "Veículo não informado";
 const fallbackPlateLabel = "Sem placa";
 
 export const API_DATE_TIME_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
-
-export const appointmentsHistoryStatusMeta: Record<
-  AppointmentStatus,
-  AppointmentHistoryStatusMeta
-> = {
-  SCHEDULED: {
-    label: "Agendado",
-    className: "border-transparent bg-info-soft text-info hover:bg-info/10",
-  },
-  DONE: {
-    label: "Concluído",
-    className: "border-transparent bg-success-soft text-success hover:bg-success/10",
-  },
-  CANCELLED: {
-    label: "Cancelado",
-    className: "border-transparent bg-danger-soft text-danger hover:bg-danger/10",
-  },
-};
 
 export function parseAppointmentDateTime(value: string) {
   const match = API_DATE_TIME_PATTERN.exec(value);

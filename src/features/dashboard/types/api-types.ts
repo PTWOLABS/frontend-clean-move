@@ -25,7 +25,7 @@ export type DashboardMetricsOverview = {
   };
   cancellationRate: {
     value: number;
-    variationPercentage: number | null;
+    variationInPercentagePoints: number | null;
     points: MetricPoint[];
   };
   totalRevenue: {

@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/dialog";
 import { AppointmentStatusActions } from "@/features/appointments/components/appointment-status-actions";
 import type { AppointmentStatus } from "@/shared/types/appointments";
-import { formatCurrency } from "@/shared/utils/lib";
+import { appointmentStatusMeta, isAppointmentStatus } from "@/shared/utils/appointments-status";
 import { cn } from "@/shared/utils/cn";
+import { formatCurrency } from "@/shared/utils/lib";
 
 import type { TodayAgendaItem } from "./today-agenda-card";
 
@@ -30,25 +31,7 @@ type AgendaAppointmentDetailsDialogProps = {
   onStatusChange?: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
-const statusClassName: Record<TodayAgendaItem["status"], string> = {
-  "in-progress": "border-transparent bg-info-soft text-info-soft-foreground",
-  SCHEDULED: "border-transparent bg-info-soft text-info-soft-foreground",
-  DONE: "border-transparent bg-success-soft text-success-soft-foreground",
-  CANCELLED: "border-transparent bg-danger-soft text-danger-soft-foreground",
-};
-
-const statusLabel: Record<TodayAgendaItem["status"], string> = {
-  "in-progress": "Em andamento",
-  SCHEDULED: "Agendado",
-  DONE: "Concluído",
-  CANCELLED: "Cancelado",
-};
-
 const entranceEase = [0.16, 1, 0.3, 1] as const;
-
-function isAppointmentStatus(status: TodayAgendaItem["status"]): status is AppointmentStatus {
-  return status !== "in-progress";
-}
 
 function DetailRow({
   icon: Icon,
@@ -60,10 +43,12 @@ function DetailRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/45 p-4">
+    <div className="flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-2xl border border-border/70 bg-background/45 p-4">
       <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-card-foreground">{value}</p>
+
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <p className="line-clamp-2 min-w-0 text-sm font-medium text-card-foreground">{value}</p>
+
         <p className="mt-1 text-xs text-muted-foreground">{label}</p>
       </div>
     </div>
@@ -101,8 +86,10 @@ export function AgendaAppointmentDetailsDialog({
       ? { duration: 0.12, ease: "easeOut" as const }
       : { duration: 0.28, ease: entranceEase, delay },
   });
+
   const actionableStatus = isAppointmentStatus(appointment.status) ? appointment.status : null;
   const canShowActions = actionableStatus && onStatusChange;
+  const status = appointmentStatusMeta[appointment.status];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,11 +111,14 @@ export function AgendaAppointmentDetailsDialog({
           <DialogHeader className="border-b border-border/70 px-5 pb-4 pt-5 pr-12 text-left">
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <DialogTitle className="truncate text-xl font-semibold">
+                <DialogTitle className="line-clamp-2 text-xl font-semibold">
                   {appointment.serviceName}
                 </DialogTitle>
+
                 <DialogDescription className="mt-1">
-                  {format(appointment.startsAt, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                  {format(appointment.startsAt, "EEEE, d 'de' MMMM 'às' HH:mm", {
+                    locale: ptBR,
+                  })}
                 </DialogDescription>
               </div>
 
@@ -137,10 +127,10 @@ export function AgendaAppointmentDetailsDialog({
                   variant="outline"
                   className={cn(
                     "w-fit shrink-0 rounded-full px-2.5 py-1 text-[11px]",
-                    statusClassName[appointment.status],
+                    status.className,
                   )}
                 >
-                  {statusLabel[appointment.status]}
+                  {status.label}
                 </Badge>
 
                 {canShowActions ? (
@@ -157,17 +147,20 @@ export function AgendaAppointmentDetailsDialog({
           </DialogHeader>
 
           <div className="min-w-0 space-y-4 px-5 py-5">
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-              <motion.div {...getContentMotion(0.08)}>
+            <div className="grid min-w-0 gap-3 overflow-hidden sm:grid-cols-2">
+              <motion.div {...getContentMotion(0.08)} className="min-w-0">
                 <DetailRow icon={UserRound} label="Cliente" value={appointment.customerName} />
               </motion.div>
-              <motion.div {...getContentMotion(0.12)}>
+
+              <motion.div {...getContentMotion(0.12)} className="min-w-0">
                 <DetailRow icon={CarFront} label="Veículo" value={appointment.vehicleLabel} />
               </motion.div>
-              <motion.div {...getContentMotion(0.16)}>
+
+              <motion.div {...getContentMotion(0.16)} className="min-w-0">
                 <DetailRow icon={CalendarClock} label="Horário" value={appointment.timeRange} />
               </motion.div>
-              <motion.div {...getContentMotion(0.2)}>
+
+              <motion.div {...getContentMotion(0.2)} className="min-w-0">
                 <DetailRow
                   icon={FileText}
                   label="Valor estimado"
@@ -178,14 +171,16 @@ export function AgendaAppointmentDetailsDialog({
 
             <motion.div
               {...getContentMotion(0.24)}
-              className="rounded-2xl border border-border/70 bg-background/45 p-4"
+              className="min-w-0 overflow-hidden rounded-2xl border border-border/70 bg-background/45 p-4"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <Wrench className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
-                <div className="min-w-0">
-                  <p className="break-words text-sm font-medium text-card-foreground">
+
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="wrap-break-word text-sm font-medium text-card-foreground">
                     {appointment.description || "Sem observações operacionais."}
                   </p>
+
                   <p className="mt-1 text-xs text-muted-foreground">Observações</p>
                 </div>
               </div>

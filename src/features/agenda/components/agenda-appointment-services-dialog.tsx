@@ -18,9 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { AppointmentPresentationService } from "@/shared/components/appointments/appointment-presenters";
 import { formatCurrency } from "@/shared/utils/lib";
 
-import type { TodayAgendaItem, TodayAgendaService } from "./today-agenda-card";
+import type { TodayAgendaItem } from "./today-agenda-card";
 
 type AgendaAppointmentServicesDialogProps = {
   appointment: TodayAgendaItem | null;
@@ -49,7 +50,7 @@ function formatServiceDuration(durationInMinutes: number | null) {
   return `${hours}h ${minutes}min`;
 }
 
-function getAppointmentServices(appointment: TodayAgendaItem): TodayAgendaService[] {
+function getAppointmentServices(appointment: TodayAgendaItem): AppointmentPresentationService[] {
   return appointment.services;
 }
 

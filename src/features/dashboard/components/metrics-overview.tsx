@@ -80,7 +80,7 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
       title: "Taxa de cancelamento",
       value: formatPercent(metricsOverview?.cancellationRate.value ?? 0),
       icon: Percent,
-      trend: buildTrend(metricsOverview?.cancellationRate.variationPercentage ?? null, {
+      trend: buildTrend(metricsOverview?.cancellationRate.variationInPercentagePoints ?? null, {
         invertDirection: true,
       }),
       chartData: mapMetricPoints(metricsOverview?.cancellationRate.points),
@@ -100,7 +100,7 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
 
   if (errorFeedback && !metricsOverview) {
     return (
-      <Card className="relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-card backdrop-blur-sm sm:p-5 md:col-span-2 xl:col-span-4">
+      <Card className="relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm sm:p-5 md:col-span-2 xl:col-span-4">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
