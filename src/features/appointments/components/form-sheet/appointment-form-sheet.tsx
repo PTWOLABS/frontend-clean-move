@@ -193,26 +193,26 @@ export function AppointmentFormSheet({
     setCustomerSearch("");
     setCustomerLabel(appointment?.extendedProps.customer ?? "");
     setVehicleSearch("");
-    setVehicleLabel(appointment?.extendedProps.vehicle ?? "");
+    setVehicleLabel(appointment?.extendedProps.vehicle.displayName ?? "");
     setServiceInputValue("");
     setSelectedCustomerId(formDefaultValues.customerId || null);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [appointment, formDefaultValues, open, reset]);
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: 5,
+    limit: 1000,
     search: customerSearch || undefined,
   });
 
   const { data: vehicleOptions, isPending: isLoadingCustomerVehicleOptions } =
     useListCustomerVehicleOptions({
       customerId: selectedCustomerId ?? undefined,
-      limit: 5,
+      limit: 1000,
       search: vehicleSearch || undefined,
     });
 
   const { data: serviceOptions, isPending: isLoadingServiceOptions } = useListServiceOptions({
-    limit: 5,
+    limit: 1000,
     search: serviceSearch || undefined,
   });
   const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();
@@ -248,7 +248,7 @@ export function AppointmentFormSheet({
       appointment && appointment.extendedProps.vehicleId
         ? [
             {
-              label: appointment.extendedProps.vehicle,
+              label: appointment.extendedProps.vehicle.displayName,
               value: appointment.extendedProps.vehicleId,
             },
           ]
@@ -457,6 +457,7 @@ export function AppointmentFormSheet({
                         setServiceInputValue("");
                       }}
                       options={serviceOptionsItems}
+                      portalContainer={sheetContentElement}
                       placeholder="Selecione os serviços"
                       emptyIndicator={getServiceEmptyIndicator()}
                       disabled={isSubmitting}

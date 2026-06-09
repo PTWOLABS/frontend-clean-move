@@ -1,11 +1,16 @@
 "use client";
 
-import type { DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core/index.js";
+import type {
+  DatesSetArg,
+  EventClickArg,
+  EventDropArg,
+  EventInput,
+} from "@fullcalendar/core/index.js";
 import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
 import { isSameDay as isSameDayDateFns } from "date-fns";
-import { useMemo, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -38,6 +43,10 @@ import {
 } from "./appointments-calendar.config";
 import { CalendarMoreLinkContent } from "./calendar-more-link-content";
 import { CalendarSlotOverlay } from "./calendar-slot-overlay";
+import { CalendarListView } from "./calendar-list-view";
+import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
+import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 
 type AppointmentsCalendarProps = {
   calendarRef: RefObject<FullCalendar | null>;
@@ -51,15 +60,18 @@ type AppointmentsCalendarProps = {
   selectedEventPopoverId: string | null;
   selectedSlotKey: string | null;
   selectedView: AppointmentCalendarView;
+  createAppointmentOnMonthCellClick: boolean;
   updatingStatusAppointmentId: string | null;
   onDateClick: (info: DateClickArg) => void;
   onDatesSet: (arg: DatesSetArg) => void;
   onEventClick: (info: EventClickArg) => void;
+  onDayNumberClick: (date: Date) => void;
   onClearSelectedEvent: () => void;
   onEditEvent: (event: AppointmentCalendarEvent) => void;
   onMonthCellPress: (date: Date) => void;
   onSlotPress: (date: Date) => void;
   onCellAddIndicatorPress: (open: boolean) => void;
+  onListEventSelect: (event: AppointmentCalendarEvent) => void;
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
@@ -75,30 +87,53 @@ export function AppointmentsCalendar({
   selectedEventPopoverId,
   selectedSlotKey,
   selectedView,
+  createAppointmentOnMonthCellClick,
   updatingStatusAppointmentId,
   onDateClick,
   onDatesSet,
   onEventClick,
+  onDayNumberClick,
   onClearSelectedEvent,
   onEditEvent,
   onMonthCellPress,
   onSlotPress,
   onCellAddIndicatorPress,
+  onListEventSelect,
   onStatusChange,
 }: AppointmentsCalendarProps) {
+  const [openConfirmEventDropDialog, setOpenConfirmEventDropDialog] = useState(false);
+  const [eventToDropUpdate, setEventToDropUpdate] = useState<EventDropArg | null>(null);
+
   const { state: sidebarState } = useSidebar();
+
   const calendarResizeRef = useRef<HTMLDivElement | null>(null);
+  const moreLinkMouseDownClearTimestampRef = useRef(0);
+
   const isMonthGridView = selectedView === "dayGridMonth";
+  const initialCalendarDate = selectedView === "listWeek" ? initialSelectedDate : selectedDate;
+
   const fullCalendarEvents = useMemo<EventInput[]>(
     () =>
       events.map((event) => ({
-        ...event,
+        id: event.id,
+        title: event.title,
         start: event.startsAt,
+        end: event.end,
+        allDay: false,
+        editable: isMonthGridView,
+        startEditable: isMonthGridView,
+        durationEditable: isMonthGridView,
+        extendedProps: event.extendedProps,
       })),
-    [events],
+    [events, isMonthGridView],
   );
-  const { handleMoreLinkDidMount, handleMoreLinkWillUnmount, handleMoreLinkClick } =
-    useCalendarMoreLink();
+  const {
+    isMorePopoverOpen,
+    closeActiveMorePopover,
+    handleMoreLinkDidMount,
+    handleMoreLinkWillUnmount,
+    handleMoreLinkClick,
+  } = useCalendarMoreLink();
   const selectedPopoverEvent =
     (selectedEventPopoverId ? events.find((event) => event.id === selectedEventPopoverId) : null) ??
     null;
@@ -108,6 +143,7 @@ export function AppointmentsCalendar({
     handleMonthCellWillUnmount,
     renderMonthDayCellContent,
   } = useMonthCellIndicators({
+    isHidden: isMorePopoverOpen || createAppointmentOnMonthCellClick,
     onMonthCellPress,
     onCellAddIndicatorPress,
   });
@@ -119,6 +155,10 @@ export function AppointmentsCalendar({
     selectedView,
     sidebarState,
   });
+
+  useEffect(() => {
+    closeActiveMorePopover();
+  }, [closeActiveMorePopover, selectedView]);
   const {
     hasSelectedEventAnchor,
     handleEventClickAnchor,
@@ -126,6 +166,7 @@ export function AppointmentsCalendar({
     handleEventWillUnmount,
     popoverPlacement,
     popoverStyle,
+    setEventAnchorElement,
     setPopoverElement,
   } = useSelectedCalendarEventPopover({
     containerRef: calendarResizeRef,
@@ -133,8 +174,41 @@ export function AppointmentsCalendar({
   });
 
   function handleCalendarEventClick(info: EventClickArg) {
+    const eventElement = info.el instanceof Element ? info.el : null;
+    const eventTarget = info.jsEvent.target instanceof Element ? info.jsEvent.target : eventElement;
+
+    if (eventTarget?.closest(".fc-more-popover") || eventElement?.closest(".fc-more-popover")) {
+      info.jsEvent.stopPropagation();
+    }
+
     handleEventClickAnchor(info);
     onEventClick(info);
+  }
+
+  function handleCalendarNavLinkDayClick(date: Date, jsEvent: UIEvent) {
+    jsEvent.preventDefault();
+    onDayNumberClick(date);
+  }
+
+  function handleCalendarMoreLinkClick(arg: Parameters<typeof handleMoreLinkClick>[0]) {
+    const didClearOnMouseDown = Date.now() - moreLinkMouseDownClearTimestampRef.current < 1000;
+
+    if (didClearOnMouseDown) {
+      moreLinkMouseDownClearTimestampRef.current = 0;
+    } else {
+      onClearSelectedEvent();
+    }
+
+    handleMoreLinkClick(arg);
+  }
+
+  function handleCalendarMouseDownCapture(event: MouseEvent<HTMLDivElement>) {
+    if (!(event.target instanceof Element) || !event.target.closest(".fc-more-link")) {
+      return;
+    }
+
+    moreLinkMouseDownClearTimestampRef.current = Date.now();
+    onClearSelectedEvent();
   }
 
   function renderDayCellContent(arg: DayCellContentArg) {
@@ -165,20 +239,47 @@ export function AppointmentsCalendar({
     return [];
   }
 
+  const { mutateAsync: updateAppointment, isPending: updatingAppointment } = useUpdateAppointment();
+
+  function handleEventDrop(info: EventDropArg) {
+    setEventToDropUpdate(info);
+    setOpenConfirmEventDropDialog(true);
+  }
+
+  async function handleConfirmEventDrop(info: EventDropArg) {
+    try {
+      await updateAppointment({
+        appointmentId: info.event.id,
+        body: {
+          ...(info.event.start
+            ? { startsAt: formatLocalDateTimeAsUtcISOString(info.event.start) }
+            : {}),
+          ...(info.event.end ? { endsAt: formatLocalDateTimeAsUtcISOString(info.event.end) } : {}),
+        },
+      });
+    } catch {
+      info.revert();
+    } finally {
+      setOpenConfirmEventDropDialog(false);
+    }
+  }
+
   return (
     <div
       className={cn(
-        "scrollbar-clean rounded-2xl border border-border/70 bg-background/40",
+        "rounded-2xl border border-border/70 bg-background/40",
         styles.calendarViewport,
+        !isMonthGridView && "scrollbar-clean",
       )}
     >
       <div
         ref={calendarResizeRef}
         className={cn("relative h-full overflow-hidden", styles.calendarFrame)}
+        onMouseDownCapture={handleCalendarMouseDownCapture}
       >
         {monthCellIndicatorPortals}
         {isError ? (
-          <div className="flex h-full min-h-[28rem] flex-col items-center justify-center gap-3 px-6 text-center">
+          <div className="flex h-full min-h-112 flex-col items-center justify-center gap-3 px-6 text-center">
             <div>
               <p className="text-sm font-medium text-card-foreground">
                 Não foi possível carregar os agendamentos.
@@ -191,20 +292,34 @@ export function AppointmentsCalendar({
               Tentar novamente
             </Button>
           </div>
+        ) : selectedView === "listWeek" ? (
+          <CalendarListView
+            events={events}
+            selectedDate={selectedDate}
+            selectedEventId={selectedEventId}
+            isLoading={isLoading}
+            onEventAnchorChange={setEventAnchorElement}
+            onSelectEvent={onListEventSelect}
+          />
         ) : (
           <FullCalendar
             ref={calendarRef}
             plugins={appointmentsCalendarPlugins}
             locale={appointmentsCalendarLocale}
             headerToolbar={false}
-            initialView="dayGridMonth"
-            initialDate={initialSelectedDate}
-            allDaySlot={false}
+            fixedMirrorParent={document.body}
+            initialView={selectedView}
+            initialDate={initialCalendarDate}
             firstDay={0}
             nowIndicator
             weekends
             navLinks
-            editable={false}
+            navLinkDayClick={handleCalendarNavLinkDayClick}
+            editable={isMonthGridView}
+            eventStartEditable={isMonthGridView}
+            eventDurationEditable={false}
+            eventDrop={isMonthGridView ? handleEventDrop : undefined}
+            allDaySlot={false}
             selectable={false}
             stickyHeaderDates={false}
             slotDuration={appointmentsCalendarSlotDuration}
@@ -230,7 +345,7 @@ export function AppointmentsCalendar({
             }
             moreLinkDidMount={handleMoreLinkDidMount}
             moreLinkWillUnmount={handleMoreLinkWillUnmount}
-            moreLinkClick={handleMoreLinkClick}
+            moreLinkClick={handleCalendarMoreLinkClick}
             events={fullCalendarEvents}
             dateClick={onDateClick}
             eventClick={handleCalendarEventClick}
@@ -255,7 +370,7 @@ export function AppointmentsCalendar({
             }}
           />
         )}
-        {isLoading ? (
+        {isLoading || updatingAppointment ? (
           <div className="pointer-events-none absolute inset-x-4 top-4 z-20 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             Carregando agendamentos...
           </div>
@@ -273,6 +388,32 @@ export function AppointmentsCalendar({
           />
         ) : null}
       </div>
+      <AlertDialog
+        open={openConfirmEventDropDialog}
+        onOpenChange={setOpenConfirmEventDropDialog}
+        title="Atualizar agendamento"
+        descriptionContent={
+          <>
+            Tem certeza que deseja alterar a data do agendamento de{" "}
+            <span className="font-medium text-foreground">
+              {eventToDropUpdate?.event._def.extendedProps.customer}?
+            </span>
+          </>
+        }
+        onConfirm={() => {
+          const shouldConfirm = !!eventToDropUpdate;
+
+          if (shouldConfirm) {
+            handleConfirmEventDrop(eventToDropUpdate);
+          }
+        }}
+        isLoading={updatingAppointment}
+        actionMessage={updatingAppointment ? "Atualizando..." : "Confirmar"}
+        onCancel={() => {
+          eventToDropUpdate?.revert();
+          setOpenConfirmEventDropDialog(false);
+        }}
+      />
     </div>
   );
 }

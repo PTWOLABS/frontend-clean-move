@@ -9,13 +9,15 @@ import type {
   AppointmentCalendarEvent,
   AppointmentCalendarView,
   AppointmentTone,
+  AppointmentVehicleExtendedProps,
 } from "../types/appointment-calendar";
+import { parseAppointmentDateTime } from "@/shared/utils/appointments-helpers";
 
 type AppointmentListItem = AppointmentDTO["appointments"][number];
 
 const DEFAULT_APPOINTMENT_DURATION_IN_MINUTES = 60;
 const FALLBACK_CUSTOMER_LABEL = "Cliente não informado";
-const API_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
+const FALLBACK_VEHICLE_LABEL = "Veículo não informado";
 
 function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: AppointmentCalendarEvent) {
   return left.startsAt.getTime() - right.startsAt.getTime();
@@ -25,27 +27,6 @@ function getCustomerLabel(appointment: AppointmentListItem) {
   const customerLabel = appointment.customer?.fullName;
 
   return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
-}
-
-function parseAppointmentDateTime(value: string) {
-  const match = API_DATE_TIME_PATTERN.exec(value);
-
-  if (!match) {
-    return new Date(value);
-  }
-
-  const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = match;
-
-  // Appointment times are scheduled wall-clock values; keep the API components intact.
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-    Number(millisecond.slice(0, 3).padEnd(3, "0")),
-  );
 }
 
 function getServicesSummary(appointment: AppointmentListItem) {
@@ -80,16 +61,31 @@ function getServiceOptions(appointment: AppointmentListItem) {
   }));
 }
 
-function getVehicleLabel(appointment: AppointmentListItem) {
+function normalizeVehicleText(value: string | null | undefined) {
+  return value?.trim() ?? "";
+}
+
+function getVehicleDetails(appointment: AppointmentListItem): AppointmentVehicleExtendedProps {
   if (!appointment.vehicle) {
-    return "Veículo não informado";
+    return {
+      plate: "",
+      brand: "",
+      model: "",
+      displayName: FALLBACK_VEHICLE_LABEL,
+    };
   }
 
-  const segments = [appointment.vehicle.brand, appointment.vehicle.model, appointment.vehicle.plate]
-    .filter((value) => typeof value === "string" && value.trim().length > 0)
-    .map((value) => value!.trim());
+  const plate = normalizeVehicleText(appointment.vehicle.plate);
+  const brand = normalizeVehicleText(appointment.vehicle.brand);
+  const model = normalizeVehicleText(appointment.vehicle.model);
+  const displayName = [brand, model, plate].filter(Boolean).join(" • ") || FALLBACK_VEHICLE_LABEL;
 
-  return segments.length ? segments.join(" • ") : "Veículo não informado";
+  return {
+    plate,
+    brand,
+    model,
+    displayName,
+  };
 }
 
 function getDiscountValue(appointment: AppointmentListItem) {
@@ -138,7 +134,7 @@ export function mapAppointmentToCalendarEvent(
   const end = getAppointmentEnd(appointment, start);
   const explicitEnd = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
   const services = getServicesSummary(appointment);
-  const vehicleLabel = getVehicleLabel(appointment);
+  const vehicle = getVehicleDetails(appointment);
   const description = appointment.description?.trim() ?? "";
 
   return {
@@ -152,7 +148,7 @@ export function mapAppointmentToCalendarEvent(
       serviceIds: getServiceOptions(appointment),
       service: services.label,
       vehicleId: appointment.vehicleId ?? "",
-      vehicle: vehicleLabel,
+      vehicle,
       endsAt: explicitEnd,
       description,
       discountValue: getDiscountValue(appointment),
@@ -214,6 +210,8 @@ export function getViewLabel(view: AppointmentCalendarView) {
       return "Visão semanal";
     case "timeGridDay":
       return "Visão diária";
+    case "listWeek":
+      return "Visão em lista";
   }
 }
 

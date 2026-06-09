@@ -138,6 +138,7 @@ vi.mock("@/components/ui/multiple-selector", () => {
     disabled?: boolean;
     onChange?: (options: Option[]) => void;
     options?: Option[];
+    portalContainer?: unknown;
     placeholder?: string;
     value?: Option[];
   };
@@ -147,29 +148,34 @@ vi.mock("@/components/ui/multiple-selector", () => {
     inputProps,
     onChange,
     options = [],
+    portalContainer,
     placeholder,
     value = [],
-  }: MultipleSelectorProps) => (
-    <select
-      id={inputProps?.id}
-      disabled={disabled}
-      value={value[0]?.value ?? ""}
-      onBlur={inputProps?.onBlur}
-      onChange={(event) => {
-        const selectedOption = options.find((option) => option.value === event.target.value);
+  }: MultipleSelectorProps) => {
+    void portalContainer;
 
-        onChange?.(selectedOption ? [selectedOption] : []);
-        inputProps?.onValueChange?.("");
-      }}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  );
+    return (
+      <select
+        id={inputProps?.id}
+        disabled={disabled}
+        value={value[0]?.value ?? ""}
+        onBlur={inputProps?.onBlur}
+        onChange={(event) => {
+          const selectedOption = options.find((option) => option.value === event.target.value);
+
+          onChange?.(selectedOption ? [selectedOption] : []);
+          inputProps?.onValueChange?.("");
+        }}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  };
 
   return { default: MultipleSelector };
 });
@@ -220,7 +226,12 @@ const appointmentToEdit: AppointmentCalendarEvent = {
     serviceIds: [{ value: "service-1", label: "Lavagem completa" }],
     service: "Lavagem completa",
     vehicleId: "vehicle-1",
-    vehicle: "ABC-1234",
+    vehicle: {
+      plate: "ABC-1234",
+      brand: "",
+      model: "",
+      displayName: "ABC-1234",
+    },
     endsAt: new Date("2026-05-20T10:00:00.000Z"),
     description: "Observação original",
     discountValue: "15,00",

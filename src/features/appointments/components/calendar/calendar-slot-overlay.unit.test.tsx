@@ -18,7 +18,12 @@ function makeAppointmentEvent(): AppointmentCalendarEvent {
       serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
       service: "Lavagem tecnica",
       vehicleId: "vehicle-1",
-      vehicle: "ABC-1234",
+      vehicle: {
+        plate: "ABC-1234",
+        brand: "",
+        model: "",
+        displayName: "ABC-1234",
+      },
       endsAt: new Date(2026, 4, 20, 10),
       description: "Sem observações.",
       discountValue: "",

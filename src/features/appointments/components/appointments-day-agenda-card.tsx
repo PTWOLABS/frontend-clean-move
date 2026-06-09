@@ -92,7 +92,12 @@ export function AppointmentsDayAgendaCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="scrollbar-clean min-h-0 flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0">
+      <CardContent
+        className={cn(
+          selectedDayAppointments.length <= 3 ? "min-h-fit" : "min-h-90",
+          "scrollbar-clean flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0 xl:min-h-0 xl:",
+        )}
+      >
         {isLoading || isRefreshing ? (
           <DayAgendaLoadingState />
         ) : isError ? (
@@ -140,7 +145,9 @@ export function AppointmentsDayAgendaCard({
                       </span>
                       <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
                         <CarFront className="size-3.5 shrink-0" />
-                        <span className="truncate">{event.extendedProps.vehicle}</span>
+                        <span className="truncate">
+                          {event.extendedProps.vehicle.plate || "-------"}
+                        </span>
                       </span>
                     </div>
                   </button>

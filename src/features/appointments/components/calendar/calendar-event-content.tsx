@@ -107,7 +107,7 @@ export function CalendarEventContent({
       <span className={styles.eventTime}>{arg.timeText || "Dia inteiro"}</span>
       {shouldShowMeta ? (
         <span className={styles.eventMeta}>
-          {`${extendedProps.customer} • ${extendedProps.vehicle}`}
+          {`${extendedProps.customer} • ${extendedProps.vehicle.plate || "-------"}`}
         </span>
       ) : null}
     </div>

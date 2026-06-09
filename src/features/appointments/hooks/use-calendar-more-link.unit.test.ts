@@ -245,6 +245,38 @@ describe("useCalendarMoreLink", () => {
     expect(harness.querySelector(".fc-more-popover")).not.toBeInTheDocument();
   });
 
+  it("closes the active popover on demand", async () => {
+    const { result } = renderHook(() => useCalendarMoreLink());
+    const { harness, link } = makeMoreLinkDom({
+      cellRect: { left: 80, top: 220, width: 100, height: 120 },
+      linkRect: { left: 104, top: 308, width: 56, height: 20 },
+    });
+    const popover = document.createElement("div");
+    popover.className = "fc-more-popover";
+    const closeButton = document.createElement("button");
+    closeButton.className = "fc-popover-close";
+    closeButton.addEventListener("click", () => {
+      popover.remove();
+    });
+    popover.appendChild(closeButton);
+    harness.appendChild(popover);
+
+    act(() => {
+      result.current.handleMoreLinkClick(clickMoreLink(link));
+    });
+
+    await waitFor(() => {
+      expect(result.current.isMorePopoverOpen).toBe(true);
+    });
+
+    act(() => {
+      result.current.closeActiveMorePopover();
+    });
+
+    expect(result.current.isMorePopoverOpen).toBe(false);
+    expect(harness.querySelector(".fc-more-popover")).not.toBeInTheDocument();
+  });
+
   it("clears the active popover state when the more popover closes", async () => {
     const { result } = renderHook(() => useCalendarMoreLink());
     const { harness, link } = makeMoreLinkDom({

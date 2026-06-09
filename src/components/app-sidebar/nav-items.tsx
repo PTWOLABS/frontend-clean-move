@@ -43,8 +43,8 @@ type PosNavigationItem = {
 
 const operationItems: NavigationItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Agenda", href: "/agenda", icon: CalendarDays },
-  { label: "Agendamentos", href: "/appointments", icon: ClipboardList },
+  { label: "Agenda", href: "/agenda", icon: ClipboardList },
+  { label: "Calendário", href: "/appointments", icon: CalendarDays },
 ];
 
 const registerItems: NavigationItem[] = [
@@ -54,7 +54,7 @@ const registerItems: NavigationItem[] = [
 ];
 
 const managementItems: NavigationItem[] = [
-  { label: "Orçamentos", href: "/budgets", icon: FileText },
+  { label: "Orçamentos", href: "/quotes", icon: FileText },
   { label: "Relatórios", href: "/reports", icon: BarChart3 },
   { label: "Configurações", href: "/settings", icon: Settings },
 ];

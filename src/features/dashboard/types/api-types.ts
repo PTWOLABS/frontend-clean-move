@@ -25,7 +25,7 @@ export type DashboardMetricsOverview = {
   };
   cancellationRate: {
     value: number;
-    variationPercentage: number | null;
+    variationInPercentagePoints: number | null;
     points: MetricPoint[];
   };
   totalRevenue: {
@@ -36,10 +36,15 @@ export type DashboardMetricsOverview = {
 };
 
 export type DashboardMetricsAppointment = {
-  appointmentsCount: number;
-  cancellationRate: {
-    currentPercent: number;
-    comparisonPercentPoints: number | null;
+  total: number;
+  byStatus: {
+    scheduled: number;
+    done: number;
+    cancelled: number;
+  };
+  rates: {
+    completion: number;
+    cancellation: number;
   };
 };
 

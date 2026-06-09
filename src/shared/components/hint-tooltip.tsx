@@ -5,7 +5,8 @@ import type { ComponentProps, ReactElement, ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/shared/utils/cn";
 
-const hintContentClassName = "border border-border bg-popover text-popover-foreground shadow-md";
+const hintContentClassName =
+  "border border-border bg-popover text-popover-foreground shadow-md text-center";
 
 type HintTooltipProviderProps = {
   children: ReactNode;

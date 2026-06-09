@@ -2,6 +2,7 @@ import { addMinutes, format, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import type { AppointmentStatus } from "@/shared/types/appointments";
+import { appointmentStatusBadgeClassName } from "@/shared/utils/appointments-status";
 
 import type {
   AppointmentCalendarEvent,
@@ -27,6 +28,10 @@ export const viewOptions: Array<{
     label: "Visualização: Dia",
     value: "timeGridDay",
   },
+  {
+    label: "Visualização: Lista",
+    value: "listWeek",
+  },
 ];
 
 export const compactViewOptions = viewOptions.filter((option) => option.value !== "timeGridWeek");
@@ -47,17 +52,18 @@ export const viewToggleOptions: Array<{
     label: "Dia",
     value: "timeGridDay",
   },
+  {
+    label: "Lista",
+    value: "listWeek",
+  },
 ];
 
 export const compactViewToggleOptions = viewToggleOptions.filter(
   (option) => option.value !== "timeGridWeek",
 );
 
-export const statusBadgeClassName: Record<AppointmentStatus, string> = {
-  DONE: "border-transparent bg-success-soft text-success-soft-foreground",
-  SCHEDULED: "border-transparent bg-info-soft text-info-soft-foreground",
-  CANCELLED: "border-transparent bg-danger-soft text-danger-soft-foreground",
-};
+export const statusBadgeClassName: Record<AppointmentStatus, string> =
+  appointmentStatusBadgeClassName;
 
 const toneContainerClassName: Record<AppointmentTone, string> = {
   primary: styles.eventTonePrimary,

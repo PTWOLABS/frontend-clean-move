@@ -65,14 +65,14 @@ describe("AppSidebar", () => {
     expect(screen.getByText("Gestão")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("href", "/dashboard");
     expect(screen.getByRole("link", { name: /^agenda$/i })).toHaveAttribute("href", "/agenda");
-    expect(screen.getByRole("link", { name: /^agendamentos$/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^calendário$/i })).toHaveAttribute(
       "href",
       "/appointments",
     );
     expect(screen.getByRole("link", { name: /clientes/i })).toHaveAttribute("href", "/customers");
     expect(screen.getByRole("link", { name: /veículos/i })).toHaveAttribute("href", "/vehicles");
     expect(screen.getByRole("link", { name: /serviços/i })).toHaveAttribute("href", "/services");
-    expect(screen.getByRole("link", { name: /orçamentos/i })).toHaveAttribute("href", "/budgets");
+    expect(screen.getByRole("link", { name: /orçamentos/i })).toHaveAttribute("href", "/quotes");
     expect(screen.getByRole("link", { name: /relatórios/i })).toHaveAttribute("href", "/reports");
     expect(screen.getByRole("link", { name: /configurações/i })).toHaveAttribute(
       "href",

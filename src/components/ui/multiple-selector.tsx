@@ -77,6 +77,7 @@ interface MultipleSelectorProps {
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>,
     "value" | "placeholder" | "disabled"
   >;
+  portalContainer?: React.ComponentProps<typeof PopoverContent>["portalContainer"];
   /** hide the clear all button. */
   hideClearAllButton?: boolean;
 }
@@ -179,6 +180,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
       triggerSearchOnFocus = false,
       commandProps,
       inputProps,
+      portalContainer,
       hideClearAllButton = false,
     }: MultipleSelectorProps,
     ref: React.Ref<MultipleSelectorRef>,
@@ -528,6 +530,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
           </PopoverAnchor>
           <PopoverContent
             className="p-0"
+            portalContainer={portalContainer}
             style={{ width: dropdownWidth }}
             onOpenAutoFocus={(e) => e.preventDefault()}
             onInteractOutside={(e) => {

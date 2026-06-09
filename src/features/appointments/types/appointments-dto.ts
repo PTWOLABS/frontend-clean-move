@@ -34,6 +34,7 @@ export type AppointmentDTO = {
     doneAt: string | null;
     cancelledAt: string | null;
   }[];
+  totalItems?: number;
 };
 
 export type UpdateAppointmentStatusDTO = {
