@@ -28,10 +28,9 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           icon={
             <Building2
               aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
           }
-          className="h-12 rounded-xl bg-background/60 pl-12 text-sm shadow-none"
         />
 
         <InputField
@@ -43,10 +42,9 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           icon={
             <FileText
               aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
           }
-          className="h-12 rounded-xl bg-background/60 pl-12 text-sm shadow-none"
         />
 
         <InputField
@@ -60,10 +58,9 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           icon={
             <IdCard
               aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
           }
-          className="h-12 rounded-xl bg-background/60 pl-12 text-sm shadow-none"
         />
 
         <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
