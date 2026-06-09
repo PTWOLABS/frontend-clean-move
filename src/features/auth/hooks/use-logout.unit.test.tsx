@@ -57,7 +57,7 @@ describe("useLogout", () => {
     signOutApiMock.mockResolvedValueOnce(null);
     const client = createTestQueryClient();
     client.setQueryData(QUERY_KEYS.authSession, { id: "1", name: "A", email: "a@b.com" });
-    client.setQueryData(["user", "me"], { id: "1", name: "A", email: "a@b.com" });
+    client.setQueryData(QUERY_KEYS.userMe(), { id: "1", name: "A", email: "a@b.com" });
 
     const { result } = renderHook(() => useLogout(), { wrapper: wrapperWithClient(client) });
     result.current.mutate();
@@ -69,7 +69,7 @@ describe("useLogout", () => {
     expect(signOutApiMock).toHaveBeenCalledTimes(1);
     expect(setAccessTokenMock).toHaveBeenCalledWith(null);
     expect(client.getQueryData(QUERY_KEYS.authSession)).toBeUndefined();
-    expect(client.getQueryData(["user", "me"])).toBeUndefined();
+    expect(client.getQueryData(QUERY_KEYS.userMe())).toBeUndefined();
     expect(pushMock).toHaveBeenCalledWith("/login");
   });
 

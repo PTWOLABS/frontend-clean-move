@@ -39,11 +39,11 @@ describe("auth/api", () => {
       userId: "u-2",
     });
 
-    const response = await loginWithGoogle({ idToken: "google-id-jwt" });
+    const response = await loginWithGoogle({ idToken: "google-id-jwt", role: "ESTABLISHMENT" });
 
     expect(httpClientMock).toHaveBeenCalledWith("/auth/google", {
       method: "POST",
-      body: { idToken: "google-id-jwt" },
+      body: { idToken: "google-id-jwt", role: "ESTABLISHMENT" },
     });
     expect(response).toEqual({ accessToken: "jwt", userId: "u-2" });
   });
@@ -52,18 +52,13 @@ describe("auth/api", () => {
     httpClientMock.mockResolvedValueOnce({
       user: {
         id: "1",
+        establishmentId: "est-1",
         name: "Fulano",
         email: "fulano@email.com",
         role: "CUSTOMER",
-        phone: "",
-        address: {
-          street: "",
-          complement: "",
-          country: "",
-          state: "",
-          zipCode: "",
-          city: "",
-        },
+        profileImageUrl: null,
+        phone: null,
+        address: null,
         socialAccounts: [],
         profileComplete: true,
         createdAt: "2026-01-01T00:00:00.000Z",
