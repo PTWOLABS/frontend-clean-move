@@ -29,21 +29,9 @@ export function useUpdateEstablishment() {
       toast.success("Configurações salvas com sucesso.");
     },
     onError: (error) => {
-      if (error instanceof ApiError) {
-        if (error.statusCode === 403) {
-          toast.error("Você não tem permissão para alterar este estabelecimento.");
-          return;
-        }
-
-        if (error.statusCode === 409) {
-          toast.error("CNPJ ou slug já em uso.");
-          return;
-        }
-
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Verifique os dados informados.");
-          return;
-        }
+      if (error instanceof ApiError && error.statusCode === 409) {
+        toast.error("CNPJ ou slug já em uso.");
+        return;
       }
 
       const feedback = getMutationFeedbackError(
@@ -51,11 +39,24 @@ export function useUpdateEstablishment() {
         QUERY_KEYS.establishment("")[0],
         error,
         "update",
+        {
+          forbidden: {
+            title: "Você não tem permissão para alterar este estabelecimento.",
+            message: "",
+          },
+          badRequest: {
+            title:
+              error instanceof ApiError
+                ? error.message || "Verifique os dados informados."
+                : "Verifique os dados informados.",
+            message: "",
+          },
+        },
       );
 
       toast.error(feedback.title, {
         id: feedback.id,
-        description: feedback.description,
+        ...(feedback.description ? { description: feedback.description } : {}),
       });
     },
   });

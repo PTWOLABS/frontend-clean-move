@@ -40,33 +40,33 @@ export function useUploadEstablishmentBanner() {
       toast.success("Configurações salvas com sucesso.");
     },
     onError: (error) => {
-      if (error instanceof ApiError) {
-        if (error.statusCode === 403) {
-          toast.error("Você não tem permissão para alterar o banner deste estabelecimento.");
-          return;
-        }
-
-        if (error.statusCode === 404) {
-          toast.error("Estabelecimento não encontrado.");
-          return;
-        }
-
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Arquivo inválido. Use PNG, JPG ou WEBP de até 5 MB.");
-          return;
-        }
-      }
-
       const feedback = getMutationFeedbackError(
         "banner",
         QUERY_KEYS.establishment("")[0],
         error,
         "update",
+        {
+          forbidden: {
+            title: "Você não tem permissão para alterar o banner deste estabelecimento.",
+            message: "",
+          },
+          notFound: {
+            title: "Estabelecimento não encontrado.",
+            message: "",
+          },
+          badRequest: {
+            title:
+              error instanceof ApiError
+                ? error.message || "Arquivo inválido. Use PNG, JPG ou WEBP de até 5 MB."
+                : "Arquivo inválido. Use PNG, JPG ou WEBP de até 5 MB.",
+            message: "",
+          },
+        },
       );
 
       toast.error(feedback.title, {
         id: feedback.id,
-        description: feedback.description,
+        ...(feedback.description ? { description: feedback.description } : {}),
       });
     },
   });

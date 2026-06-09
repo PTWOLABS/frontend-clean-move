@@ -29,23 +29,25 @@ export function useUploadUserProfileImage() {
       toast.success("Configurações salvas com sucesso.");
     },
     onError: (error) => {
-      if (error instanceof ApiError) {
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Arquivo inválido. Use PNG, JPG ou WEBP de até 5 MB.");
-          return;
-        }
-      }
-
       const feedback = getMutationFeedbackError(
         "foto de perfil",
         QUERY_KEYS.userMe()[0],
         error,
         "update",
+        {
+          badRequest: {
+            title:
+              error instanceof ApiError
+                ? error.message || "Arquivo inválido. Use PNG, JPG ou WEBP de até 5 MB."
+                : "Arquivo inválido. Use PNG, JPG ou WEBP de até 5 MB.",
+            message: "",
+          },
+        },
       );
 
       toast.error(feedback.title, {
         id: feedback.id,
-        description: feedback.description,
+        ...(feedback.description ? { description: feedback.description } : {}),
       });
     },
   });
