@@ -56,7 +56,7 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
         <div className="grid gap-5 md:grid-cols-2">
           <StandartInputField
             id="onboarding-service-name"
-            name="name"
+            name="serviceName"
             label="Nome do serviço"
             placeholder="Ex.: Lavagem premium"
             autoComplete="off"

@@ -13,7 +13,7 @@ const companyStepFieldNames = [
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
 const serviceStepFieldNames = [
-  "name",
+  "serviceName",
   "description",
   "category",
   "minDurationInMinutes",
@@ -32,10 +32,8 @@ const customerVehicleStepFieldNames = [
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
 const appointmentStepFieldNames = [
-  "customerId",
-  "serviceIds",
-  "vehicleId",
   "startsAt",
+  "endsAt",
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
 const stepFieldNames = [
@@ -52,7 +50,7 @@ const companyStepDefaultValues = {
 } satisfies Partial<OnboardingFormValues>;
 
 const serviceStepDefaultValues = {
-  name: "",
+  serviceName: "",
   description: "",
   category: "",
   minDurationInMinutes: "",
@@ -71,10 +69,8 @@ const customerVehicleStepDefaultValues = {
 } satisfies Partial<OnboardingFormValues>;
 
 const appointmentStepDefaultValues = {
-  customerId: "",
-  serviceIds: [],
-  vehicleId: "",
   startsAt: null,
+  endsAt: null,
 } satisfies Partial<OnboardingFormValues>;
 
 const stepDefaultValues = [
