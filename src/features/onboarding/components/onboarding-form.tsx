@@ -7,12 +7,14 @@ import { OnboardingProgress } from "./onboarding-progress";
 import { CompanyDataStep } from "./steps/company-data-step";
 import { ServiceStep } from "./steps/service-step";
 import {
+  onboardingAppointmentStepSchema,
   onboardingCompanyStepSchema,
   onboardingCustomerVehicleStepSchema,
   onboardingServiceStepSchema,
 } from "../schemas/onboarding-schema";
 import { StepActions } from "./steps/step-actions";
 import { CustomerAndVehicleStep } from "./steps/customer-and-vehicle-step";
+import { AppointmentStep } from "./steps/appointment-step";
 
 const stepHeaders = [
   {
@@ -44,6 +46,7 @@ const stepSchemas = [
   onboardingCompanyStepSchema,
   onboardingServiceStepSchema,
   onboardingCustomerVehicleStepSchema,
+  onboardingAppointmentStepSchema,
 ] as const;
 
 export function OnboardingForm() {
@@ -84,6 +87,9 @@ export function OnboardingForm() {
         return <ServiceStep {...currentStepHeaders} />;
       case 3:
         return <CustomerAndVehicleStep {...currentStepHeaders} />;
+
+      case 4:
+        return <AppointmentStep {...currentStepHeaders} />;
 
       default:
         return null;
