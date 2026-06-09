@@ -23,7 +23,6 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           id="onboarding-trade-name"
           name="tradeName"
           label="Nome fantasia"
-          required
           placeholder="Ex.: Clean Move Detail"
           autoComplete="organization"
           icon={
@@ -39,7 +38,6 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           id="onboarding-legal-name"
           name="legalName"
           label="Razão social"
-          required
           placeholder="Ex.: Clean Move Estética Automotiva LTDA"
           autoComplete="organization"
           icon={
@@ -55,7 +53,6 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           id="onboarding-cnpj"
           name="cnpj"
           label="CNPJ"
-          required
           placeholder="00.000.000/0000-00"
           mask="__.___.___/____-__"
           inputMode="numeric"

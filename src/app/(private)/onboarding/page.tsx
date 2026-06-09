@@ -1,5 +1,5 @@
-import { OnboardingForm } from "@/features/onboarding/onboarding-form";
-import { OnboardingHeader } from "@/features/onboarding/onboarding-header";
+import { OnboardingForm } from "@/features/onboarding/components/onboarding-form";
+import { OnboardingHeader } from "@/features/onboarding/components/onboarding-header";
 
 export default function Home() {
   return (
