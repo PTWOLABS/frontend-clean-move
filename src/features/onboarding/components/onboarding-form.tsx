@@ -18,6 +18,7 @@ import { StepActions } from "./steps/step-actions";
 import { CustomerAndVehicleStep } from "./steps/customer-and-vehicle-step";
 import { AppointmentStep } from "./steps/appointment-step";
 import { useCompleteOnboarding } from "../hooks/use-complete-onboarding";
+import { OnboardingSummaryDialog } from "./onboarding-summary-dialog";
 
 const stepHeaders = [
   {
@@ -61,12 +62,14 @@ export function OnboardingForm() {
   const [customerLabel, setCustomerLabel] = useState(DEFAULT_CUSTOMER_LABEL);
   const [serviceLabel, setServiceLabel] = useState(DEFAULT_SERVICE_LABEL);
   const [vehicleLabel, setVehicleLabel] = useState(DEFAULT_VEHICLE_LABEL);
+  const [openSummaryDialog, setOpenSummaryDialog] = useState(false);
 
   const currentStepIndex = step - 1;
   const currentSchema = stepSchemas[currentStepIndex];
   const lastStep = stepHeaders.length;
 
-  const { mutate: completeOnboarding } = useCompleteOnboarding();
+  const { mutateAsync: completeOnboarding, data: completeOnboardingSummaryData } =
+    useCompleteOnboarding();
 
   const currentStepHeaders = useMemo(() => {
     return {
@@ -75,7 +78,7 @@ export function OnboardingForm() {
     };
   }, [currentStepIndex]);
 
-  function onSubmit(data: OnboardingSubmitValues) {
+  async function onSubmit(data: OnboardingSubmitValues) {
     if (step === 2) {
       setServiceLabel(data.serviceName ?? DEFAULT_SERVICE_LABEL);
     }
@@ -93,7 +96,8 @@ export function OnboardingForm() {
     const onboardingPayload = mapOnboardingSubmitToPayload(data);
 
     if (step === lastStep) {
-      completeOnboarding(onboardingPayload);
+      await completeOnboarding(onboardingPayload);
+      setOpenSummaryDialog(true);
     }
     // finalizar onboarding aqui
   }
@@ -142,6 +146,11 @@ export function OnboardingForm() {
         {currentStepContent}
         <StepActions step={step} lastStep={lastStep} backStep={onBack} />
       </Form>
+      <OnboardingSummaryDialog
+        result={completeOnboardingSummaryData}
+        open={openSummaryDialog}
+        onOpenChange={setOpenSummaryDialog}
+      />
     </div>
   );
 }
