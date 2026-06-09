@@ -183,3 +183,5 @@ export function getValidDate(value: unknown) {
 
   return undefined;
 }
+
+export const onlyDigits = (value: string) => value.replace(/\D/g, "");
