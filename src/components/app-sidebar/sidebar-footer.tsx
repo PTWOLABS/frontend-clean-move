@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Bell, ChevronsUpDown, LogOut, Settings, UserRound } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +54,29 @@ function getInitials(name: string) {
   return initials || "CM";
 }
 
+function UserAvatar({
+  profileImageUrl,
+  name,
+  initials,
+  className,
+  fallbackClassName,
+}: {
+  profileImageUrl: string | null;
+  name: string;
+  initials: string;
+  className?: string;
+  fallbackClassName?: string;
+}) {
+  return (
+    <Avatar className={className}>
+      {profileImageUrl ? (
+        <AvatarImage src={profileImageUrl} alt={`Foto de perfil de ${name}`} />
+      ) : null}
+      <AvatarFallback className={fallbackClassName}>{initials}</AvatarFallback>
+    </Avatar>
+  );
+}
+
 export function AppSidebarFooter() {
   const { data, isLoading, isError, error } = useCurrentUser();
   const { isMobile } = useSidebar();
@@ -67,6 +90,7 @@ export function AppSidebarFooter() {
         : fallbackUser.email
       : user.email;
   const initials = getInitials(name).toUpperCase();
+  const profileImageUrl = data?.profileImageUrl ?? null;
 
   return (
     <SidebarPrimitiveFooter className="mt-auto border-t border-sidebar-border p-2">
@@ -79,11 +103,13 @@ export function AppSidebarFooter() {
                 className="h-14 rounded-sidebar-item px-2.5 text-sidebar-foreground transition-colors duration-200 ease-clean hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!p-0"
                 aria-label={`Abrir menu da conta de ${name}`}
               >
-                <Avatar className="size-8 shrink-0 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  profileImageUrl={profileImageUrl}
+                  name={name}
+                  initials={initials}
+                  className="size-8 shrink-0 rounded-lg"
+                  fallbackClassName="rounded-lg bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground"
+                />
 
                 <div className="grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">{name}</span>
@@ -106,11 +132,13 @@ export function AppSidebarFooter() {
             >
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-3 px-2 py-2">
-                  <Avatar className="size-9 rounded-lg">
-                    <AvatarFallback className="rounded-lg bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    profileImageUrl={profileImageUrl}
+                    name={name}
+                    initials={initials}
+                    className="size-9 rounded-lg"
+                    fallbackClassName="rounded-lg bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground"
+                  />
                   <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{name}</span>
                     <span className="truncate text-xs text-muted-foreground">{email}</span>
