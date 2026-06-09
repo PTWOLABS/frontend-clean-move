@@ -85,6 +85,7 @@ export function OnboardingForm() {
 
       case 2:
         return <ServiceStep {...currentStepHeaders} />;
+
       case 3:
         return <CustomerAndVehicleStep {...currentStepHeaders} />;
 
