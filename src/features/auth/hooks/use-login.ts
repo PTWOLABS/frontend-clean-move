@@ -17,7 +17,7 @@ export function useLogin() {
     onSuccess: ({ accessToken }) => {
       setAccessToken(accessToken);
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.authSession });
-      router.push("/home");
+      router.push("/onboarding");
     },
     onError: (error) => {
       if (error instanceof ApiError) {

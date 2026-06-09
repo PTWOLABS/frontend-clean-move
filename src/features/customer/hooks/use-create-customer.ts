@@ -13,6 +13,7 @@ import {
   mapVehicleFormToPayload,
   type CustomerFormValues,
 } from "../schemas/customer-form-schema";
+import { getMutationFeedbackError } from "@/shared/hooks/use-mutation-feedback-error";
 
 export function useCreateCustomer() {
   const queryClient = useQueryClient();
@@ -45,17 +46,15 @@ export function useCreateCustomer() {
         return;
       }
 
-      if (error.statusCode === 404) {
-        toast.error("Estabelecimento ou cliente não encontrado.");
-        return;
-      }
+      const resourceLabel = "o cliente";
+      const resourceKey = QUERY_KEYS.customers()[0];
 
-      if (error.statusCode === 400) {
-        toast.error(error.message || "Verifique os dados informados.");
-        return;
-      }
+      const feedback = getMutationFeedbackError(resourceLabel, resourceKey, error, "create");
 
-      toast.error("Não foi possível cadastrar o cliente. Tente novamente mais tarde.");
+      toast.error(feedback.title, {
+        id: feedback.id,
+        description: feedback.description,
+      });
     },
   });
 }

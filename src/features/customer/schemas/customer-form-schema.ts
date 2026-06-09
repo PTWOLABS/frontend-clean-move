@@ -27,13 +27,17 @@ const optionalNullableTrimmed = z
     return parsed ? parsed : null;
   });
 
-const phoneField = z
+export const customerPhoneField = z
   .string()
   .trim()
   .refine((value) => {
     const len = onlyDigits(value).length;
     return len === 10 || len === 11;
   }, "Informe um telefone válido (10 ou 11 dígitos).");
+
+export const customerFullNameField = z.string().trim().min(1, "Informe o nome completo.");
+
+export const customerEmailField = z.email("Informe um e-mail válido.");
 
 const cpfCnpjField = z
   .string()
@@ -91,9 +95,9 @@ export function hasCompleteAddress(address?: CustomerAddress | null): boolean {
 }
 
 const customerFormBaseSchema = z.object({
-  fullName: z.string().trim().min(1, "Informe o nome completo."),
-  phone: phoneField,
-  email: z.email("Informe um e-mail válido."),
+  fullName: customerFullNameField,
+  phone: customerPhoneField,
+  email: customerEmailField,
   cpfCnpj: cpfCnpjField,
   nickname: optionalNullableTrimmed,
   birthDate: birthDateField,

@@ -6,6 +6,7 @@ import { renderWithProviders } from "@/test/test-utils";
 
 const loginMock = vi.fn();
 const googleLoginMock = vi.fn();
+const replaceMock = vi.fn();
 
 vi.mock("../hooks/use-login", () => ({
   useLogin: () => ({
@@ -18,6 +19,19 @@ vi.mock("../hooks/use-google-login", () => ({
   useGoogleLogin: () => ({
     mutate: googleLoginMock,
     isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-auth-session", () => ({
+  useAuthSession: () => ({
+    isSuccess: false,
+    isPending: false,
+  }),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: replaceMock,
   }),
 }));
 
@@ -35,6 +49,7 @@ describe("LoginForm", () => {
   beforeEach(() => {
     loginMock.mockReset();
     googleLoginMock.mockReset();
+    replaceMock.mockReset();
   });
 
   it("should render the main fields and buttons", () => {

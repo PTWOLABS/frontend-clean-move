@@ -8,18 +8,18 @@ describe("Fluxo principal", () => {
     cy.contains("button", /^entrar$/i).click();
     cy.wait("@loginRequest");
 
-    cy.url().should("include", "/home");
+    cy.url().should("include", "/onboarding");
 
     cy.contains("Domínio Auth / Login").click();
     cy.url().should("include", "/login");
 
     cy.contains("Frontend de exemplo").should("not.exist");
 
-    cy.visit("/home");
+    cy.visit("/onboarding");
     cy.contains("Domínio User").click();
     cy.url().should("include", "/user");
 
-    cy.visit("/home");
+    cy.visit("/onboarding");
     cy.contains("Domínio Serviços").click();
     cy.url().should("include", "/services");
   });

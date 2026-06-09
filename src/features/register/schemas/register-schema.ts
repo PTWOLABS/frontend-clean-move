@@ -1,8 +1,6 @@
+import { onlyDigits } from "@/shared/utils/lib";
+import { requiredText } from "@/shared/utils/required-text";
 import { z } from "zod";
-
-const onlyDigits = (value: string) => value.replace(/\D/g, "");
-
-const requiredText = (field: string) => z.string().trim().min(1, `Informe ${field}.`);
 
 export enum BrazilianState {
   AC = "AC",

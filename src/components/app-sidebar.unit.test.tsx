@@ -73,7 +73,7 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: /veículos/i })).toHaveAttribute("href", "/vehicles");
     expect(screen.getByRole("link", { name: /serviços/i })).toHaveAttribute("href", "/services");
     expect(screen.getByRole("link", { name: /orçamentos/i })).toHaveAttribute("href", "/quotes");
-    expect(screen.getByRole("link", { name: /relatórios/i })).toHaveAttribute("href", "/reports");
+    expect(screen.queryByRole("link", { name: /relatórios/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /configurações/i })).toHaveAttribute(
       "href",
       "/settings",
@@ -86,30 +86,20 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: /clientes/i })).toHaveAttribute("data-active", "true");
   });
 
-  it("should expand PDV automatically for nested PDV routes", () => {
+  it("should keep the PDV navigation hidden for nested PDV routes", () => {
     renderSidebar("/pos/closing");
 
-    expect(screen.getByRole("button", { name: /pdv/i })).toHaveAttribute("data-active", "true");
-    expect(screen.getByRole("link", { name: /venda \/ caixa/i })).toHaveAttribute("href", "/pos");
-    expect(screen.getByRole("link", { name: /movimentações/i })).toHaveAttribute(
-      "href",
-      "/pos/movements",
-    );
-    expect(screen.getByRole("link", { name: /fechamento/i })).toHaveAttribute(
-      "data-active",
-      "true",
-    );
+    expect(screen.queryByRole("button", { name: /pdv/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /venda \/ caixa/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /movimentações/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /fechamento/i })).not.toBeInTheDocument();
   });
 
-  it("should toggle the PDV dropdown by keyboard-accessible button", async () => {
-    const user = userEvent.setup();
+  it("should not render the hidden PDV dropdown trigger", () => {
     renderSidebar("/dashboard");
 
+    expect(screen.queryByRole("button", { name: /pdv/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /venda \/ caixa/i })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /pdv/i }));
-
-    expect(screen.getByRole("link", { name: /venda \/ caixa/i })).toBeInTheDocument();
   });
 
   it("should render the user footer menu and open account actions", async () => {

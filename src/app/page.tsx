@@ -971,7 +971,7 @@ function Footer() {
             links={[
               ["Contato", "#contato"],
               ["Entrar", "/login"],
-              ["Página de exemplo", "/home"],
+              ["Página de exemplo", "/onboarding"],
               ["Design system", "/design-system"],
             ]}
           />
