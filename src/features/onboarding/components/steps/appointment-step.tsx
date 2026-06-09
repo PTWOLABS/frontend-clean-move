@@ -181,7 +181,10 @@ function AppointmentResourceInput({
       </div>
 
       {error && (
-        <p id={errorId} className="text-[11px] font-medium leading-4 text-destructive md:text-[0.8rem]">
+        <p
+          id={errorId}
+          className="text-[11px] font-medium leading-4 text-destructive md:text-[0.8rem]"
+        >
           {error}
         </p>
       )}
