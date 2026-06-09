@@ -36,7 +36,7 @@ export type OnboardingPayload = {
     color?: string | null;
   };
   appointment?: {
-    startsAt: string
-    endsAt?: string | null
-  }
+    startsAt: string;
+    endsAt?: string | null;
+  };
 };
