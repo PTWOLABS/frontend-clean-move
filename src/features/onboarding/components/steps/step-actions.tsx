@@ -31,10 +31,18 @@ const customerVehicleStepFieldNames = [
   "vehicleColor",
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
+const appointmentStepFieldNames = [
+  "customerId",
+  "serviceIds",
+  "vehicleId",
+  "startsAt",
+] as const satisfies readonly FieldPath<OnboardingFormValues>[];
+
 const stepFieldNames = [
   companyStepFieldNames,
   serviceStepFieldNames,
   customerVehicleStepFieldNames,
+  appointmentStepFieldNames,
 ] as const;
 
 const companyStepDefaultValues = {
@@ -62,10 +70,18 @@ const customerVehicleStepDefaultValues = {
   vehicleColor: "",
 } satisfies Partial<OnboardingFormValues>;
 
+const appointmentStepDefaultValues = {
+  customerId: "",
+  serviceIds: [],
+  vehicleId: "",
+  startsAt: null,
+} satisfies Partial<OnboardingFormValues>;
+
 const stepDefaultValues = [
   companyStepDefaultValues,
   serviceStepDefaultValues,
   customerVehicleStepDefaultValues,
+  appointmentStepDefaultValues,
 ] as const;
 
 type StepActionsProps = {

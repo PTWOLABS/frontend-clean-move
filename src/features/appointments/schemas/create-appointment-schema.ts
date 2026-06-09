@@ -37,7 +37,7 @@ const optionalDateField = dateInput.transform((value, context) => {
   return formatLocalDateTimeAsUtcISOString(date);
 });
 
-const serviceOptionSchema = z.object({
+export const appointmentServiceOptionSchema = z.object({
   value: z.string().trim().min(1, "Selecione um serviço válido."),
   label: z.string().trim().min(1, "Selecione um serviço válido."),
 });
@@ -53,7 +53,7 @@ function isValidDiscount(value: string) {
 
 export const appointmentFormFieldsSchema = {
   customerId: z.string().trim().min(1, "Selecione um cliente."),
-  serviceIds: z.array(serviceOptionSchema).min(1, "Selecione pelo menos um serviço."),
+  serviceIds: z.array(appointmentServiceOptionSchema).min(1, "Selecione pelo menos um serviço."),
   vehicleId: z.string().trim().min(1, "Selecione um veículo."),
   startsAt: requiredDateField("Selecione a data de início."),
   endsAt: optionalDateField,

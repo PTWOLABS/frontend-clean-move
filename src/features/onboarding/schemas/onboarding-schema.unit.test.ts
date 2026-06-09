@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  onboardingAppointmentStepSchema,
   onboardingCompanyStepSchema,
   onboardingCustomerVehicleStepSchema,
   onboardingSchema,
@@ -254,6 +255,108 @@ describe("onboardingCustomerVehicleStepSchema", () => {
 
     expect(result.error.issues).toEqual(
       expect.arrayContaining([expect.objectContaining({ path: ["vehiclePlate"] })]),
+    );
+  });
+});
+
+describe("onboardingAppointmentStepSchema", () => {
+  const emptyAppointmentStepValues = {
+    customerId: "",
+    serviceIds: [],
+    vehicleId: "",
+    startsAt: null,
+  };
+
+  it("allows the appointment step to be empty", () => {
+    const result = onboardingAppointmentStepSchema.safeParse(emptyAppointmentStepValues);
+
+    expect(result.success).toBe(true);
+  });
+
+  it("allows a filled appointment when all fields are valid", () => {
+    const result = onboardingAppointmentStepSchema.safeParse({
+      customerId: "customer-1",
+      serviceIds: [{ value: "service-1", label: "Lavagem premium" }],
+      vehicleId: "vehicle-1",
+      startsAt: new Date("2026-09-09T09:27:00"),
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("requires all appointment fields when customer is selected", () => {
+    const result = onboardingAppointmentStepSchema.safeParse({
+      ...emptyAppointmentStepValues,
+      customerId: "customer-1",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["serviceIds"] }),
+        expect.objectContaining({ path: ["vehicleId"] }),
+        expect.objectContaining({ path: ["startsAt"] }),
+      ]),
+    );
+  });
+
+  it("requires all appointment fields when services are selected", () => {
+    const result = onboardingAppointmentStepSchema.safeParse({
+      ...emptyAppointmentStepValues,
+      serviceIds: [{ value: "service-1", label: "Lavagem premium" }],
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["customerId"] }),
+        expect.objectContaining({ path: ["vehicleId"] }),
+        expect.objectContaining({ path: ["startsAt"] }),
+      ]),
+    );
+  });
+
+  it("requires all appointment fields when vehicle is selected", () => {
+    const result = onboardingAppointmentStepSchema.safeParse({
+      ...emptyAppointmentStepValues,
+      vehicleId: "vehicle-1",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["customerId"] }),
+        expect.objectContaining({ path: ["serviceIds"] }),
+        expect.objectContaining({ path: ["startsAt"] }),
+      ]),
+    );
+  });
+
+  it("requires all appointment fields when start date is selected", () => {
+    const result = onboardingAppointmentStepSchema.safeParse({
+      ...emptyAppointmentStepValues,
+      startsAt: new Date("2026-09-09T09:27:00"),
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["customerId"] }),
+        expect.objectContaining({ path: ["serviceIds"] }),
+        expect.objectContaining({ path: ["vehicleId"] }),
+      ]),
     );
   });
 });

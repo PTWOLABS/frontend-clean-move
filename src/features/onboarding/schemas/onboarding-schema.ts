@@ -7,6 +7,7 @@ import {
   customerPhoneField,
 } from "@/features/customer/schemas/customer-form-schema";
 import { normalizePlate } from "@/features/vehicle/schemas/vehicle-form-schema";
+import { appointmentServiceOptionSchema } from "@/features/appointments/schemas/create-appointment-schema";
 import z from "zod";
 
 const onboardingServiceCategoryCodes = [
@@ -41,6 +42,8 @@ function parseNumberFromInput(value: unknown): number {
 }
 
 const optionalTrimmedText = z.preprocess(emptyStringToUndefined, z.string().optional());
+
+const optionalDateInput = z.union([z.date(), z.string(), z.number(), z.null(), z.undefined()]);
 
 const optionalPositiveIntegerField = (message: string) =>
   z.preprocess(
@@ -226,9 +229,75 @@ export const onboardingCustomerVehicleStepSchema = z
     }
   });
 
+export const onboardingAppointmentStepSchema = z
+  .object({
+    customerId: optionalTrimmedText,
+    serviceIds: z.array(appointmentServiceOptionSchema).optional(),
+    vehicleId: optionalTrimmedText,
+    startsAt: optionalDateInput.optional(),
+  })
+  .superRefine((data, ctx) => {
+    const serviceIds = data.serviceIds ?? [];
+    const hasStartDate =
+      data.startsAt !== null && data.startsAt !== undefined && data.startsAt !== "";
+    const hasAnyAppointmentData = Boolean(
+      data.customerId || serviceIds.length > 0 || data.vehicleId || hasStartDate,
+    );
+
+    if (!hasAnyAppointmentData) return;
+
+    if (!data.customerId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione um cliente.",
+        path: ["customerId"],
+      });
+    }
+
+    if (serviceIds.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione pelo menos um serviço.",
+        path: ["serviceIds"],
+      });
+    }
+
+    if (!data.vehicleId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione um veículo.",
+        path: ["vehicleId"],
+      });
+    }
+
+    const startsAt = data.startsAt;
+
+    if (startsAt === null || startsAt === undefined || startsAt === "") {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione a data de início.",
+        path: ["startsAt"],
+      });
+      return;
+    }
+
+    const startDate = startsAt instanceof Date ? startsAt : new Date(startsAt);
+
+    if (Number.isNaN(startDate.getTime())) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione uma data válida.",
+        path: ["startsAt"],
+      });
+    }
+  });
+
 export const onboardingSchema = z.intersection(
-  z.intersection(onboardingCompanyStepSchema, onboardingServiceStepSchema),
-  onboardingCustomerVehicleStepSchema,
+  z.intersection(
+    z.intersection(onboardingCompanyStepSchema, onboardingServiceStepSchema),
+    onboardingCustomerVehicleStepSchema,
+  ),
+  onboardingAppointmentStepSchema,
 );
 
 export type OnboardingFormValues = z.input<typeof onboardingSchema>;
