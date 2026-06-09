@@ -54,8 +54,11 @@ export function OnboardingForm() {
   const lastStep = stepHeaders.length;
 
   const currentStepHeaders = useMemo(() => {
-    return { title: stepHeaders[step].title, description: stepHeaders[step].description };
-  }, [step]);
+    return {
+      title: stepHeaders[currentStepIndex].title,
+      description: stepHeaders[currentStepIndex].description,
+    };
+  }, [currentStepIndex]);
 
   function onSubmit(data: unknown) {
     console.log(data);

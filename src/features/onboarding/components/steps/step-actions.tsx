@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { FieldPath, useFormContext } from "react-hook-form";
 
 import type { OnboardingFormValues } from "../../schemas/onboarding-schema";
@@ -22,10 +22,20 @@ const serviceStepFieldNames = [
   "isActive",
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
-const stepFieldNames = {
-  1: companyStepFieldNames,
-  2: serviceStepFieldNames,
-} as const;
+const customerVehicleStepFieldNames = [
+  "customerFullName",
+  "customerPhone",
+  "customerEmail",
+  "vehiclePlate",
+  "vehicleModel",
+  "vehicleColor",
+] as const satisfies readonly FieldPath<OnboardingFormValues>[];
+
+const stepFieldNames = [
+  companyStepFieldNames,
+  serviceStepFieldNames,
+  customerVehicleStepFieldNames,
+] as const;
 
 const companyStepDefaultValues = {
   cnpj: "",
@@ -43,10 +53,20 @@ const serviceStepDefaultValues = {
   isActive: false,
 } satisfies Partial<OnboardingFormValues>;
 
-const stepDefaultValues = {
-  1: companyStepDefaultValues,
-  2: serviceStepDefaultValues,
-} as const;
+const customerVehicleStepDefaultValues = {
+  customerFullName: "",
+  customerPhone: "",
+  customerEmail: "",
+  vehiclePlate: "",
+  vehicleModel: "",
+  vehicleColor: "",
+} satisfies Partial<OnboardingFormValues>;
+
+const stepDefaultValues = [
+  companyStepDefaultValues,
+  serviceStepDefaultValues,
+  customerVehicleStepDefaultValues,
+] as const;
 
 type StepActionsProps = {
   step: number;
@@ -62,9 +82,10 @@ export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
     formState: { isSubmitting },
   } = useFormContext<OnboardingFormValues>();
 
-  const currentStepFieldNames = stepFieldNames[step as keyof typeof stepFieldNames];
+  const currentStepIndex = step - 1;
+  const currentStepFieldNames = stepFieldNames[currentStepIndex];
 
-  const currentStepDefaultValues = stepDefaultValues[step as keyof typeof stepDefaultValues];
+  const currentStepDefaultValues = stepDefaultValues[currentStepIndex];
 
   function clearCurrentStep() {
     if (!currentStepFieldNames || !currentStepDefaultValues) return;
@@ -98,7 +119,7 @@ export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
           onClick={backStep}
           disabled={step === 1 || isSubmitting}
         >
-          <RotateCcw aria-hidden className="size-4" />
+          <ChevronLeft aria-hidden className="size-4" />
           Voltar
         </Button>
 

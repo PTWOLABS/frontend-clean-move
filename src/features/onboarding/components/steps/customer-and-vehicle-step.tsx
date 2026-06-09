@@ -1,6 +1,6 @@
 "use client";
 
-import { CarFront, Mail, Palette, Phone, UserRound } from "lucide-react";
+import { CarFront, Info, Mail, Palette, Phone, UserRound } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form/input-field";
@@ -111,6 +111,7 @@ export function CustomerAndVehicleStep({
             id="onboarding-vehicle-plate"
             name="vehiclePlate"
             label="Placa"
+            maxLength={7}
             placeholder="Ex.: ABC1D23"
             autoComplete="off"
             icon={
@@ -154,9 +155,9 @@ export function CustomerAndVehicleStep({
             />
           </div>
         </section>
-
-        <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-          Você poderá complementar o cadastro do cliente e do veículo depois.
+        <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+          <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" /> Você poderá
+          complementar o cadastro do cliente e do veículo depois.
         </div>
       </CardContent>
     </Card>
