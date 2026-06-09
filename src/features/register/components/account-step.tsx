@@ -17,7 +17,7 @@ export function AccountStep() {
       <GoogleSignInButton
         label="Continuar com Google"
         isLoading={isGoogleLoading}
-        onCredential={(credential) => googleLogin({ idToken: credential })}
+        onCredential={(credential) => googleLogin({ idToken: credential, role: "ESTABLISHMENT" })}
       />
 
       <div className="flex items-center gap-5 text-sm text-[#94A3B8]">

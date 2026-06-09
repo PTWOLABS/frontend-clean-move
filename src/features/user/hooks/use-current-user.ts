@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { ApiError, setAccessToken } from "@/shared/api/httpClient";
 
+import { QUERY_KEYS } from "@/shared/constants/query-keys";
+
 import { getCurrentUserProfile } from "../api";
 
 export function useCurrentUser() {
@@ -14,7 +16,7 @@ export function useCurrentUser() {
   const router = useRouter();
 
   const query = useQuery({
-    queryKey: ["user", "me"],
+    queryKey: QUERY_KEYS.userMe(),
     queryFn: () => getCurrentUserProfile(),
     enabled: isSessionReady,
   });

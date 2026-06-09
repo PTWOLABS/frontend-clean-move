@@ -144,7 +144,7 @@ export function LoginForm() {
           label="Entrar com Google"
           testId="google-signin-slot"
           isLoading={isGoogleLoading || isLoggingAutomatically}
-          onCredential={(credential) => googleLogin({ idToken: credential })}
+          onCredential={(credential) => googleLogin({ idToken: credential, role: "ESTABLISHMENT" })}
         />
       </Form>
 

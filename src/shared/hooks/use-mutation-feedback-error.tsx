@@ -62,46 +62,59 @@ export function getMutationFeedbackError(
   const id = `${mutationTypeLabel}-${resourceLabel}-${resourceKey}-${error.statusCode ?? "unknown"}`;
 
   switch (error.statusCode) {
-    case 400:
+    case 400: {
+      const badRequest = override?.badRequest;
       return {
         id,
-        title: `Não foi possível ${mutationTypeLabel} ${resourceLabel}.`,
-        description: "Verifique se os dados enviados estão corretos.",
+        title: badRequest?.title ?? `Não foi possível ${mutationTypeLabel} ${resourceLabel}.`,
+        description: badRequest?.message ?? "Verifique se os dados enviados estão corretos.",
         statusCode: error.statusCode,
-        ...override?.badRequest,
       };
-    case 401:
+    }
+    case 401: {
+      const unauthorized = override?.unauthorized;
       return {
         id,
-        title: "Sua sessão expirou.",
-        description: "Atualize a página e faça login novamente se necessário para continuar.",
+        title: unauthorized?.title ?? "Sua sessão expirou.",
+        description:
+          unauthorized?.message ??
+          "Atualize a página e faça login novamente se necessário para continuar.",
         statusCode: error.statusCode,
-        ...override?.unauthorized,
       };
-    case 403:
+    }
+    case 403: {
+      const forbidden = override?.forbidden;
       return {
         id,
-        title: `Acesso negado em ${resourceLabel}.`,
-        description: `Seu usuário não tem permissão para ${mutationTypeLabel} esse recurso.`,
+        title: forbidden?.title ?? `Acesso negado em ${resourceLabel}.`,
+        description:
+          forbidden?.message ??
+          `Seu usuário não tem permissão para ${mutationTypeLabel} esse recurso.`,
         statusCode: error.statusCode,
-        ...override?.forbidden,
       };
-    case 404:
+    }
+    case 404: {
+      const notFound = override?.notFound;
       return {
         id,
-        title: "Usuário sem permissão.",
-        description: `Não enconstramos um perfil com as devidas permissões para ${mutationTypeLabel} este recurso.`,
+        title: notFound?.title ?? "Usuário sem permissão.",
+        description:
+          notFound?.message ??
+          `Não enconstramos um perfil com as devidas permissões para ${mutationTypeLabel} este recurso.`,
         statusCode: error.statusCode,
-        ...override?.notFound,
       };
-    case 500:
+    }
+    case 500: {
+      const serverError = override?.badRequest;
       return {
         id,
-        title: `Falha ao carregar ${resourceLabel}.`,
-        description: `O servidor falhou ao tentar ${mutationTypeLabel} este recurso. Tente novamente em instantes.`,
+        title: serverError?.title ?? `Falha ao carregar ${resourceLabel}.`,
+        description:
+          serverError?.message ??
+          `O servidor falhou ao tentar ${mutationTypeLabel} este recurso. Tente novamente em instantes.`,
         statusCode: error.statusCode,
-        ...override?.badRequest,
       };
+    }
     default:
       return {
         ...genericFeedback,

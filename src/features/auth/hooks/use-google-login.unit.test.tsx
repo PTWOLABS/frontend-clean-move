@@ -58,13 +58,16 @@ describe("useGoogleLogin", () => {
     });
 
     const { result } = renderHook(() => useGoogleLogin(), { wrapper });
-    result.current.mutate({ idToken: "id-jwt" });
+    result.current.mutate({ idToken: "id-jwt", role: "ESTABLISHMENT" });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(loginWithGoogleApiMock.mock.calls[0]?.[0]).toEqual({ idToken: "id-jwt" });
+    expect(loginWithGoogleApiMock.mock.calls[0]?.[0]).toEqual({
+      idToken: "id-jwt",
+      role: "ESTABLISHMENT",
+    });
     expect(setAccessTokenMock).toHaveBeenCalledWith("google-access");
     expect(pushMock).toHaveBeenCalledWith("/onboarding");
   });
@@ -75,7 +78,7 @@ describe("useGoogleLogin", () => {
     );
 
     const { result } = renderHook(() => useGoogleLogin(), { wrapper });
-    result.current.mutate({ idToken: "bad" });
+    result.current.mutate({ idToken: "bad", role: "ESTABLISHMENT" });
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);

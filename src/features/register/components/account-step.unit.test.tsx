@@ -93,6 +93,7 @@ describe("AccountStep", () => {
     expect(googleLoginMock).toHaveBeenCalledTimes(1);
     expect(googleLoginMock).toHaveBeenCalledWith({
       idToken: "test-google-credential",
+      role: "ESTABLISHMENT",
     });
   });
 

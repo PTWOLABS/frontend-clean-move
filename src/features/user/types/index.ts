@@ -6,7 +6,7 @@ export type SocialAuthProvider = string;
 
 export type UserAddress = {
   street: string;
-  complement: string;
+  complement: string | null;
   country: string;
   state: string;
   zipCode: string;
@@ -20,18 +20,40 @@ export type UserSocialAccount = {
 
 export type User = {
   id: string;
+  establishmentId: string | null;
   name: string;
   email: string;
   role: UserRole;
-  phone: string;
-  address: UserAddress;
+  profileImageUrl: string | null;
+  phone: string | null;
+  address: UserAddress | null;
   socialAccounts: UserSocialAccount[];
   profileComplete: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
-/** Corpo de `GET /user/me`. */
+/** Corpo de `GET /user/me` e `PATCH /user/me`. */
 export type GetCurrentUserResponse = {
   user: User;
+};
+
+export type UpdateUserProfileAddressPayload = {
+  street: string;
+  complement?: string | null;
+  country: string;
+  state: string;
+  zipCode: string;
+  city: string;
+};
+
+export type UpdateUserProfilePayload = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: UpdateUserProfileAddressPayload;
+};
+
+export type UploadMediaResponse = {
+  url: string;
 };
