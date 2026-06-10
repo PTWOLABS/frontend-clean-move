@@ -107,8 +107,8 @@ export function AppSidebarFooter() {
                   profileImageUrl={profileImageUrl}
                   name={name}
                   initials={initials}
-                  className="size-8 shrink-0 rounded-lg"
-                  fallbackClassName="rounded-lg bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground"
+                  className="size-8 shrink-0"
+                  fallbackClassName="bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground"
                 />
 
                 <div className="grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
@@ -136,8 +136,8 @@ export function AppSidebarFooter() {
                     profileImageUrl={profileImageUrl}
                     name={name}
                     initials={initials}
-                    className="size-9 rounded-lg"
-                    fallbackClassName="rounded-lg bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground"
+                    className="size-9"
+                    fallbackClassName="bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground"
                   />
                   <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{name}</span>

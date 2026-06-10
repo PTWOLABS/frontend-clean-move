@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/shared/utils/cn";
@@ -20,25 +20,31 @@ type SettingsAppearancePreviewProps = {
 
 type PreviewHeaderProps = {
   canRemove?: boolean;
+  removeLabel: string;
   onRemove?: () => void;
   isRemovePending?: boolean;
 };
 
-function PreviewHeader({ canRemove, onRemove, isRemovePending }: PreviewHeaderProps) {
+function PreviewHeader({ canRemove, removeLabel, onRemove, isRemovePending }: PreviewHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-sm font-medium text-foreground">Prévia</p>
-      {canRemove ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isRemovePending}
-          onClick={onRemove}
-        >
-          {isRemovePending ? "Removendo..." : "Remover"}
-        </Button>
-      ) : null}
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className={cn(
+          "size-8 shrink-0",
+          canRemove &&
+            "text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive",
+        )}
+        disabled={!canRemove || isRemovePending}
+        aria-label={removeLabel}
+        onClick={onRemove}
+      >
+        <Trash2 aria-hidden className="size-4" />
+        <span className="sr-only">{isRemovePending ? "Removendo..." : removeLabel}</span>
+      </Button>
     </div>
   );
 }
@@ -53,7 +59,12 @@ function ProfileAppearancePreview({
 }: Omit<SettingsAppearancePreviewProps, "variant" | "className">) {
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-muted/30 p-5 sm:p-6">
-      <PreviewHeader canRemove={canRemove} onRemove={onRemove} isRemovePending={isRemovePending} />
+      <PreviewHeader
+        canRemove={canRemove}
+        removeLabel="Remover foto de perfil"
+        onRemove={onRemove}
+        isRemovePending={isRemovePending}
+      />
 
       <div className="mt-4 flex flex-1 flex-col items-center justify-center text-center">
         <div
@@ -91,7 +102,12 @@ function BannerAppearancePreview({
 >) {
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-4 lg:h-full", className)}>
-      <PreviewHeader canRemove={canRemove} onRemove={onRemove} isRemovePending={isRemovePending} />
+      <PreviewHeader
+        canRemove={canRemove}
+        removeLabel="Remover banner"
+        onRemove={onRemove}
+        isRemovePending={isRemovePending}
+      />
 
       <div
         className={cn(
