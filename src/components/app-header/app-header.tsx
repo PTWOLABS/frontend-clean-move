@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Check, ChevronDown, LogOut, Search, Settings, UserRound, X } from "lucide-react";
-import { SyntheticEvent, useId, useState } from "react";
+import { Bell, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 
 import { AppSidebarMobileTrigger } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,17 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { cn } from "@/shared/utils/cn";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 import { useSidebar } from "../ui/sidebar";
-
-const searchCategories = [
-  { value: "services", label: "Serviços" },
-  { value: "customers", label: "Clientes" },
-  { value: "appointments", label: "Agendamentos" },
-];
+import { CommandHeader } from "./command-header";
 
 const fallbackUser = {
   name: "Clean Move Detail",
@@ -83,92 +76,7 @@ function UserAvatar({
 }
 
 function AppHeaderSearch({ className }: { className?: string }) {
-  const searchInputId = useId();
-  const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(searchCategories[0]);
-
-  function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault();
-  }
-
-  return (
-    <form
-      role="search"
-      aria-label="Buscar no sistema"
-      onSubmit={handleSubmit}
-      className={cn(
-        "flex h-11 min-w-0 items-center rounded-xl border border-border bg-card px-2 transition-colors duration-200 ease-clean focus-within:border-primary/45 focus-within:ring-2 focus-within:ring-primary/15 shadow-xs",
-        className,
-      )}
-    >
-      <label htmlFor={searchInputId} className="sr-only">
-        Buscar
-      </label>
-
-      <Search aria-hidden className="ml-1 size-4 shrink-0 text-muted-foreground" />
-
-      <Input
-        id={searchInputId}
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Buscar..."
-        className="h-9 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0"
-      />
-
-      {query ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="Limpar busca"
-          onClick={() => setQuery("")}
-          className="size-7 shrink-0 rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        >
-          <X aria-hidden className="size-4" />
-        </Button>
-      ) : null}
-
-      <div className="mx-2 hidden h-6 w-px shrink-0 bg-border sm:block" aria-hidden />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            className="hidden h-8 shrink-0 gap-1.5 rounded-lg px-2 text-sm font-medium text-foreground hover:bg-muted hover:text-accent-foreground sm:inline-flex"
-          >
-            <span className="max-w-28 truncate">{selectedCategory.label}</span>
-            <ChevronDown aria-hidden className="size-4 text-muted-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>Buscar em</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {searchCategories.map((category) => (
-            <DropdownMenuItem
-              key={category.value}
-              onSelect={() => setSelectedCategory(category)}
-              className="justify-between"
-            >
-              <span>{category.label}</span>
-              {selectedCategory.value === category.value ? (
-                <Check aria-hidden className="size-4 text-primary" />
-              ) : null}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <Button
-        type="submit"
-        size="icon"
-        aria-label="Executar busca"
-        className="size-8 shrink-0 rounded-full"
-      >
-        <Search aria-hidden className="size-4" />
-      </Button>
-    </form>
-  );
+  return <CommandHeader className={className} />;
 }
 
 function AccountMenu() {
@@ -289,7 +197,7 @@ export function AppHeader() {
           </div>
         </div>
 
-        <AppHeaderSearch className="md:hidden" />
+        {/* <AppHeaderSearch className="md:hidden" /> */}
       </div>
     </header>
   );
