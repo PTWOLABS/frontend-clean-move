@@ -95,7 +95,9 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
   ] satisfies MetricCardProps[];
 
   if (isLoading && !metricsOverview) {
-    return Array.from({ length: 4 }, (_, index) => <DashboardMetricCardSkeleton key={index} />);
+    return Array.from({ length: 4 }, (_, index) => (
+      <DashboardMetricCardSkeleton key={`dashboard-metric-card-skeleton-${index}`} />
+    ));
   }
 
   if (errorFeedback && !metricsOverview) {

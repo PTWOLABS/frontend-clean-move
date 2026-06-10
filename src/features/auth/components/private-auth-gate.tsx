@@ -112,7 +112,10 @@ function SidebarSkeletonGroup({ items }: { items: number }) {
     <div className="space-y-2">
       <Skeleton className="mx-2 h-3 w-20 bg-sidebar-primary/10" />
       {Array.from({ length: items }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 rounded-md px-2 py-2">
+        <div
+          key={`sidebar-skeleton-group-${index}`}
+          className="flex items-center gap-3 rounded-md px-2 py-2"
+        >
           <Skeleton className="size-4 rounded bg-sidebar-primary/15" />
           <Skeleton className="h-4 w-full max-w-32 bg-sidebar-primary/15" />
         </div>
@@ -185,7 +188,7 @@ function PrivatePageSkeleton() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
-          <Skeleton key={index} className="h-28 rounded-xl" />
+          <Skeleton key={`private-page-skeleton-${index}`} className="h-28 rounded-xl" />
         ))}
       </div>
 
