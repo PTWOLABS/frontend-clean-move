@@ -7,7 +7,9 @@ type GetChangedFieldsOptions<T extends Record<string, unknown>> = {
 };
 
 function areArraysEqual(left: unknown[], right: unknown[]) {
-  return left.length === right.length && left.every((value, index) => Object.is(value, right[index]));
+  return (
+    left.length === right.length && left.every((value, index) => Object.is(value, right[index]))
+  );
 }
 
 function areFieldValuesEqual(current: unknown, initial: unknown) {

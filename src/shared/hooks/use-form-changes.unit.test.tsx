@@ -32,10 +32,9 @@ describe("useFormChanges", () => {
   });
 
   it("updates comparison when initial changes", () => {
-    const { result, rerender } = renderHook(
-      ({ initial }) => useFormChanges(initial),
-      { initialProps: { initial: { name: "João" } as { name: string } | null } },
-    );
+    const { result, rerender } = renderHook(({ initial }) => useFormChanges(initial), {
+      initialProps: { initial: { name: "João" } as { name: string } | null },
+    });
 
     expect(result.current.hasChanges({ name: "João" })).toBe(false);
 

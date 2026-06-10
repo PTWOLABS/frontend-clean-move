@@ -1,9 +1,6 @@
 import { useCallback } from "react";
 
-import {
-  getChangedFields,
-  type FieldComparators,
-} from "@/shared/utils/get-changed-fields";
+import { getChangedFields, type FieldComparators } from "@/shared/utils/get-changed-fields";
 
 type UseFormChangesOptions<T extends Record<string, unknown>> = {
   comparators?: FieldComparators<T>;
