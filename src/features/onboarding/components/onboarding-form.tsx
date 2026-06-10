@@ -96,10 +96,11 @@ export function OnboardingForm() {
     const onboardingPayload = mapOnboardingSubmitToPayload(data);
 
     if (step === lastStep) {
-      await completeOnboarding(onboardingPayload);
-      setOpenSummaryDialog(true);
+      try {
+        await completeOnboarding(onboardingPayload);
+        setOpenSummaryDialog(true);
+      } catch {}
     }
-    // finalizar onboarding aqui
   }
 
   function onBack() {
