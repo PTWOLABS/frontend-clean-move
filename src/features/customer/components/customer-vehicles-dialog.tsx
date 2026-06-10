@@ -124,7 +124,7 @@ export function CustomerVehiclesDialog({
             <div
               className="overflow-x-auto rounded-xl border border-border/80"
               aria-busy="true"
-              aria-label="A carregar veículos"
+              aria-label="Carregando veículos"
             >
               <div className="min-w-160">
                 <div className="grid grid-cols-[2fr_1.2fr_1.2fr_0.8fr] border-b border-border/70 bg-muted/20 px-5 py-3">
