@@ -7,6 +7,7 @@ import { Building2, Hash, LoaderCircle, Mail, MapPin, Navigation, Phone, User } 
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -56,8 +57,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, watch, clearErrors, getValues, setError, setValue } =
-    methods;
+  const { control, handleSubmit, reset, clearErrors, getValues, setError, setValue } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   const initialPayload = useMemo(() => {
@@ -68,7 +68,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
 
   const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
 
-  const watchedValues = watch();
+  const watchedValues = useWatch({ control });
   const currentPayload = useMemo(() => {
     const parsed = profileSettingsSchema.safeParse(watchedValues);
     return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : initialPayload;

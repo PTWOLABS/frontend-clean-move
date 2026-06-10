@@ -7,6 +7,7 @@ import { Building2, CreditCard, Link2 } from "lucide-react";
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -54,7 +55,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, watch } = methods;
+  const { control, handleSubmit, reset } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   const initialPayload = useMemo(() => {
@@ -65,7 +66,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
 
   const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
 
-  const watchedValues = watch();
+  const watchedValues = useWatch({ control });
   const currentPayload = useMemo(() => {
     const parsed = businessSettingsSchema.safeParse(watchedValues);
     return parsed.success ? mapBusinessFormToPatchPayload(parsed.data) : initialPayload;
