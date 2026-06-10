@@ -607,6 +607,7 @@ export function AppointmentsPage() {
     handleSelectEvent(event);
     setAppointmentToEdit(event);
     setAppointmentSheetOpen(true);
+    handleClearSelectedEvent();
   }
 
   function handleEditAppointmentFromPopover(event: AppointmentCalendarEvent) {
