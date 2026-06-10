@@ -77,27 +77,46 @@ function PrivateShellSkeleton({ isOnboarding }: { isOnboarding: boolean }) {
         </div>
 
         <div className="flex-1 space-y-7 px-3 py-4">
-          <SidebarSkeletonGroup items={4} />
+          <SidebarSkeletonGroup items={3} />
           <SidebarSkeletonGroup items={3} />
           <SidebarSkeletonGroup items={2} />
         </div>
 
-        <div className="border-t border-sidebar-border p-3">
-          <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-            <Skeleton className="size-8 rounded-full bg-sidebar-primary/20" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-3 w-24 bg-sidebar-primary/20" />
-              <Skeleton className="h-3 w-32 bg-sidebar-primary/10" />
-            </div>
+        <div className="mt-auto border-t border-sidebar-border p-2">
+          <div className="flex h-10 items-center justify-center gap-2 rounded-md px-2">
+            <Skeleton className="size-4 rounded bg-sidebar-primary/20" />
+            <Skeleton className="h-4 w-10 bg-sidebar-primary/15" />
           </div>
         </div>
       </aside>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between px-4 pt-4 md:justify-end md:px-8 md:pt-6">
-          <Skeleton className="size-9 rounded-lg md:hidden" />
-          <Skeleton className="size-9 rounded-md" />
-        </div>
+        <header className="border-b border-border bg-background/95">
+          <div className="flex min-h-16 flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:px-8">
+            <div className="flex w-full min-w-0 items-center gap-3">
+              <Skeleton className="size-9 shrink-0 rounded-lg md:hidden" />
+
+              <div className="hidden h-10 max-w-2xl flex-1 items-center gap-3 rounded-md border border-border bg-card px-3 shadow-xs md:flex">
+                <Skeleton className="size-4 shrink-0 rounded bg-muted-foreground/20" />
+                <Skeleton className="h-4 w-40 max-w-[60%]" />
+                <Skeleton className="ml-auto h-5 w-12 rounded-md" />
+              </div>
+
+              <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                <Skeleton className="size-9 rounded-lg" />
+                <Skeleton className="size-9 rounded-lg" />
+                <div className="flex h-10 min-w-0 items-center gap-2 rounded-xl px-2">
+                  <Skeleton className="size-8 shrink-0 rounded-full" />
+                  <div className="hidden min-w-0 space-y-1.5 lg:block">
+                    <Skeleton className="h-3.5 w-28" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="hidden size-4 rounded lg:block" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
 
         <main className="w-full px-4 py-6 md:px-8 md:py-8">
           {isOnboarding ? <OnboardingPageSkeleton /> : <PrivatePageSkeleton />}
