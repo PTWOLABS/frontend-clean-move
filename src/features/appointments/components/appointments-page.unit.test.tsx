@@ -10,6 +10,11 @@ const useListCalendarAppointmentsMock = vi.hoisted(() => vi.fn());
 const useQueryFeedbackErrorMock = vi.hoisted(() => vi.fn());
 const useUpdateAppointmentStatusMock = vi.hoisted(() => vi.fn());
 const updateAppointmentStatusMutateMock = vi.hoisted(() => vi.fn());
+const navigationMock = vi.hoisted(() => ({
+  pathname: "/appointments",
+  replace: vi.fn(),
+  searchParams: new URLSearchParams(),
+}));
 
 type SelectOptionMock = {
   label: string;
@@ -35,6 +40,14 @@ vi.mock("../hooks/mutations/use-update-appointment-status-mutation", () => ({
 
 vi.mock("@/shared/hooks/use-query-feedback-error", () => ({
   useQueryFeedbackError: useQueryFeedbackErrorMock,
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => navigationMock.pathname,
+  useRouter: () => ({
+    replace: navigationMock.replace,
+  }),
+  useSearchParams: () => navigationMock.searchParams,
 }));
 
 vi.mock("@/components/ui/select/select", () => ({
@@ -348,6 +361,7 @@ vi.mock("./form-sheet/appointment-form-sheet", () => ({
   AppointmentFormSheet: ({
     appointment,
     defaultStartsAt,
+    onOpenChange,
     open,
   }: {
     appointment?: AppointmentEventMock | null;
@@ -360,7 +374,11 @@ vi.mock("./form-sheet/appointment-form-sheet", () => ({
       data-open={String(open)}
       data-appointment-id={appointment?.id ?? ""}
       data-default-starts-at={defaultStartsAt.toISOString()}
-    />
+    >
+      <button type="button" onClick={() => onOpenChange(false)}>
+        Fechar formulário
+      </button>
+    </div>
   ),
 }));
 
@@ -486,6 +504,9 @@ function makeFutureAppointmentEvent({
 describe("AppointmentsPage", () => {
   beforeEach(() => {
     mockMatchMedia(false);
+    navigationMock.pathname = "/appointments";
+    navigationMock.searchParams = new URLSearchParams();
+    navigationMock.replace.mockClear();
     updateAppointmentStatusMutateMock.mockClear();
     useQueryFeedbackErrorMock.mockReturnValue(null);
     useUpdateAppointmentStatusMock.mockReturnValue({
@@ -517,6 +538,22 @@ describe("AppointmentsPage", () => {
 
     expect(screen.getByText("Calendário carregando: sim")).toBeInTheDocument();
     expect(screen.getByText("Agenda carregando: sim")).toBeInTheDocument();
+  });
+
+  it("opens appointment creation from the new query param and removes it when closed", async () => {
+    const user = userEvent.setup();
+    navigationMock.searchParams = new URLSearchParams("new=true&view=calendar");
+
+    render(<AppointmentsPage />);
+
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute("data-open", "true");
+    expect(screen.getByTestId("appointment-form-sheet")).toHaveAttribute("data-appointment-id", "");
+
+    await user.click(screen.getByRole("button", { name: /fechar formulário/i }));
+
+    expect(navigationMock.replace).toHaveBeenCalledWith("/appointments?view=calendar", {
+      scroll: false,
+    });
   });
 
   it("shows calendar refresh loading while keeping side cards stable when filters refetch", () => {
