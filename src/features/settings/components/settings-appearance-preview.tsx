@@ -2,6 +2,7 @@
 
 import { ImageIcon } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/shared/utils/cn";
 
 import type { AppearanceUploadVariant } from "../lib/settings-appearance-config";
@@ -12,16 +13,47 @@ type SettingsAppearancePreviewProps = {
   headline: string;
   subtext: string;
   className?: string;
+  canRemove?: boolean;
+  onRemove?: () => void;
+  isRemovePending?: boolean;
 };
+
+type PreviewHeaderProps = {
+  canRemove?: boolean;
+  onRemove?: () => void;
+  isRemovePending?: boolean;
+};
+
+function PreviewHeader({ canRemove, onRemove, isRemovePending }: PreviewHeaderProps) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-sm font-medium text-foreground">Prévia</p>
+      {canRemove ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isRemovePending}
+          onClick={onRemove}
+        >
+          {isRemovePending ? "Removendo..." : "Remover"}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
 
 function ProfileAppearancePreview({
   imageUrl,
   headline,
   subtext,
+  canRemove,
+  onRemove,
+  isRemovePending,
 }: Omit<SettingsAppearancePreviewProps, "variant" | "className">) {
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-muted/30 p-5 sm:p-6">
-      <p className="text-sm font-medium text-foreground">Prévia</p>
+      <PreviewHeader canRemove={canRemove} onRemove={onRemove} isRemovePending={isRemovePending} />
 
       <div className="mt-4 flex flex-1 flex-col items-center justify-center text-center">
         <div
@@ -50,10 +82,16 @@ const BANNER_PREVIEW_FRAME_CLASS =
 function BannerAppearancePreview({
   imageUrl,
   className,
-}: Pick<SettingsAppearancePreviewProps, "imageUrl" | "className">) {
+  canRemove,
+  onRemove,
+  isRemovePending,
+}: Pick<
+  SettingsAppearancePreviewProps,
+  "imageUrl" | "className" | "canRemove" | "onRemove" | "isRemovePending"
+>) {
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-4 lg:h-full", className)}>
-      <p className="shrink-0 text-sm font-medium text-foreground">Prévia</p>
+      <PreviewHeader canRemove={canRemove} onRemove={onRemove} isRemovePending={isRemovePending} />
 
       <div
         className={cn(
@@ -83,10 +121,30 @@ export function SettingsAppearancePreview({
   headline,
   subtext,
   className,
+  canRemove,
+  onRemove,
+  isRemovePending,
 }: SettingsAppearancePreviewProps) {
   if (variant === "profile") {
-    return <ProfileAppearancePreview imageUrl={imageUrl} headline={headline} subtext={subtext} />;
+    return (
+      <ProfileAppearancePreview
+        imageUrl={imageUrl}
+        headline={headline}
+        subtext={subtext}
+        canRemove={canRemove}
+        onRemove={onRemove}
+        isRemovePending={isRemovePending}
+      />
+    );
   }
 
-  return <BannerAppearancePreview imageUrl={imageUrl} className={className} />;
+  return (
+    <BannerAppearancePreview
+      imageUrl={imageUrl}
+      className={className}
+      canRemove={canRemove}
+      onRemove={onRemove}
+      isRemovePending={isRemovePending}
+    />
+  );
 }
