@@ -33,7 +33,7 @@ import {
   type BusinessSettingsFormInput,
   type BusinessSettingsFormValues,
 } from "../schemas/business-settings-schema";
-import { SettingsInputField } from "./settings-input-field";
+import { StandartInputField } from "../../../components/ui/form/standart-input-field";
 
 type SettingsBusinessFormProps = {
   establishment: Establishment;
@@ -91,7 +91,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-            <SettingsInputField
+            <StandartInputField
               control={fieldControl}
               name="tradeName"
               label="Nome fantasia"
@@ -102,7 +102,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
             />
 
             <div className="grid gap-4 md:grid-cols-2">
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="legalBusinessName"
                 label="Razão social"
@@ -112,7 +112,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
                 autoComplete="organization"
               />
 
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="cnpj"
                 label="CNPJ"
@@ -124,7 +124,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
               />
             </div>
 
-            <SettingsInputField
+            <StandartInputField
               control={fieldControl}
               name="slug"
               label="Slug do catálogo"

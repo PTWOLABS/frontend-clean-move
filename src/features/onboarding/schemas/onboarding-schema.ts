@@ -1,4 +1,4 @@
-import { onlyDigits } from "@/shared/utils/lib";
+import { formatLocalDateTimeAsUtcISOString, onlyDigits } from "@/shared/utils/lib";
 import { parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
 import { optionalText } from "@/shared/utils/required-text";
 import {
@@ -7,7 +7,7 @@ import {
   customerPhoneField,
 } from "@/features/customer/schemas/customer-form-schema";
 import { normalizePlate } from "@/features/vehicle/schemas/vehicle-form-schema";
-import { appointmentServiceOptionSchema } from "@/features/appointments/schemas/create-appointment-schema";
+import type { OnboardingPayload } from "../types/onboarding-types";
 import z from "zod";
 
 const onboardingServiceCategoryCodes = [
@@ -84,7 +84,7 @@ export const onboardingCompanyStepSchema = z.object({
 
 export const onboardingServiceStepSchema = z
   .object({
-    name: optionalTrimmedText,
+    serviceName: optionalTrimmedText,
     description: optionalTrimmedText,
     category: z
       .union([z.enum(onboardingServiceCategoryCodes), z.literal("")])
@@ -101,7 +101,7 @@ export const onboardingServiceStepSchema = z
   })
   .superRefine((data, ctx) => {
     const hasStartedService =
-      Boolean(data.name) ||
+      Boolean(data.serviceName) ||
       Boolean(data.description) ||
       Boolean(data.category) ||
       data.minDurationInMinutes !== undefined ||
@@ -111,11 +111,11 @@ export const onboardingServiceStepSchema = z
 
     if (!hasStartedService) return;
 
-    if (!data.name) {
+    if (!data.serviceName) {
       ctx.addIssue({
         code: "custom",
         message: "Informe o nome do serviço.",
-        path: ["name"],
+        path: ["serviceName"],
       });
     }
 
@@ -220,6 +220,14 @@ export const onboardingCustomerVehicleStepSchema = z
       });
     }
 
+    if (normalizedPlate && !data.vehicleModel) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Informe marca/modelo para adicionar a placa do veículo.",
+        path: ["vehicleModel"],
+      });
+    }
+
     if (data.vehicleColor && !data.vehicleModel) {
       ctx.addIssue({
         code: "custom",
@@ -231,46 +239,19 @@ export const onboardingCustomerVehicleStepSchema = z
 
 export const onboardingAppointmentStepSchema = z
   .object({
-    customerId: optionalTrimmedText,
-    serviceIds: z.array(appointmentServiceOptionSchema).optional(),
-    vehicleId: optionalTrimmedText,
     startsAt: optionalDateInput.optional(),
+    endsAt: optionalDateInput.optional(),
   })
   .superRefine((data, ctx) => {
-    const serviceIds = data.serviceIds ?? [];
     const hasStartDate =
       data.startsAt !== null && data.startsAt !== undefined && data.startsAt !== "";
-    const hasAnyAppointmentData = Boolean(
-      data.customerId || serviceIds.length > 0 || data.vehicleId || hasStartDate,
-    );
+    const hasEndDate = data.endsAt !== null && data.endsAt !== undefined && data.endsAt !== "";
+    const hasAnyAppointmentData = hasStartDate || hasEndDate;
 
     if (!hasAnyAppointmentData) return;
 
-    if (!data.customerId) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Selecione um cliente.",
-        path: ["customerId"],
-      });
-    }
-
-    if (serviceIds.length === 0) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Selecione pelo menos um serviço.",
-        path: ["serviceIds"],
-      });
-    }
-
-    if (!data.vehicleId) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Selecione um veículo.",
-        path: ["vehicleId"],
-      });
-    }
-
     const startsAt = data.startsAt;
+    const endsAt = data.endsAt;
 
     if (startsAt === null || startsAt === undefined || startsAt === "") {
       ctx.addIssue({
@@ -289,10 +270,34 @@ export const onboardingAppointmentStepSchema = z
         message: "Selecione uma data válida.",
         path: ["startsAt"],
       });
+      return;
+    }
+
+    if (endsAt === null || endsAt === undefined || endsAt === "") {
+      return;
+    }
+
+    const endDate = endsAt instanceof Date ? endsAt : new Date(endsAt);
+
+    if (Number.isNaN(endDate.getTime())) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione uma data válida.",
+        path: ["endsAt"],
+      });
+      return;
+    }
+
+    if (endDate < startDate) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A data de encerramento deve ser igual ou posterior à data de início.",
+        path: ["endsAt"],
+      });
     }
   });
 
-export const onboardingSchema = z.intersection(
+const onboardingBaseSchema = z.intersection(
   z.intersection(
     z.intersection(onboardingCompanyStepSchema, onboardingServiceStepSchema),
     onboardingCustomerVehicleStepSchema,
@@ -300,6 +305,133 @@ export const onboardingSchema = z.intersection(
   onboardingAppointmentStepSchema,
 );
 
+export const onboardingSchema = onboardingBaseSchema.superRefine((data, ctx) => {
+  const hasStartDate =
+    data.startsAt !== null && data.startsAt !== undefined && data.startsAt !== "";
+
+  if (!hasStartDate) return;
+
+  const hasService =
+    Boolean(data.serviceName) &&
+    Boolean(data.category) &&
+    data.minDurationInMinutes !== undefined &&
+    data.price !== undefined;
+  const hasCustomer = Boolean(data.customerFullName && data.customerPhone);
+  const hasVehicle = Boolean(data.vehicleModel);
+
+  if (!hasCustomer) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Cadastre um cliente antes de criar o agendamento.",
+      path: ["customerFullName"],
+    });
+  }
+
+  if (!hasService) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Cadastre um serviço antes de criar o agendamento.",
+      path: ["serviceName"],
+    });
+  }
+
+  if (!hasVehicle) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Cadastre um veículo antes de criar o agendamento.",
+      path: ["vehicleModel"],
+    });
+  }
+});
+
 export type OnboardingFormValues = z.input<typeof onboardingSchema>;
 
 export type OnboardingSubmitValues = z.output<typeof onboardingSchema>;
+
+function toOptionalTrimmedText(value: string | undefined | null) {
+  const trimmedValue = value?.trim();
+  return trimmedValue ? trimmedValue : undefined;
+}
+
+function toOptionalIsoDate(
+  value: OnboardingSubmitValues["startsAt"] | OnboardingSubmitValues["endsAt"],
+) {
+  if (value === null || value === undefined || value === "") return undefined;
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  return formatLocalDateTimeAsUtcISOString(date);
+}
+
+export function mapOnboardingSubmitToPayload(values: OnboardingSubmitValues): OnboardingPayload {
+  const payload: OnboardingPayload = {};
+
+  const tradeName = toOptionalTrimmedText(values.tradeName);
+  const legalBusinessName = toOptionalTrimmedText(values.legalName);
+  const cnpj = values.cnpj ? onlyDigits(values.cnpj) : undefined;
+
+  if (tradeName || legalBusinessName || cnpj) {
+    payload.establishment = {
+      ...(tradeName ? { tradeName } : {}),
+      ...(legalBusinessName ? { legalBusinessName } : {}),
+      ...(cnpj ? { cnpj } : {}),
+    };
+  }
+
+  if (
+    values.serviceName &&
+    values.category &&
+    values.minDurationInMinutes !== undefined &&
+    values.price !== undefined
+  ) {
+    const description = toOptionalTrimmedText(values.description);
+
+    payload.service = {
+      serviceName: values.serviceName.trim(),
+      category: values.category,
+      ...(description ? { description } : {}),
+      estimatedDuration: {
+        minInMinutes: values.minDurationInMinutes,
+        ...(values.maxDurationInMinutes !== undefined
+          ? { maxInMinutes: values.maxDurationInMinutes }
+          : {}),
+      },
+      price: Math.round(values.price * 100),
+      isActive: values.isActive ?? false,
+    };
+  }
+
+  if (values.customerFullName && values.customerPhone) {
+    payload.customer = {
+      fullName: values.customerFullName.trim(),
+      phone: onlyDigits(values.customerPhone),
+      ...(values.customerEmail ? { email: values.customerEmail.trim() } : {}),
+    };
+  }
+
+  const plate = normalizePlate(values.vehiclePlate);
+  const model = toOptionalTrimmedText(values.vehicleModel);
+  const color = toOptionalTrimmedText(values.vehicleColor);
+
+  if (plate || model || color) {
+    payload.vehicle = {
+      plate: plate ?? null,
+      model: model ?? null,
+      ...(color ? { color } : {}),
+    };
+  }
+
+  const startsAt = toOptionalIsoDate(values.startsAt);
+  const endsAt = toOptionalIsoDate(values.endsAt);
+
+  if (startsAt && payload.service && payload.customer && payload.vehicle) {
+    payload.appointment = {
+      startsAt,
+      ...(endsAt ? { endsAt } : {}),
+    };
+  }
+
+  return payload;
+}

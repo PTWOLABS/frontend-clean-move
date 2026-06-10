@@ -4,17 +4,17 @@ import { type LucideIcon } from "lucide-react";
 import { InputField } from "@/components/ui/form/input-field";
 import { cn } from "@/shared/utils/cn";
 
-type SettingsInputFieldProps = Omit<ComponentProps<typeof InputField>, "icon" | "className"> & {
+type StandartInputFieldProps = Omit<ComponentProps<typeof InputField>, "icon" | "className"> & {
   className?: string;
   icon?: LucideIcon;
 };
 
-export function SettingsInputField({
+export function StandartInputField({
   icon: Icon,
   className,
   fieldClassName,
   ...props
-}: SettingsInputFieldProps) {
+}: StandartInputFieldProps) {
   return (
     <InputField
       {...props}

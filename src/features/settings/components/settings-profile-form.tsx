@@ -35,7 +35,7 @@ import {
   type ProfileSettingsFormInput,
   type ProfileSettingsFormValues,
 } from "../schemas/profile-settings-schema";
-import { SettingsInputField } from "./settings-input-field";
+import { StandartInputField } from "../../../components/ui/form/standart-input-field";
 
 type SettingsProfileFormProps = {
   user: UserProfile;
@@ -105,7 +105,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="name"
                 label="Nome"
@@ -115,7 +115,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 autoComplete="name"
               />
 
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="email"
                 label="E-mail"
@@ -127,7 +127,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
               />
             </div>
 
-            <SettingsInputField
+            <StandartInputField
               control={fieldControl}
               name="phone"
               label="Telefone (com DDD)"
@@ -140,7 +140,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
             />
 
             <div className="grid gap-4 md:grid-cols-2">
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="address.zipCode"
                 label="CEP"
@@ -161,7 +161,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 }
               />
 
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="address.street"
                 label="Rua"
@@ -182,7 +182,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <SettingsInputField
+              <StandartInputField
                 control={fieldControl}
                 name="address.city"
                 label="Cidade"
@@ -205,7 +205,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
               />
             </div>
 
-            <SettingsInputField
+            <StandartInputField
               control={fieldControl}
               name="address.complement"
               label="Complemento"

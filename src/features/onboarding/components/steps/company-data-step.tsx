@@ -3,9 +3,9 @@
 import { Building2, FileText, IdCard, Info } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { InputField } from "@/components/ui/form/input-field";
 import { cn } from "@/shared/utils/cn";
 import { StepHeader } from "./step-header";
+import { StandartInputField } from "@/components/ui/form/standart-input-field";
 
 type CompanyDataStepProps = {
   title: string;
@@ -19,37 +19,27 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
       <StepHeader title={title} description={description} />
 
       <CardContent className="space-y-5">
-        <InputField
+        <StandartInputField
           id="onboarding-trade-name"
           name="tradeName"
           label="Nome fantasia"
           placeholder="Ex.: Clean Move Detail"
           autoComplete="organization"
-          icon={
-            <Building2
-              aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-            />
-          }
-          className="h-12 rounded-xl bg-background/60 pl-12 text-sm shadow-none"
+          icon={Building2}
+          className="shadow-xs"
         />
 
-        <InputField
+        <StandartInputField
           id="onboarding-legal-name"
           name="legalName"
           label="Razão social"
           placeholder="Ex.: Clean Move Estética Automotiva LTDA"
           autoComplete="organization"
-          icon={
-            <FileText
-              aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-            />
-          }
-          className="h-12 rounded-xl bg-background/60 pl-12 text-sm shadow-none"
+          icon={FileText}
+          className="shadow-xs"
         />
 
-        <InputField
+        <StandartInputField
           id="onboarding-cnpj"
           name="cnpj"
           label="CNPJ"
@@ -57,13 +47,8 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
           mask="__.___.___/____-__"
           inputMode="numeric"
           autoComplete="off"
-          icon={
-            <IdCard
-              aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-            />
-          }
-          className="h-12 rounded-xl bg-background/60 pl-12 text-sm shadow-none"
+          icon={IdCard}
+          className="shadow-xs"
         />
 
         <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">

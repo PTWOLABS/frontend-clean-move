@@ -61,7 +61,11 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
     }, [selectedDate]);
 
     return (
-      <div ref={ref} className={cn("flex w-full gap-2", className)} {...props}>
+      <div
+        ref={ref}
+        className={cn("grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2", className)}
+        {...props}
+      >
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -69,14 +73,14 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
               variant="outline"
               disabled={disabled}
               className={cn(
-                "h-10 min-w-0 flex-1 justify-start rounded-md border-border/80 bg-background/40 px-3 text-left font-normal shadow-sm hover:bg-muted/40",
+                "h-10 w-full min-w-0 justify-start overflow-hidden rounded-md border-border/80 bg-background/40 px-3 text-left font-normal shadow-sm hover:bg-muted/40",
                 !selectedDate && "text-muted-foreground",
                 invalid && "border-destructive/70 focus-visible:ring-destructive/30",
               )}
               onBlur={onBlur}
             >
               <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">
+              <span className="block min-w-0 flex-1 truncate">
                 {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR }) : placeholder}
               </span>
             </Button>
@@ -107,7 +111,7 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
           aria-label="Horário"
           step="60"
           className={cn(
-            "h-10 w-28 border-border/80 bg-background/40 shadow-sm",
+            "h-10 w-28 shrink-0 border-border/80 bg-background/40 shadow-sm",
             invalid && "border-destructive/70 focus-visible:ring-destructive/30",
             "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none",
             timeInputClassName,
