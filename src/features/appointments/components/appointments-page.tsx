@@ -15,6 +15,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -288,7 +289,11 @@ function useCompactCalendarNavigation() {
 }
 
 export function AppointmentsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const calendarRef = useRef<FullCalendar | null>(null);
+  const createParamHandledRef = useRef(false);
   const [initialSelectedDate] = useState(() => new Date());
   const [initialUpcomingEvents, setInitialUpcomingEvents] = useState<
     AppointmentCalendarEvent[] | null
@@ -315,6 +320,17 @@ export function AppointmentsPage() {
   const availableViewToggleOptions = isCompactCalendarNavigation
     ? compactViewToggleOptions
     : undefined;
+  const shouldOpenCreateSheet = searchParams.get("new") === "true";
+
+  const removeNewSearchParam = useCallback(() => {
+    if (!searchParams.has("new")) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const queryString = nextSearchParams.toString();
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const filters = useMemo(
     () => ({
@@ -356,6 +372,19 @@ export function AppointmentsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- captura o primeiro carregamento para manter a lista lateral estável ao trocar filtros
     setInitialUpcomingEvents(events);
   }, [events, initialUpcomingEvents, isError, isPending]);
+
+  useEffect(() => {
+    if (!shouldOpenCreateSheet) {
+      createParamHandledRef.current = false;
+      return;
+    }
+
+    if (createParamHandledRef.current) return;
+
+    createParamHandledRef.current = true;
+    setAppointmentToEdit(null);
+    setAppointmentSheetOpen(true);
+  }, [shouldOpenCreateSheet]);
 
   const upcomingEventsSource = initialUpcomingEvents ?? events;
 
@@ -570,6 +599,7 @@ export function AppointmentsPage() {
 
     if (!open) {
       setAppointmentToEdit(null);
+      removeNewSearchParam();
     }
   }
 
@@ -577,6 +607,7 @@ export function AppointmentsPage() {
     handleSelectEvent(event);
     setAppointmentToEdit(event);
     setAppointmentSheetOpen(true);
+    handleClearSelectedEvent();
   }
 
   function handleEditAppointmentFromPopover(event: AppointmentCalendarEvent) {
@@ -614,7 +645,7 @@ export function AppointmentsPage() {
 
           <Button
             type="button"
-            className="h-11 w-full sm:w-auto sm:min-w-[12.5rem]"
+            className="h-10 w-full sm:w-auto sm:min-w-[12.5rem]"
             onClick={() => {
               handleCreateAppointmentSheetOpen(true);
             }}

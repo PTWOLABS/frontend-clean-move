@@ -77,7 +77,7 @@ export function AppointmentsDayAgendaCard({
       aria-busy={isLoading || isRefreshing}
       className="flex min-h-80 flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs sm:rounded-3xl xl:min-h-0 xl:flex-1 xl:basis-0"
     >
-      <CardHeader className="shrink-0 pb-4">
+      <CardHeader className="shrink-0 pb-4 border-b">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -95,7 +95,7 @@ export function AppointmentsDayAgendaCard({
       <CardContent
         className={cn(
           selectedDayAppointments.length <= 3 ? "min-h-fit" : "min-h-90",
-          "scrollbar-clean flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-0 xl:min-h-0 xl:",
+          "scrollbar-clean flex-1 basis-0 space-y-3 overflow-y-auto px-6 pb-6 pr-4 pt-3 xl:min-h-0 xl:",
         )}
       >
         {isLoading || isRefreshing ? (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   AlertDialog,
@@ -45,6 +46,10 @@ type VehiclesDialogCustomer = {
 };
 
 export function VehicleCatalog() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const createParamHandledRef = useRef(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchType, setSearchType] = useState<VehicleSearchType>("name");
@@ -59,6 +64,17 @@ export function VehicleCatalog() {
     useState<VehiclesDialogCustomer | null>(null);
 
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
+  const shouldOpenCreateSheet = searchParams.get("new") === "true";
+
+  const removeNewSearchParam = useCallback(() => {
+    if (!searchParams.has("new")) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const queryString = nextSearchParams.toString();
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const { data: customerLookupOptions } = useListCustomerOptions({
     limit: CUSTOMER_LOOKUP_LIMIT,
@@ -94,6 +110,18 @@ export function VehicleCatalog() {
     setShowCustomerPicker(true);
     setVehicleSheetOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (!shouldOpenCreateSheet) {
+      createParamHandledRef.current = false;
+      return;
+    }
+
+    if (createParamHandledRef.current) return;
+
+    createParamHandledRef.current = true;
+    openCreateFormFromHeader();
+  }, [openCreateFormFromHeader, shouldOpenCreateSheet]);
 
   const listFilters = useMemo(
     () =>
@@ -170,6 +198,7 @@ export function VehicleCatalog() {
             setEditingVehicle(null);
             setCreateCustomerId("");
             setShowCustomerPicker(false);
+            removeNewSearchParam();
           }
         }}
         customerId={createCustomerId}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   AlertDialog,
@@ -36,6 +37,10 @@ const PAGE_SIZE = 6;
 const SEARCH_DEBOUNCE_MS = 350;
 
 export function CustomerCatalog() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const createParamHandledRef = useRef(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [customerSheetOpen, setCustomerSheetOpen] = useState(false);
@@ -46,6 +51,30 @@ export function CustomerCatalog() {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithPrimaryVehicle | null>(null);
 
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
+  const shouldOpenCreateSheet = searchParams.get("new") === "true";
+
+  const removeNewSearchParam = useCallback(() => {
+    if (!searchParams.has("new")) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const queryString = nextSearchParams.toString();
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (!shouldOpenCreateSheet) {
+      createParamHandledRef.current = false;
+      return;
+    }
+
+    if (createParamHandledRef.current) return;
+
+    createParamHandledRef.current = true;
+    setEditingCustomer(null);
+    setCustomerSheetOpen(true);
+  }, [shouldOpenCreateSheet]);
 
   const customersQuery = useCustomers({
     page,
@@ -103,7 +132,10 @@ export function CustomerCatalog() {
         open={customerSheetOpen}
         onOpenChange={(open) => {
           setCustomerSheetOpen(open);
-          if (!open) setEditingCustomer(null);
+          if (!open) {
+            setEditingCustomer(null);
+            removeNewSearchParam();
+          }
         }}
         editingCustomer={editingCustomer}
       />

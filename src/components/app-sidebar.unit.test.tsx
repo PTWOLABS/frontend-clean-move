@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { renderWithProviders } from "@/test/test-utils";
@@ -9,6 +9,7 @@ import { renderWithProviders } from "@/test/test-utils";
 const mockNavigation = vi.hoisted(() => ({
   pathname: "/dashboard",
 }));
+const logoutMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   usePathname: () => mockNavigation.pathname,
@@ -34,6 +35,13 @@ vi.mock("@/features/user/hooks/use-current-user", () => ({
   }),
 }));
 
+vi.mock("@/features/auth/hooks/use-logout", () => ({
+  useLogout: () => ({
+    mutate: logoutMock,
+    isPending: false,
+  }),
+}));
+
 vi.mock("next/image", () => ({
   __esModule: true,
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
@@ -55,6 +63,10 @@ function renderSidebar(path = "/dashboard") {
 }
 
 describe("AppSidebar", () => {
+  beforeEach(() => {
+    logoutMock.mockClear();
+  });
+
   it("should render the grouped navigation labels with correct accents", () => {
     renderSidebar();
 
@@ -102,18 +114,14 @@ describe("AppSidebar", () => {
     expect(screen.queryByRole("link", { name: /venda \/ caixa/i })).not.toBeInTheDocument();
   });
 
-  it("should render the user footer menu and open account actions", async () => {
+  it("should render the logout footer action", async () => {
     const user = userEvent.setup();
     renderSidebar();
 
-    expect(screen.getByText("Ana Lima")).toBeInTheDocument();
-    expect(screen.getByText("ana@cleanmove.com")).toBeInTheDocument();
+    const logoutButton = screen.getByRole("button", { name: /sair/i });
 
-    await user.click(screen.getByRole("button", { name: /abrir menu da conta de ana lima/i }));
-
-    expect(await screen.findByRole("menuitem", { name: /conta/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /notificações/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /configurações/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    expect(logoutButton).toBeInTheDocument();
+    await user.click(logoutButton);
+    expect(logoutMock).toHaveBeenCalledTimes(1);
   });
 });
