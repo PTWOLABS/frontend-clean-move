@@ -13,7 +13,7 @@ export function AgendaNewAppointmentButton() {
     <>
       <Button
         type="button"
-        className="h-11 w-full sm:w-auto sm:min-w-50"
+        className="h-10 w-full sm:w-auto sm:min-w-50"
         onClick={() => setSheetOpen(true)}
       >
         <Plus className="size-4" aria-hidden />

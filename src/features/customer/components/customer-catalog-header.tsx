@@ -17,7 +17,7 @@ export function CustomerCatalogHeader({ totalCount, onAddCustomer }: CustomerCat
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Clientes</h1>
         <p className="text-sm text-muted-foreground">{countLabel}</p>
       </div>
-      <Button type="button" size="sm" className="gap-2" onClick={onAddCustomer}>
+      <Button type="button" className="h-10 gap-2" onClick={onAddCustomer}>
         <Plus aria-hidden />
         Adicionar cliente
       </Button>
