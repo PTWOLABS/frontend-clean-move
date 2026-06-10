@@ -7,6 +7,7 @@ import { QUERY_KEYS } from "@/shared/constants/query-keys";
 import { getMutationFeedbackError } from "@/shared/hooks/use-mutation-feedback-error";
 import type { OnboardingPayload } from "../types/onboarding-types";
 import { completeOnboarding } from "../api/complete-onboarding";
+import { onboardingErrorFeedbackOverride } from "../constants";
 
 const establishmentQueryKey = [QUERY_KEYS.establishment()[0]] as const;
 
@@ -46,7 +47,13 @@ export function useCompleteOnboarding() {
       const resourceLabel = "o onboarding";
       const mutationType = "update";
 
-      const feedback = getMutationFeedbackError(resourceLabel, resourceKey, error, mutationType);
+      const feedback = getMutationFeedbackError(
+        resourceLabel,
+        resourceKey,
+        error,
+        mutationType,
+        onboardingErrorFeedbackOverride,
+      );
 
       toast.error(feedback.title, {
         id: feedback.id,

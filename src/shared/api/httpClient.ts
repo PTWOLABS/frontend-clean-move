@@ -37,19 +37,22 @@ type ApiErrorProps = {
   message?: string;
   action?: string;
   statusCode: number;
+  payload?: unknown;
 };
 
 export class ApiError extends Error {
   action: string;
   statusCode: number;
+  payload?: unknown;
 
-  constructor({ cause, message, action, statusCode }: ApiErrorProps) {
+  constructor({ cause, message, action, statusCode, payload }: ApiErrorProps) {
     super(message || "Serviço indisponível no momento.", {
       cause,
     });
     this.name = "ApiError";
     this.action = action || "Entre em contato com o suporte.";
     this.statusCode = statusCode;
+    this.payload = payload;
   }
 }
 
@@ -206,7 +209,7 @@ export async function httpClient<TResponse, TFilters extends object = Record<str
         (errorBody as { message?: string })?.message ??
         `Erro na requisição: ${status} ${statusText}`;
 
-      throw new ApiError({ message, statusCode: status });
+      throw new ApiError({ message, statusCode: status, payload: errorBody });
     }
     throw error;
   }
