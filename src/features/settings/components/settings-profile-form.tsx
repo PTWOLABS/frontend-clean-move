@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, Hash, LoaderCircle, Mail, MapPin, Navigation, Phone, User } from "lucide-react";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form/input-field";
 import { PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
+import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 import { useUpdateUserProfile } from "@/features/user/hooks/use-update-user-profile";
 import type { User as UserProfile } from "@/features/user/types";
@@ -55,10 +56,23 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, formState, clearErrors, getValues, setError, setValue } =
+  const { control, handleSubmit, reset, watch, clearErrors, getValues, setError, setValue } =
     methods;
-  const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
+
+  const initialPayload = useMemo(() => {
+    const defaults = mapUserToProfileFormDefaults(user);
+    const parsed = profileSettingsSchema.safeParse(defaults);
+    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : null;
+  }, [user]);
+
+  const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
+
+  const watchedValues = watch();
+  const currentPayload = useMemo(() => {
+    const parsed = profileSettingsSchema.safeParse(watchedValues);
+    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : initialPayload;
+  }, [watchedValues, initialPayload]);
 
   const zipCodeAutofillForm = {
     clearErrors,
@@ -81,11 +95,13 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   }, [user, reset]);
 
   const onSubmit = (values: ProfileSettingsFormValues) => {
-    if (!isDirty) {
+    const payload = mapProfileFormToPatchPayload(values);
+
+    if (!hasChanges(payload)) {
       return;
     }
 
-    mutate(mapProfileFormToPatchPayload(values), {
+    mutate(getChangedPayload(payload), {
       onSuccess: (updatedUser) => {
         reset(mapUserToProfileFormDefaults(updatedUser));
       },
@@ -208,7 +224,11 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
           </CardContent>
 
           <CardFooter>
-            <Button type="submit" disabled={!isDirty || isPending} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
+              className="w-full sm:w-auto"
+            >
               {isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </CardFooter>

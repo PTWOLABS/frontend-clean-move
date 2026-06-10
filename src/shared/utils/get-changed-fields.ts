@@ -12,9 +12,33 @@ function areArraysEqual(left: unknown[], right: unknown[]) {
   );
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date)
+  );
+}
+
+function arePlainObjectsShallowEqual(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+) {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+
+  return leftKeys.every((key) => Object.is(left[key], right[key]));
+}
+
 function areFieldValuesEqual(current: unknown, initial: unknown) {
   if (Array.isArray(current) && Array.isArray(initial)) {
     return areArraysEqual(current, initial);
+  }
+
+  if (isPlainObject(current) && isPlainObject(initial)) {
+    return arePlainObjectsShallowEqual(current, initial);
   }
 
   return Object.is(current, initial);

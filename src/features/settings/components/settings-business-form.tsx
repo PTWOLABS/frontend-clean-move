@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, CreditCard, Link2 } from "lucide-react";
@@ -22,6 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CNPJ_MASK } from "@/shared/constants/input-masks";
+import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useUpdateEstablishment } from "@/features/establishment/hooks/use-update-establishment";
 import type { Establishment } from "@/features/establishment/types";
 
@@ -53,23 +54,38 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, formState } = methods;
-  const { isDirty } = formState;
+  const { control, handleSubmit, reset, watch } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
+
+  const initialPayload = useMemo(() => {
+    const defaults = mapEstablishmentToBusinessFormDefaults(establishment);
+    const parsed = businessSettingsSchema.safeParse(defaults);
+    return parsed.success ? mapBusinessFormToPatchPayload(parsed.data) : null;
+  }, [establishment]);
+
+  const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
+
+  const watchedValues = watch();
+  const currentPayload = useMemo(() => {
+    const parsed = businessSettingsSchema.safeParse(watchedValues);
+    return parsed.success ? mapBusinessFormToPatchPayload(parsed.data) : initialPayload;
+  }, [watchedValues, initialPayload]);
 
   useEffect(() => {
     reset(mapEstablishmentToBusinessFormDefaults(establishment));
   }, [establishment, reset]);
 
   const onSubmit = (values: BusinessSettingsFormValues) => {
-    if (!isDirty) {
+    const payload = mapBusinessFormToPatchPayload(values);
+
+    if (!hasChanges(payload)) {
       return;
     }
 
     mutate(
       {
         establishmentId: establishment.id,
-        payload: mapBusinessFormToPatchPayload(values),
+        payload: getChangedPayload(payload),
       },
       {
         onSuccess: (updatedEstablishment) => {
@@ -132,7 +148,11 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
           </CardContent>
 
           <CardFooter>
-            <Button type="submit" disabled={!isDirty || isPending} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
+              className="w-full sm:w-auto"
+            >
               {isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </CardFooter>

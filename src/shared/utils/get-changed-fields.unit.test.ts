@@ -74,4 +74,32 @@ describe("getChangedFields", () => {
 
     expect(getChangedFields(current, initial)).toEqual({ name: "Maria", age: undefined });
   });
+
+  it("treats shallow-equal nested objects as unchanged", () => {
+    const initial = {
+      name: "João",
+      address: { city: "São Paulo", state: "SP" },
+    };
+    const current = {
+      name: "João",
+      address: { city: "São Paulo", state: "SP" },
+    };
+
+    expect(getChangedFields(current, initial)).toEqual({});
+  });
+
+  it("includes the parent key when a nested object field changes", () => {
+    const initial = {
+      name: "João",
+      address: { city: "São Paulo", state: "SP" },
+    };
+    const current = {
+      name: "João",
+      address: { city: "Campinas", state: "SP" },
+    };
+
+    expect(getChangedFields(current, initial)).toEqual({
+      address: { city: "Campinas", state: "SP" },
+    });
+  });
 });
