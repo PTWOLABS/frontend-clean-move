@@ -51,6 +51,8 @@ type SettingsAppearanceUploadSectionProps = {
   disabled?: boolean;
   disabledMessage?: string;
   isPending?: boolean;
+  isRemovePending?: boolean;
+  onRemoveExisting?: () => void;
   onSaveFile: (file: File, options?: { onSuccess?: () => void }) => void;
 };
 
@@ -60,6 +62,8 @@ export function SettingsAppearanceUploadSection({
   disabled = false,
   disabledMessage = "Não foi possível enviar a imagem no momento.",
   isPending = false,
+  isRemovePending = false,
+  onRemoveExisting,
   onSaveFile,
 }: SettingsAppearanceUploadSectionProps) {
   const config = APPEARANCE_UPLOAD_CONFIG[variant];
@@ -163,7 +167,7 @@ export function SettingsAppearanceUploadSection({
               accept={IMAGE_ACCEPT}
               maxSize={IMAGE_MAX_SIZE_BYTES}
               maxFiles={1}
-              disabled={isPending}
+              disabled={isPending || isRemovePending}
               onDropAccepted={handleDropAccepted}
               onDropRejected={(rejections) => {
                 const code = rejections[0]?.errors[0]?.code ?? "unknown";
@@ -228,7 +232,7 @@ export function SettingsAppearanceUploadSection({
                       <FileListAction
                         type="button"
                         onClick={clearPendingFile}
-                        disabled={isPending}
+                        disabled={isPending || isRemovePending}
                         className="size-6 shrink-0 [&_svg:not([class*='size-'])]:size-3"
                         aria-label="Remover arquivo"
                       >
@@ -243,7 +247,7 @@ export function SettingsAppearanceUploadSection({
 
             <Button
               type="button"
-              disabled={!hasPendingUpload || isPending}
+              disabled={!hasPendingUpload || isPending || isRemovePending}
               className="w-full gap-2 sm:w-auto"
               onClick={handleSave}
             >
@@ -262,6 +266,9 @@ export function SettingsAppearanceUploadSection({
               headline={config.previewHeadline}
               subtext={config.previewSubtext}
               className={variant === "banner" ? "flex flex-1 flex-col min-h-0" : undefined}
+              canRemove={existingImageUrl !== null}
+              onRemove={onRemoveExisting}
+              isRemovePending={isRemovePending}
             />
           </div>
         </div>
