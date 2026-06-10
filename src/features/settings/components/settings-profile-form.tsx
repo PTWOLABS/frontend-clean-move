@@ -109,7 +109,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 control={fieldControl}
                 name="name"
                 label="Nome"
-                required
                 icon={User}
                 placeholder="Ex.: João Silva"
                 autoComplete="name"
@@ -119,7 +118,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 control={fieldControl}
                 name="email"
                 label="E-mail"
-                required
                 icon={Mail}
                 type="email"
                 placeholder="Ex.: joao@email.com"
@@ -131,7 +129,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
               control={fieldControl}
               name="phone"
               label="Telefone (com DDD)"
-              required
               icon={Phone}
               mask={PHONE_MASK}
               inputMode="tel"
@@ -144,7 +141,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 control={fieldControl}
                 name="address.zipCode"
                 label="CEP"
-                required
                 icon={MapPin}
                 mask={ZIP_CODE_MASK}
                 inputMode="numeric"
@@ -165,7 +161,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 control={fieldControl}
                 name="address.street"
                 label="Rua"
-                required
                 icon={Navigation}
                 placeholder="Rua, número"
                 autoComplete="street-address"
@@ -186,7 +181,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 control={fieldControl}
                 name="address.city"
                 label="Cidade"
-                required
                 icon={Building2}
                 placeholder="Cidade"
                 autoComplete="address-level2"
@@ -197,7 +191,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
                 control={fieldControl}
                 name="address.state"
                 label="Estado"
-                required
                 placeholder="SP"
                 maxLength={2}
                 autoComplete="address-level1"

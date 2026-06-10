@@ -95,7 +95,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
               control={fieldControl}
               name="tradeName"
               label="Nome fantasia"
-              required
               icon={Building2}
               placeholder="Ex.: CleanMove Auto Center"
               autoComplete="organization"
@@ -106,7 +105,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
                 control={fieldControl}
                 name="legalBusinessName"
                 label="Razão social"
-                required
                 icon={Building2}
                 placeholder="Ex.: CleanMove LTDA"
                 autoComplete="organization"
@@ -116,7 +114,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
                 control={fieldControl}
                 name="cnpj"
                 label="CNPJ"
-                required
                 icon={CreditCard}
                 mask={CNPJ_MASK}
                 inputMode="numeric"
@@ -128,7 +125,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
               control={fieldControl}
               name="slug"
               label="Slug do catálogo"
-              required
               icon={Link2}
               placeholder="Ex.: clean-move-auto-center"
               autoComplete="off"
