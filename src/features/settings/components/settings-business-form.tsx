@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, CreditCard, Link2 } from "lucide-react";
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -22,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CNPJ_MASK } from "@/shared/constants/input-masks";
+import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useUpdateEstablishment } from "@/features/establishment/hooks/use-update-establishment";
 import type { Establishment } from "@/features/establishment/types";
 
@@ -53,23 +55,38 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, formState } = methods;
-  const { isDirty } = formState;
+  const { control, handleSubmit, reset } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
+
+  const initialPayload = useMemo(() => {
+    const defaults = mapEstablishmentToBusinessFormDefaults(establishment);
+    const parsed = businessSettingsSchema.safeParse(defaults);
+    return parsed.success ? mapBusinessFormToPatchPayload(parsed.data) : null;
+  }, [establishment]);
+
+  const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
+
+  const watchedValues = useWatch({ control });
+  const currentPayload = useMemo(() => {
+    const parsed = businessSettingsSchema.safeParse(watchedValues);
+    return parsed.success ? mapBusinessFormToPatchPayload(parsed.data) : initialPayload;
+  }, [watchedValues, initialPayload]);
 
   useEffect(() => {
     reset(mapEstablishmentToBusinessFormDefaults(establishment));
   }, [establishment, reset]);
 
   const onSubmit = (values: BusinessSettingsFormValues) => {
-    if (!isDirty) {
+    const payload = mapBusinessFormToPatchPayload(values);
+
+    if (!hasChanges(payload)) {
       return;
     }
 
     mutate(
       {
         establishmentId: establishment.id,
-        payload: mapBusinessFormToPatchPayload(values),
+        payload: getChangedPayload(payload),
       },
       {
         onSuccess: (updatedEstablishment) => {
@@ -95,7 +112,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
               control={fieldControl}
               name="tradeName"
               label="Nome fantasia"
-              required
               icon={Building2}
               placeholder="Ex.: CleanMove Auto Center"
               autoComplete="organization"
@@ -106,7 +122,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
                 control={fieldControl}
                 name="legalBusinessName"
                 label="Razão social"
-                required
                 icon={Building2}
                 placeholder="Ex.: CleanMove LTDA"
                 autoComplete="organization"
@@ -116,7 +131,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
                 control={fieldControl}
                 name="cnpj"
                 label="CNPJ"
-                required
                 icon={CreditCard}
                 mask={CNPJ_MASK}
                 inputMode="numeric"
@@ -128,7 +142,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
               control={fieldControl}
               name="slug"
               label="Slug do catálogo"
-              required
               icon={Link2}
               placeholder="Ex.: clean-move-auto-center"
               autoComplete="off"
@@ -136,7 +149,11 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
           </CardContent>
 
           <CardFooter>
-            <Button type="submit" disabled={!isDirty || isPending} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
+              className="w-full sm:w-auto"
+            >
               {isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </CardFooter>
