@@ -130,7 +130,9 @@ export function LoginForm() {
           type="submit"
           className="h-[52px] w-full rounded-[12px] bg-[#2563EB] text-base font-semibold text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-colors hover:bg-[#1D4ED8] active:bg-[#1E40AF]"
         >
-          {isLoginLoading ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : null}
+          {isLoginLoading || isLoggingAutomatically ? (
+            <LoaderCircle aria-hidden className="size-5 animate-spin" />
+          ) : null}
           Entrar
         </Button>
 

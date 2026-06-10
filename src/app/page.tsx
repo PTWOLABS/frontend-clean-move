@@ -777,7 +777,11 @@ function TestimonialsSection() {
               <div>
                 <div className="mb-6 flex gap-1" aria-label="5 estrelas">
                   {Array.from({ length: 5 }).map((_, index) => (
-                    <Star key={index} className="h-4 w-4 fill-primary text-primary" aria-hidden />
+                    <Star
+                      key={`star-${index}`}
+                      className="h-4 w-4 fill-primary text-primary"
+                      aria-hidden
+                    />
                   ))}
                 </div>
                 <p className="mb-8 text-muted-foreground">“{testimonial.text}”</p>

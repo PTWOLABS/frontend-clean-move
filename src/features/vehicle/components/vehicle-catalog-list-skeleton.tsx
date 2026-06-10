@@ -12,7 +12,7 @@ export function VehicleCatalogListSkeleton({ count = 10 }: VehicleCatalogListSke
   const rows = Array.from({ length: count }, (_, i) => i);
 
   return (
-    <div aria-busy="true" aria-live="polite" aria-label="A carregar lista de veículos">
+    <div aria-busy="true" aria-live="polite" aria-label="Carregando lista de veículos">
       <div className="hidden rounded-lg border border-border md:block">
         <div className="flex border-b border-border px-4 py-2.5">
           <Skeleton className="h-3 w-16" />

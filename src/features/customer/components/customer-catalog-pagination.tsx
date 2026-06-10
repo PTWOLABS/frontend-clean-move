@@ -82,7 +82,7 @@ export function CustomerCatalogPagination({
               {isFetching ? (
                 <>
                   <Loader2 className="size-4 animate-spin" aria-hidden />
-                  <span className="sr-only">A carregar resultados</span>
+                  <span className="sr-only">Carregando resultados</span>
                 </>
               ) : (
                 `${page}/${totalPages}`

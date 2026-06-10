@@ -53,7 +53,7 @@ function AppearanceSectionSkeleton({ previewVariant }: { previewVariant: "profil
 
 export function SettingsPageSkeleton() {
   return (
-    <div aria-busy="true" aria-live="polite" aria-label="A carregar configurações">
+    <div aria-busy="true" aria-live="polite" aria-label="Carregando configurações">
       <div className="space-y-6">
         <div className="space-y-1">
           <Skeleton className="h-8 w-48" />
