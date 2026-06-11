@@ -19,7 +19,8 @@ import { CustomerAndVehicleStep } from "./steps/customer-and-vehicle-step";
 import { AppointmentStep } from "./steps/appointment-step";
 import { useCompleteOnboarding } from "../hooks/use-complete-onboarding";
 import { OnboardingSummaryDialog } from "./onboarding-summary-dialog";
-import { OnboardingSidebarStep, OnboardingStepsCard } from "./onboarding-steps-card";
+import { OnboardingMobileSummary } from "./onboarding-mobile-summary";
+import { OnboardingStepsCard } from "./onboarding-steps-card";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { useEstablishment } from "@/features/establishment/hooks/use-establishment";
 import type { Establishment } from "@/features/establishment/types";
@@ -187,20 +188,25 @@ export function OnboardingForm() {
     }
   }
 
-  const stepsInfo = availableSteps.map((s) => ({
-    id: s.label,
-    title: s.title,
-    description: s.description,
-  })) satisfies OnboardingSidebarStep[];
-
   if (isCheckingCompanyData) {
     return <OnboardingFormSkeleton />;
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-10">
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(21rem,25rem)] xl:items-start xl:gap-10 2xl:grid-cols-[minmax(0,1fr)_27rem]">
       <div className="space-y-8">
         <OnboardingProgress currentStep={step} totalSteps={lastStep} />
+
+        <OnboardingMobileSummary
+          currentStep={step}
+          totalSteps={lastStep}
+          customerName={customerLabel}
+          serviceName={serviceLabel}
+          vehicleName={vehicleLabel}
+          hasCustomer={customerLabel !== DEFAULT_CUSTOMER_LABEL}
+          hasService={serviceLabel !== DEFAULT_SERVICE_LABEL}
+          hasVehicle={vehicleLabel !== DEFAULT_VEHICLE_LABEL}
+        />
 
         <Form onSubmit={onSubmit} schema={currentSchema} className="space-y-6">
           {renderCurrentStepContent()}
@@ -214,8 +220,14 @@ export function OnboardingForm() {
       </div>
       <OnboardingStepsCard
         currentStep={step}
-        steps={stepsInfo}
-        className="lg:sticky lg:top-6 lg:self-start"
+        totalSteps={lastStep}
+        customerName={customerLabel}
+        serviceName={serviceLabel}
+        vehicleName={vehicleLabel}
+        hasCustomer={customerLabel !== DEFAULT_CUSTOMER_LABEL}
+        hasService={serviceLabel !== DEFAULT_SERVICE_LABEL}
+        hasVehicle={vehicleLabel !== DEFAULT_VEHICLE_LABEL}
+        className="hidden xl:sticky xl:top-6 xl:block xl:self-start"
       />
       <OnboardingSummaryDialog
         shouldShowCompanyStep={shouldShowCompanyStep}
@@ -229,7 +241,7 @@ export function OnboardingForm() {
 
 function OnboardingFormSkeleton() {
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-10">
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(21rem,25rem)] xl:items-start xl:gap-10 2xl:grid-cols-[minmax(0,1fr)_27rem]">
       <div className="space-y-8">
         <div className="flex items-center gap-4">
           <Skeleton className="h-5 w-24 shrink-0" />
@@ -248,7 +260,7 @@ function OnboardingFormSkeleton() {
         </div>
       </div>
 
-      <aside className="rounded-2xl border border-border/70 bg-card/60 p-6 shadow-sm lg:sticky lg:top-6 lg:self-start">
+      <aside className="hidden rounded-2xl border border-border/70 bg-card/60 p-6 shadow-sm xl:sticky xl:top-6 xl:block xl:self-start">
         <Skeleton className="size-9 rounded-xl" />
         <Skeleton className="mt-4 h-5 w-40" />
         <Skeleton className="mt-3 h-4 w-full" />
