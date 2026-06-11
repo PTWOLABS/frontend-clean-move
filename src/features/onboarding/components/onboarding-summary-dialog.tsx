@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CarFront,
@@ -26,6 +25,7 @@ import {
 import { cn } from "@/shared/utils/cn";
 
 import type { OnboardingDTO } from "../types/onboarding-types";
+import { useRouter } from "@bprogress/next";
 
 type OnboardingSummaryDialogProps = {
   open: boolean;
@@ -71,7 +71,7 @@ const summaryItems: SummaryItem[] = [
   {
     key: "customerCreated",
     label: "Cliente",
-    description: "Cliente de exemplo para teste.",
+    description: "Primeiro cliente.",
     successLabel: "Criado",
     errorLabel: "Não criado",
     href: "/customers",

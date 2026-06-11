@@ -107,15 +107,15 @@ export function OnboardingForm() {
 
   const currentStepIndex = step - 1;
   const currentStep = availableSteps[currentStepIndex];
-  const currentSchema = currentStep.schema;
+  const currentSchema = currentStep?.schema;
   const lastStep = availableSteps.length;
 
   const { mutateAsync: completeOnboarding, data: completeOnboardingSummaryData } =
     useCompleteOnboarding();
 
   const currentStepHeaders = {
-    title: currentStep.title,
-    description: currentStep.description,
+    title: currentStep?.title,
+    description: currentStep?.description,
   };
 
   async function onSubmit(data: OnboardingSubmitValues) {
@@ -156,7 +156,7 @@ export function OnboardingForm() {
   }
 
   function renderCurrentStepContent() {
-    switch (currentStep.id) {
+    switch (currentStep?.id) {
       case "company":
         return <CompanyDataStep {...currentStepHeaders} />;
 
@@ -207,7 +207,7 @@ export function OnboardingForm() {
           <StepActions
             step={step}
             lastStep={lastStep}
-            currentStepId={currentStep.id}
+            currentStepId={currentStep?.id}
             backStep={onBack}
           />
         </Form>

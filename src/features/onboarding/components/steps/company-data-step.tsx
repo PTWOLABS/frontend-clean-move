@@ -22,7 +22,7 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
         <StandartInputField
           id="onboarding-trade-name"
           name="tradeName"
-          label="Nome fantasia"
+          label="Nome comercial"
           placeholder="Ex.: Clean Move Detail"
           autoComplete="organization"
           icon={Building2}

@@ -58,7 +58,7 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
           type="text"
           autoComplete="organization-title"
           placeholder="Nome usado comercialmente"
-          label="Nome fantasia"
+          label="Nome Comercial"
           icon={Store}
           disabled={isFetchingCompany}
         />
