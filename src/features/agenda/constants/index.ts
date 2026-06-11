@@ -64,8 +64,24 @@ export const periodModeOptions: Array<{
   value: AgendaPeriodMode;
 }> = [
   {
-    label: "Período selecionado",
+    label: "Período personalizado",
     value: "custom",
+  },
+  {
+    label: "Este mês",
+    value: "this-month",
+  },
+  {
+    label: "Últimos 7 dias",
+    value: "last-7-days",
+  },
+  {
+    label: "Últimos 30 dias",
+    value: "last-30-days",
+  },
+  {
+    label: "A partir de hoje",
+    value: "from-today",
   },
   {
     label: "Todo o período",

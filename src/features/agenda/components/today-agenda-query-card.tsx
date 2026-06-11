@@ -1,6 +1,6 @@
 "use client";
 
-import { addDays, endOfDay, startOfDay } from "date-fns";
+import { addDays, endOfDay, endOfMonth, startOfDay, startOfMonth } from "date-fns";
 import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
@@ -35,12 +35,14 @@ function buildAgendaAppointmentsFilters({
   status,
   search,
   searchField,
+  periodMode,
   dateRange,
   page,
 }: {
   status: AgendaStatusFilter;
   search: string;
   searchField: AgendaSearchField;
+  periodMode: AgendaPeriodMode;
   dateRange?: DateRange;
   page: number;
 }): AppointmentsFilters {
@@ -59,14 +61,61 @@ function buildAgendaAppointmentsFilters({
     filters[searchField] = normalizedSearch;
   }
 
-  if (dateRange?.from) {
-    const endDate = dateRange.to ?? dateRange.from;
+  const periodBounds = getAgendaPeriodBounds(periodMode, dateRange);
 
-    filters.startsAt = formatLocalDateTimeAsUtcISOString(startOfDay(dateRange.from));
-    filters.endsAt = formatLocalDateTimeAsUtcISOString(endOfDay(endDate));
+  if (periodBounds.startsAt) {
+    filters.startsAt = formatLocalDateTimeAsUtcISOString(periodBounds.startsAt);
+  }
+
+  if (periodBounds.endsAt) {
+    filters.endsAt = formatLocalDateTimeAsUtcISOString(periodBounds.endsAt);
   }
 
   return filters;
+}
+
+function getAgendaPeriodBounds(
+  periodMode: AgendaPeriodMode,
+  dateRange?: DateRange,
+): {
+  startsAt?: Date;
+  endsAt?: Date;
+} {
+  const today = new Date();
+
+  switch (periodMode) {
+    case "custom": {
+      if (!dateRange?.from) return {};
+
+      const endDate = dateRange.to ?? dateRange.from;
+
+      return {
+        startsAt: startOfDay(dateRange.from),
+        endsAt: endOfDay(endDate),
+      };
+    }
+    case "this-month":
+      return {
+        startsAt: startOfMonth(today),
+        endsAt: endOfMonth(today),
+      };
+    case "last-7-days":
+      return {
+        startsAt: startOfDay(addDays(today, -6)),
+        endsAt: endOfDay(today),
+      };
+    case "last-30-days":
+      return {
+        startsAt: startOfDay(addDays(today, -29)),
+        endsAt: endOfDay(today),
+      };
+    case "from-today":
+      return {
+        startsAt: startOfDay(today),
+      };
+    case "all":
+      return {};
+  }
 }
 
 function getDefaultAgendaDateRange(): DateRange {
@@ -153,7 +202,8 @@ export function TodayAgendaQueryCard() {
         status: statusFilter,
         search: debouncedSearch,
         searchField,
-        dateRange: periodMode === "custom" ? dateRange : undefined,
+        periodMode,
+        dateRange,
         page,
       }),
     [dateRange, debouncedSearch, page, periodMode, searchField, statusFilter],
