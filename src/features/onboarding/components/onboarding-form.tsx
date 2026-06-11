@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/shared/forms/form";
 import { OnboardingProgress } from "./onboarding-progress";
 import { CompanyDataStep } from "./steps/company-data-step";
@@ -14,11 +14,15 @@ import {
   onboardingServiceStepSchema,
   OnboardingSubmitValues,
 } from "../schemas/onboarding-schema";
-import { StepActions } from "./steps/step-actions";
+import { StepActions, type OnboardingStepId } from "./steps/step-actions";
 import { CustomerAndVehicleStep } from "./steps/customer-and-vehicle-step";
 import { AppointmentStep } from "./steps/appointment-step";
 import { useCompleteOnboarding } from "../hooks/use-complete-onboarding";
 import { OnboardingSummaryDialog } from "./onboarding-summary-dialog";
+import { OnboardingSidebarStep, OnboardingStepsCard } from "./onboarding-steps-card";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import { useEstablishment } from "@/features/establishment/hooks/use-establishment";
+import type { Establishment } from "@/features/establishment/types";
 
 const stepHeaders = [
   {
@@ -53,9 +57,30 @@ const stepSchemas = [
   onboardingSchema,
 ] as const;
 
+const stepIds = [
+  "company",
+  "service",
+  "customerVehicle",
+  "appointment",
+] as const satisfies readonly OnboardingStepId[];
+
+const onboardingSteps = stepHeaders.map((stepHeader, index) => ({
+  ...stepHeader,
+  id: stepIds[index],
+  schema: stepSchemas[index],
+}));
+
 const DEFAULT_CUSTOMER_LABEL = "Cliente não informado";
 const DEFAULT_SERVICE_LABEL = "Serviço não informado";
 const DEFAULT_VEHICLE_LABEL = "Veículo não informado";
+
+function hasRegisteredCompanyData(establishment: Establishment | undefined) {
+  return Boolean(
+    establishment?.tradeName?.trim() ||
+    establishment?.legalBusinessName?.trim() ||
+    establishment?.cnpj?.trim(),
+  );
+}
 
 export function OnboardingForm() {
   const [step, setStep] = useState(1);
@@ -64,61 +89,84 @@ export function OnboardingForm() {
   const [vehicleLabel, setVehicleLabel] = useState(DEFAULT_VEHICLE_LABEL);
   const [openSummaryDialog, setOpenSummaryDialog] = useState(false);
 
+  const { data: user, isLoading: isGettingCurrentUser } = useCurrentUser();
+  const establishmentId = user?.establishmentId;
+  const {
+    data: establishment,
+    isLoading: isGettingEstablishment,
+    isSuccess: hasLoadedEstablishment,
+  } = useEstablishment(establishmentId);
+
+  const isCheckingCompanyData =
+    isGettingCurrentUser || (Boolean(establishmentId) && isGettingEstablishment);
+  const shouldShowCompanyStep =
+    !establishmentId || (hasLoadedEstablishment && !hasRegisteredCompanyData(establishment));
+  const availableSteps = onboardingSteps.filter(
+    (onboardingStep) => onboardingStep.id !== "company" || shouldShowCompanyStep,
+  );
+
   const currentStepIndex = step - 1;
-  const currentSchema = stepSchemas[currentStepIndex];
-  const lastStep = stepHeaders.length;
+  const currentStep = availableSteps[currentStepIndex];
+  const currentSchema = currentStep.schema;
+  const lastStep = availableSteps.length;
 
   const { mutateAsync: completeOnboarding, data: completeOnboardingSummaryData } =
     useCompleteOnboarding();
 
-  const currentStepHeaders = useMemo(() => {
-    return {
-      title: stepHeaders[currentStepIndex].title,
-      description: stepHeaders[currentStepIndex].description,
-    };
-  }, [currentStepIndex]);
+  const currentStepHeaders = {
+    title: currentStep.title,
+    description: currentStep.description,
+  };
 
   async function onSubmit(data: OnboardingSubmitValues) {
-    if (step === 2) {
+    if (currentStep.id === "service") {
       setServiceLabel(data.serviceName ?? DEFAULT_SERVICE_LABEL);
     }
 
-    if (step === 3) {
+    if (currentStep.id === "customerVehicle") {
       setCustomerLabel(data.customerFullName ?? DEFAULT_CUSTOMER_LABEL);
       setVehicleLabel(data.vehicleModel ?? DEFAULT_VEHICLE_LABEL);
     }
 
-    if (step < stepHeaders.length) {
+    if (step < lastStep) {
       setStep((currentStep) => currentStep + 1);
       return;
     }
 
     const onboardingPayload = mapOnboardingSubmitToPayload(data);
 
-    if (step === lastStep) {
-      try {
-        await completeOnboarding(onboardingPayload);
-        setOpenSummaryDialog(true);
-      } catch {}
-    }
+    try {
+      await completeOnboarding(onboardingPayload);
+      setOpenSummaryDialog(true);
+    } catch {}
   }
 
   function onBack() {
     if (step > 1 && step <= lastStep) setStep((currentStep) => currentStep - 1);
   }
 
-  const currentStepContent = useMemo(() => {
-    switch (step) {
-      case 1:
+  function goToStep(stepId: OnboardingStepId) {
+    const nextStepIndex = availableSteps.findIndex(
+      (onboardingStep) => onboardingStep.id === stepId,
+    );
+
+    if (nextStepIndex >= 0) {
+      setStep(nextStepIndex + 1);
+    }
+  }
+
+  function renderCurrentStepContent() {
+    switch (currentStep.id) {
+      case "company":
         return <CompanyDataStep {...currentStepHeaders} />;
 
-      case 2:
+      case "service":
         return <ServiceStep {...currentStepHeaders} />;
 
-      case 3:
+      case "customerVehicle":
         return <CustomerAndVehicleStep {...currentStepHeaders} />;
 
-      case 4:
+      case "appointment":
         return (
           <AppointmentStep
             {...currentStepHeaders}
@@ -128,30 +176,87 @@ export function OnboardingForm() {
             hasCustomer={customerLabel !== DEFAULT_CUSTOMER_LABEL}
             hasService={serviceLabel !== DEFAULT_SERVICE_LABEL}
             hasVehicle={vehicleLabel !== DEFAULT_VEHICLE_LABEL}
-            onCustomerClick={() => setStep(3)}
-            onServiceClick={() => setStep(2)}
-            onVehicleClick={() => setStep(3)}
+            onCustomerClick={() => goToStep("customerVehicle")}
+            onServiceClick={() => goToStep("service")}
+            onVehicleClick={() => goToStep("customerVehicle")}
           />
         );
 
       default:
         return null;
     }
-  }, [step, currentStepHeaders, customerLabel, serviceLabel, vehicleLabel]);
+  }
+
+  const stepsInfo = availableSteps.map((s) => ({
+    id: s.label,
+    title: s.title,
+    description: s.description,
+  })) satisfies OnboardingSidebarStep[];
+
+  if (isCheckingCompanyData) {
+    return <OnboardingFormSkeleton />;
+  }
 
   return (
-    <div className="space-y-8">
-      <OnboardingProgress currentStep={step} totalSteps={stepHeaders.length} />
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-10">
+      <div className="space-y-8">
+        <OnboardingProgress currentStep={step} totalSteps={lastStep} />
 
-      <Form onSubmit={onSubmit} schema={currentSchema} className="space-y-6">
-        {currentStepContent}
-        <StepActions step={step} lastStep={lastStep} backStep={onBack} />
-      </Form>
+        <Form onSubmit={onSubmit} schema={currentSchema} className="space-y-6">
+          {renderCurrentStepContent()}
+          <StepActions
+            step={step}
+            lastStep={lastStep}
+            currentStepId={currentStep.id}
+            backStep={onBack}
+          />
+        </Form>
+      </div>
+      <OnboardingStepsCard
+        currentStep={step}
+        steps={stepsInfo}
+        className="lg:sticky lg:top-6 lg:self-start"
+      />
       <OnboardingSummaryDialog
         result={completeOnboardingSummaryData}
         open={openSummaryDialog}
         onOpenChange={setOpenSummaryDialog}
       />
+    </div>
+  );
+}
+
+function OnboardingFormSkeleton() {
+  return (
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-10">
+      <div className="space-y-8">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-5 w-24 shrink-0" />
+          <Skeleton className="h-2 flex-1 rounded-full" />
+          <Skeleton className="h-5 w-10 shrink-0" />
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-card/60 p-6 shadow-sm">
+          <Skeleton className="h-7 w-3/5 max-w-sm" />
+          <Skeleton className="mt-3 h-4 w-full max-w-2xl" />
+          <div className="mt-8 space-y-5">
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+
+      <aside className="rounded-2xl border border-border/70 bg-card/60 p-6 shadow-sm lg:sticky lg:top-6 lg:self-start">
+        <Skeleton className="size-9 rounded-xl" />
+        <Skeleton className="mt-4 h-5 w-40" />
+        <Skeleton className="mt-3 h-4 w-full" />
+        <div className="mt-8 space-y-6">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      </aside>
     </div>
   );
 }

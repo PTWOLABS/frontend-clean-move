@@ -36,12 +36,14 @@ const appointmentStepFieldNames = [
   "endsAt",
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
-const stepFieldNames = [
-  companyStepFieldNames,
-  serviceStepFieldNames,
-  customerVehicleStepFieldNames,
-  appointmentStepFieldNames,
-] as const;
+export type OnboardingStepId = "company" | "service" | "customerVehicle" | "appointment";
+
+const stepFieldNames = {
+  company: companyStepFieldNames,
+  service: serviceStepFieldNames,
+  customerVehicle: customerVehicleStepFieldNames,
+  appointment: appointmentStepFieldNames,
+} as const satisfies Record<OnboardingStepId, readonly FieldPath<OnboardingFormValues>[]>;
 
 const companyStepDefaultValues = {
   cnpj: "",
@@ -73,20 +75,21 @@ const appointmentStepDefaultValues = {
   endsAt: null,
 } satisfies Partial<OnboardingFormValues>;
 
-const stepDefaultValues = [
-  companyStepDefaultValues,
-  serviceStepDefaultValues,
-  customerVehicleStepDefaultValues,
-  appointmentStepDefaultValues,
-] as const;
+const stepDefaultValues = {
+  company: companyStepDefaultValues,
+  service: serviceStepDefaultValues,
+  customerVehicle: customerVehicleStepDefaultValues,
+  appointment: appointmentStepDefaultValues,
+} as const satisfies Record<OnboardingStepId, Partial<OnboardingFormValues>>;
 
 type StepActionsProps = {
   step: number;
   lastStep: number;
+  currentStepId: OnboardingStepId;
   backStep: () => void;
 };
 
-export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
+export function StepActions({ step, lastStep, currentStepId, backStep }: StepActionsProps) {
   const {
     getValues,
     reset,
@@ -94,14 +97,10 @@ export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
     formState: { isSubmitting },
   } = useFormContext<OnboardingFormValues>();
 
-  const currentStepIndex = step - 1;
-  const currentStepFieldNames = stepFieldNames[currentStepIndex];
-
-  const currentStepDefaultValues = stepDefaultValues[currentStepIndex];
+  const currentStepFieldNames = stepFieldNames[currentStepId];
+  const currentStepDefaultValues = stepDefaultValues[currentStepId];
 
   function clearCurrentStep() {
-    if (!currentStepFieldNames || !currentStepDefaultValues) return;
-
     reset(
       {
         ...getValues(),
