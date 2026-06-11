@@ -18,6 +18,7 @@ vi.mock("next/navigation", () => ({
 const fetchCompanyByCnpjMock = vi.fn();
 const fetchAddressByZipCodeMock = vi.fn();
 const registerEstablishmentMock = vi.fn();
+const googleLoginMock = vi.fn();
 
 vi.mock("../api/brasilapi", () => ({
   fetchCompanyByCnpj: (...args: unknown[]) => fetchCompanyByCnpjMock(...args),
@@ -27,6 +28,12 @@ vi.mock("@/shared/api/viacep", () => ({
 }));
 vi.mock("../api/establishment", () => ({
   registerEstablishment: (...args: unknown[]) => registerEstablishmentMock(...args),
+}));
+vi.mock("@/features/auth/hooks/use-google-login", () => ({
+  useGoogleLogin: () => ({
+    mutate: googleLoginMock,
+    isPending: false,
+  }),
 }));
 
 vi.mock("next/image", () => ({
@@ -44,6 +51,7 @@ describe("RegisterForm", () => {
     fetchCompanyByCnpjMock.mockReset();
     fetchAddressByZipCodeMock.mockReset();
     registerEstablishmentMock.mockReset();
+    googleLoginMock.mockReset();
     pushMock.mockReset();
   });
 
