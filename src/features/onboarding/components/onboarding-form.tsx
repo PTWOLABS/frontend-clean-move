@@ -218,6 +218,7 @@ export function OnboardingForm() {
         className="lg:sticky lg:top-6 lg:self-start"
       />
       <OnboardingSummaryDialog
+        shouldShowCompanyStep={shouldShowCompanyStep}
         result={completeOnboardingSummaryData}
         open={openSummaryDialog}
         onOpenChange={setOpenSummaryDialog}

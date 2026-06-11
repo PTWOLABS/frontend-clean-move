@@ -30,6 +30,7 @@ import { useRouter } from "@bprogress/next";
 type OnboardingSummaryDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  shouldShowCompanyStep: boolean;
   result?: OnboardingDTO | null;
 };
 
@@ -45,7 +46,7 @@ type SummaryItem = {
   icon: LucideIcon;
 };
 
-const summaryItems: SummaryItem[] = [
+const defaultSummaryItems: SummaryItem[] = [
   {
     key: "establishmentUpdated",
     label: "Dados do estabelecimento",
@@ -106,11 +107,26 @@ const summaryItems: SummaryItem[] = [
 export function OnboardingSummaryDialog({
   open,
   onOpenChange,
+  shouldShowCompanyStep,
   result,
 }: OnboardingSummaryDialogProps) {
   const router = useRouter();
 
-  const completedItemsCount = summaryItems.filter((item) => result?.onboarding[item.key]).length;
+  const summaryItems = defaultSummaryItems.filter((item) => {
+    if (!shouldShowCompanyStep && item.key === "establishmentUpdated") {
+      return false;
+    }
+
+    return item;
+  });
+
+  const completedItemsCount = defaultSummaryItems.filter((item) => {
+    if (!shouldShowCompanyStep && item.key === "establishmentUpdated") {
+      return false;
+    }
+
+    return result?.onboarding[item.key];
+  }).length;
 
   const hasErrors = completedItemsCount < summaryItems.length;
 
