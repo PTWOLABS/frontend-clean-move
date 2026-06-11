@@ -1,10 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { FieldPath, useFormContext } from "react-hook-form";
 
 import type { OnboardingFormValues } from "../../schemas/onboarding-schema";
+import { useState } from "react";
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 
 const companyStepFieldNames = [
   "cnpj",
@@ -58,7 +60,7 @@ const serviceStepDefaultValues = {
   minDurationInMinutes: "",
   maxDurationInMinutes: "",
   price: "",
-  isActive: false,
+  isActive: true,
 } satisfies Partial<OnboardingFormValues>;
 
 const customerVehicleStepDefaultValues = {
@@ -97,6 +99,8 @@ export function StepActions({ step, lastStep, currentStepId, backStep }: StepAct
     formState: { isSubmitting },
   } = useFormContext<OnboardingFormValues>();
 
+  const [openConfirmClearStepDialog, setOpenConfirmClearStepDialog] = useState(false);
+
   const currentStepFieldNames = stepFieldNames[currentStepId];
   const currentStepDefaultValues = stepDefaultValues[currentStepId];
 
@@ -114,13 +118,38 @@ export function StepActions({ step, lastStep, currentStepId, backStep }: StepAct
     );
 
     clearErrors([...currentStepFieldNames]);
+    setOpenConfirmClearStepDialog(false);
+  }
+
+  function onClearCurrentStepClick() {
+    const currentStepValues = currentStepFieldNames.map((value) => {
+      return getValues(value);
+    });
+
+    let shouldClearCurrentStep = false;
+
+    currentStepValues.forEach((value) => {
+      if (String(value).trim().length >= 1) {
+        shouldClearCurrentStep = true;
+      }
+    });
+
+    if (shouldClearCurrentStep) {
+      setOpenConfirmClearStepDialog(true);
+    }
   }
 
   return (
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <Button type="button" variant="outline" onClick={clearCurrentStep} disabled={isSubmitting}>
-        <RotateCcw aria-hidden className="size-4" />
-        Limpar etapa
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClearCurrentStepClick}
+        disabled={isSubmitting}
+        className="text-destructive/90 hover:bg-destructive/10 hover:text-destructive border-destructive/20 hover:border-destructive/40"
+      >
+        <Trash2 aria-hidden className="size-4" />
+        Descartar etapa
       </Button>
 
       <div className="flex items-center gap-4">
@@ -145,6 +174,17 @@ export function StepActions({ step, lastStep, currentStepId, backStep }: StepAct
           )}
         </Button>
       </div>
+      <AlertDialog
+        open={openConfirmClearStepDialog}
+        onOpenChange={setOpenConfirmClearStepDialog}
+        title="Descartar dados desta etapa?"
+        descriptionContent={
+          "Os campos preenchidos nesta etapa serão apagados. As outras etapas não serão alteradas."
+        }
+        actionMessage="Descartar"
+        onConfirm={() => clearCurrentStep()}
+        onCancel={() => setOpenConfirmClearStepDialog(false)}
+      />
     </div>
   );
 }
