@@ -6,6 +6,7 @@ import { QUERY_KEYS } from "@/shared/constants/query-keys";
 import { ApiError, setAccessToken } from "@/shared/api/httpClient";
 
 import { login } from "../api";
+import { getPostLoginRedirectPath } from "../lib/get-post-login-redirect-path";
 
 export function useLogin() {
   const router = useRouter();
@@ -14,10 +15,10 @@ export function useLogin() {
   return useMutation({
     mutationFn: login,
     mutationKey: QUERY_KEYS.login,
-    onSuccess: ({ accessToken }) => {
+    onSuccess: ({ accessToken, onboardingCompletedAt }) => {
       setAccessToken(accessToken);
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.authSession });
-      router.push("/onboarding");
+      router.push(getPostLoginRedirectPath({ onboardingCompletedAt }));
     },
     onError: (error) => {
       if (error instanceof ApiError) {
