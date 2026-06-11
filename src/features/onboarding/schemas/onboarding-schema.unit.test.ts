@@ -30,6 +30,20 @@ describe("onboardingServiceStepSchema", () => {
       minDurationInMinutes: "",
       maxDurationInMinutes: "",
       price: "",
+      isActive: true,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("does not treat isActive as a started service when it is the only changed field", () => {
+    const result = onboardingServiceStepSchema.safeParse({
+      serviceName: "",
+      description: "",
+      category: "",
+      minDurationInMinutes: "",
+      maxDurationInMinutes: "",
+      price: "",
       isActive: false,
     });
 
@@ -396,7 +410,7 @@ describe("onboardingSchema", () => {
       minDurationInMinutes: "",
       maxDurationInMinutes: "",
       price: "",
-      isActive: false,
+      isActive: true,
       customerFullName: "",
       customerPhone: "",
       customerEmail: "",
@@ -507,6 +521,33 @@ describe("mapOnboardingSubmitToPayload", () => {
     if (!result.success) return;
 
     expect(mapOnboardingSubmitToPayload(result.data)).toEqual({});
+  });
+
+  it("defaults created services to active when isActive is not provided", () => {
+    const result = onboardingSchema.safeParse({
+      cnpj: "",
+      legalName: "",
+      tradeName: "",
+      serviceName: "Lavagem premium",
+      description: "",
+      category: "WASH",
+      minDurationInMinutes: "30",
+      maxDurationInMinutes: "",
+      price: "120,00",
+      customerFullName: "",
+      customerPhone: "",
+      customerEmail: "",
+      vehiclePlate: "",
+      vehicleModel: "",
+      vehicleColor: "",
+      startsAt: null,
+      endsAt: null,
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(mapOnboardingSubmitToPayload(result.data).service?.isActive).toBe(true);
   });
 
   it("does not parse appointment when a dependent resource is missing", () => {
