@@ -3,6 +3,5 @@ type OnboardingCompletion = {
 };
 
 export function getPostLoginRedirectPath({ onboardingCompletedAt }: OnboardingCompletion) {
-  console.log(onboardingCompletedAt ? "/dashboard" : "/onboarding");
   return onboardingCompletedAt ? "/dashboard" : "/onboarding";
 }
