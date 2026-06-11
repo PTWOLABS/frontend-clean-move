@@ -166,7 +166,7 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
               <FormControl>
                 <Switch
                   id="onboarding-service-active"
-                  checked={Boolean(field.value)}
+                  checked={field.value ?? true}
                   onCheckedChange={field.onChange}
                   aria-label="Serviço ativo no catálogo"
                   className="shrink-0"

@@ -106,8 +106,7 @@ export const onboardingServiceStepSchema = z
       Boolean(data.category) ||
       data.minDurationInMinutes !== undefined ||
       data.maxDurationInMinutes !== undefined ||
-      data.price !== undefined ||
-      data.isActive === true;
+      data.price !== undefined;
 
     if (!hasStartedService) return;
 
@@ -399,7 +398,7 @@ export function mapOnboardingSubmitToPayload(values: OnboardingSubmitValues): On
           : {}),
       },
       price: Math.round(values.price * 100),
-      isActive: values.isActive ?? false,
+      isActive: values.isActive ?? true,
     };
   }
 

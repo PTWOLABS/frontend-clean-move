@@ -84,6 +84,22 @@ const stepDefaultValues = {
   appointment: appointmentStepDefaultValues,
 } as const satisfies Record<OnboardingStepId, Partial<OnboardingFormValues>>;
 
+function normalizeComparableValue(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? "" : value.getTime();
+  }
+
+  return value;
+}
+
 type StepActionsProps = {
   step: number;
   lastStep: number;
@@ -122,16 +138,14 @@ export function StepActions({ step, lastStep, currentStepId, backStep }: StepAct
   }
 
   function onClearCurrentStepClick() {
-    const currentStepValues = currentStepFieldNames.map((value) => {
-      return getValues(value);
-    });
+    const shouldClearCurrentStep = currentStepFieldNames.some((fieldName) => {
+      const currentValue = normalizeComparableValue(getValues(fieldName));
+      const defaultStepValues = currentStepDefaultValues as Partial<
+        Record<FieldPath<OnboardingFormValues>, unknown>
+      >;
+      const defaultValue = normalizeComparableValue(defaultStepValues[fieldName]);
 
-    let shouldClearCurrentStep = false;
-
-    currentStepValues.forEach((value) => {
-      if (String(value).trim().length >= 1) {
-        shouldClearCurrentStep = true;
-      }
+      return currentValue !== defaultValue;
     });
 
     if (shouldClearCurrentStep) {
