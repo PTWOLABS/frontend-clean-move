@@ -13,6 +13,7 @@ export type LoginPayload = {
 export type AuthSessionResponse = {
   userId: string;
   accessToken: string;
+  onboardingCompletedAt: string | null;
 };
 
 export type GoogleLoginPayload = {

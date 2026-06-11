@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Check, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 
@@ -13,10 +13,8 @@ import { LoginFormValues, loginSchema } from "../schemas/login-schema";
 import { useLogin } from "../hooks/use-login";
 import { useGoogleLogin } from "../hooks/use-google-login";
 import { useAuthSession } from "../hooks/use-auth-session";
-import { useRouter } from "next/navigation";
 
 export function LoginForm() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
@@ -27,13 +25,7 @@ export function LoginForm() {
     login(data);
   };
 
-  const { isSuccess, isPending: isLoggingAutomatically } = useAuthSession();
-
-  useEffect(() => {
-    if (isSuccess) {
-      router.replace("/onboarding");
-    }
-  }, [isSuccess, router]);
+  const { isPending: isLoggingAutomatically } = useAuthSession();
 
   return (
     <div className="relative z-10 w-full max-w-[420px]">
