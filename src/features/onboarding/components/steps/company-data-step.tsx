@@ -22,7 +22,7 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
         <StandartInputField
           id="onboarding-trade-name"
           name="tradeName"
-          label="Nome fantasia"
+          label="Nome comercial"
           placeholder="Ex.: Clean Move Detail"
           autoComplete="organization"
           icon={Building2}
@@ -54,7 +54,7 @@ export function CompanyDataStep({ title, description, className }: CompanyDataSt
         <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
           <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
 
-          <p>Você poderá ajustar essas informações a qualquer momento nas configurações.</p>
+          <p>Você poderá ajustar essas informações mais tarde nas configurações.</p>
         </div>
       </CardContent>
     </Card>

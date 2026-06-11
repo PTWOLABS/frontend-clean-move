@@ -27,6 +27,13 @@ vi.mock("@/shared/api/viacep", () => ({
   fetchAddressByZipCode: vi.fn(),
 }));
 
+vi.mock("@/features/auth/hooks/use-google-login", () => ({
+  useGoogleLogin: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 import RegisterPage from "./page";
 
 describe("RegisterPage", () => {

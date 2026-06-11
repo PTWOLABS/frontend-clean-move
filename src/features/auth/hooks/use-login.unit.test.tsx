@@ -51,9 +51,10 @@ describe("useLogin", () => {
     loginApiMock.mockReset();
   });
 
-  it("should persist the access token and redirect to /onboarding on success", async () => {
+  it("should persist the access token and redirect to /onboarding when onboarding is pending", async () => {
     loginApiMock.mockResolvedValueOnce({
       accessToken: "token-de-acesso",
+      onboardingCompletedAt: null,
       userId: "1",
     });
 
@@ -66,6 +67,24 @@ describe("useLogin", () => {
 
     expect(setAccessTokenMock).toHaveBeenCalledWith("token-de-acesso");
     expect(pushMock).toHaveBeenCalledWith("/onboarding");
+  });
+
+  it("should redirect to /dashboard when onboarding is completed", async () => {
+    loginApiMock.mockResolvedValueOnce({
+      accessToken: "token-de-acesso",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
+      userId: "1",
+    });
+
+    const { result } = renderHook(() => useLogin(), { wrapper });
+    result.current.mutate({ email: "fulano@email.com", password: "supersenha" });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(setAccessTokenMock).toHaveBeenCalledWith("token-de-acesso");
+    expect(pushMock).toHaveBeenCalledWith("/dashboard");
   });
 
   it("should show an invalid credentials toast when the api responds with 400", async () => {

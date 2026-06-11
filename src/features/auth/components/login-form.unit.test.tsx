@@ -6,7 +6,6 @@ import { renderWithProviders } from "@/test/test-utils";
 
 const loginMock = vi.fn();
 const googleLoginMock = vi.fn();
-const replaceMock = vi.fn();
 
 vi.mock("../hooks/use-login", () => ({
   useLogin: () => ({
@@ -29,12 +28,6 @@ vi.mock("../hooks/use-auth-session", () => ({
   }),
 }));
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-  }),
-}));
-
 vi.mock("next/image", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => {
@@ -49,7 +42,6 @@ describe("LoginForm", () => {
   beforeEach(() => {
     loginMock.mockReset();
     googleLoginMock.mockReset();
-    replaceMock.mockReset();
   });
 
   it("should render the main fields and buttons", () => {

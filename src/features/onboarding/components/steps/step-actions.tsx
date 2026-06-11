@@ -1,10 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { FieldPath, useFormContext } from "react-hook-form";
 
 import type { OnboardingFormValues } from "../../schemas/onboarding-schema";
+import { useState } from "react";
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 
 const companyStepFieldNames = [
   "cnpj",
@@ -36,12 +38,14 @@ const appointmentStepFieldNames = [
   "endsAt",
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
 
-const stepFieldNames = [
-  companyStepFieldNames,
-  serviceStepFieldNames,
-  customerVehicleStepFieldNames,
-  appointmentStepFieldNames,
-] as const;
+export type OnboardingStepId = "company" | "service" | "customerVehicle" | "appointment";
+
+const stepFieldNames = {
+  company: companyStepFieldNames,
+  service: serviceStepFieldNames,
+  customerVehicle: customerVehicleStepFieldNames,
+  appointment: appointmentStepFieldNames,
+} as const satisfies Record<OnboardingStepId, readonly FieldPath<OnboardingFormValues>[]>;
 
 const companyStepDefaultValues = {
   cnpj: "",
@@ -56,7 +60,7 @@ const serviceStepDefaultValues = {
   minDurationInMinutes: "",
   maxDurationInMinutes: "",
   price: "",
-  isActive: false,
+  isActive: true,
 } satisfies Partial<OnboardingFormValues>;
 
 const customerVehicleStepDefaultValues = {
@@ -73,20 +77,37 @@ const appointmentStepDefaultValues = {
   endsAt: null,
 } satisfies Partial<OnboardingFormValues>;
 
-const stepDefaultValues = [
-  companyStepDefaultValues,
-  serviceStepDefaultValues,
-  customerVehicleStepDefaultValues,
-  appointmentStepDefaultValues,
-] as const;
+const stepDefaultValues = {
+  company: companyStepDefaultValues,
+  service: serviceStepDefaultValues,
+  customerVehicle: customerVehicleStepDefaultValues,
+  appointment: appointmentStepDefaultValues,
+} as const satisfies Record<OnboardingStepId, Partial<OnboardingFormValues>>;
+
+function normalizeComparableValue(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? "" : value.getTime();
+  }
+
+  return value;
+}
 
 type StepActionsProps = {
   step: number;
   lastStep: number;
+  currentStepId: OnboardingStepId;
   backStep: () => void;
 };
 
-export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
+export function StepActions({ step, lastStep, currentStepId, backStep }: StepActionsProps) {
   const {
     getValues,
     reset,
@@ -94,14 +115,12 @@ export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
     formState: { isSubmitting },
   } = useFormContext<OnboardingFormValues>();
 
-  const currentStepIndex = step - 1;
-  const currentStepFieldNames = stepFieldNames[currentStepIndex];
+  const [openConfirmClearStepDialog, setOpenConfirmClearStepDialog] = useState(false);
 
-  const currentStepDefaultValues = stepDefaultValues[currentStepIndex];
+  const currentStepFieldNames = stepFieldNames[currentStepId];
+  const currentStepDefaultValues = stepDefaultValues[currentStepId];
 
   function clearCurrentStep() {
-    if (!currentStepFieldNames || !currentStepDefaultValues) return;
-
     reset(
       {
         ...getValues(),
@@ -115,13 +134,36 @@ export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
     );
 
     clearErrors([...currentStepFieldNames]);
+    setOpenConfirmClearStepDialog(false);
+  }
+
+  function onClearCurrentStepClick() {
+    const shouldClearCurrentStep = currentStepFieldNames.some((fieldName) => {
+      const currentValue = normalizeComparableValue(getValues(fieldName));
+      const defaultStepValues = currentStepDefaultValues as Partial<
+        Record<FieldPath<OnboardingFormValues>, unknown>
+      >;
+      const defaultValue = normalizeComparableValue(defaultStepValues[fieldName]);
+
+      return currentValue !== defaultValue;
+    });
+
+    if (shouldClearCurrentStep) {
+      setOpenConfirmClearStepDialog(true);
+    }
   }
 
   return (
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <Button type="button" variant="outline" onClick={clearCurrentStep} disabled={isSubmitting}>
-        <RotateCcw aria-hidden className="size-4" />
-        Limpar etapa
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClearCurrentStepClick}
+        disabled={isSubmitting}
+        className="text-destructive/90 hover:bg-destructive/10 hover:text-destructive border-destructive/20 hover:border-destructive/40"
+      >
+        <Trash2 aria-hidden className="size-4" />
+        Descartar etapa
       </Button>
 
       <div className="flex items-center gap-4">
@@ -146,6 +188,17 @@ export function StepActions({ step, lastStep, backStep }: StepActionsProps) {
           )}
         </Button>
       </div>
+      <AlertDialog
+        open={openConfirmClearStepDialog}
+        onOpenChange={setOpenConfirmClearStepDialog}
+        title="Descartar dados desta etapa?"
+        descriptionContent={
+          "Os campos preenchidos nesta etapa serão apagados. As outras etapas não serão alteradas."
+        }
+        actionMessage="Descartar"
+        onConfirm={() => clearCurrentStep()}
+        onCancel={() => setOpenConfirmClearStepDialog(false)}
+      />
     </div>
   );
 }

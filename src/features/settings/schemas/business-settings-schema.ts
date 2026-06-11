@@ -10,7 +10,7 @@ const requiredText = (field: string) => z.string().trim().min(1, `Informe ${fiel
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const businessSettingsSchema = z.object({
-  tradeName: requiredText("o nome fantasia").min(2, "Informe um nome fantasia válido."),
+  tradeName: requiredText("o nome comercial").min(2, "Informe um nome comercial válido."),
   legalBusinessName: requiredText("a razão social").min(2, "Informe uma razão social válida."),
   cnpj: z
     .string()

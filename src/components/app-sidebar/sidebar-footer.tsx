@@ -6,7 +6,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { Button } from "../ui/button";
 import { LogOut } from "lucide-react";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 

@@ -6,7 +6,7 @@ import { AppSidebarTrigger } from "./app-sidebar-trigger";
 
 export function AppSidebarHeader() {
   return (
-    <SidebarPrimitiveHeader className="border-b border-sidebar-border px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+    <SidebarPrimitiveHeader className="border-b border-sidebar-border px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-18.25">
       <div className="flex min-w-0 items-center justify-between gap-3 px-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
         <div className="flex min-w-0 items-center gap-3 group-data-[collapsible=icon]:hidden">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary p-1.5 text-sidebar-primary-foreground">

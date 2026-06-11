@@ -11,7 +11,7 @@ const setAccessTokenMock = vi.fn();
 const toastErrorMock = vi.fn();
 const loginWithGoogleApiMock = vi.fn();
 
-vi.mock("next/navigation", () => ({
+vi.mock("@bprogress/next", () => ({
   useRouter: () => ({
     push: pushMock,
   }),
@@ -51,9 +51,10 @@ describe("useGoogleLogin", () => {
     loginWithGoogleApiMock.mockReset();
   });
 
-  it("should persist the access token and redirect to /onboarding on success", async () => {
+  it("should persist the access token and redirect to /onboarding when onboarding is pending", async () => {
     loginWithGoogleApiMock.mockResolvedValueOnce({
       accessToken: "google-access",
+      onboardingCompletedAt: null,
       userId: "u-1",
     });
 
@@ -70,6 +71,24 @@ describe("useGoogleLogin", () => {
     });
     expect(setAccessTokenMock).toHaveBeenCalledWith("google-access");
     expect(pushMock).toHaveBeenCalledWith("/onboarding");
+  });
+
+  it("should redirect to /dashboard when onboarding is completed", async () => {
+    loginWithGoogleApiMock.mockResolvedValueOnce({
+      accessToken: "google-access",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
+      userId: "u-1",
+    });
+
+    const { result } = renderHook(() => useGoogleLogin(), { wrapper });
+    result.current.mutate({ idToken: "id-jwt", role: "ESTABLISHMENT" });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(setAccessTokenMock).toHaveBeenCalledWith("google-access");
+    expect(pushMock).toHaveBeenCalledWith("/dashboard");
   });
 
   it("should show a specific toast when the api responds with 400", async () => {

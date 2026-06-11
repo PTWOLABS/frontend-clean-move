@@ -57,7 +57,7 @@ export const companyStepSchema = z.object({
       message: "Informe um CNPJ válido.",
     }),
   legalName: requiredText("a razão social"),
-  tradeName: requiredText("o nome fantasia"),
+  tradeName: requiredText("o nome comercial"),
 });
 
 export const addressStepSchema = z.object({

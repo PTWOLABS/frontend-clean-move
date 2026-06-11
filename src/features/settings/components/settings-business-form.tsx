@@ -111,7 +111,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
             <StandartInputField
               control={fieldControl}
               name="tradeName"
-              label="Nome fantasia"
+              label="Nome Comercial"
               icon={Building2}
               placeholder="Ex.: CleanMove Auto Center"
               autoComplete="organization"

@@ -52,7 +52,7 @@ export function AppointmentStep({
       <StepHeader title={title} description={description} />
 
       <CardContent className="space-y-5">
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5">
           <AppointmentResourceInput
             id="onboarding-appointment-customer-name"
             label="Cliente"
