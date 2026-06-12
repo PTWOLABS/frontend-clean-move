@@ -18,6 +18,7 @@ describe("auth/api", () => {
   it("should send a post to /auth/login with the payload", async () => {
     httpClientMock.mockResolvedValueOnce({
       accessToken: "abc",
+      onboardingCompletedAt: null,
       userId: "1",
     });
 
@@ -29,6 +30,7 @@ describe("auth/api", () => {
     });
     expect(response).toEqual({
       accessToken: "abc",
+      onboardingCompletedAt: null,
       userId: "1",
     });
   });
@@ -36,6 +38,7 @@ describe("auth/api", () => {
   it("should send a post to /auth/google with idToken", async () => {
     httpClientMock.mockResolvedValueOnce({
       accessToken: "jwt",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
       userId: "u-2",
     });
 
@@ -45,7 +48,11 @@ describe("auth/api", () => {
       method: "POST",
       body: { idToken: "google-id-jwt", role: "ESTABLISHMENT" },
     });
-    expect(response).toEqual({ accessToken: "jwt", userId: "u-2" });
+    expect(response).toEqual({
+      accessToken: "jwt",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
+      userId: "u-2",
+    });
   });
 
   it("should call GET /user/me and map to AuthUser", async () => {

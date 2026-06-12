@@ -12,6 +12,7 @@ import { InputField } from "@/components/ui/form/input-field";
 import { LoginFormValues, loginSchema } from "../schemas/login-schema";
 import { useLogin } from "../hooks/use-login";
 import { useGoogleLogin } from "../hooks/use-google-login";
+import { useAuthSession } from "../hooks/use-auth-session";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +24,8 @@ export function LoginForm() {
   const onSubmit = (data: LoginFormValues) => {
     login(data);
   };
+
+  const { isPending: isLoggingAutomatically } = useAuthSession();
 
   return (
     <div className="relative z-10 w-full max-w-[420px]">
@@ -114,12 +117,14 @@ export function LoginForm() {
         </div>
 
         <Button
-          disabled={isLoginLoading}
-          aria-busy={isLoginLoading}
+          disabled={isLoginLoading || isLoggingAutomatically}
+          aria-busy={isLoginLoading || isLoggingAutomatically}
           type="submit"
           className="h-[52px] w-full rounded-[12px] bg-[#2563EB] text-base font-semibold text-white shadow-[0_18px_42px_rgba(37,99,235,0.28)] transition-colors hover:bg-[#1D4ED8] active:bg-[#1E40AF]"
         >
-          {isLoginLoading ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : null}
+          {isLoginLoading || isLoggingAutomatically ? (
+            <LoaderCircle aria-hidden className="size-5 animate-spin" />
+          ) : null}
           Entrar
         </Button>
 
@@ -132,7 +137,7 @@ export function LoginForm() {
         <GoogleSignInButton
           label="Entrar com Google"
           testId="google-signin-slot"
-          isLoading={isGoogleLoading}
+          isLoading={isGoogleLoading || isLoggingAutomatically}
           onCredential={(credential) => googleLogin({ idToken: credential, role: "ESTABLISHMENT" })}
         />
       </Form>

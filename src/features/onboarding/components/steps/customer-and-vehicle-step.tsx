@@ -1,0 +1,122 @@
+"use client";
+
+import { CarFront, Info, Mail, Palette, Phone, UserRound } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/shared/utils/cn";
+import { StandartInputField } from "@/components/ui/form/standart-input-field";
+import { StepHeader } from "./step-header";
+
+type CustomerAndVehicleStepProps = {
+  title: string;
+  description: string;
+  className?: string;
+};
+
+export function CustomerAndVehicleStep({
+  title,
+  description,
+  className,
+}: CustomerAndVehicleStepProps) {
+  return (
+    <Card className={cn("border-border/70 bg-card/60 shadow-sm backdrop-blur-xl", className)}>
+      <StepHeader title={title} description={description} />
+
+      <CardContent className="space-y-6">
+        <section className="space-y-5">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">Cliente</h3>
+
+            <p className="text-xs text-muted-foreground">
+              Informe os dados básicos do primeiro cliente.
+            </p>
+          </div>
+
+          <StandartInputField
+            id="onboarding-customer-full-name"
+            name="customerFullName"
+            label="Nome completo"
+            placeholder="Ex.: João da Silva"
+            autoComplete="name"
+            icon={UserRound}
+            className="shadow-xs"
+          />
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <StandartInputField
+              id="onboarding-customer-phone"
+              name="customerPhone"
+              label="Telefone"
+              placeholder="(11) 99999-9999"
+              mask="(__) _____-____"
+              inputMode="tel"
+              autoComplete="tel"
+              icon={Phone}
+              className="shadow-xs"
+            />
+
+            <StandartInputField
+              id="onboarding-customer-email"
+              name="customerEmail"
+              label="E-mail"
+              type="email"
+              placeholder="cliente@email.com"
+              autoComplete="email"
+              icon={Mail}
+              className="shadow-xs"
+            />
+          </div>
+        </section>
+
+        <div className="h-px bg-border" />
+
+        <section className="space-y-5">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">Veículo</h3>
+
+            <p className="text-xs text-muted-foreground">
+              Vincule um veículo para simular o primeiro atendimento.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            <StandartInputField
+              id="onboarding-vehicle-plate"
+              name="vehiclePlate"
+              label="Placa"
+              maxLength={7}
+              placeholder="Ex.: ABC1D23"
+              autoComplete="off"
+              icon={CarFront}
+              className="uppercase shadow-xs"
+            />
+
+            <StandartInputField
+              id="onboarding-vehicle-model"
+              name="vehicleModel"
+              label="Marca/Modelo"
+              placeholder="Ex.: Honda Civic"
+              autoComplete="off"
+              icon={CarFront}
+              className="shadow-xs"
+            />
+
+            <StandartInputField
+              id="onboarding-vehicle-color"
+              name="vehicleColor"
+              label="Cor"
+              placeholder="Ex.: Preto"
+              autoComplete="off"
+              icon={Palette}
+              className="shadow-xs"
+            />
+          </div>
+        </section>
+        <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+          <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" /> Você poderá
+          complementar o cadastro do cliente e do veículo depois.
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

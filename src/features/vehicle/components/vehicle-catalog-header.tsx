@@ -17,7 +17,7 @@ export function VehicleCatalogHeader({ totalCount, onAddVehicle }: VehicleCatalo
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Veículos</h1>
         <p className="text-sm text-muted-foreground">{countLabel}</p>
       </div>
-      <Button type="button" size="sm" className="gap-2" onClick={onAddVehicle}>
+      <Button type="button" className="h-10 gap-2" onClick={onAddVehicle}>
         <Plus aria-hidden />
         Adicionar veículo
       </Button>

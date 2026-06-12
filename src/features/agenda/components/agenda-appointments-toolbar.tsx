@@ -37,8 +37,9 @@ export function AgendaAppointmentsToolbar({
   onPeriodModeChange,
   onDateRangeChange,
 }: AgendaAppointmentsToolbarProps) {
-  const hasAllPeriod = periodMode === "all";
-  const displayedDateRange = hasAllPeriod ? { from: undefined, to: undefined } : dateRange;
+  const hasCustomPeriod = periodMode === "custom";
+  const displayedDateRange = hasCustomPeriod ? dateRange : { from: undefined, to: undefined };
+  const dateRangePlaceholder = hasCustomPeriod ? "Selecione as datas" : "Definido pelo período";
 
   return (
     <div className="grid gap-3 lg:grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,0.9fr)_minmax(0,1.7fr)_auto] lg:items-end">
@@ -113,8 +114,8 @@ export function AgendaAppointmentsToolbar({
               <DatePickerWithRange
                 align="start"
                 className="h-10 w-full border-border/80 bg-background/60 shadow-xs md:min-w-0"
-                disabled={hasAllPeriod}
-                placeholder="Todo o período"
+                disabled={!hasCustomPeriod}
+                placeholder={dateRangePlaceholder}
                 value={displayedDateRange}
                 onChange={onDateRangeChange}
               />

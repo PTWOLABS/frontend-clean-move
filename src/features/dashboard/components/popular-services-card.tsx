@@ -46,7 +46,7 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
       >
         <div className="mt-15 space-y-4">
           {Array.from({ length: 5 }, (_, index) => (
-            <div key={index} className="space-y-2">
+            <div key={`popular-services-card-skeleton-${index}`} className="space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-4 w-16" />

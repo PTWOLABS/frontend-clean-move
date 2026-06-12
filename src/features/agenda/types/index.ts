@@ -10,4 +10,10 @@ export type AgendaSearchField =
   | "vehiclePlate"
   | "customerNickname"
   | "customerName";
-export type AgendaPeriodMode = "custom" | "all";
+export type AgendaPeriodMode =
+  | "custom"
+  | "all"
+  | "this-month"
+  | "last-7-days"
+  | "last-30-days"
+  | "from-today";

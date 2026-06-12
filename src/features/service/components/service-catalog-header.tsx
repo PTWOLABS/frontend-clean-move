@@ -25,11 +25,11 @@ export function ServiceCatalogHeader({
         <p className="text-sm text-muted-foreground">{countLabel}</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
-        <Button type="button" size="sm" variant="outline" className="gap-2" onClick={onManageCategories}>
+        <Button type="button" variant="outline" className="h-10 gap-2" onClick={onManageCategories}>
           <FolderTree aria-hidden />
           Gerir categorias
         </Button>
-        <Button type="button" size="sm" className="gap-2" onClick={onAddService}>
+        <Button type="button" className="h-10 gap-2" onClick={onAddService}>
           <Plus aria-hidden />
           Adicionar serviço
         </Button>

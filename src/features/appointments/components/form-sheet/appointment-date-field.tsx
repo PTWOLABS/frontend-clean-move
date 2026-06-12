@@ -31,6 +31,7 @@ export function AppointmentDateField({
       name={name}
       label={label}
       required={required}
+      className="min-w-0"
       renderControl={false}
     >
       {({ field, fieldState }) => (

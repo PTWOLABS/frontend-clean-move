@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   AlertDialog,
@@ -45,6 +46,10 @@ function filterToIsActive(filter: ServiceActiveFilter): boolean | undefined {
 }
 
 export function ServiceCatalog() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const createParamHandledRef = useRef(false);
   const { data: user, isLoading: userLoading } = useCurrentUser();
   const establishmentId = user?.establishmentId;
 
@@ -75,12 +80,37 @@ export function ServiceCatalog() {
 
   // Debounce alinhado ao query param `name` (match parcial, case-insensitive no backend).
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
+  const shouldOpenCreateSheet = searchParams.get("new") === "true";
+
+  const removeNewSearchParam = useCallback(() => {
+    if (!searchParams.has("new")) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const queryString = nextSearchParams.toString();
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   useEffect(() => {
     // Ao mudar filtros enviados ao servidor, a página deve voltar a 1 (evita página vazia).
     // eslint-disable-next-line react-hooks/set-state-in-effect -- sincronização explícita com debounce + tabs
     setPage(1);
   }, [debouncedSearch, activeFilter]);
+
+  useEffect(() => {
+    if (!shouldOpenCreateSheet) {
+      createParamHandledRef.current = false;
+      return;
+    }
+
+    if (createParamHandledRef.current) return;
+
+    createParamHandledRef.current = true;
+    setEditingService(null);
+    setDuplicateSource(null);
+    setServiceSheetOpen(true);
+  }, [shouldOpenCreateSheet]);
 
   const isActiveParam = filterToIsActive(activeFilter);
 
@@ -155,6 +185,7 @@ export function ServiceCatalog() {
     if (!open) {
       setEditingService(null);
       setDuplicateSource(null);
+      removeNewSearchParam();
     }
   };
 

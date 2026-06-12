@@ -36,7 +36,7 @@ type TodayAgendaCardProps = {
 };
 
 function formatAppointmentDate(date: Date) {
-  return format(date, "dd/MM", { locale: ptBR });
+  return format(date, "dd/MM/yy", { locale: ptBR });
 }
 
 export function TodayAgendaCard({

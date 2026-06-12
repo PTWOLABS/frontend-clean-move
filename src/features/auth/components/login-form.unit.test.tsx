@@ -21,6 +21,13 @@ vi.mock("../hooks/use-google-login", () => ({
   }),
 }));
 
+vi.mock("../hooks/use-auth-session", () => ({
+  useAuthSession: () => ({
+    isSuccess: false,
+    isPending: false,
+  }),
+}));
+
 vi.mock("next/image", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => {

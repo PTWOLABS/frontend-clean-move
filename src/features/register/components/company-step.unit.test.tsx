@@ -52,7 +52,7 @@ describe("CompanyStep", () => {
 
     expect(screen.getByLabelText("CNPJ")).toBeInTheDocument();
     expect(screen.getByLabelText("Razão social")).toBeInTheDocument();
-    expect(screen.getByLabelText("Nome fantasia")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome Comercial")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /voltar/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^continuar$/i })).toBeDisabled();
   });
@@ -72,7 +72,7 @@ describe("CompanyStep", () => {
       expect((screen.getByLabelText("Razão social") as HTMLInputElement).value).toBe(
         "Empresa LTDA",
       );
-      expect((screen.getByLabelText("Nome fantasia") as HTMLInputElement).value).toBe("Empresa");
+      expect((screen.getByLabelText("Nome Comercial") as HTMLInputElement).value).toBe("Empresa");
     });
 
     expect(fetchCompanyByCnpjMock).toHaveBeenCalled();

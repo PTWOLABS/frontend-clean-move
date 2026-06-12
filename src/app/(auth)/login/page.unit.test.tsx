@@ -27,6 +27,13 @@ vi.mock("@/features/auth/hooks/use-login", () => ({
   }),
 }));
 
+vi.mock("@/features/auth/hooks/use-google-login", () => ({
+  useGoogleLogin: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 import LoginPage, { metadata } from "./page";
 
 describe("LoginPage", () => {

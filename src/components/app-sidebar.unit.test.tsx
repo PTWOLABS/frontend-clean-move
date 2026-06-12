@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { renderWithProviders } from "@/test/test-utils";
@@ -9,6 +9,7 @@ import { renderWithProviders } from "@/test/test-utils";
 const mockNavigation = vi.hoisted(() => ({
   pathname: "/dashboard",
 }));
+const logoutMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   usePathname: () => mockNavigation.pathname,
@@ -34,6 +35,13 @@ vi.mock("@/features/user/hooks/use-current-user", () => ({
   }),
 }));
 
+vi.mock("@/features/auth/hooks/use-logout", () => ({
+  useLogout: () => ({
+    mutate: logoutMock,
+    isPending: false,
+  }),
+}));
+
 vi.mock("next/image", () => ({
   __esModule: true,
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
@@ -55,6 +63,10 @@ function renderSidebar(path = "/dashboard") {
 }
 
 describe("AppSidebar", () => {
+  beforeEach(() => {
+    logoutMock.mockClear();
+  });
+
   it("should render the grouped navigation labels with correct accents", () => {
     renderSidebar();
 
@@ -73,7 +85,7 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: /veículos/i })).toHaveAttribute("href", "/vehicles");
     expect(screen.getByRole("link", { name: /serviços/i })).toHaveAttribute("href", "/services");
     expect(screen.getByRole("link", { name: /orçamentos/i })).toHaveAttribute("href", "/quotes");
-    expect(screen.getByRole("link", { name: /relatórios/i })).toHaveAttribute("href", "/reports");
+    expect(screen.queryByRole("link", { name: /relatórios/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /configurações/i })).toHaveAttribute(
       "href",
       "/settings",
@@ -86,44 +98,30 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: /clientes/i })).toHaveAttribute("data-active", "true");
   });
 
-  it("should expand PDV automatically for nested PDV routes", () => {
+  it("should keep the PDV navigation hidden for nested PDV routes", () => {
     renderSidebar("/pos/closing");
 
-    expect(screen.getByRole("button", { name: /pdv/i })).toHaveAttribute("data-active", "true");
-    expect(screen.getByRole("link", { name: /venda \/ caixa/i })).toHaveAttribute("href", "/pos");
-    expect(screen.getByRole("link", { name: /movimentações/i })).toHaveAttribute(
-      "href",
-      "/pos/movements",
-    );
-    expect(screen.getByRole("link", { name: /fechamento/i })).toHaveAttribute(
-      "data-active",
-      "true",
-    );
+    expect(screen.queryByRole("button", { name: /pdv/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /venda \/ caixa/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /movimentações/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /fechamento/i })).not.toBeInTheDocument();
   });
 
-  it("should toggle the PDV dropdown by keyboard-accessible button", async () => {
-    const user = userEvent.setup();
+  it("should not render the hidden PDV dropdown trigger", () => {
     renderSidebar("/dashboard");
 
+    expect(screen.queryByRole("button", { name: /pdv/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /venda \/ caixa/i })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /pdv/i }));
-
-    expect(screen.getByRole("link", { name: /venda \/ caixa/i })).toBeInTheDocument();
   });
 
-  it("should render the user footer menu and open account actions", async () => {
+  it("should render the logout footer action", async () => {
     const user = userEvent.setup();
     renderSidebar();
 
-    expect(screen.getByText("Ana Lima")).toBeInTheDocument();
-    expect(screen.getByText("ana@cleanmove.com")).toBeInTheDocument();
+    const logoutButton = screen.getByRole("button", { name: /sair/i });
 
-    await user.click(screen.getByRole("button", { name: /abrir menu da conta de ana lima/i }));
-
-    expect(await screen.findByRole("menuitem", { name: /conta/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /notificações/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /configurações/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    expect(logoutButton).toBeInTheDocument();
+    await user.click(logoutButton);
+    expect(logoutMock).toHaveBeenCalledTimes(1);
   });
 });
