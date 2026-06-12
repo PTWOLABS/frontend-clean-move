@@ -20,7 +20,7 @@ describe("service/api/update-service", () => {
 
     const body = {
       serviceName: "Lavagem",
-      category: "WASH" as const,
+      categoryId: "11cf3860-d512-47db-b9d1-c9044be6250d",
       estimatedDuration: { minInMinutes: 30, maxInMinutes: 60 },
       price: 3000,
       isActive: true,
