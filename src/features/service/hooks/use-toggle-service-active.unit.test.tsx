@@ -24,10 +24,12 @@ vi.mock("sonner", () => ({
 
 import { useToggleServiceActive } from "./use-toggle-service-active";
 
+const washCategory = { id: "11cf3860-d512-47db-b9d1-c9044be6250d", name: "Lavagem" };
+
 const baseItem: ServiceItem = {
   id: "svc-1",
   serviceName: "Lavagem Completa",
-  category: "WASH",
+  category: washCategory,
   estimatedDuration: { minInMinutes: 60, maxInMinutes: 60 },
   price: 6500,
   isActive: true,
