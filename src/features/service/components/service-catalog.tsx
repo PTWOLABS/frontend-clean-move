@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { ApiError } from "@/shared/api/httpClient";
 
+import { ServiceCategoryManageSheet } from "@/features/service-category/components/service-category-manage-sheet";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 import { useDeleteService } from "../hooks/use-delete-service";
@@ -56,6 +57,7 @@ export function ServiceCatalog() {
   const [duplicateSource, setDuplicateSource] = useState<ServiceItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ServiceItem | null>(null);
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [categoryManageSheetOpen, setCategoryManageSheetOpen] = useState(false);
 
   const deleteMutation = useDeleteService();
   const toggleActiveMutation = useToggleServiceActive();
@@ -178,6 +180,12 @@ export function ServiceCatalog() {
           setDuplicateSource(null);
           setServiceSheetOpen(true);
         }}
+        onManageCategories={() => setCategoryManageSheetOpen(true)}
+      />
+
+      <ServiceCategoryManageSheet
+        open={categoryManageSheetOpen}
+        onOpenChange={setCategoryManageSheetOpen}
       />
 
       <ServiceFormSheet
@@ -185,6 +193,7 @@ export function ServiceCatalog() {
         onOpenChange={handleServiceSheetOpenChange}
         editingService={editingService}
         duplicateSource={duplicateSource}
+        onManageCategories={() => setCategoryManageSheetOpen(true)}
       />
 
       <AlertDialog
