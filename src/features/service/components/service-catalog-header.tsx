@@ -1,13 +1,18 @@
-import { Plus } from "lucide-react";
+import { FolderTree, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 type ServiceCatalogHeaderProps = {
   totalCount: number;
   onAddService: () => void;
+  onManageCategories: () => void;
 };
 
-export function ServiceCatalogHeader({ totalCount, onAddService }: ServiceCatalogHeaderProps) {
+export function ServiceCatalogHeader({
+  totalCount,
+  onAddService,
+  onManageCategories,
+}: ServiceCatalogHeaderProps) {
   const countLabel =
     totalCount === 1 ? "1 serviço cadastrado" : `${totalCount} serviços cadastrados`;
 
@@ -20,6 +25,10 @@ export function ServiceCatalogHeader({ totalCount, onAddService }: ServiceCatalo
         <p className="text-sm text-muted-foreground">{countLabel}</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
+        <Button type="button" variant="outline" className="h-10 gap-2" onClick={onManageCategories}>
+          <FolderTree aria-hidden />
+          Gerir categorias
+        </Button>
         <Button type="button" className="h-10 gap-2" onClick={onAddService}>
           <Plus aria-hidden />
           Adicionar serviço

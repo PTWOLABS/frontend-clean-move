@@ -19,7 +19,7 @@ describe("appointments calendar timezone mapping", () => {
             {
               id: "service-1",
               name: "Lavagem",
-              category: "WASH",
+              category: { id: "cat-wash", name: "Lavagem" },
               durationInMinutes: 60,
               priceInCents: 10000,
             },

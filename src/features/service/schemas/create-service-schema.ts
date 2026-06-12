@@ -1,12 +1,9 @@
 import { z } from "zod";
 
 import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
-import {
-  SERVICE_CATEGORY_CODES,
-  type CreateServicePayload,
-  type ServiceItem,
-  type ServiceCategoryCode,
-} from "../types";
+import type { ServiceCategoryRef } from "@/features/service-category/types";
+
+import type { CreateServicePayload, ServiceItem } from "../types";
 
 function parseNumberFromInput(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -39,7 +36,13 @@ export const createServiceFormSchema = z
   .object({
     serviceName: z.string().trim().min(1, "Informe o nome do serviço."),
     description: z.string().optional(),
-    category: z.enum(SERVICE_CATEGORY_CODES),
+    categoryId: z
+      .string()
+      .transform((s) => s.trim())
+      .refine((s) => s === "" || z.string().uuid().safeParse(s).success, {
+        message: "Selecione uma categoria válida.",
+      })
+      .transform((s) => (s === "" ? undefined : s)),
     minInMinutes: positiveIntField("Duração mínima deve ser um número inteiro positivo."),
     maxInMinutes: positiveIntField("Duração máxima deve ser um número inteiro positivo."),
     priceInReais: brlPriceString,
@@ -56,18 +59,12 @@ export type CreateServiceFormValues = z.output<typeof createServiceFormSchema>;
 export const createServiceDefaultValues: CreateServiceFormInput = {
   serviceName: "",
   description: "",
-  category: "WASH",
+  categoryId: "",
   minInMinutes: 30,
   maxInMinutes: 60,
   priceInReais: "30,00",
   isActive: true,
 };
-
-function normalizeServiceCategory(code: string): ServiceCategoryCode {
-  return SERVICE_CATEGORY_CODES.includes(code as ServiceCategoryCode)
-    ? (code as ServiceCategoryCode)
-    : "WASH";
-}
 
 /** Converte centavos da API para texto do campo de preço (pt-BR). */
 function priceCentsToFormInput(price: unknown): string {
@@ -87,7 +84,7 @@ export function serviceItemToFormDefaults(item: ServiceItem): CreateServiceFormI
   return {
     serviceName: item.serviceName ?? "",
     description: item.description ?? "",
-    category: normalizeServiceCategory(item.category),
+    categoryId: item.category?.id ?? "",
     minInMinutes: min,
     maxInMinutes: Math.max(min, max),
     priceInReais: priceCentsToFormInput(item.price),
@@ -116,7 +113,7 @@ export function mapCreateServiceFormToPayload(
   return {
     serviceName: values.serviceName.trim(),
     ...(description ? { description } : {}),
-    category: values.category,
+    categoryId: values.categoryId ?? null,
     estimatedDuration: {
       minInMinutes: values.minInMinutes,
       maxInMinutes: values.maxInMinutes,
@@ -130,13 +127,17 @@ export function mapCreateServiceFormToPayload(
 export function formValuesToServiceItem(
   serviceId: string,
   values: CreateServiceFormValues,
+  category?: ServiceCategoryRef | null,
 ): ServiceItem {
   const payload = mapCreateServiceFormToPayload(values);
+  const resolvedCategory =
+    category ?? (values.categoryId ? { id: values.categoryId, name: "" } : null);
+
   return {
     id: serviceId,
     serviceName: payload.serviceName,
     description: payload.description,
-    category: payload.category,
+    category: resolvedCategory,
     estimatedDuration: payload.estimatedDuration,
     price: payload.price,
     isActive: payload.isActive,

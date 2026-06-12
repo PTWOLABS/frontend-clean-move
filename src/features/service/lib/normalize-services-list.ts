@@ -1,3 +1,5 @@
+import type { ServiceCategoryRef } from "@/features/service-category/types";
+
 import type {
   ServiceItem,
   ServiceListWireItem,
@@ -20,6 +22,17 @@ function pickTotal(body: ServicesListApiResponse, itemsLength: number): number {
   return itemsLength;
 }
 
+function normalizeCategory(raw: unknown): ServiceCategoryRef | null {
+  if (raw == null || typeof raw !== "object") return null;
+
+  const category = raw as { id?: unknown; name?: unknown };
+  const id = category.id == null ? "" : String(category.id).trim();
+  const name = category.name == null ? "" : String(category.name).trim();
+
+  if (!id) return null;
+  return { id, name: name || id };
+}
+
 /**
  * Converte o DTO de listagem (`name`, `priceInCents`, etc.) para o modelo usado na UI (`serviceName`, `price`).
  */
@@ -27,7 +40,7 @@ export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
   const r = raw as ServiceItem & ServiceListWireItem;
   const serviceName = (r.serviceName ?? r.name ?? "").trim();
   const description = r.description == null ? undefined : String(r.description).trim() || undefined;
-  const category = r.category == null ? "" : String(r.category);
+  const category = normalizeCategory(r.category);
   const min = r.estimatedDuration?.minInMinutes ?? 0;
   const maxRaw = r.estimatedDuration?.maxInMinutes;
   const max = maxRaw != null && Number.isFinite(Number(maxRaw)) ? Number(maxRaw) : min;

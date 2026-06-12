@@ -1,12 +1,12 @@
-export const SERVICE_CATEGORY_CODES = ["WASH", "ESTETICA", "DETAILING", "INTERIOR"] as const;
+import type { ServiceCategoryRef } from "@/features/service-category/types";
 
-export type ServiceCategoryCode = (typeof SERVICE_CATEGORY_CODES)[number];
+export type { ServiceCategoryRef };
 
 /** Corpo de `POST /services` (camelCase). */
 export type CreateServicePayload = {
   serviceName: string;
   description?: string;
-  category: ServiceCategoryCode;
+  categoryId?: string | null;
   estimatedDuration: {
     minInMinutes: number;
     maxInMinutes: number;
@@ -25,7 +25,7 @@ export type ServiceListWireItem = {
   name?: string;
   establishmentId?: string;
   description?: string | null;
-  category?: string | null;
+  category?: ServiceCategoryRef | null;
   estimatedDuration?: {
     minInMinutes: number;
     maxInMinutes: number | null;
@@ -41,7 +41,7 @@ export type ServiceItem = {
   id?: string;
   serviceName: string;
   description?: string;
-  category: string;
+  category: ServiceCategoryRef | null;
   estimatedDuration?: {
     minInMinutes: number;
     maxInMinutes: number;

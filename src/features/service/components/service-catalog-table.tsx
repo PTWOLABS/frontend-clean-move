@@ -23,7 +23,7 @@ import type { ServiceItem } from "../types";
 import { ServiceStatusBadge } from "./service-status-badge";
 
 function serviceRowKey(item: ServiceItem, index: number): string {
-  return item.id ?? `${item.serviceName}-${item.category}-${index}`;
+  return item.id ?? `${item.serviceName}-${item.category?.id ?? "none"}-${index}`;
 }
 
 type RowActionsProps = {

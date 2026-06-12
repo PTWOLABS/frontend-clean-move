@@ -1,5 +1,5 @@
-import { ServiceCategoryCode } from "@/features/service/types";
 import { AppointmentStatus } from "@/shared/types/appointments";
+import type { ServiceCategoryRef } from "@/features/service-category/types";
 
 export type AppointmentDTO = {
   appointments: {
@@ -13,7 +13,7 @@ export type AppointmentDTO = {
     services: {
       id: string;
       name: string;
-      category: ServiceCategoryCode | null;
+      category: ServiceCategoryRef | null;
       durationInMinutes: number | null;
       priceInCents: number;
     }[];

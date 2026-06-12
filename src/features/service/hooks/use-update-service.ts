@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import type { ServiceCategoryRef } from "@/features/service-category/types";
 import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
@@ -19,23 +20,23 @@ import {
 } from "../schemas/create-service-schema";
 import type { CreateServiceFormValues } from "../schemas/create-service-schema";
 
+type UpdateServiceVariables = {
+  serviceId: string;
+  values: CreateServiceFormValues;
+  category?: ServiceCategoryRef | null;
+};
+
 export function useUpdateService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      serviceId,
-      values,
-    }: {
-      serviceId: string;
-      values: CreateServiceFormValues;
-    }) => {
+    mutationFn: async ({ serviceId, values }: UpdateServiceVariables) => {
       return updateService(serviceId, mapCreateServiceFormToPayload(values));
     },
-    onMutate: async ({ serviceId, values }) => {
+    onMutate: async ({ serviceId, values, category }) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.services() });
       const snapshot = snapshotServicesLists(queryClient);
-      const optimistic = formValuesToServiceItem(serviceId, values);
+      const optimistic = formValuesToServiceItem(serviceId, values, category);
       upsertServiceInLists(queryClient, serviceId, () => optimistic);
       return { snapshot } satisfies { snapshot: ServicesListSnapshotEntry[] };
     },
