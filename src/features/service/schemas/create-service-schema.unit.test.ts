@@ -7,6 +7,7 @@ import type { ServiceItem } from "../types";
 import {
   createServiceFormSchema,
   formValuesToServiceItem,
+  mapCreateServiceFormToPayload,
   serviceItemToDuplicateFormDefaults,
   serviceItemToFormDefaults,
 } from "./create-service-schema";
@@ -41,6 +42,25 @@ describe("serviceItemToDuplicateFormDefaults", () => {
     });
 
     expect(result.serviceName).toBe("Cópia de Lavagem Completa");
+  });
+});
+
+describe("createServiceFormSchema categoryId", () => {
+  it("accepts empty categoryId as optional", () => {
+    const parsed = createServiceFormSchema.safeParse({
+      serviceName: "Lavagem simples",
+      description: "",
+      categoryId: "",
+      minInMinutes: 30,
+      maxInMinutes: 60,
+      priceInReais: "30,00",
+      isActive: true,
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.categoryId).toBeUndefined();
+    expect(mapCreateServiceFormToPayload(parsed.data).categoryId).toBeNull();
   });
 });
 

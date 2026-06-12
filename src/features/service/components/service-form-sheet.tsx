@@ -54,6 +54,8 @@ import {
   type CreateServiceFormValues,
 } from "../schemas/create-service-schema";
 
+const NONE_CATEGORY_VALUE = "__none__";
+
 type ServiceFormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -102,10 +104,9 @@ export function ServiceFormSheet({
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue, watch, formState } = methods;
+  const { control, handleSubmit, reset, setValue, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
-  const selectedCategoryId = watch("categoryId");
 
   useEffect(() => {
     if (!open) return;
@@ -118,20 +119,6 @@ export function ServiceFormSheet({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- redefinir ao abrir ou ao mudar modo (editar / duplicar / criar)
   }, [open, editingService?.id, duplicateSource, reset]);
-
-  useEffect(() => {
-    if (!open || categoryOptionsQuery.isLoading) return;
-    if (selectedCategoryId) return;
-    const firstOption = categoryOptions[0];
-    if (!firstOption) return;
-    setValue("categoryId", firstOption.id, { shouldValidate: true });
-  }, [
-    open,
-    categoryOptions,
-    categoryOptionsQuery.isLoading,
-    selectedCategoryId,
-    setValue,
-  ]);
 
   const closeSheetAfterSave = () => {
     reset(createServiceDefaultValues);
@@ -149,14 +136,16 @@ export function ServiceFormSheet({
         toast.info("Nenhuma alteração para guardar.");
         return;
       }
-      const selectedOption = categoryOptions.find((option) => option.id === values.categoryId);
+      const selectedOption = values.categoryId
+        ? categoryOptions.find((option) => option.id === values.categoryId)
+        : null;
       updateMutate(
         {
           serviceId,
           values,
           category: selectedOption
             ? { id: selectedOption.id, name: selectedOption.label }
-            : editingService?.category ?? null,
+            : null,
         },
         {
           onSuccess: closeSheetAfterSave,
@@ -175,15 +164,16 @@ export function ServiceFormSheet({
       setCreateCategoryOpen(true);
       return;
     }
+    if (value === NONE_CATEGORY_VALUE) {
+      setValue("categoryId", "", { shouldDirty: true, shouldValidate: true });
+      return;
+    }
     setValue("categoryId", value, { shouldDirty: true, shouldValidate: true });
   };
 
   const handleCategoryCreated = (category: { id: string; name: string }) => {
     setValue("categoryId", category.id, { shouldDirty: true, shouldValidate: true });
   };
-
-  const showCategoryEmptyState =
-    !categoryOptionsQuery.isLoading && categoryOptions.length === 0;
 
   return (
     <>
@@ -245,27 +235,16 @@ export function ServiceFormSheet({
                     {({ field }) =>
                       categoryOptionsQuery.isLoading ? (
                         <Skeleton className="h-10 w-full rounded-md" />
-                      ) : showCategoryEmptyState ? (
-                        <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-4 text-sm text-muted-foreground">
-                          <p>Nenhuma categoria disponível.</p>
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-primary"
-                            onClick={() => setCreateCategoryOpen(true)}
-                          >
-                            Criar primeira categoria
-                          </Button>
-                        </div>
                       ) : (
                         <Select
-                          value={field.value || undefined}
+                          value={field.value || NONE_CATEGORY_VALUE}
                           onValueChange={handleCategoryChange}
                         >
                           <SelectTrigger id={field.name} className="w-full">
                             <SelectValue placeholder="Selecione a categoria" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value={NONE_CATEGORY_VALUE}>Nenhuma</SelectItem>
                             {categoryOptions.map((option) => (
                               <SelectItem key={option.id} value={option.id}>
                                 {option.label}
@@ -364,12 +343,7 @@ export function ServiceFormSheet({
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"
-                  disabled={
-                    isPending ||
-                    (isEditMode && !isDirty) ||
-                    categoryOptionsQuery.isLoading ||
-                    showCategoryEmptyState
-                  }
+                  disabled={isPending || (isEditMode && !isDirty) || categoryOptionsQuery.isLoading}
                 >
                   {isPending
                     ? "A guardar…"

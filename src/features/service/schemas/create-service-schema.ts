@@ -36,7 +36,13 @@ export const createServiceFormSchema = z
   .object({
     serviceName: z.string().trim().min(1, "Informe o nome do serviço."),
     description: z.string().optional(),
-    categoryId: z.string().uuid("Selecione uma categoria."),
+    categoryId: z
+      .string()
+      .transform((s) => s.trim())
+      .refine((s) => s === "" || z.string().uuid().safeParse(s).success, {
+        message: "Selecione uma categoria válida.",
+      })
+      .transform((s) => (s === "" ? undefined : s)),
     minInMinutes: positiveIntField("Duração mínima deve ser um número inteiro positivo."),
     maxInMinutes: positiveIntField("Duração máxima deve ser um número inteiro positivo."),
     priceInReais: brlPriceString,
@@ -107,7 +113,7 @@ export function mapCreateServiceFormToPayload(
   return {
     serviceName: values.serviceName.trim(),
     ...(description ? { description } : {}),
-    categoryId: values.categoryId,
+    categoryId: values.categoryId ?? null,
     estimatedDuration: {
       minInMinutes: values.minInMinutes,
       maxInMinutes: values.maxInMinutes,
