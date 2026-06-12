@@ -175,9 +175,7 @@ function mapAppointmentsToTodayAgendaItems(
 
 export function TodayAgendaQueryCard() {
   const [initialFilters] = useState(getInitialAgendaFiltersState);
-  const [statusFilter, setStatusFilter] = useState<AgendaStatusFilter>(
-    initialFilters.statusFilter,
-  );
+  const [statusFilter, setStatusFilter] = useState<AgendaStatusFilter>(initialFilters.statusFilter);
   const [searchField, setSearchField] = useState<AgendaSearchField>(initialFilters.searchField);
   const [search, setSearch] = useState(initialFilters.search);
   const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>(initialFilters.periodMode);
