@@ -1,9 +1,6 @@
 import { httpClient } from "@/shared/api/httpClient";
 
-import type {
-  ServiceCategoryOptionsQuery,
-  ServiceCategoryOptionsResponse,
-} from "../types";
+import type { ServiceCategoryOptionsQuery, ServiceCategoryOptionsResponse } from "../types";
 
 export async function listServiceCategoryOptions(
   filters?: ServiceCategoryOptionsQuery,

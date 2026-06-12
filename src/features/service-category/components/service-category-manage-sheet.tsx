@@ -51,7 +51,10 @@ type ServiceCategoryManageSheetProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function ServiceCategoryManageSheet({ open, onOpenChange }: ServiceCategoryManageSheetProps) {
+export function ServiceCategoryManageSheet({
+  open,
+  onOpenChange,
+}: ServiceCategoryManageSheetProps) {
   const categoriesQuery = useServiceCategories({ enabled: open });
   const createMutation = useCreateServiceCategory();
   const updateMutation = useUpdateServiceCategory();
@@ -123,7 +126,10 @@ export function ServiceCategoryManageSheet({ open, onOpenChange }: ServiceCatego
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg">
+        <SheetContent
+          side="right"
+          className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
+        >
           <SheetHeader className="text-left">
             <SheetTitle>Categorias de serviço</SheetTitle>
             <SheetDescription>
@@ -191,7 +197,9 @@ export function ServiceCategoryManageSheet({ open, onOpenChange }: ServiceCatego
                     category={category}
                     onRename={setRenameTarget}
                     onDelete={setDeleteTarget}
-                    isDeleting={deleteMutation.isPending && deleteMutation.variables === category.id}
+                    isDeleting={
+                      deleteMutation.isPending && deleteMutation.variables === category.id
+                    }
                   />
                 ))}
               </div>

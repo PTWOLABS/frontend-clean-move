@@ -61,9 +61,7 @@ export const QUERY_KEYS = {
   serviceOptions: (filters?: OptionsQuery) =>
     filters ? (["services", "options", filters] as const) : (["services", "options"] as const),
   serviceCategories: (filters?: ListServiceCategoriesQuery) =>
-    filters
-      ? (["service-categories", filters] as const)
-      : (["service-categories"] as const),
+    filters ? (["service-categories", filters] as const) : (["service-categories"] as const),
   serviceCategoryOptions: (filters?: OptionsQuery) =>
     filters
       ? (["service-categories", "options", filters] as const)

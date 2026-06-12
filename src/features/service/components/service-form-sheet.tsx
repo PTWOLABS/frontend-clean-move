@@ -143,9 +143,7 @@ export function ServiceFormSheet({
         {
           serviceId,
           values,
-          category: selectedOption
-            ? { id: selectedOption.id, name: selectedOption.label }
-            : null,
+          category: selectedOption ? { id: selectedOption.id, name: selectedOption.label } : null,
         },
         {
           onSuccess: closeSheetAfterSave,
@@ -178,7 +176,10 @@ export function ServiceFormSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg">
+        <SheetContent
+          side="right"
+          className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
+        >
           <SheetHeader className="text-left">
             <SheetTitle>
               {isEditMode

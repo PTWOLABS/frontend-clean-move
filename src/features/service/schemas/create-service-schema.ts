@@ -131,8 +131,7 @@ export function formValuesToServiceItem(
 ): ServiceItem {
   const payload = mapCreateServiceFormToPayload(values);
   const resolvedCategory =
-    category ??
-    (values.categoryId ? { id: values.categoryId, name: "" } : null);
+    category ?? (values.categoryId ? { id: values.categoryId, name: "" } : null);
 
   return {
     id: serviceId,
