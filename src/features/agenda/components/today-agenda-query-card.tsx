@@ -1,7 +1,7 @@
 "use client";
 
-import { addDays, endOfDay, startOfDay } from "date-fns";
-import { useMemo, useState } from "react";
+import { addDays, endOfDay, endOfMonth, startOfDay, startOfMonth } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 import { AppointmentFormSheet } from "@/features/appointments/components/form-sheet/appointment-form-sheet";
@@ -24,6 +24,7 @@ import { AgendaAppointmentsPagination } from "./agenda-appointments-pagination";
 import { AgendaAppointmentsToolbar } from "./agenda-appointments-toolbar";
 import { AgendaAppointmentDetailsDialog } from "./agenda-appointment-details-dialog";
 import { AgendaAppointmentServicesDialog } from "./agenda-appointment-services-dialog";
+import { getInitialAgendaFiltersState, persistAgendaFilters } from "../lib/agenda-filters-storage";
 import {
   AgendaSearchField,
   AgendaStatusFilter,
@@ -35,12 +36,14 @@ function buildAgendaAppointmentsFilters({
   status,
   search,
   searchField,
+  periodMode,
   dateRange,
   page,
 }: {
   status: AgendaStatusFilter;
   search: string;
   searchField: AgendaSearchField;
+  periodMode: AgendaPeriodMode;
   dateRange?: DateRange;
   page: number;
 }): AppointmentsFilters {
@@ -59,23 +62,61 @@ function buildAgendaAppointmentsFilters({
     filters[searchField] = normalizedSearch;
   }
 
-  if (dateRange?.from) {
-    const endDate = dateRange.to ?? dateRange.from;
+  const periodBounds = getAgendaPeriodBounds(periodMode, dateRange);
 
-    filters.startsAt = formatLocalDateTimeAsUtcISOString(startOfDay(dateRange.from));
-    filters.endsAt = formatLocalDateTimeAsUtcISOString(endOfDay(endDate));
+  if (periodBounds.startsAt) {
+    filters.startsAt = formatLocalDateTimeAsUtcISOString(periodBounds.startsAt);
+  }
+
+  if (periodBounds.endsAt) {
+    filters.endsAt = formatLocalDateTimeAsUtcISOString(periodBounds.endsAt);
   }
 
   return filters;
 }
 
-function getDefaultAgendaDateRange(): DateRange {
+function getAgendaPeriodBounds(
+  periodMode: AgendaPeriodMode,
+  dateRange?: DateRange,
+): {
+  startsAt?: Date;
+  endsAt?: Date;
+} {
   const today = new Date();
 
-  return {
-    from: addDays(today, -6),
-    to: today,
-  };
+  switch (periodMode) {
+    case "custom": {
+      if (!dateRange?.from) return {};
+
+      const endDate = dateRange.to ?? dateRange.from;
+
+      return {
+        startsAt: startOfDay(dateRange.from),
+        endsAt: endOfDay(endDate),
+      };
+    }
+    case "this-month":
+      return {
+        startsAt: startOfMonth(today),
+        endsAt: endOfMonth(today),
+      };
+    case "last-7-days":
+      return {
+        startsAt: startOfDay(addDays(today, -6)),
+        endsAt: endOfDay(today),
+      };
+    case "last-30-days":
+      return {
+        startsAt: startOfDay(addDays(today, -29)),
+        endsAt: endOfDay(today),
+      };
+    case "from-today":
+      return {
+        startsAt: startOfDay(today),
+      };
+    case "all":
+      return {};
+  }
 }
 
 function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
@@ -133,11 +174,12 @@ function mapAppointmentsToTodayAgendaItems(
 }
 
 export function TodayAgendaQueryCard() {
-  const [statusFilter, setStatusFilter] = useState<AgendaStatusFilter>("ALL");
-  const [searchField, setSearchField] = useState<AgendaSearchField>("serviceName");
-  const [search, setSearch] = useState("");
-  const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(getDefaultAgendaDateRange);
+  const [initialFilters] = useState(getInitialAgendaFiltersState);
+  const [statusFilter, setStatusFilter] = useState<AgendaStatusFilter>(initialFilters.statusFilter);
+  const [searchField, setSearchField] = useState<AgendaSearchField>(initialFilters.searchField);
+  const [search, setSearch] = useState(initialFilters.search);
+  const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>(initialFilters.periodMode);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialFilters.dateRange);
   const [page, setPage] = useState(1);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [selectedServicesAppointmentId, setSelectedServicesAppointmentId] = useState<string | null>(
@@ -147,13 +189,24 @@ export function TodayAgendaQueryCard() {
   const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
+  useEffect(() => {
+    persistAgendaFilters({
+      statusFilter,
+      searchField,
+      search,
+      periodMode,
+      dateRange,
+    });
+  }, [dateRange, periodMode, search, searchField, statusFilter]);
+
   const filters = useMemo(
     () =>
       buildAgendaAppointmentsFilters({
         status: statusFilter,
         search: debouncedSearch,
         searchField,
-        dateRange: periodMode === "custom" ? dateRange : undefined,
+        periodMode,
+        dateRange,
         page,
       }),
     [dateRange, debouncedSearch, page, periodMode, searchField, statusFilter],

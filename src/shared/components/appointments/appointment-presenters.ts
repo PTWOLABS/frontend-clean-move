@@ -107,7 +107,7 @@ export function mapAppointmentPresentationItemToMobileCardItem(
 
   return {
     id: appointment.id,
-    dateLabel: dateLabel ?? format(appointment.startsAt, "dd/MM", { locale: ptBR }),
+    dateLabel: dateLabel ?? format(appointment.startsAt, "dd/MM/yy", { locale: ptBR }),
     timeLabel: appointment.time,
     customerName: appointment.customerName,
     vehicleLabel: appointment.vehicleName,
