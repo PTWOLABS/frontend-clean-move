@@ -24,7 +24,7 @@ const response: AppointmentDTO = {
         {
           id: "service-2",
           name: "Vitrificacao",
-          category: "DETAILING",
+          category: { id: "cat-detailing", name: "Detailing Automotivo" },
           durationInMinutes: 120,
           priceInCents: 35000,
         },
@@ -58,14 +58,14 @@ const response: AppointmentDTO = {
         {
           id: "service-1",
           name: "Lavagem tecnica",
-          category: "WASH",
+          category: { id: "cat-wash", name: "Lavagem" },
           durationInMinutes: 45,
           priceInCents: 9000,
         },
         {
           id: "service-3",
           name: "Higienizacao",
-          category: "INTERIOR",
+          category: { id: "cat-interior", name: "Estofamento" },
           durationInMinutes: 30,
           priceInCents: 12000,
         },
@@ -91,7 +91,7 @@ const response: AppointmentDTO = {
         {
           id: "service-4",
           name: "Polimento",
-          category: "DETAILING",
+          category: { id: "cat-detailing", name: "Detailing Automotivo" },
           durationInMinutes: 60,
           priceInCents: 15000,
         },
