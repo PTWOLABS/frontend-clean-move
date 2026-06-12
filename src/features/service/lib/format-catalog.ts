@@ -1,11 +1,6 @@
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 
-const categoryLabels: Record<string, string> = {
-  WASH: "Lavagem",
-  ESTETICA: "Estética",
-  DETAILING: "Detalhamento",
-  INTERIOR: "Interior",
-};
+import type { ServiceCategoryRef } from "../types";
 
 /**
  * Formata preço em BRL. Assume `amount` em **centavos** inteiros (ex.: 3000 → R$ 30,00).
@@ -23,6 +18,10 @@ export function formatEstimatedDuration(minInMinutes: number, maxInMinutes: numb
   return `${minInMinutes}–${maxInMinutes} min`;
 }
 
-export function formatServiceCategory(category: string): string {
-  return categoryLabels[category] ?? category;
+export function getServiceCategoryLabel(category: ServiceCategoryRef | null | undefined): string {
+  return category?.name?.trim() || "—";
+}
+
+export function formatServiceCategory(category: ServiceCategoryRef | null | undefined): string {
+  return getServiceCategoryLabel(category);
 }
