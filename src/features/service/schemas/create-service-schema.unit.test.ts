@@ -11,11 +11,13 @@ import {
   serviceItemToFormDefaults,
 } from "./create-service-schema";
 
+const washCategory = { id: "11cf3860-d512-47db-b9d1-c9044be6250d", name: "Lavagem" };
+
 const baseItem: ServiceItem = {
   id: "svc-1",
   serviceName: "Lavagem Completa",
   description: "Inclui aspiração",
-  category: "WASH",
+  category: washCategory,
   estimatedDuration: { minInMinutes: 60, maxInMinutes: 60 },
   price: 6500,
   isActive: true,
@@ -27,7 +29,7 @@ describe("serviceItemToDuplicateFormDefaults", () => {
 
     expect(result.serviceName).toBe("Cópia de Lavagem Completa");
     expect(result.description).toBe(serviceItemToFormDefaults(baseItem).description);
-    expect(result.category).toBe("WASH");
+    expect(result.categoryId).toBe("11cf3860-d512-47db-b9d1-c9044be6250d");
     expect(result.priceInReais).toBe("65,00");
     expect(result.isActive).toBe(true);
   });
@@ -45,13 +47,13 @@ describe("serviceItemToDuplicateFormDefaults", () => {
 describe("formValuesToServiceItem", () => {
   it("maps validated form values to ServiceItem with price in cents", () => {
     const parsed = createServiceFormSchema.parse(serviceItemToFormDefaults(baseItem));
-    const item = formValuesToServiceItem("svc-1", parsed);
+    const item = formValuesToServiceItem("svc-1", parsed, washCategory);
 
     expect(item).toEqual({
       id: "svc-1",
       serviceName: "Lavagem Completa",
       description: "Inclui aspiração",
-      category: "WASH",
+      category: washCategory,
       estimatedDuration: { minInMinutes: 60, maxInMinutes: 60 },
       price: 6500,
       isActive: true,
