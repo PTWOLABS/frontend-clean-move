@@ -38,7 +38,7 @@ export function ServiceCategoryListItem({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-8 text-muted-foreground hover:text-destructive"
+          className="size-8 text-muted-foreground hover:bg-destructive "
           aria-label={`Apagar categoria ${category.name}`}
           disabled={isDeleting}
           onClick={() => onDelete(category)}
