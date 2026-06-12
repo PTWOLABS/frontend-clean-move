@@ -1,4 +1,5 @@
 import type { ListCustomersQuery } from "@/features/customer/types";
+import type { ListServiceCategoriesQuery } from "@/features/service-category/types";
 import type {
   ListEstablishmentVehiclesQuery,
   ListVehiclesQuery,
@@ -59,6 +60,14 @@ export const QUERY_KEYS = {
     filters ? (["vehicles", "options", filters] as const) : (["vehicles", "options"] as const),
   serviceOptions: (filters?: OptionsQuery) =>
     filters ? (["services", "options", filters] as const) : (["services", "options"] as const),
+  serviceCategories: (filters?: ListServiceCategoriesQuery) =>
+    filters
+      ? (["service-categories", filters] as const)
+      : (["service-categories"] as const),
+  serviceCategoryOptions: (filters?: OptionsQuery) =>
+    filters
+      ? (["service-categories", "options", filters] as const)
+      : (["service-categories", "options"] as const),
   userMe: () => ["user", "me"] as const,
   establishment: (id: string) => ["establishment", id] as const,
 };
