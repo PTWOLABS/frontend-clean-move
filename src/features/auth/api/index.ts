@@ -19,7 +19,12 @@ export async function loginWithGoogle(payload: GoogleLoginPayload) {
 
 export async function getCurrentUser(): Promise<AuthUser> {
   const user = await getCurrentUserProfile();
-  return { id: user.id, name: user.name, email: user.email };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    onboardingCompletedAt: user.onboardingCompletedAt,
+  };
 }
 
 export async function signOut() {

@@ -2,6 +2,7 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
+  onboardingCompletedAt: string | null;
 };
 
 export type LoginPayload = {
@@ -9,7 +10,7 @@ export type LoginPayload = {
   password: string;
 };
 
-/** Resposta de `POST /auth/login`, `POST /auth/google` e `POST /auth/refresh` (DTO da API). */
+/** Resposta de `POST /auth/login`, `POST /auth/google` */
 export type AuthSessionResponse = {
   userId: string;
   accessToken: string;
