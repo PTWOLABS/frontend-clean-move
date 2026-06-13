@@ -60,6 +60,7 @@ describe("auth/api", () => {
       user: {
         id: "1",
         establishmentId: "est-1",
+        onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
         name: "Fulano",
         email: "fulano@email.com",
         role: "CUSTOMER",
@@ -76,7 +77,12 @@ describe("auth/api", () => {
     const response = await getCurrentUser();
 
     expect(httpClientMock).toHaveBeenCalledWith("/user/me");
-    expect(response).toEqual({ id: "1", name: "Fulano", email: "fulano@email.com" });
+    expect(response).toEqual({
+      id: "1",
+      name: "Fulano",
+      email: "fulano@email.com",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
+    });
   });
 
   it("should send a post to /auth/sign-out", async () => {
