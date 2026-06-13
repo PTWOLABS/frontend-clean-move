@@ -21,6 +21,7 @@ export type UserSocialAccount = {
 export type User = {
   id: string;
   establishmentId: string | null;
+  onboardingCompletedAt: string | null;
   name: string;
   email: string;
   role: UserRole;

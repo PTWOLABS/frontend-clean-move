@@ -7,17 +7,8 @@ import {
   customerPhoneField,
 } from "@/features/customer/schemas/customer-form-schema";
 import { normalizePlate } from "@/features/vehicle/schemas/vehicle-form-schema";
-import type { OnboardingPayload } from "../types/onboarding-types";
 import z from "zod";
-
-const onboardingServiceCategoryCodes = [
-  "WASH",
-  "POLISHING",
-  "SANITIZATION",
-  "COATING",
-  "PAINTLESS_DENT_REPAIR",
-  "OTHER",
-] as const;
+import type { OnboardingPayload } from "../types/onboarding-types";
 
 function emptyStringToUndefined(value: unknown) {
   if (typeof value !== "string") return value;
@@ -86,10 +77,7 @@ export const onboardingServiceStepSchema = z
   .object({
     serviceName: optionalTrimmedText,
     description: optionalTrimmedText,
-    category: z
-      .union([z.enum(onboardingServiceCategoryCodes), z.literal("")])
-      .optional()
-      .transform((value) => (value ? value : undefined)),
+    category: optionalTrimmedText,
     minDurationInMinutes: optionalPositiveIntegerField(
       "Duração mínima deve ser um número inteiro positivo.",
     ),
@@ -115,14 +103,6 @@ export const onboardingServiceStepSchema = z
         code: "custom",
         message: "Informe o nome do serviço.",
         path: ["serviceName"],
-      });
-    }
-
-    if (!data.category) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Informe a categoria.",
-        path: ["category"],
       });
     }
 
@@ -312,7 +292,6 @@ export const onboardingSchema = onboardingBaseSchema.superRefine((data, ctx) => 
 
   const hasService =
     Boolean(data.serviceName) &&
-    Boolean(data.category) &&
     data.minDurationInMinutes !== undefined &&
     data.price !== undefined;
   const hasCustomer = Boolean(data.customerFullName && data.customerPhone);
@@ -381,15 +360,15 @@ export function mapOnboardingSubmitToPayload(values: OnboardingSubmitValues): On
 
   if (
     values.serviceName &&
-    values.category &&
     values.minDurationInMinutes !== undefined &&
     values.price !== undefined
   ) {
     const description = toOptionalTrimmedText(values.description);
+    const category = toOptionalTrimmedText(values.category);
 
     payload.service = {
       serviceName: values.serviceName.trim(),
-      category: values.category,
+      ...(category ? { category } : {}),
       ...(description ? { description } : {}),
       estimatedDuration: {
         minInMinutes: values.minDurationInMinutes,

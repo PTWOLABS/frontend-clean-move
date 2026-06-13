@@ -16,7 +16,7 @@ export type OnboardingPayload = {
   };
   service?: {
     serviceName: string;
-    category: string;
+    category?: string;
     description?: string;
     estimatedDuration?: {
       minInMinutes: number;
