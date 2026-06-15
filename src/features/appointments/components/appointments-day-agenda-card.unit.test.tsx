@@ -78,6 +78,36 @@ describe("AppointmentsDayAgendaCard", () => {
     expect(onSelectEvent).toHaveBeenCalledWith(appointmentEvent);
   });
 
+  it("renders multi-day appointments that cover the selected day", () => {
+    const multiDayAppointmentEvent: AppointmentCalendarEvent = {
+      ...appointmentEvent,
+      startsAt: new Date("2026-05-01T00:00:00.000Z"),
+      end: new Date("2026-05-29T00:00:00.000Z"),
+      extendedProps: {
+        ...appointmentEvent.extendedProps,
+        endsAt: new Date("2026-05-29T00:00:00.000Z"),
+      },
+    };
+
+    render(
+      <AppointmentsDayAgendaCard
+        selectedDate={new Date("2026-05-18T12:00:00.000Z")}
+        selectedEventId={null}
+        events={[multiDayAppointmentEvent]}
+        isLoading={false}
+        isRefreshing={false}
+        isError={false}
+        updatingStatusAppointmentId={null}
+        onRetry={vi.fn()}
+        onEditEvent={vi.fn()}
+        onSelectEvent={vi.fn()}
+        onStatusChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /lavagem tecnica/i })).toBeInTheDocument();
+  });
+
   it("renders the agenda loading state while refreshing", () => {
     render(
       <AppointmentsDayAgendaCard
