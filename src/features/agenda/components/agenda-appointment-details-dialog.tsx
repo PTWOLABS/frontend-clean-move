@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarClock, CarFront, FileText, UserRound, Wrench } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AppointmentStatusActions } from "@/features/appointments/components/appointment-status-actions";
+import { formatAppointmentDateTimeRange } from "@/features/appointments/lib/appointments-page.helpers";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 import { appointmentStatusMeta, isAppointmentStatus } from "@/shared/utils/appointments-status";
 import { cn } from "@/shared/utils/cn";
@@ -90,6 +91,14 @@ export function AgendaAppointmentDetailsDialog({
   const actionableStatus = isAppointmentStatus(appointment.status) ? appointment.status : null;
   const canShowActions = actionableStatus && onStatusChange;
   const status = appointmentStatusMeta[appointment.status];
+  const appointmentEnd = appointment.endsAt ?? appointment.startsAt;
+  const appointmentTimeRange = formatAppointmentDateTimeRange({
+    startsAt: appointment.startsAt,
+    end: appointmentEnd,
+  });
+  const appointmentTimeLabel = isSameDay(appointment.startsAt, appointmentEnd)
+    ? "Horário"
+    : "Período";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,9 +125,7 @@ export function AgendaAppointmentDetailsDialog({
                 </DialogTitle>
 
                 <DialogDescription className="mt-1">
-                  {format(appointment.startsAt, "EEEE, d 'de' MMMM 'às' HH:mm", {
-                    locale: ptBR,
-                  })}
+                  {format(appointment.startsAt, "EEEE", { locale: ptBR })}, {appointmentTimeRange}
                 </DialogDescription>
               </div>
 
@@ -157,7 +164,11 @@ export function AgendaAppointmentDetailsDialog({
               </motion.div>
 
               <motion.div {...getContentMotion(0.16)} className="min-w-0">
-                <DetailRow icon={CalendarClock} label="Horário" value={appointment.timeRange} />
+                <DetailRow
+                  icon={CalendarClock}
+                  label={appointmentTimeLabel}
+                  value={appointmentTimeRange}
+                />
               </motion.div>
 
               <motion.div {...getContentMotion(0.2)} className="min-w-0">
