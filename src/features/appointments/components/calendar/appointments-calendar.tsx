@@ -9,7 +9,7 @@ import type {
 import type { DayCellContentArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import FullCalendar from "@fullcalendar/react";
-import { isSameDay as isSameDayDateFns } from "date-fns";
+import { addDays, format, isSameDay as isSameDayDateFns, startOfDay } from "date-fns";
 import { useEffect, useMemo, useRef, useState, type MouseEvent, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,126 @@ type AppointmentsCalendarProps = {
   onStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
 };
 
+const MONTHLY_EVENT_ORIGINAL_ID_EXTENDED_PROP = "__monthlyOriginalEventId";
+
+type CalendarEventIdentityExtendedProps = AppointmentExtendedProps & {
+  [MONTHLY_EVENT_ORIGINAL_ID_EXTENDED_PROP]?: string;
+};
+
+function getCalendarOriginalEventId({
+  eventId,
+  extendedProps,
+}: {
+  eventId: string;
+  extendedProps: unknown;
+}) {
+  if (
+    typeof extendedProps === "object" &&
+    extendedProps !== null &&
+    MONTHLY_EVENT_ORIGINAL_ID_EXTENDED_PROP in extendedProps
+  ) {
+    const originalEventId = (extendedProps as CalendarEventIdentityExtendedProps)[
+      MONTHLY_EVENT_ORIGINAL_ID_EXTENDED_PROP
+    ];
+
+    if (originalEventId) {
+      return originalEventId;
+    }
+  }
+
+  return eventId;
+}
+
+function getCalendarEventWithOriginalId<TEvent extends { id: string; extendedProps: unknown }>(
+  event: TEvent,
+) {
+  const originalEventId = getCalendarOriginalEventId({
+    eventId: event.id,
+    extendedProps: event.extendedProps,
+  });
+
+  if (originalEventId === event.id) {
+    return event;
+  }
+
+  return new Proxy(event, {
+    get(target, property, receiver) {
+      if (property === "id") {
+        return originalEventId;
+      }
+
+      return Reflect.get(target, property, receiver);
+    },
+  });
+}
+
+function buildCalendarEventInput({
+  event,
+  isEditable,
+  start,
+  end,
+  id = event.id,
+}: {
+  event: AppointmentCalendarEvent;
+  isEditable: boolean;
+  start: Date;
+  end?: Date;
+  id?: string;
+}): EventInput {
+  return {
+    id,
+    title: event.title,
+    start,
+    end,
+    allDay: false,
+    editable: isEditable,
+    startEditable: isEditable,
+    durationEditable: isEditable,
+    extendedProps:
+      id === event.id
+        ? event.extendedProps
+        : {
+            ...event.extendedProps,
+            [MONTHLY_EVENT_ORIGINAL_ID_EXTENDED_PROP]: event.id,
+          },
+  };
+}
+
+function getMonthlyCalendarEventInputs(event: AppointmentCalendarEvent): EventInput[] {
+  if (isSameDayDateFns(event.startsAt, event.end)) {
+    return [
+      buildCalendarEventInput({
+        event,
+        isEditable: true,
+        start: event.startsAt,
+        end: event.end,
+      }),
+    ];
+  }
+
+  const eventInputs: EventInput[] = [];
+  const firstDay = startOfDay(event.startsAt);
+  const lastDay = startOfDay(event.end);
+  let currentDay = firstDay;
+
+  while (currentDay.getTime() <= lastDay.getTime()) {
+    const isFirstDay = isSameDayDateFns(currentDay, event.startsAt);
+
+    eventInputs.push(
+      buildCalendarEventInput({
+        event,
+        isEditable: false,
+        start: isFirstDay ? event.startsAt : currentDay,
+        id: `${event.id}__month-${format(currentDay, "yyyy-MM-dd")}`,
+      }),
+    );
+
+    currentDay = addDays(currentDay, 1);
+  }
+
+  return eventInputs;
+}
+
 export function AppointmentsCalendar({
   calendarRef,
   initialSelectedDate,
@@ -114,17 +234,16 @@ export function AppointmentsCalendar({
 
   const fullCalendarEvents = useMemo<EventInput[]>(
     () =>
-      events.map((event) => ({
-        id: event.id,
-        title: event.title,
-        start: event.startsAt,
-        end: event.end,
-        allDay: false,
-        editable: isMonthGridView,
-        startEditable: isMonthGridView,
-        durationEditable: isMonthGridView,
-        extendedProps: event.extendedProps,
-      })),
+      events.flatMap((event) =>
+        isMonthGridView
+          ? getMonthlyCalendarEventInputs(event)
+          : buildCalendarEventInput({
+              event,
+              isEditable: false,
+              start: event.startsAt,
+              end: event.end,
+            }),
+      ),
     [events, isMonthGridView],
   );
   const {
@@ -176,13 +295,21 @@ export function AppointmentsCalendar({
   function handleCalendarEventClick(info: EventClickArg) {
     const eventElement = info.el instanceof Element ? info.el : null;
     const eventTarget = info.jsEvent.target instanceof Element ? info.jsEvent.target : eventElement;
+    const eventWithOriginalId = getCalendarEventWithOriginalId(info.event);
+    const eventClickInfo =
+      eventWithOriginalId === info.event
+        ? info
+        : ({
+            ...info,
+            event: eventWithOriginalId,
+          } as EventClickArg);
 
     if (eventTarget?.closest(".fc-more-popover") || eventElement?.closest(".fc-more-popover")) {
       info.jsEvent.stopPropagation();
     }
 
-    handleEventClickAnchor(info);
-    onEventClick(info);
+    handleEventClickAnchor(eventClickInfo);
+    onEventClick(eventClickInfo);
   }
 
   function handleCalendarNavLinkDayClick(date: Date, jsEvent: UIEvent) {
@@ -247,9 +374,14 @@ export function AppointmentsCalendar({
   }
 
   async function handleConfirmEventDrop(info: EventDropArg) {
+    const appointmentId = getCalendarOriginalEventId({
+      eventId: info.event.id,
+      extendedProps: info.event.extendedProps,
+    });
+
     try {
       await updateAppointment({
-        appointmentId: info.event.id,
+        appointmentId,
         body: {
           ...(info.event.start
             ? { startsAt: formatLocalDateTimeAsUtcISOString(info.event.start) }
@@ -349,8 +481,30 @@ export function AppointmentsCalendar({
             events={fullCalendarEvents}
             dateClick={onDateClick}
             eventClick={handleCalendarEventClick}
-            eventDidMount={handleEventDidMount}
-            eventWillUnmount={handleEventWillUnmount}
+            eventDidMount={(arg) => {
+              const eventWithOriginalId = getCalendarEventWithOriginalId(arg.event);
+
+              handleEventDidMount(
+                eventWithOriginalId === arg.event
+                  ? arg
+                  : ({
+                      ...arg,
+                      event: eventWithOriginalId,
+                    } as typeof arg),
+              );
+            }}
+            eventWillUnmount={(arg) => {
+              const eventWithOriginalId = getCalendarEventWithOriginalId(arg.event);
+
+              handleEventWillUnmount(
+                eventWithOriginalId === arg.event
+                  ? arg
+                  : ({
+                      ...arg,
+                      event: eventWithOriginalId,
+                    } as typeof arg),
+              );
+            }}
             datesSet={onDatesSet}
             eventContent={(arg) => (
               <CalendarEventContent
@@ -364,7 +518,10 @@ export function AppointmentsCalendar({
 
               return getCalendarEventClassNames({
                 extendedProps,
-                eventId: arg.event.id,
+                eventId: getCalendarOriginalEventId({
+                  eventId: arg.event.id,
+                  extendedProps,
+                }),
                 selectedEventId,
               });
             }}
