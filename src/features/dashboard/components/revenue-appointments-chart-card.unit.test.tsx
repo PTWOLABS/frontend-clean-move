@@ -222,6 +222,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
+        showMetrics
       />,
     );
 
@@ -354,6 +355,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
+        showMetrics
       />,
     );
 
@@ -373,6 +375,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="monthly"
+        showMetrics
       />,
     );
 
@@ -402,6 +405,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
+        showMetrics
       />,
     );
 
@@ -432,6 +436,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
+        showMetrics
       />,
     );
 
@@ -455,6 +460,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
+        showMetrics
       />,
     );
 
@@ -475,6 +481,7 @@ describe("RevenueAppointmentsChartCard", () => {
       <RevenueAppointmentsChartCard
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
+        showMetrics
       />,
     );
 
@@ -498,6 +505,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="weekly"
         filters={{ period: "last-7-days" }}
+        showMetrics
       />,
     );
 
@@ -527,6 +535,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="monthly"
         filters={{ startsAt, endsAt }}
+        showMetrics
       />,
     );
 
@@ -557,6 +566,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="weekly"
         filters={{ period: "this-month" }}
+        showMetrics
       />,
     );
 
@@ -583,6 +593,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="monthly"
         filters={{ period: "last-30-days" }}
+        showMetrics
       />,
     );
 
@@ -612,6 +623,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="monthly"
         filters={{ startsAt, endsAt }}
+        showMetrics
       />,
     );
 
@@ -642,6 +654,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="weekly"
         filters={{ period: "this-month" }}
+        showMetrics
       />,
     );
 
@@ -671,6 +684,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="daily"
         filters={{ startsAt, endsAt }}
+        showMetrics
       />,
     );
 
@@ -701,6 +715,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="weekly"
         filters={{ startsAt, endsAt }}
+        showMetrics
       />,
     );
 
@@ -731,6 +746,7 @@ describe("RevenueAppointmentsChartCard", () => {
         granularityOptions={granularityOptionsMock.slice()}
         defaultGranularity="monthly"
         filters={{ startsAt, endsAt }}
+        showMetrics
       />,
     );
 
