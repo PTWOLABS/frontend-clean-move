@@ -38,14 +38,14 @@ export type GetCurrentUserResponse = {
   user: User;
 };
 
-export type UpdateUserProfileAddressPayload = Partial<{
+export type UpdateUserProfileAddressPayload = {
   street: string;
-  complement: string | null;
+  complement?: string | null;
   country: string;
   state: string;
   zipCode: string;
   city: string;
-}>;
+};
 
 export type UpdateUserProfilePayload = {
   name?: string;

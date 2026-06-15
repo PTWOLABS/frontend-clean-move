@@ -15,15 +15,6 @@ function formatZipCode(value: string): string {
   return value;
 }
 
-const emptyAddressPayload = {
-  street: "",
-  complement: null,
-  country: "",
-  state: "",
-  zipCode: "",
-  city: "",
-} as const;
-
 const addressSchema = z.object({
   zipCode: optionalText().refine(
     (value) => {
@@ -51,6 +42,18 @@ const addressSchema = z.object({
   country: optionalText(),
 });
 
+export const completeAddressSchema = z.object({
+  zipCode: z
+    .string()
+    .trim()
+    .refine((value) => onlyDigits(value).length === 8, "Informe um CEP válido."),
+  street: z.string().trim().min(1, "Informe a rua."),
+  city: z.string().trim().min(1, "Informe a cidade."),
+  state: z.string().trim().length(2, "Use a sigla do estado (ex.: SP)."),
+  country: z.string().trim().min(1, "Informe o país."),
+  complement: optionalText(),
+});
+
 export const profileSettingsSchema = z.object({
   name: optionalText(),
   email: optionalText().refine(
@@ -76,6 +79,32 @@ export const profileSettingsSchema = z.object({
   ),
   address: addressSchema,
 });
+
+export function createProfileSettingsSchema(initial: UpdateUserProfilePayload | null) {
+  return profileSettingsSchema.superRefine((data, ctx) => {
+    const parsed = profileSettingsSchema.safeParse(data);
+    if (!parsed.success) {
+      return;
+    }
+
+    const payload = mapProfileFormToPatchPayload(parsed.data);
+    if (!isAddressPayloadChanged(payload, initial)) {
+      return;
+    }
+
+    const addressResult = completeAddressSchema.safeParse(parsed.data.address);
+    if (addressResult.success) {
+      return;
+    }
+
+    for (const issue of addressResult.error.issues) {
+      ctx.addIssue({
+        ...issue,
+        path: ["address", ...(issue.path ?? [])],
+      });
+    }
+  });
+}
 
 export type ProfileSettingsFormInput = z.input<typeof profileSettingsSchema>;
 export type ProfileSettingsFormValues = z.output<typeof profileSettingsSchema>;
@@ -139,23 +168,32 @@ export function getProfileChangedPayload(
     initial as Record<string, unknown> | null,
   ) as UpdateUserProfilePayload;
 
-  if (!changed.address || !current.address) {
-    return changed;
-  }
-
-  const initialAddress = initial?.address ?? emptyAddressPayload;
-  const addressChanges = getChangedFields(
-    current.address as Record<string, unknown>,
-    initialAddress as Record<string, unknown>,
-  );
-
-  if (Object.keys(addressChanges).length > 0) {
-    changed.address = addressChanges;
-  } else {
-    delete changed.address;
+  if (changed.address && current.address) {
+    changed.address = current.address;
   }
 
   return changed;
+}
+
+export function isAddressPayloadChanged(
+  current: UpdateUserProfilePayload,
+  initial: UpdateUserProfilePayload | null,
+): boolean {
+  return "address" in getProfileChangedPayload(current, initial);
+}
+
+export function canSaveProfileSettings(
+  values: unknown,
+  initial: UpdateUserProfilePayload | null,
+): boolean {
+  const schema = createProfileSettingsSchema(initial);
+  const parsed = schema.safeParse(values);
+  if (!parsed.success) {
+    return false;
+  }
+
+  const payload = mapProfileFormToPatchPayload(parsed.data);
+  return hasProfileChanges(payload, initial);
 }
 
 export function hasProfileChanges(

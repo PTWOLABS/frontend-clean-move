@@ -29,6 +29,8 @@ import { useUpdateUserProfile } from "@/features/user/hooks/use-update-user-prof
 import type { User as UserProfile } from "@/features/user/types";
 
 import {
+  canSaveProfileSettings,
+  createProfileSettingsSchema,
   getProfileChangedPayload,
   hasProfileChanges,
   mapProfileFormToPatchPayload,
@@ -47,8 +49,19 @@ type SettingsProfileFormProps = {
 export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   const { mutate, isPending } = useUpdateUserProfile();
 
+  const initialPayload = useMemo(() => {
+    const defaults = mapUserToProfileFormDefaults(user);
+    const parsed = profileSettingsSchema.safeParse(defaults);
+    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : null;
+  }, [user]);
+
+  const validationSchema = useMemo(
+    () => createProfileSettingsSchema(initialPayload),
+    [initialPayload],
+  );
+
   const methods = useForm<ProfileSettingsFormInput, undefined, ProfileSettingsFormValues>({
-    resolver: zodResolver(profileSettingsSchema) as Resolver<
+    resolver: zodResolver(validationSchema) as Resolver<
       ProfileSettingsFormInput,
       undefined,
       ProfileSettingsFormValues
@@ -61,17 +74,11 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   const { control, handleSubmit, reset, clearErrors, getValues, setError, setValue } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
-  const initialPayload = useMemo(() => {
-    const defaults = mapUserToProfileFormDefaults(user);
-    const parsed = profileSettingsSchema.safeParse(defaults);
-    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : null;
-  }, [user]);
-
   const watchedValues = useWatch({ control });
-  const currentPayload = useMemo(() => {
-    const parsed = profileSettingsSchema.safeParse(watchedValues);
-    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : initialPayload;
-  }, [watchedValues, initialPayload]);
+  const canSave = useMemo(
+    () => canSaveProfileSettings(watchedValues, initialPayload),
+    [watchedValues, initialPayload],
+  );
 
   const zipCodeAutofillForm = {
     clearErrors,
@@ -223,13 +230,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
           </CardContent>
 
           <CardFooter>
-            <Button
-              type="submit"
-              disabled={
-                !currentPayload || !hasProfileChanges(currentPayload, initialPayload) || isPending
-              }
-              className="w-full sm:w-auto"
-            >
+            <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
               {isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </CardFooter>
