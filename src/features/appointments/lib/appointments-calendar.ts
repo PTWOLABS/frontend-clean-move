@@ -1,4 +1,4 @@
-import { addMinutes, format, isSameDay, isSameMonth, isSameYear, subMinutes } from "date-fns";
+import { addMinutes, format, isSameMonth, isSameYear, startOfDay, subMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import { formatReaisToBrlInput } from "@/shared/money/format-brl-money";
@@ -168,7 +168,16 @@ export function mapAppointmentsToCalendarEvents(
 }
 
 export function getAppointmentsForDate(events: AppointmentCalendarEvent[], date: Date) {
-  return events.filter((event) => isSameDay(event.startsAt, date)).sort(sortAppointmentsByStart);
+  const selectedDay = startOfDay(date).getTime();
+
+  return events
+    .filter((event) => {
+      const eventStartDay = startOfDay(event.startsAt).getTime();
+      const eventEndDay = startOfDay(event.end).getTime();
+
+      return eventStartDay <= selectedDay && eventEndDay >= selectedDay;
+    })
+    .sort(sortAppointmentsByStart);
 }
 
 export function findNextAppointment(events: AppointmentCalendarEvent[], now: Date = new Date()) {

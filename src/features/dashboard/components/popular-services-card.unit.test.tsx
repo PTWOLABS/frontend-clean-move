@@ -62,7 +62,7 @@ describe("PopularServicesCard", () => {
       },
     });
 
-    render(<PopularServicesCard />);
+    render(<PopularServicesCard showMetrics />);
 
     expect(screen.getByRole("heading", { name: /serviços populares/i })).toBeInTheDocument();
     expect(
@@ -85,7 +85,7 @@ describe("PopularServicesCard", () => {
       },
     });
 
-    render(<PopularServicesCard />);
+    render(<PopularServicesCard showMetrics />);
 
     expect(screen.getByText("Nenhum serviço realizado no período.")).toBeInTheDocument();
     expect(screen.getByText("Total de serviços")).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("PopularServicesCard", () => {
       isLoading: true,
     });
 
-    render(<PopularServicesCard />);
+    render(<PopularServicesCard showMetrics />);
 
     expect(screen.getByRole("heading", { name: /serviços populares/i })).toBeInTheDocument();
     expect(document.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
@@ -116,7 +116,7 @@ describe("PopularServicesCard", () => {
       statusCode: 500,
     });
 
-    render(<PopularServicesCard />);
+    render(<PopularServicesCard showMetrics />);
 
     expect(screen.getByText("Falha ao carregar serviços populares.")).toBeInTheDocument();
     expect(screen.getByText("Tente novamente em alguns instantes.")).toBeInTheDocument();

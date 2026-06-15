@@ -68,10 +68,36 @@ describe("onboardingServiceStepSchema", () => {
     expect(result.error.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: ["serviceName"] }),
-        expect.objectContaining({ path: ["category"] }),
         expect.objectContaining({ path: ["minDurationInMinutes"] }),
         expect.objectContaining({ path: ["price"] }),
       ]),
+    );
+  });
+
+  it("treats category as a started service without requiring category itself", () => {
+    const result = onboardingServiceStepSchema.safeParse({
+      serviceName: "",
+      description: "",
+      category: "category-id",
+      minDurationInMinutes: "",
+      maxDurationInMinutes: "",
+      price: "",
+      isActive: true,
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["serviceName"] }),
+        expect.objectContaining({ path: ["minDurationInMinutes"] }),
+        expect.objectContaining({ path: ["price"] }),
+      ]),
+    );
+    expect(result.error.issues).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: ["category"] })]),
     );
   });
 
@@ -79,7 +105,7 @@ describe("onboardingServiceStepSchema", () => {
     const result = onboardingServiceStepSchema.safeParse({
       serviceName: "Lavagem premium",
       description: "",
-      category: "WASH",
+      category: "",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "",
       price: "120,00",
@@ -93,7 +119,7 @@ describe("onboardingServiceStepSchema", () => {
     const result = onboardingServiceStepSchema.safeParse({
       serviceName: "Lavagem premium",
       description: "",
-      category: "WASH",
+      category: "category-id",
       minDurationInMinutes: "60",
       maxDurationInMinutes: "30",
       price: "120,00",
@@ -443,7 +469,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       tradeName: "Clean Move",
       serviceName: "Lavagem premium",
       description: "Lavagem completa.",
-      category: "WASH",
+      category: "category-id",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "60",
       price: "120,50",
@@ -470,7 +496,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       service: {
         serviceName: "Lavagem premium",
         description: "Lavagem completa.",
-        category: "WASH",
+        category: "category-id",
         estimatedDuration: {
           minInMinutes: 30,
           maxInMinutes: 60,
@@ -530,7 +556,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       tradeName: "",
       serviceName: "Lavagem premium",
       description: "",
-      category: "WASH",
+      category: "",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "",
       price: "120,00",
@@ -557,7 +583,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       tradeName: "",
       serviceName: "Lavagem premium",
       description: "",
-      category: "WASH",
+      category: "",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "",
       price: "120,00",

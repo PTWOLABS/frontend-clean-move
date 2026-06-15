@@ -18,6 +18,7 @@ import Link from "next/link";
 type MostFrequentCustomersTableProps = {
   className?: string;
   filters?: Pick<DashboardMetricsFiltersBase, "startsAt" | "endsAt" | "period">;
+  showMetrics: boolean;
 };
 
 const mostFrequentCustomersTooltip =
@@ -45,6 +46,7 @@ function MostFrequentCustomersMessage({ message }: { message: string }) {
 export function MostFrequentCustomersTable({
   className,
   filters,
+  showMetrics,
 }: MostFrequentCustomersTableProps) {
   const { data, error, isPending, isPlaceholderData } = useListTopCustomers(
     getTopCustomersFilters(filters),
@@ -98,7 +100,11 @@ export function MostFrequentCustomersTable({
           {!showSkeletonRows && !feedback && customers.length ? (
             <ul className="divide-y divide-border">
               {customers.map((customer) => (
-                <MostFrequentCustomerRow key={customer.customerId} customer={customer} />
+                <MostFrequentCustomerRow
+                  key={customer.customerId}
+                  customer={customer}
+                  showMetrics={showMetrics}
+                />
               ))}
             </ul>
           ) : null}

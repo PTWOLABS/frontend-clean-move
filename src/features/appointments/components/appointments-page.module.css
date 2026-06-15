@@ -885,7 +885,7 @@
   color: hsl(var(--popover-foreground));
   box-shadow:
     0 1.1rem 3rem hsl(var(--background) / 0.42),
-    var(--shadow-lg);
+    var(--shadow-xl);
 }
 
 .eventDetailsHeader {

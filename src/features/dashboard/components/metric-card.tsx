@@ -25,6 +25,7 @@ export type MetricCardProps = Omit<React.ComponentPropsWithoutRef<typeof Card>, 
   icon: LucideIcon;
   trend: MetricCardTrend;
   chartData: MetricCardChartDataPoint[];
+  showMetrics?: boolean;
   chartAriaLabel?: string;
 };
 
@@ -50,7 +51,20 @@ const trendMeta: Record<
 };
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
-  ({ title, value, icon: Icon, trend, chartData, chartAriaLabel, className, ...props }, ref) => {
+  (
+    {
+      title,
+      value,
+      icon: Icon,
+      trend,
+      chartData,
+      chartAriaLabel,
+      showMetrics,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const TrendIcon = trendMeta[trend.direction].icon;
     const trendClassName = trendMeta[trend.direction].className;
 
@@ -73,7 +87,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             <p className="truncate text-sm font-medium leading-5 text-card-foreground/85">
               {title}
             </p>
-            <p className="mt-5 truncate font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground">
+            <p
+              className={cn(
+                "mt-5 truncate font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground",
+                !showMetrics ? "blur-md" : "blur-none",
+              )}
+            >
               {value}
             </p>
           </div>
@@ -86,7 +105,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </span>
         </div>
 
-        <div className="mt-4 flex items-end justify-between gap-3">
+        <div
+          className={cn(
+            "mt-4 flex items-end justify-between gap-3",
+            !showMetrics ? "blur-sm" : "blur-none",
+          )}
+        >
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             <span className={cn("inline-flex items-center gap-1 font-semibold", trendClassName)}>
               <TrendIcon aria-hidden="true" className="size-3.5" />

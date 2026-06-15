@@ -12,33 +12,10 @@ import { cn } from "@/shared/utils/cn";
 import { Select } from "@/components/ui/select/select";
 import { StepHeader } from "./step-header";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
+import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
 
-const serviceCategoryOptions = [
-  {
-    label: "Lavagem",
-    value: "WASH",
-  },
-  {
-    label: "Polimento",
-    value: "POLISHING",
-  },
-  {
-    label: "Higienização",
-    value: "SANITIZATION",
-  },
-  {
-    label: "Vitrificação",
-    value: "COATING",
-  },
-  {
-    label: "Martelinho de ouro",
-    value: "PAINTLESS_DENT_REPAIR",
-  },
-  {
-    label: "Outro",
-    value: "OTHER",
-  },
-];
+const NONE_CATEGORY_VALUE = "__none__";
+
 type ServiceStepProps = {
   title: string;
   description: string;
@@ -47,6 +24,14 @@ type ServiceStepProps = {
 
 export function ServiceStep({ title, description, className }: ServiceStepProps) {
   const { control } = useFormContext();
+  const { data, isLoading } = useServiceCategoryOptions({ limit: 100 });
+  const serviceCategoryOptions = [
+    { label: "Nenhuma", value: NONE_CATEGORY_VALUE },
+    ...(data?.categories.map((category) => ({
+      label: category.label,
+      value: category.id,
+    })) ?? []),
+  ];
 
   return (
     <Card className={cn("border-border/70 bg-card/60 shadow-sm backdrop-blur-xl", className)}>
@@ -77,10 +62,13 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
                   id="onboarding-service-category"
                   className="shadow-xs w-full"
                   options={serviceCategoryOptions}
-                  placeholder="Selecione a categoria"
-                  value={field.value}
-                  onChange={field.onChange}
+                  placeholder={isLoading ? "Carregando categorias" : "Selecione a categoria"}
+                  value={field.value || NONE_CATEGORY_VALUE}
+                  onChange={(value) =>
+                    field.onChange(value === NONE_CATEGORY_VALUE ? undefined : value)
+                  }
                   onBlur={field.onBlur}
+                  disabled={isLoading}
                 />
               </FormControl>
             )}

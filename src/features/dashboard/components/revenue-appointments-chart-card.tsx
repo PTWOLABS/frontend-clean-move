@@ -23,6 +23,7 @@ type RevenueAppointmentsChartCardProps = {
     value: DashboardGranularity;
   }[];
   defaultGranularity: DashboardGranularity;
+  showMetrics: boolean;
   className?: string;
   filters?: DashboardMetricsFiltersBase;
 };
@@ -182,10 +183,12 @@ function SummaryMetric({
   label,
   value,
   trend,
+  showMetrics,
 }: {
   label: string;
   value: string;
   trend: RevenueAppointmentsSummary["revenueTrendPercent"];
+  showMetrics: boolean;
 }) {
   const hasTrend = trend !== null;
 
@@ -193,13 +196,19 @@ function SummaryMetric({
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <p className="font-display text-xl font-semibold leading-none text-card-foreground">
+        <p
+          className={cn(
+            "font-display text-xl font-semibold leading-none text-card-foreground",
+            !showMetrics ? "blur-sm" : "blur-none",
+          )}
+        >
           {value}
         </p>
         <span
           className={cn(
             "text-xs font-semibold",
             hasTrend ? (trend >= 0 ? "text-success" : "text-danger") : "text-muted-foreground",
+            !showMetrics ? "blur-sm" : "blur-none",
           )}
         >
           {hasTrend ? formatTrend(trend) : "Sem comparação"}
@@ -212,6 +221,7 @@ function SummaryMetric({
 export function RevenueAppointmentsChartCard({
   granularityOptions,
   defaultGranularity,
+  showMetrics,
   className,
   filters,
 }: RevenueAppointmentsChartCardProps) {
@@ -243,7 +253,7 @@ export function RevenueAppointmentsChartCard({
   const action = granularityOptions.length ? (
     <Select
       options={resolvedGranularityOptions}
-      className="h-8 w-32 border-border/80 bg-muted/30 text-xs"
+      className="h-8 w-32 border-border/80 bg-muted/30 text-xs shadow-xs"
       value={selectedGranularity}
       onChange={setGranularity}
     />
@@ -319,7 +329,7 @@ export function RevenueAppointmentsChartCard({
           config={chartConfig}
           role="img"
           aria-label="Gráfico de receita e agendamentos ao longo do tempo"
-          className="h-72 w-full aspect-auto"
+          className={cn("h-72 w-full aspect-auto", !showMetrics ? "blur-xl" : "blur-none")}
         >
           <AreaChart
             accessibilityLayer
@@ -409,11 +419,13 @@ export function RevenueAppointmentsChartCard({
             label="Receita no período"
             value={formatCurrency(summary.revenueInCents)}
             trend={summary.revenueTrendPercent}
+            showMetrics={showMetrics}
           />
           <SummaryMetric
             label="Agendamentos no período"
             value={formatNumber(summary.appointments)}
             trend={summary.appointmentsTrendPercent}
+            showMetrics={showMetrics}
           />
         </div>
       ) : null}

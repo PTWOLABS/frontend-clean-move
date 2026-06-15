@@ -1,4 +1,4 @@
-import { addMinutes, format, startOfDay } from "date-fns";
+import { addMinutes, format, isSameDay, isSameYear, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import type { AppointmentStatus } from "@/shared/types/appointments";
@@ -104,10 +104,27 @@ export const navigationCalendarClassNames = {
     "inline-flex size-9 items-center justify-center rounded-sm p-0 text-sm font-normal leading-none transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
 };
 
-export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {
-  return `${format(event.startsAt, "HH:mm", { locale: ptBR })} - ${format(event.end, "HH:mm", {
+export function formatAppointmentDateTimeRange({ end, startsAt }: { end: Date; startsAt: Date }) {
+  if (isSameDay(startsAt, end)) {
+    return `${format(startsAt, "HH:mm", { locale: ptBR })} - ${format(end, "HH:mm", {
+      locale: ptBR,
+    })}`;
+  }
+
+  const dateTimeFormat = isSameYear(startsAt, end)
+    ? "d 'de' MMM, HH:mm"
+    : "d 'de' MMM 'de' yyyy, HH:mm";
+
+  return `${format(startsAt, dateTimeFormat, { locale: ptBR })} - ${format(end, dateTimeFormat, {
     locale: ptBR,
   })}`;
+}
+
+export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {
+  return formatAppointmentDateTimeRange({
+    startsAt: event.startsAt,
+    end: event.end,
+  });
 }
 
 export function formatSlotKey(date: Date) {

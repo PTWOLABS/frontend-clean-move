@@ -172,6 +172,26 @@ describe("appointments-calendar helpers", () => {
     expect(filteredAppointments[0]?.title).toBe("Lavagem tecnica +1");
   });
 
+  it("includes multi-day appointments that cover the selected day", () => {
+    const appointments = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[0]!,
+          startsAt: "2026-05-01T00:00:00.000Z",
+          endsAt: "2026-05-29T00:00:00.000Z",
+        },
+      ],
+    });
+
+    const filteredAppointments = getAppointmentsForDate(
+      appointments,
+      new Date("2026-05-18T12:00:00.000Z"),
+    );
+
+    expect(filteredAppointments).toHaveLength(1);
+    expect(filteredAppointments[0]?.id).toBe("appointment-2");
+  });
+
   it("uses a fallback customer label when the API does not embed customer details", () => {
     const [appointment] = mapAppointmentsToCalendarEvents({
       appointments: [

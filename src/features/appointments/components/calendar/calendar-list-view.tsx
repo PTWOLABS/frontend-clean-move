@@ -1,10 +1,11 @@
-import { addDays, format, isSameDay, startOfWeek } from "date-fns";
+import { addDays, format, startOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useCallback } from "react";
 
 import { cn } from "@/shared/utils/cn";
 
 import styles from "../appointments-page.module.css";
+import { getAppointmentsForDate } from "../../lib/appointments-calendar";
 import { formatAppointmentTimeRange } from "../../lib/appointments-page.helpers";
 import { AppointmentCalendarEvent, AppointmentTone } from "../../types/appointment-calendar";
 
@@ -89,7 +90,7 @@ export function CalendarListView({
   const dayGroups = days
     .map((day) => ({
       day,
-      events: events.filter((event) => isSameDay(event.startsAt, day)).sort(sortEventsByStart),
+      events: getAppointmentsForDate(events, day).sort(sortEventsByStart),
     }))
     .filter((group) => group.events.length > 0);
 
