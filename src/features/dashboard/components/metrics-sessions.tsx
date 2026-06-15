@@ -18,7 +18,7 @@ import { PopularServicesCard } from "./popular-services-card";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Eye, EyeOff, Plus } from "lucide-react";
 import { AppointmentStatus } from "@/shared/types/appointments";
 import {
   DashboardGranularity,
@@ -29,6 +29,7 @@ import { Select } from "@/components/ui/select/select";
 import { AppointmentsHistoryTable } from "./tables/appointments-history/appointments-history-table";
 import { MostFrequentCustomersTable } from "./tables/most-frequent-customers/most-frequent-customers-table";
 import Link from "next/link";
+import { HintTooltip } from "@/shared/components/hint-tooltip";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
 type DashboardStatusFilter = "ALL" | AppointmentStatus;
@@ -203,6 +204,7 @@ export function MetricsSections() {
     getDateRangeForPeriod("last-30-days"),
   );
   const [status, setStatus] = useState<DashboardStatusFilter>("ALL");
+  const [shouldShowMetrics, setShouldShowMetrics] = useState(true);
 
   const isCustomPeriod = period === "custom";
   const resolvedDateRange = isCustomPeriod ? customDateRange : getDateRangeForPeriod(period);
@@ -230,14 +232,36 @@ export function MetricsSections() {
     status,
   });
 
+  //Vai ficar hardcoded pois ainda não é uma implementação concreta
+  function handleClickShowMetrics() {
+    if (!shouldShowMetrics) {
+      const code = prompt("Digite o código:");
+      if (code?.trim() === "clean-move-bocucci") {
+        return setShouldShowMetrics(true);
+      }
+    }
+
+    setShouldShowMetrics(false);
+  }
+
   return (
     <div className="space-y-4">
       <header className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
-          <p className="text-sm text-muted-foreground">
-            Acompanhe os principais indicadores da operação.
-          </p>
+        <div className="flex justify-between">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
+            <p className="text-sm text-muted-foreground">
+              Acompanhe os principais indicadores da operação.
+            </p>
+          </div>
+          <div>
+            <Button className="h-10 w-full sm:min-w-50" asChild>
+              <Link href="/appointments?new=true">
+                <Plus className="size-4" />
+                Novo agendamento
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
@@ -272,27 +296,36 @@ export function MetricsSections() {
           </div>
 
           <div className="w-full sm:w-auto xl:shrink-0 lg:self-start">
-            <Button className="h-10 w-full sm:min-w-50" asChild>
-              <Link href="/appointments?new=true">
-                <Plus className="size-4" />
-                Novo agendamento
-              </Link>
-            </Button>
+            <HintTooltip label={shouldShowMetrics ? "Ocultar métricas" : "Exibir métricas"}>
+              <Button
+                className="h-10 w-full sm:min-w-50 hover:bg-muted shadow-xs"
+                asChild
+                variant="outline"
+                onClick={handleClickShowMetrics}
+              >
+                {shouldShowMetrics ? <Eye /> : <EyeOff />}
+              </Button>
+            </HintTooltip>
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricsOverview filters={filters} />
+        <MetricsOverview filters={filters} showMetrics={shouldShowMetrics} />
 
         <RevenueAppointmentsChartCard
           className="md:col-span-2 xl:col-span-3"
           filters={filters}
           granularityOptions={granularityOptions}
           defaultGranularity="daily"
+          showMetrics={shouldShowMetrics}
         />
 
-        <PopularServicesCard className="md:col-span-2 xl:col-span-1" filters={filters} />
+        <PopularServicesCard
+          className="md:col-span-2 xl:col-span-1"
+          filters={filters}
+          showMetrics={shouldShowMetrics}
+        />
       </div>
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-6">
         <AppointmentsHistoryTable
@@ -300,8 +333,9 @@ export function MetricsSections() {
             startsAt: resolvedDateRange?.from,
             endsAt: resolvedDateRange?.to ? endOfDay(resolvedDateRange.to) : undefined,
           }}
+          showMetrics={shouldShowMetrics}
         />
-        <MostFrequentCustomersTable filters={filters} />
+        <MostFrequentCustomersTable filters={filters} showMetrics={shouldShowMetrics} />
       </div>
     </div>
   );

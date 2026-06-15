@@ -8,10 +8,12 @@ import { useFetchPopularServices } from "../hooks/use-fetch-popular-services";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
 import { DashboardPanelSkeleton, DashboardQueryErrorState } from "./dashboard-query-state";
+import { cn } from "@/shared/utils/cn";
 
 type PopularServicesCardProps = {
   filters?: DashboardMetricsFiltersBase;
   className?: string;
+  showMetrics: boolean;
 };
 
 const popularServicesTooltip =
@@ -25,7 +27,7 @@ function getPercentage(value: number, total: number) {
   return Math.round((value / total) * 100);
 }
 
-export function PopularServicesCard({ filters, className }: PopularServicesCardProps) {
+export function PopularServicesCard({ filters, className, showMetrics }: PopularServicesCardProps) {
   const { data, error, isLoading, refetch } = useFetchPopularServices(filters);
 
   const errorFeedback = useDashboardQueryErrorFeedback({
@@ -98,7 +100,12 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
                   <p className="min-w-0 truncate font-medium text-card-foreground">
                     {service.name}
                   </p>
-                  <div className="flex shrink-0 items-center gap-3 text-xs tabular-nums">
+                  <div
+                    className={cn(
+                      "flex shrink-0 items-center gap-3 text-xs tabular-nums",
+                      !showMetrics ? "blur-sm" : "blur-none",
+                    )}
+                  >
                     <span className="font-semibold text-card-foreground">
                       {formatNumber(service.completedCount)}
                     </span>
@@ -112,7 +119,10 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
                   aria-valuemax={100}
                   aria-valuemin={0}
                   aria-valuenow={percentage}
-                  className="h-2 rounded-full bg-muted"
+                  className={cn(
+                    "h-2 rounded-full bg-muted",
+                    !showMetrics ? "blur-sm" : "blur-none",
+                  )}
                   role="progressbar"
                 >
                   <div
@@ -132,7 +142,12 @@ export function PopularServicesCard({ filters, className }: PopularServicesCardP
 
       <div className="mt-5 flex items-center justify-between border-t border-border/70 pt-4">
         <p className="text-sm text-muted-foreground">Total de serviços</p>
-        <p className="font-display text-xl font-semibold text-card-foreground">
+        <p
+          className={cn(
+            "font-display text-xl font-semibold text-card-foreground",
+            !showMetrics ? "blur-sm" : "blur-none",
+          )}
+        >
           {formatNumber(totalServices)}
         </p>
       </div>

@@ -3,6 +3,7 @@ import { HintTooltip } from "@/shared/components/hint-tooltip";
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { formatNumber } from "@/shared/utils/lib";
 import { MostFrequentCustomersRank } from "./most-frequent-customers-rank";
+import { cn } from "@/shared/utils/cn";
 
 function getCustomerInitials(name: string) {
   const words = name
@@ -24,7 +25,12 @@ function getVisitsLabel(count: number) {
   return `${formatNumber(count)} ${count === 1 ? "visita" : "visitas"}`;
 }
 
-export function MostFrequentCustomerRow({ customer }: { customer: TopCustomer }) {
+type MostFrequentCustomerRowProps = {
+  customer: TopCustomer;
+  showMetrics: boolean;
+};
+
+export function MostFrequentCustomerRow({ customer, showMetrics }: MostFrequentCustomerRowProps) {
   const customerName = customer.customerName.trim() || "Cliente não informado";
 
   return (
@@ -62,12 +68,10 @@ export function MostFrequentCustomerRow({ customer }: { customer: TopCustomer })
           </div>
 
           <div
-            className="
-              shrink-0 text-left leading-tight
-              sm:text-right
-              xl:text-left
-              min-[1530px]:text-right
-            "
+            className={cn(
+              "shrink-0 text-left leading-tight sm:text-right xl:text-left min-[1530px]:text-right",
+              !showMetrics ? "blur-sm" : "blur-none",
+            )}
           >
             <p className="font-semibold tabular-nums text-success">
               {getVisitsLabel(customer.completedAppointmentsCount)}

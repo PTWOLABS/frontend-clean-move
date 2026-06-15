@@ -29,9 +29,10 @@ function mapMetricPoints(
 
 type MetricsOverviewProps = {
   filters: DashboardMetricsFiltersBase;
+  showMetrics: boolean;
 };
 
-export function MetricsOverview({ filters }: MetricsOverviewProps) {
+export function MetricsOverview({ filters, showMetrics }: MetricsOverviewProps) {
   const { data: metricsOverview, error, isLoading, refetch } = useMetricsOverview(filters);
   const errorFeedback = useDashboardQueryErrorFeedback({
     resourceKey: "metrics-overview",
@@ -120,7 +121,7 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
   return (
     <>
       {dashboardMetrics.map((metric) => (
-        <MetricCard key={`metric-${metric.title}`} {...metric} />
+        <MetricCard key={`metric-${metric.title}`} showMetrics={showMetrics} {...metric} />
       ))}
     </>
   );

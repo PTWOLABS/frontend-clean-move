@@ -39,9 +39,7 @@ const DashboardPanel = React.forwardRef<HTMLDivElement, DashboardPanelProps>(
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
           <div className="flex min-w-0 items-center gap-1.5">
-            <h3 className="truncate text-sm font-semibold leading-none text-card-foreground">
-              {title}
-            </h3>
+            <h3 className="truncate text-sm font-semibold text-card-foreground">{title}</h3>
             {titleTooltip ? (
               <HintTooltipProvider>
                 <HintTooltip label={titleTooltip} side="top" className="max-w-72 leading-5">

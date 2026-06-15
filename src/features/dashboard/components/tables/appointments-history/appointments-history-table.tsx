@@ -48,6 +48,7 @@ type TruncatedResourceLabelProps = {
 type AppointmentsHistoryTableProps = {
   className?: string;
   filters?: Pick<DashboardMetricsFiltersBase, "startsAt" | "endsAt">;
+  showMetrics: boolean;
 };
 
 const APPOINTMENTS_HISTORY_TABLE_COLUMN_COUNT = 7;
@@ -83,7 +84,11 @@ function getAppointmentsHistoryFilters(
   };
 }
 
-export function AppointmentsHistoryTable({ className, filters }: AppointmentsHistoryTableProps) {
+export function AppointmentsHistoryTable({
+  className,
+  filters,
+  showMetrics,
+}: AppointmentsHistoryTableProps) {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [selectedServicesAppointmentId, setSelectedServicesAppointmentId] = useState<string | null>(
     null,
@@ -245,7 +250,12 @@ export function AppointmentsHistoryTable({ className, filters }: AppointmentsHis
                                 {status.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap align-middle font-medium tabular-nums text-foreground">
+                            <TableCell
+                              className={cn(
+                                "whitespace-nowrap align-middle font-medium tabular-nums text-foreground",
+                                !showMetrics ? "blur-md" : "blur-none",
+                              )}
+                            >
                               {formatBrlFromCents(getAppointmentAmountInCents(appointment))}
                             </TableCell>
                             <TableCell className="pr-4 text-right align-middle">
