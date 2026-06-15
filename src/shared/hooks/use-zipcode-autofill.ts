@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useWatch,
@@ -40,6 +40,7 @@ export function useZipCodeAutofill(
   options?: UseZipCodeAutofillOptions,
 ) {
   const { clearErrors, control, getValues, setError, setValue } = form;
+  const previousZipCodeRef = useRef("");
   const zipCode = useWatch({ control, name: fields.zipCode });
   const normalizedZipCode = onlyDigits(String(zipCode ?? ""));
   const isEnabled = options?.enabled !== false && normalizedZipCode.length === 8;
@@ -67,6 +68,20 @@ export function useZipCodeAutofill(
         type: "manual",
         message: "CEP não encontrado.",
       });
+      return;
+    }
+
+    const previousZipCode = previousZipCodeRef.current;
+    const isHydration =
+      normalizedZipCode.length === 8 &&
+      previousZipCode.length < 8 &&
+      Boolean(
+        getValues(fields.street) || getValues(fields.city) || getValues(fields.state),
+      );
+
+    previousZipCodeRef.current = normalizedZipCode;
+
+    if (isHydration) {
       return;
     }
 
@@ -104,6 +119,7 @@ export function useZipCodeAutofill(
     fields.zipCode,
     getValues,
     isSuccess,
+    normalizedZipCode,
     setError,
     setValue,
   ]);

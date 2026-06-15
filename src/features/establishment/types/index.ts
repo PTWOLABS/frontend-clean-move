@@ -12,7 +12,7 @@ export type GetEstablishmentResponse = {
 };
 
 export type UpdateEstablishmentPayload = Partial<
-  Pick<Establishment, "tradeName" | "legalBusinessName" | "cnpj" | "slug">
+  Pick<Establishment, "tradeName" | "legalBusinessName" | "cnpj">
 >;
 
 export type UpdateEstablishmentResponse = {

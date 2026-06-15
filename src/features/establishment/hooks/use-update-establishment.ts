@@ -30,7 +30,7 @@ export function useUpdateEstablishment() {
     },
     onError: (error) => {
       if (error instanceof ApiError && error.statusCode === 409) {
-        toast.error("CNPJ ou slug já em uso.");
+        toast.error("CNPJ já em uso.");
         return;
       }
 
