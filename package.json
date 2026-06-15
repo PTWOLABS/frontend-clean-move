@@ -71,6 +71,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "1.0.3",
     "@tailwindcss/postcss": "^4.2.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

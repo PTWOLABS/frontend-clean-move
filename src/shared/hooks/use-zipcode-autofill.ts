@@ -40,7 +40,9 @@ export function useZipCodeAutofill(
   options?: UseZipCodeAutofillOptions,
 ) {
   const { clearErrors, control, getValues, setError, setValue } = form;
-  const previousZipCodeRef = useRef("");
+  const processedZipCodeRef = useRef<string | null>(null);
+  const fetchedZipCodeRef = useRef<string | null>(null);
+  const initialNormalizedZipRef = useRef<string | null>(null);
   const zipCode = useWatch({ control, name: fields.zipCode });
   const normalizedZipCode = onlyDigits(String(zipCode ?? ""));
   const isEnabled = options?.enabled !== false && normalizedZipCode.length === 8;
@@ -53,12 +55,21 @@ export function useZipCodeAutofill(
   } = useQuery({
     enabled: isEnabled,
     queryKey: ["viacep", normalizedZipCode],
-    queryFn: ({ signal }) => fetchAddressByZipCode(normalizedZipCode, signal),
+    queryFn: async ({ queryKey, signal }) => {
+      const zip = String(queryKey[1] ?? "");
+      const result = await fetchAddressByZipCode(zip, signal);
+      fetchedZipCodeRef.current = zip;
+      return result;
+    },
     retry: false,
     staleTime: 1000 * 60 * 10,
   });
 
   useEffect(() => {
+    if (initialNormalizedZipRef.current === null && normalizedZipCode.length === 8) {
+      initialNormalizedZipRef.current = normalizedZipCode;
+    }
+
     if (!isSuccess) {
       return;
     }
@@ -71,13 +82,27 @@ export function useZipCodeAutofill(
       return;
     }
 
-    const previousZipCode = previousZipCodeRef.current;
-    const isHydration =
+    if (fetchedZipCodeRef.current !== normalizedZipCode) {
+      return;
+    }
+
+    if (processedZipCodeRef.current === normalizedZipCode) {
+      return;
+    }
+
+    const initialZipCode = initialNormalizedZipRef.current;
+    const userChangedZipCode =
+      initialZipCode !== null &&
       normalizedZipCode.length === 8 &&
-      previousZipCode.length < 8 &&
+      normalizedZipCode !== initialZipCode;
+
+    const isHydration =
+      !userChangedZipCode &&
+      processedZipCodeRef.current === null &&
+      normalizedZipCode.length === 8 &&
       Boolean(getValues(fields.street) || getValues(fields.city) || getValues(fields.state));
 
-    previousZipCodeRef.current = normalizedZipCode;
+    processedZipCodeRef.current = normalizedZipCode;
 
     if (isHydration) {
       return;
