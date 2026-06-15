@@ -75,9 +75,7 @@ export function useZipCodeAutofill(
     const isHydration =
       normalizedZipCode.length === 8 &&
       previousZipCode.length < 8 &&
-      Boolean(
-        getValues(fields.street) || getValues(fields.city) || getValues(fields.state),
-      );
+      Boolean(getValues(fields.street) || getValues(fields.city) || getValues(fields.state));
 
     previousZipCodeRef.current = normalizedZipCode;
 

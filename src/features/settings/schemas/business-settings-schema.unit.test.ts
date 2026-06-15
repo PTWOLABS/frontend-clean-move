@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  businessSettingsSchema,
-  mapBusinessFormToPatchPayload,
-} from "./business-settings-schema";
+import { businessSettingsSchema, mapBusinessFormToPatchPayload } from "./business-settings-schema";
 
 describe("businessSettingsSchema", () => {
   it("should accept all fields empty", () => {
