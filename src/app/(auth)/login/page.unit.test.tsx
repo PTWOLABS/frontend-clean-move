@@ -3,15 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "@/test/test-utils";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-    back: vi.fn(),
-  }),
-}));
-
 vi.mock("next/image", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => {
@@ -31,6 +22,19 @@ vi.mock("@/features/auth/hooks/use-google-login", () => ({
   useGoogleLogin: () => ({
     mutate: vi.fn(),
     isPending: false,
+  }),
+}));
+
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => ({
+    isSuccess: false,
+    isPending: false,
+  }),
+}));
+
+vi.mock("@bprogress/next", () => ({
+  useRouter: () => ({
+    replace: vi.fn(),
   }),
 }));
 
