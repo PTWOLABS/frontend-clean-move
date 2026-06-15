@@ -86,7 +86,7 @@ vi.mock("@fullcalendar/react", () => ({
       id: string;
       title: string;
       start: Date;
-      end: Date;
+      end?: Date;
       allDay: boolean;
       editable: boolean;
       startEditable: boolean;
@@ -101,7 +101,7 @@ vi.mock("@fullcalendar/react", () => ({
         id: string;
         title: string;
         start: Date;
-        end: Date;
+        end?: Date;
         extendedProps: Record<string, unknown>;
       };
       timeText: string;
@@ -127,11 +127,38 @@ vi.mock("@fullcalendar/react", () => ({
     const firstEvent = events[0];
     const droppedStart = new Date("2026-05-21T13:30:00.000Z");
     const droppedEnd = new Date("2026-05-21T14:30:00.000Z");
+    const firstEventApi = firstEvent
+      ? (Object.create(Object.prototype, {
+          id: {
+            get: () => firstEvent.id,
+          },
+          title: {
+            get: () => firstEvent.title,
+          },
+          start: {
+            get: () => firstEvent.start,
+          },
+          end: {
+            get: () => firstEvent.end,
+          },
+          extendedProps: {
+            get: () => firstEvent.extendedProps,
+          },
+        }) as typeof firstEvent)
+      : null;
 
     return (
       <div>
         <p>FullCalendar mock</p>
         <p>Altura do calendário: {height}</p>
+        <p data-testid="events-count">{events.length}</p>
+        <ul data-testid="event-occurrences">
+          {events.map((event, index) => (
+            <li key={`${event.id}-${index}`} data-event-id={event.id}>
+              {event.start.getDate()} - {String(event.editable)}
+            </li>
+          ))}
+        </ul>
         {firstEvent ? (
           <>
             <p data-testid="event-start">{firstEvent.start.toISOString()}</p>
@@ -157,7 +184,7 @@ vi.mock("@fullcalendar/react", () => ({
               onClick={() =>
                 eventClick({
                   jsEvent: { preventDefault: vi.fn() },
-                  event: firstEvent,
+                  event: firstEventApi ?? firstEvent,
                 } as unknown as EventClickArg)
               }
             >
@@ -383,6 +410,49 @@ describe("AppointmentsCalendar", () => {
     expect(screen.getByText("mais 2 agendamentos...")).toHaveClass("sr-only");
     expect(screen.getByText("+2 ag.")).toBeInTheDocument();
     expect(screen.getByTestId("event-class-names").textContent).toContain("eventSelected");
+  });
+
+  it("renders multi-day appointments on each covered day in the month view", async () => {
+    const user = userEvent.setup();
+    const onEventClick = vi.fn();
+    const longAppointmentEvent: AppointmentCalendarEvent = {
+      ...appointmentEvent,
+      startsAt: new Date(2026, 7, 1, 0),
+      end: new Date(2026, 7, 29, 0),
+      extendedProps: {
+        ...appointmentEvent.extendedProps,
+        endsAt: new Date(2026, 7, 29, 0),
+      },
+    };
+
+    renderCalendar({
+      events: [longAppointmentEvent],
+      onEventClick,
+      selectedDate: new Date(2026, 7, 1, 12),
+    });
+
+    const occurrenceItems = within(screen.getByTestId("event-occurrences")).getAllByRole(
+      "listitem",
+    );
+    const occurrenceIds = occurrenceItems.map((item) => item.getAttribute("data-event-id"));
+
+    expect(screen.getByTestId("events-count")).toHaveTextContent("29");
+    expect(new Set(occurrenceIds)).toHaveProperty("size", 29);
+    expect(occurrenceItems.map((item) => item.textContent)).toEqual(
+      Array.from({ length: 29 }, (_, index) => `${index + 1} - false`),
+    );
+
+    await user.click(screen.getByRole("button", { name: /disparar evento/i }));
+
+    expect(onEventClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: expect.objectContaining({
+          id: "appointment-1",
+          start: longAppointmentEvent.startsAt,
+          title: longAppointmentEvent.title,
+        }),
+      }),
+    );
   });
 
   it("forwards calendar callbacks from FullCalendar", async () => {
