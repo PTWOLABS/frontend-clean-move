@@ -24,12 +24,13 @@ import {
 } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form/input-field";
 import { PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
-import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 import { useUpdateUserProfile } from "@/features/user/hooks/use-update-user-profile";
 import type { User as UserProfile } from "@/features/user/types";
 
 import {
+  getProfileChangedPayload,
+  hasProfileChanges,
   mapProfileFormToPatchPayload,
   mapUserToProfileFormDefaults,
   profileSettingsDefaultValues,
@@ -66,8 +67,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : null;
   }, [user]);
 
-  const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
-
   const watchedValues = useWatch({ control });
   const currentPayload = useMemo(() => {
     const parsed = profileSettingsSchema.safeParse(watchedValues);
@@ -97,11 +96,11 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   const onSubmit = (values: ProfileSettingsFormValues) => {
     const payload = mapProfileFormToPatchPayload(values);
 
-    if (!hasChanges(payload)) {
+    if (!hasProfileChanges(payload, initialPayload)) {
       return;
     }
 
-    mutate(getChangedPayload(payload), {
+    mutate(getProfileChangedPayload(payload, initialPayload), {
       onSuccess: (updatedUser) => {
         reset(mapUserToProfileFormDefaults(updatedUser));
       },
@@ -226,7 +225,9 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
           <CardFooter>
             <Button
               type="submit"
-              disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
+              disabled={
+                !currentPayload || !hasProfileChanges(currentPayload, initialPayload) || isPending
+              }
               className="w-full sm:w-auto"
             >
               {isPending ? "Salvando..." : "Salvar Alterações"}

@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { formatPhone } from "@/features/customer/lib/format-customer-catalog";
 import type { UpdateUserProfilePayload, User } from "@/features/user/types";
+import { getChangedFields } from "@/shared/utils/get-changed-fields";
+import { optionalText } from "@/shared/utils/required-text";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
@@ -13,30 +15,65 @@ function formatZipCode(value: string): string {
   return value;
 }
 
-const requiredText = (field: string) => z.string().trim().min(1, `Informe ${field}.`);
+const emptyAddressPayload = {
+  street: "",
+  complement: null,
+  country: "",
+  state: "",
+  zipCode: "",
+  city: "",
+} as const;
 
 const addressSchema = z.object({
-  zipCode: z
-    .string()
-    .trim()
-    .refine((value) => onlyDigits(value).length === 8, "Informe um CEP válido."),
-  street: requiredText("a rua"),
-  complement: z.string().optional(),
-  city: requiredText("a cidade"),
-  state: z.string().trim().min(2, "Informe o estado.").max(2, "Use a sigla do estado (ex.: SP)."),
-  country: z.string().trim().min(1, "Informe o país."),
+  zipCode: optionalText().refine(
+    (value) => {
+      if (!value) return true;
+
+      return onlyDigits(value).length === 8;
+    },
+    {
+      message: "Informe um CEP válido.",
+    },
+  ),
+  street: optionalText(),
+  complement: optionalText(),
+  city: optionalText(),
+  state: optionalText().refine(
+    (value) => {
+      if (!value) return true;
+
+      return value.length === 2;
+    },
+    {
+      message: "Use a sigla do estado (ex.: SP).",
+    },
+  ),
+  country: optionalText(),
 });
 
 export const profileSettingsSchema = z.object({
-  name: requiredText("o nome").min(2, "Informe um nome válido."),
-  email: z.string().trim().email("Informe um e-mail válido."),
-  phone: z
-    .string()
-    .trim()
-    .refine((value) => {
+  name: optionalText(),
+  email: optionalText().refine(
+    (value) => {
+      if (!value) return true;
+
+      return z.email().safeParse(value).success;
+    },
+    {
+      message: "Informe um e-mail válido.",
+    },
+  ),
+  phone: optionalText().refine(
+    (value) => {
+      if (!value) return true;
+
       const len = onlyDigits(value).length;
       return len === 10 || len === 11;
-    }, "Informe um telefone válido (10 ou 11 dígitos)."),
+    },
+    {
+      message: "Informe um telefone válido (10 ou 11 dígitos).",
+    },
+  ),
   address: addressSchema,
 });
 
@@ -79,16 +116,51 @@ export function mapProfileFormToPatchPayload(
   const complement = values.address.complement?.trim();
 
   return {
-    name: values.name.trim(),
-    email: values.email.trim(),
-    phone: onlyDigits(values.phone),
+    name: values.name?.trim() ?? "",
+    email: values.email?.trim() ?? "",
+    phone: onlyDigits(values.phone ?? ""),
     address: {
-      street: values.address.street.trim(),
+      street: values.address.street?.trim() ?? "",
       complement: complement ? complement : null,
-      country: values.address.country.trim(),
-      state: values.address.state.trim().toUpperCase(),
-      zipCode: onlyDigits(values.address.zipCode),
-      city: values.address.city.trim(),
+      country: values.address.country?.trim() ?? "Brasil",
+      state: (values.address.state?.trim() ?? "").toUpperCase(),
+      zipCode: onlyDigits(values.address.zipCode ?? ""),
+      city: values.address.city?.trim() ?? "",
     },
   };
+}
+
+export function getProfileChangedPayload(
+  current: UpdateUserProfilePayload,
+  initial: UpdateUserProfilePayload | null,
+): UpdateUserProfilePayload {
+  const changed = getChangedFields(
+    current as Record<string, unknown>,
+    initial as Record<string, unknown> | null,
+  ) as UpdateUserProfilePayload;
+
+  if (!changed.address || !current.address) {
+    return changed;
+  }
+
+  const initialAddress = initial?.address ?? emptyAddressPayload;
+  const addressChanges = getChangedFields(
+    current.address as Record<string, unknown>,
+    initialAddress as Record<string, unknown>,
+  );
+
+  if (Object.keys(addressChanges).length > 0) {
+    changed.address = addressChanges;
+  } else {
+    delete changed.address;
+  }
+
+  return changed;
+}
+
+export function hasProfileChanges(
+  current: UpdateUserProfilePayload,
+  initial: UpdateUserProfilePayload | null,
+): boolean {
+  return Object.keys(getProfileChangedPayload(current, initial)).length > 0;
 }
