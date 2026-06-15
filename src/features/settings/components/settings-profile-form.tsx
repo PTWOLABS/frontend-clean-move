@@ -24,12 +24,15 @@ import {
 } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form/input-field";
 import { PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
-import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 import { useUpdateUserProfile } from "@/features/user/hooks/use-update-user-profile";
 import type { User as UserProfile } from "@/features/user/types";
 
 import {
+  canSaveProfileSettings,
+  createProfileSettingsSchema,
+  getProfileChangedPayload,
+  hasProfileChanges,
   mapProfileFormToPatchPayload,
   mapUserToProfileFormDefaults,
   profileSettingsDefaultValues,
@@ -46,8 +49,19 @@ type SettingsProfileFormProps = {
 export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   const { mutate, isPending } = useUpdateUserProfile();
 
+  const initialPayload = useMemo(() => {
+    const defaults = mapUserToProfileFormDefaults(user);
+    const parsed = profileSettingsSchema.safeParse(defaults);
+    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : null;
+  }, [user]);
+
+  const validationSchema = useMemo(
+    () => createProfileSettingsSchema(initialPayload),
+    [initialPayload],
+  );
+
   const methods = useForm<ProfileSettingsFormInput, undefined, ProfileSettingsFormValues>({
-    resolver: zodResolver(profileSettingsSchema) as Resolver<
+    resolver: zodResolver(validationSchema) as Resolver<
       ProfileSettingsFormInput,
       undefined,
       ProfileSettingsFormValues
@@ -60,19 +74,11 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   const { control, handleSubmit, reset, clearErrors, getValues, setError, setValue } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
-  const initialPayload = useMemo(() => {
-    const defaults = mapUserToProfileFormDefaults(user);
-    const parsed = profileSettingsSchema.safeParse(defaults);
-    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : null;
-  }, [user]);
-
-  const { getChangedPayload, hasChanges } = useFormChanges(initialPayload);
-
   const watchedValues = useWatch({ control });
-  const currentPayload = useMemo(() => {
-    const parsed = profileSettingsSchema.safeParse(watchedValues);
-    return parsed.success ? mapProfileFormToPatchPayload(parsed.data) : initialPayload;
-  }, [watchedValues, initialPayload]);
+  const canSave = useMemo(
+    () => canSaveProfileSettings(watchedValues, initialPayload),
+    [watchedValues, initialPayload],
+  );
 
   const zipCodeAutofillForm = {
     clearErrors,
@@ -97,11 +103,11 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
   const onSubmit = (values: ProfileSettingsFormValues) => {
     const payload = mapProfileFormToPatchPayload(values);
 
-    if (!hasChanges(payload)) {
+    if (!hasProfileChanges(payload, initialPayload)) {
       return;
     }
 
-    mutate(getChangedPayload(payload), {
+    mutate(getProfileChangedPayload(payload, initialPayload), {
       onSuccess: (updatedUser) => {
         reset(mapUserToProfileFormDefaults(updatedUser));
       },
@@ -224,11 +230,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
           </CardContent>
 
           <CardFooter>
-            <Button
-              type="submit"
-              disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
-              className="w-full sm:w-auto"
-            >
+            <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
               {isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </CardFooter>

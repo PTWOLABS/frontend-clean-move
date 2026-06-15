@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, CreditCard, Link2 } from "lucide-react";
+import { Building2, CreditCard } from "lucide-react";
 import {
   FormProvider,
   useForm,
@@ -137,15 +137,6 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
                 placeholder="00.000.000/0000-00"
               />
             </div>
-
-            <StandartInputField
-              control={fieldControl}
-              name="slug"
-              label="Slug do catálogo"
-              icon={Link2}
-              placeholder="Ex.: clean-move-auto-center"
-              autoComplete="off"
-            />
           </CardContent>
 
           <CardFooter>

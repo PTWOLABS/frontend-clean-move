@@ -156,6 +156,76 @@ describe("useZipCodeAutofill", () => {
     expect(result.current.form.getValues("address.complement")).toBe("Andar 5");
   });
 
+  it("should preserve persisted address fields when the form is hydrated with zipcode and street", async () => {
+    fetchAddressByZipCodeMock.mockResolvedValue({
+      street: "Avenida Paulista",
+      city: "São Paulo",
+      state: "SP",
+      complement: "",
+    });
+
+    const { Wrapper } = buildWrapper({
+      address: {
+        ...emptyValues.address,
+        zipCode: "01310-100",
+        street: "Av. Paulista, 100",
+        city: "São Paulo",
+        state: "SP",
+      },
+    });
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalled());
+
+    expect(result.current.form.getValues("address.street")).toBe("Av. Paulista, 100");
+    expect(result.current.form.getValues("address.city")).toBe("São Paulo");
+    expect(result.current.form.getValues("address.state")).toBe("SP");
+  });
+
+  it("should apply autofill when the user changes from one zipcode to another", async () => {
+    fetchAddressByZipCodeMock.mockResolvedValue({
+      street: "Av. Brigadeiro Faria Lima",
+      city: "São Paulo",
+      state: "SP",
+      complement: "",
+    });
+
+    const { Wrapper } = buildWrapper({
+      address: {
+        ...emptyValues.address,
+        zipCode: "01310-100",
+        street: "Av. Paulista, 100",
+        city: "São Paulo",
+        state: "SP",
+      },
+    });
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalledTimes(1));
+
+    fetchAddressByZipCodeMock.mockResolvedValue({
+      street: "Av. Brigadeiro Faria Lima",
+      city: "São Paulo",
+      state: "SP",
+      complement: "",
+    });
+
+    act(() => {
+      result.current.form.setValue("address.zipCode", "04538-133");
+    });
+
+    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => {
+      expect(result.current.form.getValues("address.street")).toBe("Av. Brigadeiro Faria Lima");
+      expect(result.current.form.getValues("address.city")).toBe("São Paulo");
+      expect(result.current.form.getValues("address.state")).toBe("SP");
+    });
+  });
+
   it("should set 'cep não encontrado' error when the service returns null", async () => {
     fetchAddressByZipCodeMock.mockResolvedValue(null);
     const { Wrapper } = buildWrapper();
