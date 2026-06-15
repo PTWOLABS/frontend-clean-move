@@ -243,7 +243,7 @@ export function RevenueAppointmentsChartCard({
   const action = granularityOptions.length ? (
     <Select
       options={resolvedGranularityOptions}
-      className="h-8 w-32 border-border/80 bg-muted/30 text-xs"
+      className="h-8 w-32 border-border/80 bg-muted/30 text-xs shadow-xs"
       value={selectedGranularity}
       onChange={setGranularity}
     />
