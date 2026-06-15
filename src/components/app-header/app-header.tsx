@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Bell, ChevronDown, Eye, EyeOff, LogOut, Settings, UserRound } from "lucide-react";
 
 import { AppSidebarMobileTrigger } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -20,6 +21,8 @@ import { cn } from "@/shared/utils/cn";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 import { useSidebar } from "../ui/sidebar";
 import { CommandHeader } from "./command-header";
+import { HintTooltip } from "@/shared/components/hint-tooltip";
+import { useDashboardMetricsVisibility } from "@/features/dashboard/providers/dashboard-metrics-visibility-provider";
 
 const fallbackUser = {
   name: "Clean Move Detail",
@@ -165,6 +168,10 @@ function AccountMenu() {
 
 export function AppHeader() {
   const { state } = useSidebar();
+  const pathname = usePathname();
+  const isDashboardPage = pathname === "/dashboard";
+  const { shouldShowMetrics, toggleMetricsVisibility } = useDashboardMetricsVisibility();
+
   return (
     <header
       className={cn(
@@ -192,6 +199,25 @@ export function AppHeader() {
             </Button>
 
             <ThemeToggle className="size-9 rounded-lg  bg-background text-muted-foreground hover:text-accent-foreground" />
+
+            {isDashboardPage ? (
+              <HintTooltip label={shouldShowMetrics ? "Ocultar métricas" : "Exibir métricas"}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={shouldShowMetrics ? "Ocultar métricas" : "Exibir métricas"}
+                  className="size-9 rounded-lg bg-background text-muted-foreground hover:text-accent-foreground"
+                  onClick={toggleMetricsVisibility}
+                >
+                  {shouldShowMetrics ? (
+                    <Eye aria-hidden className="size-4" />
+                  ) : (
+                    <EyeOff aria-hidden className="size-4" />
+                  )}
+                </Button>
+              </HintTooltip>
+            ) : null}
 
             <AccountMenu />
           </div>

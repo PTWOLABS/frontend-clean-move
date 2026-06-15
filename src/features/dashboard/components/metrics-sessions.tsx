@@ -18,8 +18,9 @@ import { PopularServicesCard } from "./popular-services-card";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AppointmentStatus } from "@/shared/types/appointments";
+import { useDashboardMetricsVisibility } from "@/features/dashboard/providers/dashboard-metrics-visibility-provider";
 import {
   DashboardGranularity,
   DashboardMetricsFiltersBase,
@@ -29,7 +30,6 @@ import { Select } from "@/components/ui/select/select";
 import { AppointmentsHistoryTable } from "./tables/appointments-history/appointments-history-table";
 import { MostFrequentCustomersTable } from "./tables/most-frequent-customers/most-frequent-customers-table";
 import Link from "next/link";
-import { HintTooltip } from "@/shared/components/hint-tooltip";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
 type DashboardStatusFilter = "ALL" | AppointmentStatus;
@@ -138,7 +138,7 @@ const statusOptions: {
     value: "ALL",
   },
   {
-    label: "Concluído",
+    label: "Concluídos",
     value: "DONE",
   },
   {
@@ -204,7 +204,7 @@ export function MetricsSections() {
     getDateRangeForPeriod("last-30-days"),
   );
   const [status, setStatus] = useState<DashboardStatusFilter>("ALL");
-  const [shouldShowMetrics, setShouldShowMetrics] = useState(true);
+  const { shouldShowMetrics } = useDashboardMetricsVisibility();
 
   const isCustomPeriod = period === "custom";
   const resolvedDateRange = isCustomPeriod ? customDateRange : getDateRangeForPeriod(period);
@@ -231,18 +231,6 @@ export function MetricsSections() {
     dateRange: resolvedDateRange,
     status,
   });
-
-  //Vai ficar hardcoded pois ainda não é uma implementação concreta
-  function handleClickShowMetrics() {
-    if (!shouldShowMetrics) {
-      const code = prompt("Digite o código:");
-      if (code?.trim() === "clean-move-bocucci") {
-        return setShouldShowMetrics(true);
-      }
-    }
-
-    setShouldShowMetrics(false);
-  }
 
   return (
     <div className="space-y-4">
@@ -293,19 +281,6 @@ export function MetricsSections() {
                 ? "Período personalizado ativo. Ajuste manualmente o intervalo pelo calendário."
                 : `${selectedPeriodLabel} aplicado automaticamente. Troque para Personalizado para editar as datas.`}
             </p>
-          </div>
-
-          <div className="w-full sm:w-auto xl:shrink-0 lg:self-start">
-            <HintTooltip label={shouldShowMetrics ? "Ocultar métricas" : "Exibir métricas"}>
-              <Button
-                className="h-10 w-full sm:min-w-50 hover:bg-muted shadow-xs"
-                asChild
-                variant="outline"
-                onClick={handleClickShowMetrics}
-              >
-                {shouldShowMetrics ? <Eye /> : <EyeOff />}
-              </Button>
-            </HintTooltip>
           </div>
         </div>
       </header>

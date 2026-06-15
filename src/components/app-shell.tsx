@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { PrivateAuthGate } from "@/features/auth/components/private-auth-gate";
+import { DashboardMetricsVisibilityProvider } from "@/features/dashboard/providers/dashboard-metrics-visibility-provider";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
 
 export function AppShell({
@@ -19,9 +20,11 @@ export function AppShell({
             <AppSidebar />
 
             <SidebarInset className="min-w-0 flex-1 transition-[margin,width] duration-300 ease-clean-in-out">
-              <AppHeader />
+              <DashboardMetricsVisibilityProvider>
+                <AppHeader />
 
-              <main className="w-full px-4 py-6 md:px-8 md:py-8">{children}</main>
+                <main className="w-full px-4 py-6 md:px-8 md:py-8">{children}</main>
+              </DashboardMetricsVisibilityProvider>
             </SidebarInset>
           </div>
         </PrivateAuthGate>
