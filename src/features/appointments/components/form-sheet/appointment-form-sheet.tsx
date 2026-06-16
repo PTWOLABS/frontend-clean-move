@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -28,6 +29,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { cn } from "@/shared/utils/cn";
 import { handleNumericInputChange } from "@/shared/utils/lib";
@@ -56,12 +58,56 @@ type AppointmentFormSheetProps = {
   appointment?: AppointmentCalendarEvent | null;
 };
 
+type ServiceOptionWithPrice = {
+  id: string;
+  label: string;
+  minPriceInCents: number;
+};
+
+function resolveMinPriceInCents(option: {
+  priceInCents?: number;
+  priceSpecification?:
+    | { type: "FIXED"; fixedPriceInCents: number }
+    | { type: "STARTING_AT"; minPriceInCents: number }
+    | { type: "RANGE"; minPriceInCents: number; maxPriceInCents: number };
+}): number {
+  if (option.priceSpecification?.type === "FIXED") {
+    return option.priceSpecification.fixedPriceInCents;
+  }
+  if (option.priceSpecification?.type === "STARTING_AT") {
+    return option.priceSpecification.minPriceInCents;
+  }
+  if (option.priceSpecification?.type === "RANGE") {
+    return option.priceSpecification.minPriceInCents;
+  }
+  return Math.max(0, option.priceInCents ?? 0);
+}
+
+function formatCentsToBrlInput(cents: number) {
+  return formatReaisToBrlInput(Math.max(cents, 0) / 100);
+}
+
 function getAppointmentFormDefaultValues(
   appointment: AppointmentCalendarEvent,
 ): CreateAppointmentFormInput {
+  const pricedServices =
+    appointment.extendedProps.services?.map((service) => ({
+      serviceId: service.serviceId,
+      serviceLabel: service.label,
+      minPriceInCents: service.priceInCents,
+      price: formatCentsToBrlInput(service.priceInCents),
+    })) ??
+    appointment.extendedProps.serviceIds.map((service) => ({
+      serviceId: service.value,
+      serviceLabel: service.label,
+      minPriceInCents: 0,
+      price: "0,00",
+    }));
+
   return {
     customerId: appointment.extendedProps.customerId,
     serviceIds: appointment.extendedProps.serviceIds,
+    services: pricedServices,
     vehicleId: appointment.extendedProps.vehicleId,
     startsAt: appointment.startsAt,
     endsAt: appointment.extendedProps.endsAt,
@@ -76,6 +122,10 @@ function buildAppointmentRequestBody(
   return {
     ...values,
     serviceIds: values.serviceIds.map((item) => item.value),
+    services: values.services.map((service) => ({
+      serviceId: service.serviceId,
+      priceInCents: String(Math.round(parseBrlMoneyToReais(service.price) * 100)),
+    })),
   };
 }
 
@@ -87,6 +137,20 @@ function getComparableRequestBody(values: CreateAppointmentFormInput) {
 
 function areServiceIdsEqual(left: string[], right: string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function areServicesEqual(
+  left: CreateAppointmentRequestBody["services"],
+  right: CreateAppointmentRequestBody["services"],
+) {
+  return (
+    left.length === right.length &&
+    left.every(
+      (service, index) =>
+        service.serviceId === right[index]?.serviceId &&
+        service.priceInCents === right[index]?.priceInCents,
+    )
+  );
 }
 
 function getChangedRequestBody(
@@ -105,6 +169,10 @@ function getChangedRequestBody(
 
   if (!areServiceIdsEqual(currentBody.serviceIds, initialBody.serviceIds)) {
     changedBody.serviceIds = currentBody.serviceIds;
+  }
+
+  if (!areServicesEqual(currentBody.services, initialBody.services)) {
+    changedBody.services = currentBody.services;
   }
 
   if (currentBody.vehicleId !== initialBody.vehicleId) {
@@ -165,6 +233,7 @@ export function AppointmentFormSheet({
     clearErrors,
     control,
     formState: { isDirty },
+    getValues,
     handleSubmit,
     reset,
     setValue,
@@ -179,6 +248,10 @@ export function AppointmentFormSheet({
   const [serviceInputValue, setServiceInputValue] = useState("");
   const serviceSearch = useDebouncedValue(serviceInputValue, 500);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const selectedServices = useWatch({
+    control,
+    name: "services",
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -341,6 +414,33 @@ export function AppointmentFormSheet({
     return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? []);
   }, [appointment, serviceOptions]);
 
+  const serviceOptionsWithPrice = useMemo<ServiceOptionWithPrice[]>(
+    () =>
+      serviceOptions?.services?.map((option) => ({
+        id: option.id,
+        label: option.label,
+        minPriceInCents: resolveMinPriceInCents(option),
+      })) ?? [],
+    [serviceOptions],
+  );
+
+  const servicePriceById = useMemo(() => {
+    const map = new Map<string, ServiceOptionWithPrice>();
+    for (const option of serviceOptionsWithPrice) {
+      map.set(option.id, option);
+    }
+    for (const service of appointment?.extendedProps.services ?? []) {
+      if (!map.has(service.serviceId)) {
+        map.set(service.serviceId, {
+          id: service.serviceId,
+          label: service.label,
+          minPriceInCents: service.priceInCents,
+        });
+      }
+    }
+    return map;
+  }, [appointment, serviceOptionsWithPrice]);
+
   const getServiceEmptyIndicator = () => {
     if (isLoadingServiceOptions) {
       return <p className="px-2 py-1 text-sm text-muted-foreground">Buscando serviços...</p>;
@@ -449,6 +549,31 @@ export function AppointmentFormSheet({
                       value={Array.isArray(field.value) ? (field.value as Option[]) : []}
                       onChange={(options) => {
                         field.onChange(options);
+                        const currentServices = getValues("services") ?? [];
+                        const nextServices = options.map((option) => {
+                          const existing = currentServices.find(
+                            (service) => service.serviceId === option.value,
+                          );
+                          if (existing) {
+                            return {
+                              ...existing,
+                              serviceLabel: option.label,
+                            };
+                          }
+                          const metadata = servicePriceById.get(option.value);
+                          const minPriceInCents = metadata?.minPriceInCents ?? 0;
+                          return {
+                            serviceId: option.value,
+                            serviceLabel: option.label,
+                            minPriceInCents,
+                            price: formatCentsToBrlInput(minPriceInCents),
+                          };
+                        });
+                        setValue("services", nextServices, {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
                         setServiceInputValue("");
                       }}
                       options={serviceOptionsItems}
@@ -472,6 +597,62 @@ export function AppointmentFormSheet({
                   </FormControl>
                 )}
               </FormField>
+
+              {selectedServices?.length ? (
+                <div className="space-y-3 rounded-md border border-border/80 bg-background/30 p-3">
+                  {selectedServices.map((service, index) => (
+                    <FormField
+                      key={service.serviceId}
+                      control={fieldControl}
+                      name={`services.${index}.price`}
+                      label={`Valor do serviço: ${service.serviceLabel}`}
+                      renderControl={false}
+                    >
+                      {({ field, fieldState }) => (
+                        <div className="space-y-1.5">
+                          <FormControl>
+                            <Input
+                              id={field.name}
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              placeholder="0,00"
+                              className={cn(
+                                "h-10 border-border/80 bg-background/40 tabular-nums w-full",
+                                fieldState.invalid &&
+                                  "border-destructive/70 focus-visible:ring-destructive/30",
+                              )}
+                              value={typeof field.value === "string" ? field.value : ""}
+                              disabled={isSubmitting}
+                              onChange={(event) =>
+                                handleNumericInputChange(event, field.onChange, {
+                                  formatAsCurrency: true,
+                                  showCurrencySymbol: false,
+                                })
+                              }
+                              onBlur={() => {
+                                const parsedAmount = parseBrlMoneyToReais(
+                                  String(field.value ?? ""),
+                                );
+                                if (Number.isFinite(parsedAmount)) {
+                                  const amountInCents = Math.round(parsedAmount * 100);
+                                  if (amountInCents < service.minPriceInCents) {
+                                    field.onChange(formatCentsToBrlInput(service.minPriceInCents));
+                                  }
+                                }
+                                field.onBlur();
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Mínimo permitido: {formatCentsToBrlInput(service.minPriceInCents)}
+                          </FormDescription>
+                        </div>
+                      )}
+                    </FormField>
+                  ))}
+                </div>
+              ) : null}
 
               <FormField
                 control={fieldControl}

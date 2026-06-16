@@ -1,14 +1,19 @@
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 
-import type { ServiceCategoryRef } from "../types";
+import type { ServiceCategoryRef, ServicePriceSpecification } from "../types";
 
 /**
- * Formata preço em BRL. Assume `amount` em **centavos** inteiros (ex.: 3000 → R$ 30,00).
- * Valores inválidos ou ausentes mostram R$ 0,00.
+ * Formata preço em BRL conforme modalidade.
  * @see formatBrlFromCents em `@/shared/money/format-brl-money`
  */
-export function formatServicePriceBrl(amount: unknown): string {
-  return formatBrlFromCents(amount);
+export function formatServicePriceBrl(priceSpecification: ServicePriceSpecification): string {
+  if (priceSpecification.type === "FIXED") {
+    return formatBrlFromCents(priceSpecification.fixedPriceInCents);
+  }
+  if (priceSpecification.type === "STARTING_AT") {
+    return `A partir de ${formatBrlFromCents(priceSpecification.minPriceInCents)}`;
+  }
+  return `${formatBrlFromCents(priceSpecification.minPriceInCents)} - ${formatBrlFromCents(priceSpecification.maxPriceInCents)}`;
 }
 
 export function formatEstimatedDuration(minInMinutes: number, maxInMinutes: number): string {

@@ -33,6 +33,7 @@ const itemA: ServiceItem = {
   id: "svc-a",
   serviceName: "Lavagem A",
   category: washCategory,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 3000 },
   isActive: true,
 };
 
@@ -40,6 +41,7 @@ const itemB: ServiceItem = {
   id: "svc-b",
   serviceName: "Lavagem B",
   category: washCategory,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 5000 },
   isActive: true,
 };
 

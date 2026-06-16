@@ -102,7 +102,7 @@ export function ServiceCatalogDetailsPanel({
 
             <DetailSection label="Preço">
               <p className="text-2xl font-semibold tabular-nums text-primary">
-                {formatServicePriceBrl(service.price)}
+                {formatServicePriceBrl(service.priceSpecification)}
               </p>
             </DetailSection>
 

@@ -7,6 +7,7 @@ import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { deleteService } from "../api/delete-service";
+import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
 import {
   removeServiceFromLists,
   restoreServicesLists,
@@ -30,17 +31,13 @@ export function useDeleteService() {
     },
     onError: (error, _serviceId, context) => {
       restoreServicesLists(queryClient, context?.snapshot);
-      if (error instanceof ApiError) {
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Não foi possível apagar. Tente novamente.");
-          return;
-        }
-        if (error.statusCode === 404) {
-          toast.error("Serviço não encontrado.");
-          return;
-        }
-        toast.error("Não foi possível apagar o serviço. Tente novamente mais tarde.");
-      }
+      if (!(error instanceof ApiError)) return;
+
+      const feedback = getServiceMutationFeedbackError(error, "delete");
+      toast.error(feedback.title, {
+        id: feedback.id,
+        ...(feedback.description ? { description: feedback.description } : {}),
+      });
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() });

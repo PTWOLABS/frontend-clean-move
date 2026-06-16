@@ -1,10 +1,15 @@
 import { httpClient } from "@/shared/api/httpClient";
 
-import type { CreateServicePayload } from "../types";
+import { mapServiceDtoToServiceItem } from "../lib/normalize-services-list";
+import type { CreateServicePayload, CreateServiceResponse } from "../types";
 
 export async function createService(payload: CreateServicePayload) {
-  return httpClient<unknown>("/services", {
+  const response = await httpClient<CreateServiceResponse>("/services", {
     method: "POST",
     body: payload,
   });
+
+  return {
+    service: mapServiceDtoToServiceItem(response.service),
+  };
 }

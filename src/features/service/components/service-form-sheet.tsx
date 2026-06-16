@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -15,7 +16,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -40,10 +40,13 @@ import {
   ServiceCategoryCreateInline,
 } from "@/features/service-category/components/service-category-create-inline";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
-import { useFormatBrlMoney } from "@/shared/money/use-format-brl-money";
+import { BrlMoneyInput } from "@/shared/money/brl-money-input";
+import { ApiError } from "@/shared/api/httpClient";
 
 import { useCreateService } from "../hooks/use-create-service";
 import { useUpdateService } from "../hooks/use-update-service";
+import { mapServiceApiFieldErrorsToForm } from "../lib/map-api-field-to-form";
+import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
 import type { ServiceItem } from "../types";
 import {
   createServiceDefaultValues,
@@ -55,6 +58,25 @@ import {
 } from "../schemas/create-service-schema";
 
 const NONE_CATEGORY_VALUE = "__none__";
+
+function applyServiceApiFieldErrors(
+  error: unknown,
+  mutationType: "create" | "update",
+  setError: ReturnType<
+    typeof useForm<CreateServiceFormInput, undefined, CreateServiceFormValues>
+  >["setError"],
+) {
+  if (!(error instanceof ApiError)) return;
+
+  const feedback = getServiceMutationFeedbackError(error, mutationType);
+  if (!feedback.fieldErrors) return;
+
+  const formErrors = mapServiceApiFieldErrorsToForm(feedback.fieldErrors);
+  for (const [field, message] of Object.entries(formErrors)) {
+    if (!message) continue;
+    setError(field as keyof CreateServiceFormInput, { type: "server", message });
+  }
+}
 
 type ServiceFormSheetProps = {
   open: boolean;
@@ -75,7 +97,6 @@ export function ServiceFormSheet({
 }: ServiceFormSheetProps) {
   const { mutate: createMutate, isPending: isCreatePending } = useCreateService();
   const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateService();
-  const money = useFormatBrlMoney();
 
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
 
@@ -104,9 +125,13 @@ export function ServiceFormSheet({
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue, formState } = methods;
+  const { control, handleSubmit, reset, setValue, setError, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
+  const priceType = useWatch({
+    control,
+    name: "priceType",
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -147,6 +172,7 @@ export function ServiceFormSheet({
         },
         {
           onSuccess: closeSheetAfterSave,
+          onError: (error) => applyServiceApiFieldErrors(error, "update", setError),
         },
       );
       return;
@@ -154,6 +180,7 @@ export function ServiceFormSheet({
 
     createMutate(values, {
       onSuccess: closeSheetAfterSave,
+      onError: (error) => applyServiceApiFieldErrors(error, "create", setError),
     });
   };
 
@@ -190,10 +217,10 @@ export function ServiceFormSheet({
             </SheetTitle>
             <SheetDescription>
               {isEditMode
-                ? "Altere os campos abaixo. O preço usa formato brasileiro (ex.: 30,00); o sistema guarda o valor em centavos."
+                ? "Altere os campos abaixo. Os valores usam formato brasileiro (ex.: 30,00); o sistema guarda em centavos."
                 : isDuplicateMode
                   ? "Revise os dados copiados do serviço original. Ao guardar, será criado um novo serviço no catálogo."
-                  : "Preencha os dados abaixo. Para o preço use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda o valor em centavos."}
+                  : "Preencha os dados abaixo. Para os preços use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda em centavos."}
             </SheetDescription>
           </SheetHeader>
 
@@ -204,7 +231,6 @@ export function ServiceFormSheet({
                   control={fieldControl}
                   name="serviceName"
                   label="Nome do serviço"
-                  required
                   placeholder="Ex.: Lavagem premium"
                   autoComplete="off"
                 />
@@ -276,7 +302,6 @@ export function ServiceFormSheet({
                     control={fieldControl}
                     name="minInMinutes"
                     label="Duração mín. (min)"
-                    required
                     type="number"
                     min={1}
                     inputMode="numeric"
@@ -285,33 +310,98 @@ export function ServiceFormSheet({
                     control={fieldControl}
                     name="maxInMinutes"
                     label="Duração máx. (min)"
-                    required
                     type="number"
                     min={1}
                     inputMode="numeric"
                   />
                 </div>
 
-                <FormField control={fieldControl} name="priceInReais" label="Preço (R$)" required>
+                <FormField
+                  control={fieldControl}
+                  name="priceType"
+                  label="Modalidade de preço"
+                  renderControl={false}
+                >
                   {({ field }) => (
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      autoComplete="off"
-                      placeholder="0,00"
-                      className="tabular-nums"
-                      value={typeof field.value === "string" ? field.value : ""}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      onBlur={() => {
-                        field.onBlur();
-                        const n = money.parseToReais(String(field.value ?? ""));
-                        if (Number.isFinite(n) && n > 0) {
-                          field.onChange(money.formatReaisToInput(n));
-                        }
-                      }}
-                    />
+                    <Select
+                      value={typeof field.value === "string" ? field.value : "FIXED"}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger id={field.name}>
+                        <SelectValue placeholder="Selecione a modalidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FIXED">Valor fixo</SelectItem>
+                        <SelectItem value="STARTING_AT">A partir de</SelectItem>
+                        <SelectItem value="RANGE">Faixa de preço</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 </FormField>
+
+                {priceType === "FIXED" ? (
+                  <FormField
+                    control={fieldControl}
+                    name="fixedPriceInReais"
+                    label="Preço fixo (R$)"
+                  >
+                    {({ field }) => (
+                      <BrlMoneyInput
+                        value={typeof field.value === "string" ? field.value : ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
+                    )}
+                  </FormField>
+                ) : null}
+
+                {priceType === "STARTING_AT" ? (
+                  <FormField
+                    control={fieldControl}
+                    name="minPriceInReais"
+                    label="Preço mínimo (R$)"
+                  >
+                    {({ field }) => (
+                      <BrlMoneyInput
+                        value={typeof field.value === "string" ? field.value : ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
+                    )}
+                  </FormField>
+                ) : null}
+
+                {priceType === "RANGE" ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={fieldControl}
+                      name="minPriceInReais"
+                      label="Preço mín. (R$)"
+                    >
+                      {({ field }) => (
+                        <BrlMoneyInput
+                          value={typeof field.value === "string" ? field.value : ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      )}
+                    </FormField>
+
+                    <FormField
+                      control={fieldControl}
+                      name="maxPriceInReais"
+                      label="Preço máx. (R$)"
+                    >
+                      {({ field }) => (
+                        <BrlMoneyInput
+                          value={typeof field.value === "string" ? field.value : ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      )}
+                    </FormField>
+                  </div>
+                ) : null}
 
                 <FormField
                   control={fieldControl}

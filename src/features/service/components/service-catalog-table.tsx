@@ -174,7 +174,7 @@ export function ServiceCatalogTable({
                 </TableCell>
                 <TableCell className="align-middle">
                   <span className="font-semibold tabular-nums text-foreground">
-                    {formatServicePriceBrl(item.price)}
+                    {formatServicePriceBrl(item.priceSpecification)}
                   </span>
                 </TableCell>
                 <TableCell className="align-middle">

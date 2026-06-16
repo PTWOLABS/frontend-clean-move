@@ -7,11 +7,7 @@ import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { updateService } from "../api/update-service";
-import {
-  createServiceFormSchema,
-  serviceItemToFormDefaults,
-  mapCreateServiceFormToPayload,
-} from "../schemas/create-service-schema";
+import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
 import type { ServiceItem } from "../types";
 
 export function useToggleServiceActive() {
@@ -23,13 +19,7 @@ export function useToggleServiceActive() {
         throw new Error("Identificador do serviço em falta.");
       }
 
-      const formInput = serviceItemToFormDefaults(item);
-      const values = createServiceFormSchema.parse({
-        ...formInput,
-        isActive: !item.isActive,
-      });
-
-      return updateService(item.id, mapCreateServiceFormToPayload(values));
+      return updateService(item.id, { isActive: !item.isActive });
     },
     onSuccess: (_data, item) => {
       void queryClient.invalidateQueries({
@@ -40,21 +30,18 @@ export function useToggleServiceActive() {
       );
     },
     onError: (error) => {
-      if (error instanceof ApiError) {
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Não foi possível alterar o estado do serviço.");
-          return;
-        }
-        if (error.statusCode === 404) {
-          toast.error("Serviço não encontrado.");
-          return;
-        }
-        toast.error("Não foi possível alterar o estado do serviço. Tente novamente mais tarde.");
+      if (error instanceof Error && !(error instanceof ApiError) && error.message) {
+        toast.error(error.message);
         return;
       }
-      if (error instanceof Error && error.message) {
-        toast.error(error.message);
-      }
+
+      if (!(error instanceof ApiError)) return;
+
+      const feedback = getServiceMutationFeedbackError(error, "update");
+      toast.error(feedback.title, {
+        id: feedback.id,
+        ...(feedback.description ? { description: feedback.description } : {}),
+      });
     },
   });
 }

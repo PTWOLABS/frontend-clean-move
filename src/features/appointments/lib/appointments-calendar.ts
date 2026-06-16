@@ -61,6 +61,14 @@ function getServiceOptions(appointment: AppointmentListItem) {
   }));
 }
 
+function getPricedServices(appointment: AppointmentListItem) {
+  return appointment.services.map((service) => ({
+    serviceId: service.id,
+    label: service.name.trim() || "Serviço não informado",
+    priceInCents: service.priceInCents,
+  }));
+}
+
 function normalizeVehicleText(value: string | null | undefined) {
   return value?.trim() ?? "";
 }
@@ -146,6 +154,7 @@ export function mapAppointmentToCalendarEvent(
       customerId: appointment.customerId,
       customer: getCustomerLabel(appointment),
       serviceIds: getServiceOptions(appointment),
+      services: getPricedServices(appointment),
       service: services.label,
       vehicleId: appointment.vehicleId ?? "",
       vehicle,
