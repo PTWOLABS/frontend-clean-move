@@ -28,7 +28,7 @@ export function useUpdateAppointment() {
     },
     onSuccess: async (_, { body }) => {
       const hasScheduleChange = "startsAt" in body || "endsAt" in body;
-      const hasServiceChange = "serviceIds" in body;
+      const hasServiceChange = "serviceIds" in body || "services" in body;
       const hasRevenueChange = hasScheduleChange || hasServiceChange || "discountValue" in body;
 
       const queriesToInvalidate: QueryKey[] = [QUERY_KEYS.appointments()];

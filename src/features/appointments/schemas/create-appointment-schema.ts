@@ -42,6 +42,23 @@ export const appointmentServiceOptionSchema = z.object({
   label: z.string().trim().min(1, "Selecione um serviço válido."),
 });
 
+const appointmentPricedServiceSchema = z.object({
+  serviceId: z.string().trim().min(1, "Selecione um serviço válido."),
+  serviceLabel: z.string().trim().min(1, "Selecione um serviço válido."),
+  minPriceInCents: z
+    .number()
+    .int()
+    .nonnegative("O valor mínimo do serviço não pode ser negativo."),
+  price: z
+    .string()
+    .trim()
+    .min(1, "Informe o valor do serviço.")
+    .refine((value) => {
+      const amount = parseBrlMoneyToReais(value);
+      return Number.isFinite(amount) && amount >= 0;
+    }, "Informe um valor válido (ex.: 150,00)."),
+});
+
 function isValidDiscount(value: string) {
   const normalizedValue = value.replace(/^R\$\s?/i, "").trim();
 
@@ -54,6 +71,7 @@ function isValidDiscount(value: string) {
 export const appointmentFormFieldsSchema = {
   customerId: z.string().trim().min(1, "Selecione um cliente."),
   serviceIds: z.array(appointmentServiceOptionSchema).min(1, "Selecione pelo menos um serviço."),
+  services: z.array(appointmentPricedServiceSchema),
   vehicleId: z.string().trim().min(1, "Selecione um veículo."),
   startsAt: requiredDateField("Selecione a data de início."),
   endsAt: optionalDateField,
@@ -91,17 +109,48 @@ export const appointmentDateRangeRefinement = {
 
 export const createAppointmentFormSchema = z
   .object(appointmentFormFieldsSchema)
+  .superRefine((values, context) => {
+    const selectedServiceIds = values.serviceIds.map((service) => service.value);
+    const pricedServiceIds = new Set(values.services.map((service) => service.serviceId));
+
+    for (const serviceId of selectedServiceIds) {
+      if (!pricedServiceIds.has(serviceId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Defina o valor para todos os serviços selecionados.",
+          path: ["services"],
+        });
+        break;
+      }
+    }
+
+    values.services.forEach((service, index) => {
+      const amountInCents = Math.round(parseBrlMoneyToReais(service.price) * 100);
+      if (amountInCents < service.minPriceInCents) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "O valor não pode ser menor que o mínimo do serviço.",
+          path: ["services", index, "price"],
+        });
+      }
+    });
+  })
   .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 
 export type CreateAppointmentFormInput = z.input<typeof createAppointmentFormSchema>;
 export type CreateAppointmentFormValues = z.output<typeof createAppointmentFormSchema>;
-export type CreateAppointmentRequestBody = Omit<CreateAppointmentFormValues, "serviceIds"> & {
+export type CreateAppointmentRequestBody = Omit<CreateAppointmentFormValues, "serviceIds" | "services"> & {
   serviceIds: string[];
+  services: Array<{
+    serviceId: string;
+    priceInCents: string;
+  }>;
 };
 
 export const createAppointmentDefaultValues: CreateAppointmentFormInput = {
   customerId: "",
   serviceIds: [],
+  services: [],
   vehicleId: "",
   startsAt: null,
   endsAt: null,

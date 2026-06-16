@@ -19,6 +19,11 @@ export type AppointmentExtendedProps = {
     value: string;
     label: string;
   }[];
+  services?: {
+    serviceId: string;
+    label: string;
+    priceInCents: number;
+  }[];
   service: string;
   vehicleId: string;
   vehicle: AppointmentVehicleExtendedProps;

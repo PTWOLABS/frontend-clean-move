@@ -12,5 +12,23 @@ export type VehicleOptionsDTO = {
 };
 
 export type ServiceOptionsDTO = {
-  services: OptionsDTO;
+  services: Array<{
+    id: string;
+    label: string;
+    priceInCents?: number;
+    priceSpecification?:
+      | {
+          type: "FIXED";
+          fixedPriceInCents: number;
+        }
+      | {
+          type: "STARTING_AT";
+          minPriceInCents: number;
+        }
+      | {
+          type: "RANGE";
+          minPriceInCents: number;
+          maxPriceInCents: number;
+        };
+  };
 };

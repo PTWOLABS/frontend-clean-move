@@ -53,6 +53,10 @@ type StubAppointmentsOptions = {
 type AppointmentRequestBody = {
   customerId: string;
   serviceIds: string[];
+  services: {
+    serviceId: string;
+    priceInCents: string;
+  }[];
   vehicleId: string;
   startsAt: string;
   endsAt: string | null;
@@ -238,7 +242,15 @@ function stubAppointmentFormOptions() {
   cy.intercept("GET", "**/services/options*", {
     statusCode: 200,
     body: {
-      services: [serviceOption],
+      services: [
+        {
+          ...serviceOption,
+          priceSpecification: {
+            type: "FIXED",
+            fixedPriceInCents: 9000,
+          },
+        },
+      ],
     },
   }).as("serviceOptionsRequest");
 }
@@ -516,6 +528,12 @@ describe("Appointments page", () => {
 
       expect(requestBody.customerId).to.equal(customerOption.id);
       expect(requestBody.serviceIds).to.deep.equal([serviceOption.id]);
+      expect(requestBody.services).to.deep.equal([
+        {
+          serviceId: serviceOption.id,
+          priceInCents: "9000",
+        },
+      ]);
       expect(requestBody.vehicleId).to.equal(vehicleOption.id);
       expect(requestBody.startsAt).to.match(/^2026-05-22T10:00:00\.000Z$/);
       expect(requestBody.endsAt).to.equal(null);

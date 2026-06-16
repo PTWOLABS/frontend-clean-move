@@ -10,6 +10,7 @@ export const updateAppointmentFormSchema = z
   .object({
     customerId: appointmentFormFieldsSchema.customerId.optional(),
     serviceIds: appointmentFormFieldsSchema.serviceIds.optional(),
+    services: appointmentFormFieldsSchema.services.optional(),
     vehicleId: appointmentFormFieldsSchema.vehicleId.optional(),
     startsAt: appointmentFormFieldsSchema.startsAt.optional(),
     endsAt: appointmentFormFieldsSchema.endsAt.optional(),
@@ -20,6 +21,10 @@ export const updateAppointmentFormSchema = z
 
 export type UpdateAppointmentFormInput = z.input<typeof updateAppointmentFormSchema>;
 export type UpdateAppointmentFormValues = z.output<typeof updateAppointmentFormSchema>;
-export type UpdateAppointmentRequestBody = Omit<UpdateAppointmentFormValues, "serviceIds"> & {
+export type UpdateAppointmentRequestBody = Omit<UpdateAppointmentFormValues, "serviceIds" | "services"> & {
   serviceIds?: string[];
+  services?: Array<{
+    serviceId: string;
+    priceInCents: string;
+  }>;
 };
