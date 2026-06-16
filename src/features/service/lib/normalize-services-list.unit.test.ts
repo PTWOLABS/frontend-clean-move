@@ -12,7 +12,7 @@ const sampleItem: ServiceItem = {
   serviceName: "Lavagem",
   category: washCategory,
   estimatedDuration: { minInMinutes: 30, maxInMinutes: 60 },
-  price: 3000,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 3000 },
   isActive: true,
 };
 
@@ -61,7 +61,7 @@ describe("normalizeServicesList", () => {
       description: "Inclui cera",
       category: washCategory,
       estimatedDuration: { minInMinutes: 30, maxInMinutes: 60 },
-      price: 4500,
+      priceSpecification: { type: "FIXED", fixedPriceInCents: 4500 },
       isActive: true,
     });
   });
@@ -81,5 +81,39 @@ describe("normalizeServicesList", () => {
   it("uses totalItems when total and totalCount are absent", () => {
     const out = normalizeServicesList({ items: [sampleItem], totalItems: 99 }, 1, 20);
     expect(out.total).toBe(99);
+  });
+
+  it("keeps STARTING_AT and RANGE from priceSpecification", () => {
+    const out = normalizeServicesList(
+      {
+        items: [
+          {
+            id: "svc-starting",
+            serviceName: "Polimento",
+            priceSpecification: { type: "STARTING_AT", minPriceInCents: 25000 },
+            isActive: true,
+          },
+          {
+            id: "svc-range",
+            serviceName: "Higienização",
+            priceSpecification: { type: "RANGE", minPriceInCents: 30000, maxPriceInCents: 60000 },
+            isActive: true,
+          },
+        ],
+        total: 2,
+      },
+      1,
+      20,
+    );
+
+    expect(out.items[0]?.priceSpecification).toEqual({
+      type: "STARTING_AT",
+      minPriceInCents: 25000,
+    });
+    expect(out.items[1]?.priceSpecification).toEqual({
+      type: "RANGE",
+      minPriceInCents: 30000,
+      maxPriceInCents: 60000,
+    });
   });
 });

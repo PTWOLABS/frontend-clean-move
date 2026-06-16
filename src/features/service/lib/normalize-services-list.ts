@@ -2,6 +2,7 @@ import type { ServiceCategoryRef } from "@/features/service-category/types";
 
 import type {
   ServiceItem,
+  ServicePriceSpecification,
   ServiceListWireItem,
   ServicesListApiResponse,
   ServicesPage,
@@ -33,9 +34,43 @@ function normalizeCategory(raw: unknown): ServiceCategoryRef | null {
   return { id, name: name || id };
 }
 
-/**
- * Converte o DTO de listagem (`name`, `priceInCents`, etc.) para o modelo usado na UI (`serviceName`, `price`).
- */
+function normalizePriceSpecification(raw: WireOrCatalogItem): ServicePriceSpecification {
+  const r = raw as ServiceItem & ServiceListWireItem;
+  const candidate = r.priceSpecification;
+  if (candidate?.type === "FIXED" && Number.isFinite(candidate.fixedPriceInCents)) {
+    return {
+      type: "FIXED",
+      fixedPriceInCents: Math.round(candidate.fixedPriceInCents),
+    };
+  }
+  if (candidate?.type === "STARTING_AT" && Number.isFinite(candidate.minPriceInCents)) {
+    return {
+      type: "STARTING_AT",
+      minPriceInCents: Math.round(candidate.minPriceInCents),
+    };
+  }
+  if (
+    candidate?.type === "RANGE" &&
+    Number.isFinite(candidate.minPriceInCents) &&
+    Number.isFinite(candidate.maxPriceInCents)
+  ) {
+    const min = Math.round(candidate.minPriceInCents);
+    const max = Math.round(candidate.maxPriceInCents);
+    return {
+      type: "RANGE",
+      minPriceInCents: Math.min(min, max),
+      maxPriceInCents: Math.max(min, max),
+    };
+  }
+
+  const legacyPrice = r.price ?? r.priceInCents;
+  const fallback = Number.isFinite(Number(legacyPrice)) ? Math.round(Number(legacyPrice)) : 0;
+  return {
+    type: "FIXED",
+    fixedPriceInCents: Math.max(0, fallback),
+  };
+}
+
 export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
   const r = raw as ServiceItem & ServiceListWireItem;
   const serviceName = (r.serviceName ?? r.name ?? "").trim();
@@ -44,7 +79,6 @@ export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
   const min = r.estimatedDuration?.minInMinutes ?? 0;
   const maxRaw = r.estimatedDuration?.maxInMinutes;
   const max = maxRaw != null && Number.isFinite(Number(maxRaw)) ? Number(maxRaw) : min;
-  const price = r.price ?? r.priceInCents;
 
   return {
     id: r.id,
@@ -53,7 +87,7 @@ export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
     category,
     estimatedDuration:
       r.estimatedDuration == null ? undefined : { minInMinutes: min, maxInMinutes: max },
-    price,
+    priceSpecification: normalizePriceSpecification(r),
     isActive: r.isActive ?? false,
   };
 }

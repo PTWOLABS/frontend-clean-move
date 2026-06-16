@@ -168,7 +168,7 @@ export function ServiceCatalogMobileCards({
                     )}
                   />
                   <p className="truncate text-sm font-bold tabular-nums leading-none text-success sm:text-base">
-                    {formatServicePriceBrl(item.price)}
+                    {formatServicePriceBrl(item.priceSpecification)}
                   </p>
                 </div>
               </div>

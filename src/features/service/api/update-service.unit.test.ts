@@ -22,7 +22,7 @@ describe("service/api/update-service", () => {
       serviceName: "Lavagem",
       categoryId: "11cf3860-d512-47db-b9d1-c9044be6250d",
       estimatedDuration: { minInMinutes: 30, maxInMinutes: 60 },
-      price: 3000,
+      priceSpecification: { type: "FIXED", fixedPriceInCents: 3000 },
       isActive: true,
     };
 

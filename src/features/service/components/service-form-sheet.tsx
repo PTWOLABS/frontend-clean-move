@@ -104,9 +104,10 @@ export function ServiceFormSheet({
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue, formState } = methods;
+  const { control, handleSubmit, reset, setValue, watch, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
+  const priceType = watch("priceType");
 
   useEffect(() => {
     if (!open) return;
@@ -190,10 +191,10 @@ export function ServiceFormSheet({
             </SheetTitle>
             <SheetDescription>
               {isEditMode
-                ? "Altere os campos abaixo. O preço usa formato brasileiro (ex.: 30,00); o sistema guarda o valor em centavos."
+                ? "Altere os campos abaixo. Os valores usam formato brasileiro (ex.: 30,00); o sistema guarda em centavos."
                 : isDuplicateMode
                   ? "Revise os dados copiados do serviço original. Ao guardar, será criado um novo serviço no catálogo."
-                  : "Preencha os dados abaixo. Para o preço use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda o valor em centavos."}
+                  : "Preencha os dados abaixo. Para os preços use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda em centavos."}
             </SheetDescription>
           </SheetHeader>
 
@@ -204,7 +205,6 @@ export function ServiceFormSheet({
                   control={fieldControl}
                   name="serviceName"
                   label="Nome do serviço"
-                  required
                   placeholder="Ex.: Lavagem premium"
                   autoComplete="off"
                 />
@@ -276,7 +276,6 @@ export function ServiceFormSheet({
                     control={fieldControl}
                     name="minInMinutes"
                     label="Duração mín. (min)"
-                    required
                     type="number"
                     min={1}
                     inputMode="numeric"
@@ -285,33 +284,142 @@ export function ServiceFormSheet({
                     control={fieldControl}
                     name="maxInMinutes"
                     label="Duração máx. (min)"
-                    required
                     type="number"
                     min={1}
                     inputMode="numeric"
                   />
                 </div>
 
-                <FormField control={fieldControl} name="priceInReais" label="Preço (R$)" required>
+                <FormField
+                  control={fieldControl}
+                  name="priceType"
+                  label="Modalidade de preço"
+                  renderControl={false}
+                >
                   {({ field }) => (
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      autoComplete="off"
-                      placeholder="0,00"
-                      className="tabular-nums"
-                      value={typeof field.value === "string" ? field.value : ""}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      onBlur={() => {
-                        field.onBlur();
-                        const n = money.parseToReais(String(field.value ?? ""));
-                        if (Number.isFinite(n) && n > 0) {
-                          field.onChange(money.formatReaisToInput(n));
-                        }
-                      }}
-                    />
+                    <Select
+                      value={typeof field.value === "string" ? field.value : "FIXED"}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger id={field.name}>
+                        <SelectValue placeholder="Selecione a modalidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FIXED">Valor fixo</SelectItem>
+                        <SelectItem value="STARTING_AT">A partir de</SelectItem>
+                        <SelectItem value="RANGE">Faixa de preço</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 </FormField>
+
+                {priceType === "FIXED" ? (
+                  <FormField
+                    control={fieldControl}
+                    name="fixedPriceInReais"
+                    label="Preço fixo (R$)"
+                  >
+                    {({ field }) => (
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        placeholder="0,00"
+                        className="tabular-nums"
+                        value={typeof field.value === "string" ? field.value : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        onBlur={() => {
+                          field.onBlur();
+                          const n = money.parseToReais(String(field.value ?? ""));
+                          if (Number.isFinite(n) && n > 0) {
+                            field.onChange(money.formatReaisToInput(n));
+                          }
+                        }}
+                      />
+                    )}
+                  </FormField>
+                ) : null}
+
+                {priceType === "STARTING_AT" ? (
+                  <FormField
+                    control={fieldControl}
+                    name="minPriceInReais"
+                    label="Preço mínimo (R$)"
+                  >
+                    {({ field }) => (
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        placeholder="0,00"
+                        className="tabular-nums"
+                        value={typeof field.value === "string" ? field.value : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        onBlur={() => {
+                          field.onBlur();
+                          const n = money.parseToReais(String(field.value ?? ""));
+                          if (Number.isFinite(n) && n > 0) {
+                            field.onChange(money.formatReaisToInput(n));
+                          }
+                        }}
+                      />
+                    )}
+                  </FormField>
+                ) : null}
+
+                {priceType === "RANGE" ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={fieldControl}
+                      name="minPriceInReais"
+                      label="Preço mín. (R$)"
+                    >
+                      {({ field }) => (
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          placeholder="0,00"
+                          className="tabular-nums"
+                          value={typeof field.value === "string" ? field.value : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          onBlur={() => {
+                            field.onBlur();
+                            const n = money.parseToReais(String(field.value ?? ""));
+                            if (Number.isFinite(n) && n > 0) {
+                              field.onChange(money.formatReaisToInput(n));
+                            }
+                          }}
+                        />
+                      )}
+                    </FormField>
+
+                    <FormField
+                      control={fieldControl}
+                      name="maxPriceInReais"
+                      label="Preço máx. (R$)"
+                    >
+                      {({ field }) => (
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          placeholder="0,00"
+                          className="tabular-nums"
+                          value={typeof field.value === "string" ? field.value : ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          onBlur={() => {
+                            field.onBlur();
+                            const n = money.parseToReais(String(field.value ?? ""));
+                            if (Number.isFinite(n) && n > 0) {
+                              field.onChange(money.formatReaisToInput(n));
+                            }
+                          }}
+                        />
+                      )}
+                    </FormField>
+                  </div>
+                ) : null}
 
                 <FormField
                   control={fieldControl}

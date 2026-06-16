@@ -2,6 +2,27 @@ import type { ServiceCategoryRef } from "@/features/service-category/types";
 
 export type { ServiceCategoryRef };
 
+export type FixedPriceSpecification = {
+  type: "FIXED";
+  fixedPriceInCents: number;
+};
+
+export type StartingAtPriceSpecification = {
+  type: "STARTING_AT";
+  minPriceInCents: number;
+};
+
+export type RangePriceSpecification = {
+  type: "RANGE";
+  minPriceInCents: number;
+  maxPriceInCents: number;
+};
+
+export type ServicePriceSpecification =
+  | FixedPriceSpecification
+  | StartingAtPriceSpecification
+  | RangePriceSpecification;
+
 /** Corpo de `POST /services` (camelCase). */
 export type CreateServicePayload = {
   serviceName: string;
@@ -11,8 +32,7 @@ export type CreateServicePayload = {
     minInMinutes: number;
     maxInMinutes: number;
   };
-  /** Valor em centavos. */
-  price: number;
+  priceSpecification: ServicePriceSpecification;
   isActive: boolean;
 };
 
@@ -23,6 +43,7 @@ export type CreateServicePayload = {
 export type ServiceListWireItem = {
   id?: string;
   name?: string;
+  serviceName?: string;
   establishmentId?: string;
   description?: string | null;
   category?: ServiceCategoryRef | null;
@@ -31,6 +52,8 @@ export type ServiceListWireItem = {
     maxInMinutes: number | null;
   } | null;
   priceInCents?: number;
+  price?: number;
+  priceSpecification?: Partial<ServicePriceSpecification> | null;
   isActive?: boolean;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -46,8 +69,7 @@ export type ServiceItem = {
     minInMinutes: number;
     maxInMinutes: number;
   };
-  /** Valor em centavos (ex.: 3000 → R$ 30,00). */
-  price?: number | string;
+  priceSpecification: ServicePriceSpecification;
   isActive: boolean;
 };
 

@@ -39,7 +39,7 @@ const baseItem: ServiceItem = {
   description: "Inclui aspiração",
   category: washCategory,
   estimatedDuration: { minInMinutes: 60, maxInMinutes: 60 },
-  price: 6500,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 6500 },
   isActive: true,
 };
 

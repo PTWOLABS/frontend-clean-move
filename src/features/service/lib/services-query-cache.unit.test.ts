@@ -20,6 +20,7 @@ const itemA: ServiceItem = {
   id: "a",
   serviceName: "Lavagem A",
   category: washCategory,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 3000 },
   isActive: true,
 };
 
@@ -27,6 +28,7 @@ const itemB: ServiceItem = {
   id: "b",
   serviceName: "Lavagem B",
   category: washCategory,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 5000 },
   isActive: false,
 };
 
