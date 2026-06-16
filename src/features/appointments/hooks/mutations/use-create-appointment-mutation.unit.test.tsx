@@ -45,8 +45,7 @@ describe("useCreateAppointment", () => {
     const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
     const body = {
       customerId: "customer-1",
-      serviceIds: ["service-1"],
-      services: [{ serviceId: "service-1", priceInCents: "9000" }],
+      services: [{ serviceId: "service-1", priceInCents: 9000 }],
       vehicleId: "vehicle-1",
       startsAt: "2026-05-20T09:00:00.000Z",
       endsAt: "2026-05-20T10:00:00.000Z",
