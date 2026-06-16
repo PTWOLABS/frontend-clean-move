@@ -364,11 +364,11 @@ export function mapOnboardingSubmitToPayload(values: OnboardingSubmitValues): On
     values.price !== undefined
   ) {
     const description = toOptionalTrimmedText(values.description);
-    const category = toOptionalTrimmedText(values.category);
+    const categoryId = toOptionalTrimmedText(values.category);
 
     payload.service = {
       serviceName: values.serviceName.trim(),
-      ...(category ? { category } : {}),
+      ...(categoryId ? { categoryId } : {}),
       ...(description ? { description } : {}),
       estimatedDuration: {
         minInMinutes: values.minDurationInMinutes,
