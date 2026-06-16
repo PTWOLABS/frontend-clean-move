@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -41,7 +40,7 @@ import {
   ServiceCategoryCreateInline,
 } from "@/features/service-category/components/service-category-create-inline";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
-import { useFormatBrlMoney } from "@/shared/money/use-format-brl-money";
+import { BrlMoneyInput } from "@/shared/money/brl-money-input";
 import { ApiError } from "@/shared/api/httpClient";
 
 import { useCreateService } from "../hooks/use-create-service";
@@ -98,7 +97,6 @@ export function ServiceFormSheet({
 }: ServiceFormSheetProps) {
   const { mutate: createMutate, isPending: isCreatePending } = useCreateService();
   const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateService();
-  const money = useFormatBrlMoney();
 
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
 
@@ -348,21 +346,10 @@ export function ServiceFormSheet({
                     label="Preço fixo (R$)"
                   >
                     {({ field }) => (
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        placeholder="0,00"
-                        className="tabular-nums"
+                      <BrlMoneyInput
                         value={typeof field.value === "string" ? field.value : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        onBlur={() => {
-                          field.onBlur();
-                          const n = money.parseToReais(String(field.value ?? ""));
-                          if (Number.isFinite(n) && n > 0) {
-                            field.onChange(money.formatReaisToInput(n));
-                          }
-                        }}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
                       />
                     )}
                   </FormField>
@@ -375,21 +362,10 @@ export function ServiceFormSheet({
                     label="Preço mínimo (R$)"
                   >
                     {({ field }) => (
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        placeholder="0,00"
-                        className="tabular-nums"
+                      <BrlMoneyInput
                         value={typeof field.value === "string" ? field.value : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        onBlur={() => {
-                          field.onBlur();
-                          const n = money.parseToReais(String(field.value ?? ""));
-                          if (Number.isFinite(n) && n > 0) {
-                            field.onChange(money.formatReaisToInput(n));
-                          }
-                        }}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
                       />
                     )}
                   </FormField>
@@ -403,21 +379,10 @@ export function ServiceFormSheet({
                       label="Preço mín. (R$)"
                     >
                       {({ field }) => (
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          placeholder="0,00"
-                          className="tabular-nums"
+                        <BrlMoneyInput
                           value={typeof field.value === "string" ? field.value : ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          onBlur={() => {
-                            field.onBlur();
-                            const n = money.parseToReais(String(field.value ?? ""));
-                            if (Number.isFinite(n) && n > 0) {
-                              field.onChange(money.formatReaisToInput(n));
-                            }
-                          }}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                         />
                       )}
                     </FormField>
@@ -428,21 +393,10 @@ export function ServiceFormSheet({
                       label="Preço máx. (R$)"
                     >
                       {({ field }) => (
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          placeholder="0,00"
-                          className="tabular-nums"
+                        <BrlMoneyInput
                           value={typeof field.value === "string" ? field.value : ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          onBlur={() => {
-                            field.onBlur();
-                            const n = money.parseToReais(String(field.value ?? ""));
-                            if (Number.isFinite(n) && n > 0) {
-                              field.onChange(money.formatReaisToInput(n));
-                            }
-                          }}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                         />
                       )}
                     </FormField>
