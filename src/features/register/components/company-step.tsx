@@ -4,6 +4,7 @@ import { RegisterTextField } from "./register-text-field";
 import { StepActions } from "./step-actions";
 import { companyStepSchema, type CompanyStepValues } from "../schemas/register-schema";
 import { useCnpjAutofill } from "../hooks/use-cnpj-autofill";
+import { CNPJ_MASK } from "@/shared/constants/input-masks";
 
 type CompanyStepProps = {
   onBack: (values: CompanyStepValues) => void;
@@ -18,7 +19,7 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
         <RegisterTextField
           id="register-cnpj"
           name="cnpj"
-          mask="__.___.___/____-__"
+          mask={CNPJ_MASK}
           inputMode="numeric"
           autoComplete="organization"
           placeholder="00.000.000/0000-00"
@@ -57,7 +58,7 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
           type="text"
           autoComplete="organization-title"
           placeholder="Nome usado comercialmente"
-          label="Nome fantasia"
+          label="Nome Comercial"
           icon={Store}
           disabled={isFetchingCompany}
         />

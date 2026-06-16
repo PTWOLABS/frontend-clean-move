@@ -14,17 +14,21 @@ import {
   upsertServiceInLists,
 } from "./services-query-cache";
 
+const washCategory = { id: "11cf3860-d512-47db-b9d1-c9044be6250d", name: "Lavagem" };
+
 const itemA: ServiceItem = {
   id: "a",
   serviceName: "Lavagem A",
-  category: "WASH",
+  category: washCategory,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 3000 },
   isActive: true,
 };
 
 const itemB: ServiceItem = {
   id: "b",
   serviceName: "Lavagem B",
-  category: "WASH",
+  category: washCategory,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 5000 },
   isActive: false,
 };
 

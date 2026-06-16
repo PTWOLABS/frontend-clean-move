@@ -10,15 +10,24 @@ function makeAppointmentEvent(): AppointmentCalendarEvent {
   return {
     id: "appointment-1",
     title: "Lavagem tecnica",
-    start: new Date(2026, 4, 20, 9),
+    startsAt: new Date(2026, 4, 20, 9),
     end: new Date(2026, 4, 20, 10),
     extendedProps: {
+      customerId: "customer-1",
       customer: "Ana Martins",
+      serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
       service: "Lavagem tecnica",
-      vehicle: "ABC-1234",
-      attendants: ["Patricia Costa"],
+      vehicleId: "vehicle-1",
+      vehicle: {
+        plate: "ABC-1234",
+        brand: "",
+        model: "",
+        displayName: "ABC-1234",
+      },
+      endsAt: new Date(2026, 4, 20, 10),
+      description: "Sem observações.",
+      discountValue: "",
       notes: "Sem observações.",
-      reminder: "Lembrete padrão",
       tone: "info",
       status: "SCHEDULED",
     },
@@ -32,7 +41,9 @@ describe("CalendarSlotOverlay", () => {
         date={new Date(2026, 4, 20)}
         events={[makeAppointmentEvent()]}
         selectedSlotKey={null}
+        isDayView={false}
         onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -55,12 +66,39 @@ describe("CalendarSlotOverlay", () => {
         date={new Date(2026, 4, 20)}
         events={[]}
         selectedSlotKey={formatSlotKey(new Date(2026, 4, 20, 8, 30))}
+        isDayView={false}
         onSlotPress={onSlotPress}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
     await user.click(screen.getByRole("button", { name: /selecionar horário 08:30/i }));
 
     expect(onSlotPress).toHaveBeenCalledWith(new Date(2026, 4, 20, 8, 30));
+  });
+
+  it("opens the appointment sheet when the user clicks the add indicator", async () => {
+    const user = userEvent.setup();
+    const onCellAddIndicatorPress = vi.fn();
+
+    render(
+      <CalendarSlotOverlay
+        date={new Date(2026, 4, 20)}
+        events={[]}
+        selectedSlotKey={null}
+        isDayView={false}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={onCellAddIndicatorPress}
+      />,
+    );
+
+    const slotButton = screen.getByRole("button", { name: /selecionar horário 08:30/i });
+    const addIndicator = slotButton.querySelector("span");
+
+    expect(addIndicator).not.toBeNull();
+
+    await user.click(addIndicator!);
+
+    expect(onCellAddIndicatorPress).toHaveBeenCalledWith(true);
   });
 });

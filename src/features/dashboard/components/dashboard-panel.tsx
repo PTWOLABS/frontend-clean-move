@@ -1,6 +1,9 @@
 import * as React from "react";
+import { Info } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import { cn } from "@/shared/utils/cn";
 
 export type DashboardPanelProps = Omit<
@@ -8,6 +11,7 @@ export type DashboardPanelProps = Omit<
   "children" | "title"
 > & {
   title: string;
+  titleTooltip?: React.ReactNode;
   description?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
@@ -15,11 +19,14 @@ export type DashboardPanelProps = Omit<
 };
 
 const DashboardPanel = React.forwardRef<HTMLDivElement, DashboardPanelProps>(
-  ({ title, description, action, children, className, contentClassName, ...props }, ref) => (
+  (
+    { title, titleTooltip, description, action, children, className, contentClassName, ...props },
+    ref,
+  ) => (
     <Card
       ref={ref}
       className={cn(
-        "relative h-full overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-card backdrop-blur-sm sm:p-5",
+        "relative h-full overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm sm:p-5",
         className,
       )}
       {...props}
@@ -31,7 +38,24 @@ const DashboardPanel = React.forwardRef<HTMLDivElement, DashboardPanelProps>(
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h3 className="text-sm font-semibold leading-none text-card-foreground">{title}</h3>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h3 className="truncate text-sm font-semibold text-card-foreground">{title}</h3>
+            {titleTooltip ? (
+              <HintTooltipProvider>
+                <HintTooltip label={titleTooltip} side="top" className="max-w-72 leading-5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Mais informações sobre ${title}`}
+                    className="size-6 shrink-0 rounded-full text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                  >
+                    <Info aria-hidden="true" className="size-4" />
+                  </Button>
+                </HintTooltip>
+              </HintTooltipProvider>
+            ) : null}
+          </div>
           {description ? (
             <p className="text-xs leading-5 text-muted-foreground">{description}</p>
           ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   AlertDialog,
@@ -17,12 +18,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { ApiError } from "@/shared/api/httpClient";
 
+import { ServiceCategoryManageSheet } from "@/features/service-category/components/service-category-manage-sheet";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
+import { resolveCatalogSelection } from "@/shared/lib/resolve-catalog-selection";
 import { useDeleteService } from "../hooks/use-delete-service";
 import { useServices } from "../hooks/use-services";
 import { useToggleServiceActive } from "../hooks/use-toggle-service-active";
 import type { ServiceItem } from "../types";
 
+import { isSameServiceItem } from "../lib/is-same-service-item";
+
+import { ServiceCatalogDetailsPanel } from "./service-catalog-details-panel";
 import { ServiceCatalogHeader } from "./service-catalog-header";
 import { ServiceCatalogListSkeleton } from "./service-catalog-list-skeleton";
 import { ServiceCatalogMobileCards } from "./service-catalog-mobile-cards";
@@ -40,8 +46,12 @@ function filterToIsActive(filter: ServiceActiveFilter): boolean | undefined {
 }
 
 export function ServiceCatalog() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const createParamHandledRef = useRef(false);
   const { data: user, isLoading: userLoading } = useCurrentUser();
-  const ownerId = user?.id;
+  const establishmentId = user?.establishmentId;
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -51,6 +61,8 @@ export function ServiceCatalog() {
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [duplicateSource, setDuplicateSource] = useState<ServiceItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ServiceItem | null>(null);
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [categoryManageSheetOpen, setCategoryManageSheetOpen] = useState(false);
 
   const deleteMutation = useDeleteService();
   const toggleActiveMutation = useToggleServiceActive();
@@ -68,6 +80,17 @@ export function ServiceCatalog() {
 
   // Debounce alinhado ao query param `name` (match parcial, case-insensitive no backend).
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
+  const shouldOpenCreateSheet = searchParams.get("new") === "true";
+
+  const removeNewSearchParam = useCallback(() => {
+    if (!searchParams.has("new")) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const queryString = nextSearchParams.toString();
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   useEffect(() => {
     // Ao mudar filtros enviados ao servidor, a página deve voltar a 1 (evita página vazia).
@@ -75,11 +98,25 @@ export function ServiceCatalog() {
     setPage(1);
   }, [debouncedSearch, activeFilter]);
 
+  useEffect(() => {
+    if (!shouldOpenCreateSheet) {
+      createParamHandledRef.current = false;
+      return;
+    }
+
+    if (createParamHandledRef.current) return;
+
+    createParamHandledRef.current = true;
+    setEditingService(null);
+    setDuplicateSource(null);
+    setServiceSheetOpen(true);
+  }, [shouldOpenCreateSheet]);
+
   const isActiveParam = filterToIsActive(activeFilter);
 
   const servicesQuery = useServices({
-    ownerId: ownerId ?? "",
-    enabled: Boolean(ownerId) && !userLoading,
+    establishmentId: establishmentId ?? "",
+    enabled: Boolean(establishmentId) && !userLoading,
     page,
     size: PAGE_SIZE,
     name: debouncedSearch.trim() || undefined,
@@ -88,10 +125,15 @@ export function ServiceCatalog() {
 
   const { data, isLoading, isFetching, isError, error, refetch } = servicesQuery;
   const total = data?.total ?? 0;
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   /** Página alinhada aos dados mostrados (com `keepPreviousData` evita desincronizar lista vs paginação). */
   const displayedPage = data?.page ?? page;
+
+  const resolvedSelectedService = useMemo(
+    () => resolveCatalogSelection(items, selectedService, isSameServiceItem),
+    [items, selectedService],
+  );
 
   if (userLoading) {
     return (
@@ -104,14 +146,14 @@ export function ServiceCatalog() {
     );
   }
 
-  if (!ownerId) {
+  if (!establishmentId) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Perfil indisponível</CardTitle>
+          <CardTitle>Estabelecimento indisponível</CardTitle>
           <CardDescription>
-            Não foi possível obter o identificador da sua conta. Atualize a página ou volte a
-            iniciar sessão.
+            Não foi possível obter o identificador do seu estabelecimento. Atualize a página ou
+            volte a iniciar sessão.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -143,6 +185,7 @@ export function ServiceCatalog() {
     if (!open) {
       setEditingService(null);
       setDuplicateSource(null);
+      removeNewSearchParam();
     }
   };
 
@@ -168,6 +211,12 @@ export function ServiceCatalog() {
           setDuplicateSource(null);
           setServiceSheetOpen(true);
         }}
+        onManageCategories={() => setCategoryManageSheetOpen(true)}
+      />
+
+      <ServiceCategoryManageSheet
+        open={categoryManageSheetOpen}
+        onOpenChange={setCategoryManageSheetOpen}
       />
 
       <ServiceFormSheet
@@ -175,6 +224,7 @@ export function ServiceCatalog() {
         onOpenChange={handleServiceSheetOpenChange}
         editingService={editingService}
         duplicateSource={duplicateSource}
+        onManageCategories={() => setCategoryManageSheetOpen(true)}
       />
 
       <AlertDialog
@@ -215,50 +265,61 @@ export function ServiceCatalog() {
             onActiveFilterChange={setActiveFilter}
           />
 
-          {showListSkeleton ? (
-            <ServiceCatalogListSkeleton count={PAGE_SIZE} />
-          ) : items.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-              Nenhum serviço encontrado para os filtros atuais.
-            </p>
-          ) : (
-            <>
-              <ServiceCatalogTable
-                items={items}
-                onEdit={(item) => {
-                  setDuplicateSource(null);
-                  setEditingService(item);
-                  setServiceSheetOpen(true);
-                }}
-                onDuplicate={handleDuplicate}
-                onToggleActive={handleToggleActive}
-                onDelete={(item) => setDeleteTarget(item)}
-                togglingServiceId={togglingServiceId}
-              />
-              <ServiceCatalogMobileCards
-                items={items}
-                onEdit={(item) => {
-                  setDuplicateSource(null);
-                  setEditingService(item);
-                  setServiceSheetOpen(true);
-                }}
-                onDuplicate={handleDuplicate}
-                onToggleActive={handleToggleActive}
-                onDelete={(item) => setDeleteTarget(item)}
-                togglingServiceId={togglingServiceId}
-              />
-            </>
-          )}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <div className="min-w-0 flex-1 space-y-6">
+              {showListSkeleton ? (
+                <ServiceCatalogListSkeleton count={PAGE_SIZE} />
+              ) : items.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                  Nenhum serviço encontrado para os filtros atuais.
+                </p>
+              ) : (
+                <>
+                  <ServiceCatalogTable
+                    items={items}
+                    selectedService={resolvedSelectedService}
+                    onSelect={setSelectedService}
+                    onEdit={(item) => {
+                      setDuplicateSource(null);
+                      setEditingService(item);
+                      setServiceSheetOpen(true);
+                    }}
+                    onDuplicate={handleDuplicate}
+                    onToggleActive={handleToggleActive}
+                    onDelete={(item) => setDeleteTarget(item)}
+                    togglingServiceId={togglingServiceId}
+                  />
+                  <ServiceCatalogMobileCards
+                    items={items}
+                    onEdit={(item) => {
+                      setDuplicateSource(null);
+                      setEditingService(item);
+                      setServiceSheetOpen(true);
+                    }}
+                    onDuplicate={handleDuplicate}
+                    onToggleActive={handleToggleActive}
+                    onDelete={(item) => setDeleteTarget(item)}
+                    togglingServiceId={togglingServiceId}
+                  />
+                </>
+              )}
 
-          {!showListSkeleton && total > 0 ? (
-            <ServiceCatalogPagination
-              page={displayedPage}
-              totalPages={totalPages}
-              total={total}
-              isFetching={isFetching}
-              onPageChange={setPage}
+              {!showListSkeleton && total > 0 ? (
+                <ServiceCatalogPagination
+                  page={displayedPage}
+                  totalPages={totalPages}
+                  total={total}
+                  isFetching={isFetching}
+                  onPageChange={setPage}
+                />
+              ) : null}
+            </div>
+
+            <ServiceCatalogDetailsPanel
+              service={resolvedSelectedService}
+              className="hidden w-full shrink-0 lg:block lg:w-80"
             />
-          ) : null}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,0 +1,26 @@
+import { Plus } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
+type VehicleCatalogHeaderProps = {
+  totalCount: number;
+  onAddVehicle: () => void;
+};
+
+export function VehicleCatalogHeader({ totalCount, onAddVehicle }: VehicleCatalogHeaderProps) {
+  const countLabel =
+    totalCount === 1 ? "1 veículo cadastrado" : `${totalCount} veículos cadastrados`;
+
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Veículos</h1>
+        <p className="text-sm text-muted-foreground">{countLabel}</p>
+      </div>
+      <Button type="button" className="h-10 gap-2" onClick={onAddVehicle}>
+        <Plus aria-hidden />
+        Adicionar veículo
+      </Button>
+    </div>
+  );
+}

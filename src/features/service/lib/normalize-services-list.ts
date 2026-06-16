@@ -1,5 +1,9 @@
+import type { ServiceCategoryRef } from "@/features/service-category/types";
+
 import type {
+  ServiceDto,
   ServiceItem,
+  ServicePriceSpecification,
   ServiceListWireItem,
   ServicesListApiResponse,
   ServicesPage,
@@ -20,18 +24,62 @@ function pickTotal(body: ServicesListApiResponse, itemsLength: number): number {
   return itemsLength;
 }
 
-/**
- * Converte o DTO de listagem (`name`, `priceInCents`, etc.) para o modelo usado na UI (`serviceName`, `price`).
- */
+function normalizeCategory(raw: unknown): ServiceCategoryRef | null {
+  if (raw == null || typeof raw !== "object") return null;
+
+  const category = raw as { id?: unknown; name?: unknown };
+  const id = category.id == null ? "" : String(category.id).trim();
+  const name = category.name == null ? "" : String(category.name).trim();
+
+  if (!id) return null;
+  return { id, name: name || id };
+}
+
+function normalizePriceSpecification(raw: WireOrCatalogItem): ServicePriceSpecification {
+  const r = raw as ServiceItem & ServiceListWireItem;
+  const candidate = r.priceSpecification;
+  if (candidate?.type === "FIXED" && Number.isFinite(candidate.fixedPriceInCents)) {
+    return {
+      type: "FIXED",
+      fixedPriceInCents: Math.round(candidate.fixedPriceInCents),
+    };
+  }
+  if (candidate?.type === "STARTING_AT" && Number.isFinite(candidate.minPriceInCents)) {
+    return {
+      type: "STARTING_AT",
+      minPriceInCents: Math.round(candidate.minPriceInCents),
+    };
+  }
+  if (
+    candidate?.type === "RANGE" &&
+    Number.isFinite(candidate.minPriceInCents) &&
+    Number.isFinite(candidate.maxPriceInCents)
+  ) {
+    const min = Math.round(candidate.minPriceInCents);
+    const max = Math.round(candidate.maxPriceInCents);
+    return {
+      type: "RANGE",
+      minPriceInCents: Math.min(min, max),
+      maxPriceInCents: Math.max(min, max),
+    };
+  }
+
+  const legacyPrice = r.price ?? r.priceInCents;
+  const fallback = Number.isFinite(Number(legacyPrice)) ? Math.round(Number(legacyPrice)) : 0;
+  return {
+    type: "FIXED",
+    fixedPriceInCents: Math.max(0, fallback),
+  };
+}
+
 export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
   const r = raw as ServiceItem & ServiceListWireItem;
   const serviceName = (r.serviceName ?? r.name ?? "").trim();
   const description = r.description == null ? undefined : String(r.description).trim() || undefined;
-  const category = r.category == null ? "" : String(r.category);
+  const category = normalizeCategory(r.category);
   const min = r.estimatedDuration?.minInMinutes ?? 0;
   const maxRaw = r.estimatedDuration?.maxInMinutes;
   const max = maxRaw != null && Number.isFinite(Number(maxRaw)) ? Number(maxRaw) : min;
-  const price = r.price ?? r.priceInCents;
 
   return {
     id: r.id,
@@ -40,9 +88,14 @@ export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
     category,
     estimatedDuration:
       r.estimatedDuration == null ? undefined : { minInMinutes: min, maxInMinutes: max },
-    price,
+    priceSpecification: normalizePriceSpecification(r),
     isActive: r.isActive ?? false,
   };
+}
+
+/** Converte {@link ServiceDto} da API para o modelo de UI. */
+export function mapServiceDtoToServiceItem(dto: ServiceDto): ServiceItem {
+  return mapWireToServiceItem(dto);
 }
 
 /**

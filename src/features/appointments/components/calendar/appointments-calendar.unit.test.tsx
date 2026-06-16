@@ -1,10 +1,22 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
+import type { DayCellContentArg, EventDropArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import type FullCalendar from "@fullcalendar/react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode, RefObject } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
+
+const updateAppointmentMutationMock = vi.hoisted(() => ({
+  isPending: false,
+  mutateAsync: vi.fn(),
+}));
+
+const fullCalendarMock = vi.hoisted(() => ({
+  eventDropRevert: vi.fn(),
+}));
 
 vi.mock("@/components/ui/sidebar", () => ({
   useSidebar: () => ({ state: "expanded" }),
@@ -12,8 +24,8 @@ vi.mock("@/components/ui/sidebar", () => ({
 
 vi.mock("../../hooks/use-calendar-more-link", () => ({
   useCalendarMoreLink: () => ({
-    calendarFrameStyle: undefined,
-    isMorePopoverAlignedRight: false,
+    isMorePopoverOpen: false,
+    closeActiveMorePopover: vi.fn(),
     handleMoreLinkDidMount: vi.fn(),
     handleMoreLinkWillUnmount: vi.fn(),
     handleMoreLinkClick: vi.fn(),
@@ -33,6 +45,26 @@ vi.mock("../../hooks/use-month-cell-indicators", () => ({
   }),
 }));
 
+vi.mock("../../hooks/use-selected-calendar-event-popover", () => ({
+  useSelectedCalendarEventPopover: () => ({
+    hasSelectedEventAnchor: true,
+    handleEventClickAnchor: vi.fn(),
+    handleEventDidMount: vi.fn(),
+    handleEventWillUnmount: vi.fn(),
+    popoverPlacement: "right",
+    popoverStyle: {},
+    setEventAnchorElement: vi.fn(),
+    setPopoverElement: vi.fn(),
+  }),
+}));
+
+vi.mock("../../hooks/mutations/use-update-appointment-mutation", () => ({
+  useUpdateAppointment: () => ({
+    isPending: updateAppointmentMutationMock.isPending,
+    mutateAsync: updateAppointmentMutationMock.mutateAsync,
+  }),
+}));
+
 vi.mock("@fullcalendar/react", () => ({
   default: ({
     events,
@@ -41,14 +73,24 @@ vi.mock("@fullcalendar/react", () => ({
     datesSet,
     eventContent,
     moreLinkContent,
+    moreLinkClick,
     eventClassNames,
+    navLinkDayClick,
+    dayCellContent,
+    eventDragStart,
+    eventDragStop,
+    eventDrop,
     height,
   }: {
     events: Array<{
       id: string;
       title: string;
       start: Date;
-      end: Date;
+      end?: Date;
+      allDay: boolean;
+      editable: boolean;
+      startEditable: boolean;
+      durationEditable: boolean;
       extendedProps: Record<string, unknown>;
     }>;
     dateClick: (arg: DateClickArg) => void;
@@ -59,26 +101,69 @@ vi.mock("@fullcalendar/react", () => ({
         id: string;
         title: string;
         start: Date;
-        end: Date;
+        end?: Date;
         extendedProps: Record<string, unknown>;
       };
       timeText: string;
       view: { type: string };
     }) => ReactNode;
     moreLinkContent: (arg: { num: number; view: { type: string } }) => ReactNode;
+    moreLinkClick: (arg: {
+      jsEvent: {
+        currentTarget: EventTarget | null;
+        target: EventTarget | null;
+      };
+    }) => void;
     eventClassNames: (arg: {
       event: { id: string; extendedProps: Record<string, unknown> };
     }) => string[];
+    navLinkDayClick: (date: Date, jsEvent: UIEvent) => void;
+    dayCellContent: (arg: DayCellContentArg) => ReactNode;
+    eventDragStart: () => void;
+    eventDragStop: () => void;
+    eventDrop: (arg: EventDropArg) => void;
     height: string | number;
   }) => {
     const firstEvent = events[0];
+    const droppedStart = new Date("2026-05-21T13:30:00.000Z");
+    const droppedEnd = new Date("2026-05-21T14:30:00.000Z");
+    const firstEventApi = firstEvent
+      ? (Object.create(Object.prototype, {
+          id: {
+            get: () => firstEvent.id,
+          },
+          title: {
+            get: () => firstEvent.title,
+          },
+          start: {
+            get: () => firstEvent.start,
+          },
+          end: {
+            get: () => firstEvent.end,
+          },
+          extendedProps: {
+            get: () => firstEvent.extendedProps,
+          },
+        }) as typeof firstEvent)
+      : null;
 
     return (
       <div>
         <p>FullCalendar mock</p>
         <p>Altura do calendário: {height}</p>
+        <p data-testid="events-count">{events.length}</p>
+        <ul data-testid="event-occurrences">
+          {events.map((event, index) => (
+            <li key={`${event.id}-${index}`} data-event-id={event.id}>
+              {event.start.getDate()} - {String(event.editable)}
+            </li>
+          ))}
+        </ul>
         {firstEvent ? (
           <>
+            <p data-testid="event-start">{firstEvent.start.toISOString()}</p>
+            <p data-testid="event-editable">{String(firstEvent.editable)}</p>
+            <p data-testid="event-all-day">{String(firstEvent.allDay)}</p>
             <div data-testid="event-content">
               {eventContent({
                 event: firstEvent,
@@ -99,17 +184,61 @@ vi.mock("@fullcalendar/react", () => ({
               onClick={() =>
                 eventClick({
                   jsEvent: { preventDefault: vi.fn() },
-                  event: firstEvent,
+                  event: firstEventApi ?? firstEvent,
                 } as unknown as EventClickArg)
               }
             >
               Disparar evento
             </button>
+            <button type="button" onClick={eventDragStart}>
+              Disparar início do arraste
+            </button>
+            <button type="button" onClick={eventDragStop}>
+              Disparar fim do arraste
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                eventDrop({
+                  event: {
+                    id: firstEvent.id,
+                    start: droppedStart,
+                    end: droppedEnd,
+                    _def: {
+                      extendedProps: firstEvent.extendedProps,
+                    },
+                  },
+                  revert: fullCalendarMock.eventDropRevert,
+                } as unknown as EventDropArg)
+              }
+            >
+              Disparar drop
+            </button>
           </>
         ) : null}
+        <div data-testid="time-grid-day-cell">
+          {dayCellContent({
+            date: new Date(2026, 4, 20),
+            view: { type: "timeGridWeek" },
+          } as DayCellContentArg)}
+        </div>
         <div data-testid="more-link">
           {moreLinkContent({ num: 2, view: { type: "dayGridMonth" } })}
         </div>
+        <button
+          type="button"
+          className="fc-more-link"
+          onClick={(event) =>
+            moreLinkClick({
+              jsEvent: {
+                currentTarget: event.currentTarget,
+                target: event.target,
+              },
+            })
+          }
+        >
+          Abrir mais agendamentos
+        </button>
         <button
           type="button"
           onClick={() =>
@@ -133,6 +262,14 @@ vi.mock("@fullcalendar/react", () => ({
         >
           Disparar período
         </button>
+        <button
+          type="button"
+          onClick={() =>
+            navLinkDayClick(new Date("2026-05-22T00:00:00.000Z"), new UIEvent("click"))
+          }
+        >
+          Clicar número do dia
+        </button>
       </div>
     );
   },
@@ -144,15 +281,24 @@ import { AppointmentsCalendar } from "./appointments-calendar";
 const appointmentEvent: AppointmentCalendarEvent = {
   id: "appointment-1",
   title: "Lavagem tecnica",
-  start: new Date("2026-05-20T09:00:00.000Z"),
+  startsAt: new Date("2026-05-20T09:00:00.000Z"),
   end: new Date("2026-05-20T10:00:00.000Z"),
   extendedProps: {
+    customerId: "customer-1",
     customer: "Ana Martins",
+    serviceIds: [{ value: "service-1", label: "Lavagem tecnica" }],
     service: "Lavagem tecnica",
-    vehicle: "ABC-1234",
-    attendants: ["Patricia Costa"],
+    vehicleId: "vehicle-1",
+    vehicle: {
+      plate: "ABC-1234",
+      brand: "",
+      model: "",
+      displayName: "ABC-1234",
+    },
+    endsAt: new Date("2026-05-20T10:00:00.000Z"),
+    description: "Sem observações.",
+    discountValue: "",
     notes: "Sem observações.",
-    reminder: "Lembrete padrão",
     tone: "info",
     status: "SCHEDULED",
   },
@@ -168,19 +314,35 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     onRetry: vi.fn(),
     selectedDate: new Date("2026-05-20T12:00:00.000Z"),
     selectedEventId: "appointment-1",
+    selectedEventPopoverId: null,
     selectedSlotKey: null,
     selectedView: "dayGridMonth",
+    createAppointmentOnMonthCellClick: false,
+    updatingStatusAppointmentId: null,
+    onClearSelectedEvent: vi.fn(),
     onDateClick: vi.fn(),
+    onDayNumberClick: vi.fn(),
     onDatesSet: vi.fn(),
     onEventClick: vi.fn(),
+    onEditEvent: vi.fn(),
     onMonthCellPress: vi.fn(),
     onSlotPress: vi.fn(),
+    onCellAddIndicatorPress: vi.fn(),
+    onListEventSelect: vi.fn(),
+    onStatusChange: vi.fn(),
   };
 
   return render(<AppointmentsCalendar {...defaultProps} {...props} />);
 }
 
 describe("AppointmentsCalendar", () => {
+  beforeEach(() => {
+    updateAppointmentMutationMock.isPending = false;
+    updateAppointmentMutationMock.mutateAsync.mockReset();
+    updateAppointmentMutationMock.mutateAsync.mockResolvedValue(undefined);
+    fullCalendarMock.eventDropRevert.mockReset();
+  });
+
   it("renders an error state and calls onRetry", async () => {
     const user = userEvent.setup();
     const onRetry = vi.fn();
@@ -194,6 +356,47 @@ describe("AppointmentsCalendar", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("renders the weekly list view and selects an event", async () => {
+    const user = userEvent.setup();
+    const onListEventSelect = vi.fn();
+
+    renderCalendar({
+      selectedView: "listWeek",
+      onListEventSelect,
+    });
+
+    expect(screen.getByRole("list", { name: /agendamentos em lista/i })).toBeInTheDocument();
+    expect(screen.getByText("quarta-feira")).toBeInTheDocument();
+    expect(screen.getByText("20 de maio de 2026")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /lavagem tecnica/i }));
+
+    expect(onListEventSelect).toHaveBeenCalledWith(appointmentEvent);
+  });
+
+  it("renders the selected event details popover in the weekly list view", async () => {
+    renderCalendar({
+      selectedView: "listWeek",
+      selectedEventPopoverId: "appointment-1",
+    });
+
+    const dialog = screen.getByRole("dialog", { name: /detalhes do agendamento/i });
+
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText("Ana Martins")).toBeInTheDocument();
+  });
+
+  it("calls onDayNumberClick when a calendar day number nav link is clicked", async () => {
+    const user = userEvent.setup();
+    const onDayNumberClick = vi.fn();
+
+    renderCalendar({ onDayNumberClick });
+
+    await user.click(screen.getByRole("button", { name: /clicar número do dia/i }));
+
+    expect(onDayNumberClick).toHaveBeenCalledWith(new Date("2026-05-22T00:00:00.000Z"));
+  });
+
   it("renders the calendar content and loading overlay", () => {
     renderCalendar({ isLoading: true });
 
@@ -201,8 +404,55 @@ describe("AppointmentsCalendar", () => {
     expect(screen.getByText("Altura do calendário: 100%")).toBeInTheDocument();
     expect(screen.getByText("Carregando agendamentos...")).toBeInTheDocument();
     expect(screen.getByText("Lavagem tecnica")).toBeInTheDocument();
-    expect(screen.getAllByText("mais 2 agendamentos...")).toHaveLength(2);
+    expect(screen.getByTestId("event-start")).toHaveTextContent("2026-05-20T09:00:00.000Z");
+    expect(screen.getByTestId("event-editable")).toHaveTextContent("true");
+    expect(screen.getByTestId("event-all-day")).toHaveTextContent("false");
+    expect(screen.getByText("mais 2 agendamentos...")).toHaveClass("sr-only");
+    expect(screen.getByText("+2 ag.")).toBeInTheDocument();
     expect(screen.getByTestId("event-class-names").textContent).toContain("eventSelected");
+  });
+
+  it("renders multi-day appointments on each covered day in the month view", async () => {
+    const user = userEvent.setup();
+    const onEventClick = vi.fn();
+    const longAppointmentEvent: AppointmentCalendarEvent = {
+      ...appointmentEvent,
+      startsAt: new Date(2026, 7, 1, 0),
+      end: new Date(2026, 7, 29, 0),
+      extendedProps: {
+        ...appointmentEvent.extendedProps,
+        endsAt: new Date(2026, 7, 29, 0),
+      },
+    };
+
+    renderCalendar({
+      events: [longAppointmentEvent],
+      onEventClick,
+      selectedDate: new Date(2026, 7, 1, 12),
+    });
+
+    const occurrenceItems = within(screen.getByTestId("event-occurrences")).getAllByRole(
+      "listitem",
+    );
+    const occurrenceIds = occurrenceItems.map((item) => item.getAttribute("data-event-id"));
+
+    expect(screen.getByTestId("events-count")).toHaveTextContent("29");
+    expect(new Set(occurrenceIds)).toHaveProperty("size", 29);
+    expect(occurrenceItems.map((item) => item.textContent)).toEqual(
+      Array.from({ length: 29 }, (_, index) => `${index + 1} - false`),
+    );
+
+    await user.click(screen.getByRole("button", { name: /disparar evento/i }));
+
+    expect(onEventClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: expect.objectContaining({
+          id: "appointment-1",
+          start: longAppointmentEvent.startsAt,
+          title: longAppointmentEvent.title,
+        }),
+      }),
+    );
   });
 
   it("forwards calendar callbacks from FullCalendar", async () => {
@@ -227,5 +477,134 @@ describe("AppointmentsCalendar", () => {
         end: new Date("2026-06-01T00:00:00.000Z"),
       }),
     );
+  });
+
+  it("updates an appointment from eventDrop with the dropped date/time", async () => {
+    const user = userEvent.setup();
+    const droppedStart = new Date("2026-05-21T13:30:00.000Z");
+    const droppedEnd = new Date("2026-05-21T14:30:00.000Z");
+
+    renderCalendar();
+
+    await user.click(screen.getByRole("button", { name: /disparar drop/i }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    await waitFor(() => {
+      expect(updateAppointmentMutationMock.mutateAsync).toHaveBeenCalledWith({
+        appointmentId: "appointment-1",
+        body: {
+          startsAt: formatLocalDateTimeAsUtcISOString(droppedStart),
+          endsAt: formatLocalDateTimeAsUtcISOString(droppedEnd),
+        },
+      });
+    });
+    expect(fullCalendarMock.eventDropRevert).not.toHaveBeenCalled();
+  });
+
+  it("reverts the dropped event when updating the appointment fails", async () => {
+    const user = userEvent.setup();
+
+    updateAppointmentMutationMock.mutateAsync.mockRejectedValueOnce(new Error("Erro no update"));
+
+    renderCalendar();
+
+    await user.click(screen.getByRole("button", { name: /disparar drop/i }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    await waitFor(() => {
+      expect(fullCalendarMock.eventDropRevert).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("marks the calendar frame while an event is being dragged", async () => {
+    const user = userEvent.setup();
+    const { container } = renderCalendar();
+
+    expect(container.querySelector('[data-event-dragging="true"]')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /disparar início do arraste/i }));
+
+    await user.click(screen.getByRole("button", { name: /disparar fim do arraste/i }));
+
+    expect(container.querySelector('[data-event-dragging="true"]')).not.toBeInTheDocument();
+  });
+
+  it("renders the selected event details popover and closes it", async () => {
+    const user = userEvent.setup();
+    const onClearSelectedEvent = vi.fn();
+
+    renderCalendar({
+      selectedEventPopoverId: "appointment-1",
+      onClearSelectedEvent,
+    });
+
+    expect(screen.getByRole("dialog", { name: /detalhes do agendamento/i })).toBeInTheDocument();
+    expect(screen.getByText("Ana Martins")).toBeInTheDocument();
+    expect(screen.getByText("Sem observações.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /fechar detalhes do agendamento/i }));
+
+    expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("prevents interactions inside selected event details from closing parent calendar popovers", () => {
+    const documentPointerDown = vi.fn();
+    const documentMouseDown = vi.fn();
+    const documentClick = vi.fn();
+
+    document.addEventListener("pointerdown", documentPointerDown);
+    document.addEventListener("mousedown", documentMouseDown);
+    document.addEventListener("click", documentClick);
+
+    try {
+      renderCalendar({
+        selectedEventPopoverId: "appointment-1",
+      });
+
+      const dialog = screen.getByRole("dialog", { name: /detalhes do agendamento/i });
+
+      fireEvent.pointerDown(dialog);
+      fireEvent.mouseDown(dialog);
+      fireEvent.click(dialog);
+
+      expect(documentPointerDown).not.toHaveBeenCalled();
+      expect(documentMouseDown).not.toHaveBeenCalled();
+      expect(documentClick).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener("pointerdown", documentPointerDown);
+      document.removeEventListener("mousedown", documentMouseDown);
+      document.removeEventListener("click", documentClick);
+    }
+  });
+
+  it("clears selected event details before opening the more appointments popover", async () => {
+    const user = userEvent.setup();
+    const onClearSelectedEvent = vi.fn();
+
+    renderCalendar({
+      selectedEventPopoverId: "appointment-1",
+      onClearSelectedEvent,
+    });
+
+    expect(screen.getByRole("dialog", { name: /detalhes do agendamento/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /abrir mais agendamentos/i }));
+
+    expect(onClearSelectedEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards the selected event from the details popover edit action", async () => {
+    const user = userEvent.setup();
+    const onEditEvent = vi.fn();
+
+    renderCalendar({
+      selectedEventPopoverId: "appointment-1",
+      onEditEvent,
+    });
+
+    await user.click(screen.getByRole("button", { name: /ações do agendamento/i }));
+    await user.click(screen.getByRole("menuitem", { name: /editar agendamento/i }));
+
+    expect(onEditEvent).toHaveBeenCalledWith(appointmentEvent);
   });
 });

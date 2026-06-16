@@ -5,6 +5,47 @@ export function formatCurrency(valueInCents: number) {
   }).format(valueInCents / 100);
 }
 
+type NumericInputChangeEvent = {
+  target: {
+    value: string;
+  };
+};
+
+type NumericInputChangeOptions = {
+  formatAsCurrency?: boolean;
+  showCurrencySymbol?: boolean;
+};
+
+const CURRENCY_SYMBOL_PATTERN = /^R\$\s?/;
+
+export function getOnlyNumbers(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+export function formatNumericInputValue(
+  value: string,
+  { formatAsCurrency = false, showCurrencySymbol = true }: NumericInputChangeOptions = {},
+) {
+  const numericValue = getOnlyNumbers(value);
+
+  if (!numericValue) return "";
+  if (!formatAsCurrency) return numericValue;
+
+  const formattedCurrency = formatCurrency(Number(numericValue));
+
+  return showCurrencySymbol
+    ? formattedCurrency
+    : formattedCurrency.replace(CURRENCY_SYMBOL_PATTERN, "");
+}
+
+export function handleNumericInputChange(
+  event: NumericInputChangeEvent,
+  onChange: (value: string) => void,
+  options?: NumericInputChangeOptions,
+) {
+  onChange(formatNumericInputValue(event.target.value, options));
+}
+
 export function formatCompactCurrency(valueInCents: number) {
   const value = valueInCents / 100;
 
@@ -47,7 +88,7 @@ function isValidDate(value: unknown): value is Date {
   return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
-function formatDateQueryParam(value: Date) {
+export function formatLocalDateTimeAsUtcISOString(value: Date) {
   return new Date(
     Date.UTC(
       value.getFullYear(),
@@ -59,6 +100,10 @@ function formatDateQueryParam(value: Date) {
       value.getMilliseconds(),
     ),
   ).toISOString();
+}
+
+function formatDateQueryParam(value: Date) {
+  return formatLocalDateTimeAsUtcISOString(value);
 }
 
 function appendQueryParam(params: URLSearchParams, name: string, rawValue: unknown) {
@@ -124,3 +169,19 @@ export function normalizeQueryParamsFilters<T extends object>(
 
   return normalizedFilters;
 }
+
+export function getValidDate(value: unknown) {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  }
+
+  return undefined;
+}
+
+export const onlyDigits = (value: string) => value.replace(/\D/g, "");

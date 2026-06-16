@@ -18,6 +18,7 @@ describe("auth/api", () => {
   it("should send a post to /auth/login with the payload", async () => {
     httpClientMock.mockResolvedValueOnce({
       accessToken: "abc",
+      onboardingCompletedAt: null,
       userId: "1",
     });
 
@@ -29,6 +30,7 @@ describe("auth/api", () => {
     });
     expect(response).toEqual({
       accessToken: "abc",
+      onboardingCompletedAt: null,
       userId: "1",
     });
   });
@@ -36,34 +38,35 @@ describe("auth/api", () => {
   it("should send a post to /auth/google with idToken", async () => {
     httpClientMock.mockResolvedValueOnce({
       accessToken: "jwt",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
       userId: "u-2",
     });
 
-    const response = await loginWithGoogle({ idToken: "google-id-jwt" });
+    const response = await loginWithGoogle({ idToken: "google-id-jwt", role: "ESTABLISHMENT" });
 
     expect(httpClientMock).toHaveBeenCalledWith("/auth/google", {
       method: "POST",
-      body: { idToken: "google-id-jwt" },
+      body: { idToken: "google-id-jwt", role: "ESTABLISHMENT" },
     });
-    expect(response).toEqual({ accessToken: "jwt", userId: "u-2" });
+    expect(response).toEqual({
+      accessToken: "jwt",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
+      userId: "u-2",
+    });
   });
 
   it("should call GET /user/me and map to AuthUser", async () => {
     httpClientMock.mockResolvedValueOnce({
       user: {
         id: "1",
+        establishmentId: "est-1",
+        onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
         name: "Fulano",
         email: "fulano@email.com",
         role: "CUSTOMER",
-        phone: "",
-        address: {
-          street: "",
-          complement: "",
-          country: "",
-          state: "",
-          zipCode: "",
-          city: "",
-        },
+        profileImageUrl: null,
+        phone: null,
+        address: null,
         socialAccounts: [],
         profileComplete: true,
         createdAt: "2026-01-01T00:00:00.000Z",
@@ -74,7 +77,12 @@ describe("auth/api", () => {
     const response = await getCurrentUser();
 
     expect(httpClientMock).toHaveBeenCalledWith("/user/me");
-    expect(response).toEqual({ id: "1", name: "Fulano", email: "fulano@email.com" });
+    expect(response).toEqual({
+      id: "1",
+      name: "Fulano",
+      email: "fulano@email.com",
+      onboardingCompletedAt: "2026-06-11T10:00:00.000Z",
+    });
   });
 
   it("should send a post to /auth/sign-out", async () => {

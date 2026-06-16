@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DashboardMetricsOverview } from "../api/types";
+import type { DashboardMetricsOverview } from "../types/api-types";
 
 const mocks = vi.hoisted(() => ({
   metricCard: vi.fn(),
@@ -97,7 +97,7 @@ const metricsOverviewMock: DashboardMetricsOverview = {
   },
   cancellationRate: {
     value: 4.2,
-    variationPercentage: -1.6,
+    variationInPercentagePoints: -1.6,
     points: [
       {
         date: "2026-05-01",
@@ -148,7 +148,7 @@ describe("MetricsOverview", () => {
       isLoading: true,
     });
 
-    render(<MetricsOverview filters={{}} />);
+    render(<MetricsOverview filters={{}} showMetrics />);
 
     expect(screen.getAllByTestId("metric-card-skeleton")).toHaveLength(4);
     expect(screen.queryByTestId("metric-card")).not.toBeInTheDocument();
@@ -166,7 +166,7 @@ describe("MetricsOverview", () => {
       statusCode: 500,
     });
 
-    render(<MetricsOverview filters={{}} />);
+    render(<MetricsOverview filters={{}} showMetrics />);
 
     expect(screen.getByText("Falha ao carregar a visão geral.")).toBeInTheDocument();
     expect(screen.getByText("Tente novamente em alguns instantes.")).toBeInTheDocument();
@@ -181,7 +181,7 @@ describe("MetricsOverview", () => {
       data: metricsOverviewMock,
     });
 
-    render(<MetricsOverview filters={{}} />);
+    render(<MetricsOverview filters={{}} showMetrics />);
 
     expect(screen.getAllByTestId("metric-card")).toHaveLength(4);
     expect(screen.getByText("Agendamentos")).toBeInTheDocument();
@@ -221,7 +221,7 @@ describe("MetricsOverview", () => {
       statusCode: 500,
     });
 
-    render(<MetricsOverview filters={{}} />);
+    render(<MetricsOverview filters={{}} showMetrics />);
 
     expect(screen.getAllByTestId("metric-card")).toHaveLength(4);
     expect(screen.queryByRole("button", { name: /tentar novamente/i })).not.toBeInTheDocument();

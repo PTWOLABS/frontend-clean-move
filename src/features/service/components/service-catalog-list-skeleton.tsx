@@ -17,7 +17,7 @@ export function ServiceCatalogListSkeleton({ count = 5 }: ServiceCatalogListSkel
       className="space-y-0"
       aria-busy="true"
       aria-live="polite"
-      aria-label="A carregar lista de serviços"
+      aria-label="Carregando lista de serviços"
     >
       {/* Desktop: linhas estilo tabela */}
       <div className="hidden rounded-lg border border-border md:block">

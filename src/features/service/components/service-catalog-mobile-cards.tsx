@@ -16,7 +16,7 @@ import type { ServiceItem } from "../types";
 import { ServiceStatusBadge } from "./service-status-badge";
 
 function serviceRowKey(item: ServiceItem, index: number): string {
-  return item.id ?? `${item.serviceName}-${item.category}-${index}`;
+  return item.id ?? `${item.serviceName}-${item.category?.id ?? "none"}-${index}`;
 }
 
 const mobileActionButtonClass =
@@ -168,7 +168,7 @@ export function ServiceCatalogMobileCards({
                     )}
                   />
                   <p className="truncate text-sm font-bold tabular-nums leading-none text-success sm:text-base">
-                    {formatServicePriceBrl(item.price)}
+                    {formatServicePriceBrl(item.priceSpecification)}
                   </p>
                 </div>
               </div>

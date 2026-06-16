@@ -17,7 +17,7 @@ export function useLogout() {
     onSuccess: () => {
       setAccessToken(null);
       queryClient.removeQueries({ queryKey: QUERY_KEYS.authSession });
-      queryClient.removeQueries({ queryKey: ["user", "me"] });
+      queryClient.removeQueries({ queryKey: QUERY_KEYS.userMe() });
       router.replace("/login");
     },
     onError: (error) => {

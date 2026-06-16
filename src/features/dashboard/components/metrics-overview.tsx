@@ -5,7 +5,7 @@ import { CalendarDays, DollarSign, Percent, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency, formatNumber, formatPercent } from "@/shared/utils/lib";
 
-import type { DashboardMetricsOverview } from "../api/types";
+import type { DashboardMetricsOverview } from "../types/api-types";
 import { useMetricsOverview } from "../hooks/use-metrics-overview";
 import { useDashboardQueryErrorFeedback } from "../hooks/use-dashboard-query-error-feedback";
 import { DashboardMetricCardSkeleton, DashboardQueryErrorState } from "./dashboard-query-state";
@@ -29,9 +29,10 @@ function mapMetricPoints(
 
 type MetricsOverviewProps = {
   filters: DashboardMetricsFiltersBase;
+  showMetrics: boolean;
 };
 
-export function MetricsOverview({ filters }: MetricsOverviewProps) {
+export function MetricsOverview({ filters, showMetrics }: MetricsOverviewProps) {
   const { data: metricsOverview, error, isLoading, refetch } = useMetricsOverview(filters);
   const errorFeedback = useDashboardQueryErrorFeedback({
     resourceKey: "metrics-overview",
@@ -80,7 +81,7 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
       title: "Taxa de cancelamento",
       value: formatPercent(metricsOverview?.cancellationRate.value ?? 0),
       icon: Percent,
-      trend: buildTrend(metricsOverview?.cancellationRate.variationPercentage ?? null, {
+      trend: buildTrend(metricsOverview?.cancellationRate.variationInPercentagePoints ?? null, {
         invertDirection: true,
       }),
       chartData: mapMetricPoints(metricsOverview?.cancellationRate.points),
@@ -95,12 +96,14 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
   ] satisfies MetricCardProps[];
 
   if (isLoading && !metricsOverview) {
-    return Array.from({ length: 4 }, (_, index) => <DashboardMetricCardSkeleton key={index} />);
+    return Array.from({ length: 4 }, (_, index) => (
+      <DashboardMetricCardSkeleton key={`dashboard-metric-card-skeleton-${index}`} />
+    ));
   }
 
   if (errorFeedback && !metricsOverview) {
     return (
-      <Card className="relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-card backdrop-blur-sm sm:p-5 md:col-span-2 xl:col-span-4">
+      <Card className="relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm sm:p-5 md:col-span-2 xl:col-span-4">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
@@ -118,7 +121,7 @@ export function MetricsOverview({ filters }: MetricsOverviewProps) {
   return (
     <>
       {dashboardMetrics.map((metric) => (
-        <MetricCard key={`metric-${metric.title}`} {...metric} />
+        <MetricCard key={`metric-${metric.title}`} showMetrics={showMetrics} {...metric} />
       ))}
     </>
   );

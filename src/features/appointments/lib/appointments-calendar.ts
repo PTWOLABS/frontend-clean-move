@@ -1,6 +1,7 @@
-import { addMinutes, format, isSameDay, isSameMonth, isSameYear, subMinutes } from "date-fns";
+import { addMinutes, format, isSameMonth, isSameYear, startOfDay, subMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+import { formatReaisToBrlInput } from "@/shared/money/format-brl-money";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 
 import type { AppointmentDTO } from "../types/appointments-dto";
@@ -8,39 +9,24 @@ import type {
   AppointmentCalendarEvent,
   AppointmentCalendarView,
   AppointmentTone,
+  AppointmentVehicleExtendedProps,
 } from "../types/appointment-calendar";
+import { parseAppointmentDateTime } from "@/shared/utils/appointments-helpers";
 
 type AppointmentListItem = AppointmentDTO["appointments"][number];
 
 const DEFAULT_APPOINTMENT_DURATION_IN_MINUTES = 60;
-const DEFAULT_ATTENDANTS = ["Patricia Costa", "Lucas Martins"];
-const FALLBACK_CUSTOMER_NAMES = [
-  "Ana Martins",
-  "Bruno Costa",
-  "Carla Souza",
-  "Diego Lima",
-  "Fernanda Rocha",
-  "Mariana Alves",
-];
+const FALLBACK_CUSTOMER_LABEL = "Cliente não informado";
+const FALLBACK_VEHICLE_LABEL = "Veículo não informado";
 
 function sortAppointmentsByStart(left: AppointmentCalendarEvent, right: AppointmentCalendarEvent) {
-  return left.start.getTime() - right.start.getTime();
+  return left.startsAt.getTime() - right.startsAt.getTime();
 }
 
-function getStableIndex(seed: string, size: number) {
-  return [...seed].reduce((total, character) => total + character.charCodeAt(0), 0) % size;
-}
+function getCustomerLabel(appointment: AppointmentListItem) {
+  const customerLabel = appointment.customer?.fullName;
 
-function getFallbackCustomerName(appointmentId: string) {
-  return FALLBACK_CUSTOMER_NAMES[getStableIndex(appointmentId, FALLBACK_CUSTOMER_NAMES.length)]!;
-}
-
-function getFallbackAttendants(appointmentId: string) {
-  const startIndex = getStableIndex(appointmentId, DEFAULT_ATTENDANTS.length);
-  return [
-    DEFAULT_ATTENDANTS[startIndex]!,
-    DEFAULT_ATTENDANTS[(startIndex + 1) % DEFAULT_ATTENDANTS.length]!,
-  ];
+  return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
 }
 
 function getServicesSummary(appointment: AppointmentListItem) {
@@ -68,16 +54,54 @@ function getServicesSummary(appointment: AppointmentListItem) {
   };
 }
 
-function getVehicleLabel(appointment: AppointmentListItem) {
+function getServiceOptions(appointment: AppointmentListItem) {
+  return appointment.services.map((service) => ({
+    value: service.id,
+    label: service.name.trim() || "Serviço não informado",
+  }));
+}
+
+function getPricedServices(appointment: AppointmentListItem) {
+  return appointment.services.map((service) => ({
+    serviceId: service.id,
+    label: service.name.trim() || "Serviço não informado",
+    priceInCents: service.priceInCents,
+  }));
+}
+
+function normalizeVehicleText(value: string | null | undefined) {
+  return value?.trim() ?? "";
+}
+
+function getVehicleDetails(appointment: AppointmentListItem): AppointmentVehicleExtendedProps {
   if (!appointment.vehicle) {
-    return "Veículo não informado";
+    return {
+      plate: "",
+      brand: "",
+      model: "",
+      displayName: FALLBACK_VEHICLE_LABEL,
+    };
   }
 
-  const segments = [appointment.vehicle.brand, appointment.vehicle.model, appointment.vehicle.plate]
-    .filter((value) => typeof value === "string" && value.trim().length > 0)
-    .map((value) => value!.trim());
+  const plate = normalizeVehicleText(appointment.vehicle.plate);
+  const brand = normalizeVehicleText(appointment.vehicle.brand);
+  const model = normalizeVehicleText(appointment.vehicle.model);
+  const displayName = [brand, model, plate].filter(Boolean).join(" • ") || FALLBACK_VEHICLE_LABEL;
 
-  return segments.length ? segments.join(" • ") : "Veículo não informado";
+  return {
+    plate,
+    brand,
+    model,
+    displayName,
+  };
+}
+
+function getDiscountValue(appointment: AppointmentListItem) {
+  if (appointment.discountInCents === null || appointment.discountInCents === undefined) {
+    return "";
+  }
+
+  return formatReaisToBrlInput(appointment.discountInCents / 100);
 }
 
 function getAppointmentDurationInMinutes(appointment: AppointmentListItem) {
@@ -94,7 +118,7 @@ function getAppointmentDurationInMinutes(appointment: AppointmentListItem) {
 
 function getAppointmentEnd(appointment: AppointmentListItem, start: Date) {
   if (appointment.endsAt) {
-    return new Date(appointment.endsAt);
+    return parseAppointmentDateTime(appointment.endsAt);
   }
 
   return addMinutes(start, getAppointmentDurationInMinutes(appointment));
@@ -114,22 +138,30 @@ function getAppointmentTone(status: AppointmentStatus): AppointmentTone {
 export function mapAppointmentToCalendarEvent(
   appointment: AppointmentListItem,
 ): AppointmentCalendarEvent {
-  const start = new Date(appointment.startsAt);
+  const start = parseAppointmentDateTime(appointment.startsAt);
   const end = getAppointmentEnd(appointment, start);
+  const explicitEnd = appointment.endsAt ? parseAppointmentDateTime(appointment.endsAt) : null;
   const services = getServicesSummary(appointment);
+  const vehicle = getVehicleDetails(appointment);
+  const description = appointment.description?.trim() ?? "";
 
   return {
     id: appointment.id,
     title: services.title,
-    start,
+    startsAt: start,
     end,
     extendedProps: {
-      customer: getFallbackCustomerName(appointment.id),
+      customerId: appointment.customerId,
+      customer: getCustomerLabel(appointment),
+      serviceIds: getServiceOptions(appointment),
+      services: getPricedServices(appointment),
       service: services.label,
-      vehicle: getVehicleLabel(appointment),
-      attendants: getFallbackAttendants(appointment.id),
-      notes: appointment.description?.trim() || "Sem observações operacionais.",
-      reminder: "Lembrete automático padrão",
+      vehicleId: appointment.vehicleId ?? "",
+      vehicle,
+      endsAt: explicitEnd,
+      description,
+      discountValue: getDiscountValue(appointment),
+      notes: description || "Sem observações operacionais.",
       tone: getAppointmentTone(appointment.status),
       status: appointment.status,
     },
@@ -145,7 +177,16 @@ export function mapAppointmentsToCalendarEvents(
 }
 
 export function getAppointmentsForDate(events: AppointmentCalendarEvent[], date: Date) {
-  return events.filter((event) => isSameDay(event.start, date)).sort(sortAppointmentsByStart);
+  const selectedDay = startOfDay(date).getTime();
+
+  return events
+    .filter((event) => {
+      const eventStartDay = startOfDay(event.startsAt).getTime();
+      const eventEndDay = startOfDay(event.end).getTime();
+
+      return eventStartDay <= selectedDay && eventEndDay >= selectedDay;
+    })
+    .sort(sortAppointmentsByStart);
 }
 
 export function findNextAppointment(events: AppointmentCalendarEvent[], now: Date = new Date()) {
@@ -153,7 +194,7 @@ export function findNextAppointment(events: AppointmentCalendarEvent[], now: Dat
     events
       .filter(
         (event) =>
-          event.extendedProps.status !== "CANCELLED" && event.start.getTime() >= now.getTime(),
+          event.extendedProps.status !== "CANCELLED" && event.startsAt.getTime() >= now.getTime(),
       )
       .sort(sortAppointmentsByStart)[0] ?? null
   );
@@ -187,6 +228,8 @@ export function getViewLabel(view: AppointmentCalendarView) {
       return "Visão semanal";
     case "timeGridDay":
       return "Visão diária";
+    case "listWeek":
+      return "Visão em lista";
   }
 }
 

@@ -45,6 +45,7 @@ export const FormField = <
   className,
   control,
   renderControl = true,
+  required,
   children,
   ...props
 }: FormFieldProps<TFieldValues, TName>) => {
@@ -56,7 +57,16 @@ export const FormField = <
       name={name}
       render={({ field, fieldState }) => (
         <FormItem className={className}>
-          {label && <FormLabel htmlFor={fieldId}>{label}</FormLabel>}
+          {label && (
+            <FormLabel htmlFor={fieldId}>
+              {label}
+              {required && (
+                <span aria-hidden="true" className="ml-1 text-destructive">
+                  *
+                </span>
+              )}
+            </FormLabel>
+          )}
           {children ? (
             renderControl ? (
               <FormControl>{children({ field, fieldState })}</FormControl>
@@ -65,7 +75,7 @@ export const FormField = <
             )
           ) : (
             <FormControl>
-              <Input {...field} {...props} id={fieldId} />
+              <Input {...field} {...props} id={fieldId} required={required} />
             </FormControl>
           )}
           <FormMessage />

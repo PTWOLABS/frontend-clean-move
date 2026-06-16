@@ -8,7 +8,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 
 const fetchAddressByZipCodeMock = vi.fn();
 
-vi.mock("../api/viacep", () => ({
+vi.mock("@/shared/api/viacep", () => ({
   fetchAddressByZipCode: (...args: unknown[]) => fetchAddressByZipCodeMock(...args),
 }));
 

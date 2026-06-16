@@ -25,6 +25,7 @@ export type MetricCardProps = Omit<React.ComponentPropsWithoutRef<typeof Card>, 
   icon: LucideIcon;
   trend: MetricCardTrend;
   chartData: MetricCardChartDataPoint[];
+  showMetrics?: boolean;
   chartAriaLabel?: string;
 };
 
@@ -50,7 +51,20 @@ const trendMeta: Record<
 };
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
-  ({ title, value, icon: Icon, trend, chartData, chartAriaLabel, className, ...props }, ref) => {
+  (
+    {
+      title,
+      value,
+      icon: Icon,
+      trend,
+      chartData,
+      chartAriaLabel,
+      showMetrics,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const TrendIcon = trendMeta[trend.direction].icon;
     const trendClassName = trendMeta[trend.direction].className;
 
@@ -58,7 +72,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       <Card
         ref={ref}
         className={cn(
-          "relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-card backdrop-blur-sm sm:p-5",
+          "relative h-full min-h-36 overflow-hidden rounded-2xl border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm sm:p-5",
           className,
         )}
         {...props}
@@ -70,10 +84,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
 
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium leading-none text-card-foreground/85">
+            <p className="truncate text-sm font-medium leading-5 text-card-foreground/85">
               {title}
             </p>
-            <p className="mt-5 truncate font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground">
+            <p
+              className={cn(
+                "mt-5 truncate font-display text-3xl font-semibold leading-none tracking-tight text-card-foreground",
+                !showMetrics ? "blur-md" : "blur-none",
+              )}
+            >
               {value}
             </p>
           </div>
@@ -86,7 +105,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </span>
         </div>
 
-        <div className="mt-4 flex items-end justify-between gap-3">
+        <div
+          className={cn(
+            "mt-4 flex items-end justify-between gap-3",
+            !showMetrics ? "blur-sm" : "blur-none",
+          )}
+        >
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             <span className={cn("inline-flex items-center gap-1 font-semibold", trendClassName)}>
               <TrendIcon aria-hidden="true" className="size-3.5" />

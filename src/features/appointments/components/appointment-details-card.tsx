@@ -10,11 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/shared/utils/cn";
 
 import { getStatusLabel } from "../lib/appointments-calendar";
-import {
-  formatAppointmentTimeRange,
-  getInitials,
-  statusBadgeClassName,
-} from "../lib/appointments-page.helpers";
+import { formatAppointmentTimeRange, statusBadgeClassName } from "../lib/appointments-page.helpers";
 import type { AppointmentCalendarEvent } from "../types/appointment-calendar";
 
 type AppointmentDetailsCardProps = {
@@ -74,11 +70,10 @@ export function AppointmentDetailsCard({
                 <CalendarClock className="mt-0.5 size-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-card-foreground">
-                    {format(selectedEvent.start, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                    {format(selectedEvent.startsAt, "EEEE, d 'de' MMMM", { locale: ptBR })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatAppointmentTimeRange(selectedEvent)} •{" "}
-                    {selectedEvent.extendedProps.reminder}
+                    {formatAppointmentTimeRange(selectedEvent)}
                   </p>
                 </div>
               </div>
@@ -97,7 +92,7 @@ export function AppointmentDetailsCard({
                 <CarFront className="mt-0.5 size-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-card-foreground">
-                    {selectedEvent.extendedProps.vehicle}
+                    {selectedEvent.extendedProps.vehicle.displayName}
                   </p>
                   <p className="text-xs text-muted-foreground">Veículo vinculado</p>
                 </div>
@@ -111,23 +106,6 @@ export function AppointmentDetailsCard({
                   </p>
                   <p className="text-xs text-muted-foreground">Observações operacionais</p>
                 </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-border/70 bg-background/45 p-4">
-              <p className="text-sm font-medium text-card-foreground">Equipe alocada</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectedEvent.extendedProps.attendants.map((attendant) => (
-                  <div
-                    key={attendant}
-                    className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-2.5 py-1.5"
-                  >
-                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
-                      {getInitials(attendant)}
-                    </span>
-                    <span className="text-sm text-card-foreground">{attendant}</span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

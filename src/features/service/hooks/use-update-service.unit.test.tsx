@@ -31,13 +31,15 @@ vi.mock("sonner", () => ({
 
 import { useUpdateService } from "./use-update-service";
 
+const washCategory = { id: "11cf3860-d512-47db-b9d1-c9044be6250d", name: "Lavagem" };
+
 const baseItem: ServiceItem = {
   id: "svc-1",
   serviceName: "Lavagem Completa",
   description: "Inclui aspiração",
-  category: "WASH",
+  category: washCategory,
   estimatedDuration: { minInMinutes: 60, maxInMinutes: 60 },
-  price: 6500,
+  priceSpecification: { type: "FIXED", fixedPriceInCents: 6500 },
   isActive: true,
 };
 
@@ -113,6 +115,11 @@ describe("useUpdateService", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(client.getQueryData<ServicesPage>(key)).toEqual(initialPage);
-    expect(toastErrorMock).toHaveBeenCalledWith("Dados inválidos");
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      "Não foi possível atualizar o serviço.",
+      expect.objectContaining({
+        description: "Verifique se os dados enviados estão corretos.",
+      }),
+    );
   });
 });

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  BarChart3,
   CalendarDays,
   Car,
   ChevronDown,
@@ -43,8 +42,8 @@ type PosNavigationItem = {
 
 const operationItems: NavigationItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Agenda", href: "/agenda", icon: CalendarDays },
-  { label: "Agendamentos", href: "/appointments", icon: ClipboardList },
+  { label: "Agenda", href: "/agenda", icon: ClipboardList },
+  { label: "Calendário", href: "/appointments", icon: CalendarDays },
 ];
 
 const registerItems: NavigationItem[] = [
@@ -54,8 +53,8 @@ const registerItems: NavigationItem[] = [
 ];
 
 const managementItems: NavigationItem[] = [
-  { label: "Orçamentos", href: "/budgets", icon: FileText },
-  { label: "Relatórios", href: "/reports", icon: BarChart3 },
+  { label: "Orçamentos", href: "/quotes", icon: FileText },
+  // { label: "Relatórios", href: "/reports", icon: BarChart3 },
   { label: "Configurações", href: "/settings", icon: Settings },
 ];
 
@@ -124,7 +123,7 @@ function NavSection({
   );
 }
 
-function PosNavigationItem({ pathname }: { pathname: string }) {
+export function PosNavigationItem({ pathname }: { pathname: string }) {
   const isPosActive = isRouteActive(pathname, "/pos");
   const [isOpen, setIsOpen] = useState(false);
   const isExpanded = isOpen || isPosActive;
@@ -201,7 +200,7 @@ function OperationSection({ pathname }: { pathname: string }) {
             </SidebarMenuItem>
           ))}
 
-          <PosNavigationItem pathname={pathname} />
+          {/* <PosNavigationItem pathname={pathname} /> */}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

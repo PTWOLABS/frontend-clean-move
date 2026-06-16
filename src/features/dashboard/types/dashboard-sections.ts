@@ -27,6 +27,14 @@ export type PopularService = {
   completedCount: number;
 };
 
+export type TopCustomer = {
+  position: number;
+  customerId: string;
+  customerName: string;
+  completedAppointmentsCount: number;
+  totalSpentInCents: number;
+};
+
 export type DashboardPeriodOption = {
   value: string;
   label: string;
@@ -39,7 +47,7 @@ export type DashboardMetricsFiltersBase = {
   startsAt?: Date;
   endsAt?: Date;
   categories?: AppointmentCategories[];
-  status?: AppointmentStatus;
+  status?: AppointmentStatus[];
   period?: DashboardPeriod;
   granularity?: DashboardGranularity;
 };
@@ -51,4 +59,10 @@ export type DashboardMetricsAppointmentsFilters = DashboardMetricsFiltersBase;
 export type DashboardPopularServicesFilters = DashboardMetricsFiltersBase & PaginationParams;
 
 export type DashboardMetricsRevenueAndAppointmentsFilters = DashboardMetricsFiltersBase &
+  PaginationParams;
+
+export type DashboardTopCustomersFilters = Pick<
+  DashboardMetricsFiltersBase,
+  "startsAt" | "endsAt" | "period"
+> &
   PaginationParams;

@@ -11,24 +11,24 @@ import { CalendarCellAddIndicator } from "../components/calendar/calendar-cell-a
 type MonthCellIndicatorTarget = {
   date: Date;
   key: string;
-  frameElement: HTMLElement;
+  cellElement: HTMLElement;
 };
 
 type UseMonthCellIndicatorsOptions = {
+  isHidden?: boolean;
   onMonthCellPress: (date: Date) => void;
+  onCellAddIndicatorPress: (open: boolean) => void;
 };
 
-export function useMonthCellIndicators({ onMonthCellPress }: UseMonthCellIndicatorsOptions) {
+export function useMonthCellIndicators({
+  isHidden = false,
+  onMonthCellPress,
+  onCellAddIndicatorPress,
+}: UseMonthCellIndicatorsOptions) {
   const [targets, setTargets] = useState<MonthCellIndicatorTarget[]>([]);
 
   const handleMonthCellDidMount = useCallback((arg: DayCellMountArg) => {
     if (arg.view.type !== "dayGridMonth") {
-      return;
-    }
-
-    const frameElement = arg.el.querySelector<HTMLElement>(".fc-daygrid-day-frame");
-
-    if (!frameElement) {
       return;
     }
 
@@ -38,7 +38,7 @@ export function useMonthCellIndicators({ onMonthCellPress }: UseMonthCellIndicat
       const nextTarget = {
         date: arg.date,
         key,
-        frameElement,
+        cellElement: arg.el,
       };
       const existingIndex = currentTargets.findIndex((target) => target.key === key);
 
@@ -56,31 +56,36 @@ export function useMonthCellIndicators({ onMonthCellPress }: UseMonthCellIndicat
     setTargets((currentTargets) => currentTargets.filter((target) => target.key !== key));
   }, []);
 
-  const monthCellIndicatorPortals = useMemo(
-    () =>
-      targets
-        .filter((target) => target.frameElement.isConnected)
-        .map((target) =>
-          createPortal(
-            <button
-              key={target.key}
-              type="button"
-              className={styles.monthCellIndicatorButton}
-              aria-label={`Selecionar dia ${format(target.date, "dd/MM/yyyy", { locale: ptBR })}`}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                onMonthCellPress(target.date);
-              }}
-            >
-              <CalendarCellAddIndicator className={styles.monthCellIndicatorIcon} />
-            </button>,
-            target.frameElement,
-            target.key,
-          ),
+  const monthCellIndicatorPortals = useMemo(() => {
+    if (isHidden) {
+      return [];
+    }
+
+    return targets
+      .filter((target) => target.cellElement.isConnected)
+      .map((target) =>
+        createPortal(
+          <button
+            key={target.key}
+            type="button"
+            className={styles.monthCellIndicatorButton}
+            aria-label={`Selecionar dia ${format(target.date, "dd/MM/yyyy", { locale: ptBR })}`}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onMonthCellPress(target.date);
+            }}
+          >
+            <CalendarCellAddIndicator
+              className={styles.monthCellIndicatorIcon}
+              onClick={onCellAddIndicatorPress}
+            />
+          </button>,
+          target.cellElement,
+          target.key,
         ),
-    [onMonthCellPress, targets],
-  );
+      );
+  }, [isHidden, onMonthCellPress, targets, onCellAddIndicatorPress]);
 
   const renderMonthDayCellContent = useCallback((arg: DayCellContentArg) => arg.dayNumberText, []);
 

@@ -1,16 +1,19 @@
-import { ServiceCategoryCode } from "@/features/service/types";
 import { AppointmentStatus } from "@/shared/types/appointments";
+import type { ServiceCategoryRef } from "@/features/service-category/types";
 
 export type AppointmentDTO = {
   appointments: {
     id: string;
     establishmentId: string;
     customerId: string;
+    customer?: {
+      fullName?: string | null;
+    } | null;
     vehicleId: string | null;
     services: {
       id: string;
       name: string;
-      category: ServiceCategoryCode | null;
+      category: ServiceCategoryRef | null;
       durationInMinutes: number | null;
       priceInCents: number;
     }[];
@@ -31,4 +34,19 @@ export type AppointmentDTO = {
     doneAt: string | null;
     cancelledAt: string | null;
   }[];
+  totalItems?: number;
+};
+
+export type UpdateAppointmentStatusDTO = {
+  appointment: {
+    id: string;
+    status: AppointmentStatus;
+    updatedAt: string;
+    doneAt?: string | null;
+    cancelledAt?: string | null;
+  };
+};
+
+export type UpdateAppointmentDTO = {
+  appointment: AppointmentDTO["appointments"][number];
 };

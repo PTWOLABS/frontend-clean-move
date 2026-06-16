@@ -7,14 +7,16 @@ describe("CalendarMoreLinkContent", () => {
   it("renders singular accessible and compact labels", () => {
     render(<CalendarMoreLinkContent count={1} />);
 
-    expect(screen.getAllByText("mais 1 agendamento...")).toHaveLength(2);
-    expect(screen.getByText("mais 1...")).toBeInTheDocument();
+    expect(screen.getByText("mais 1 agendamento...")).toHaveClass("sr-only");
+    expect(screen.getByText("+1 ag.")).toBeInTheDocument();
+    expect(screen.getByText("+1")).toBeInTheDocument();
   });
 
   it("renders plural accessible and compact labels", () => {
     render(<CalendarMoreLinkContent count={3} />);
 
-    expect(screen.getAllByText("mais 3 agendamentos...")).toHaveLength(2);
-    expect(screen.getByText("mais 3...")).toBeInTheDocument();
+    expect(screen.getByText("mais 3 agendamentos...")).toHaveClass("sr-only");
+    expect(screen.getByText("+3 ag.")).toBeInTheDocument();
+    expect(screen.getByText("+3")).toBeInTheDocument();
   });
 });

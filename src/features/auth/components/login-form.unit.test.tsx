@@ -6,6 +6,23 @@ import { renderWithProviders } from "@/test/test-utils";
 
 const loginMock = vi.fn();
 const googleLoginMock = vi.fn();
+const routerReplaceMock = vi.fn();
+
+type AuthSessionMockResult = {
+  data?: {
+    id: string;
+    name: string;
+    email: string;
+    onboardingCompletedAt: string | null;
+  };
+  isSuccess: boolean;
+  isPending: boolean;
+};
+
+const authSessionMock = vi.fn<() => AuthSessionMockResult>(() => ({
+  isSuccess: false,
+  isPending: false,
+}));
 
 vi.mock("../hooks/use-login", () => ({
   useLogin: () => ({
@@ -18,6 +35,16 @@ vi.mock("../hooks/use-google-login", () => ({
   useGoogleLogin: () => ({
     mutate: googleLoginMock,
     isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-auth-session", () => ({
+  useAuthSession: () => authSessionMock(),
+}));
+
+vi.mock("@bprogress/next", () => ({
+  useRouter: () => ({
+    replace: routerReplaceMock,
   }),
 }));
 
@@ -35,6 +62,12 @@ describe("LoginForm", () => {
   beforeEach(() => {
     loginMock.mockReset();
     googleLoginMock.mockReset();
+    routerReplaceMock.mockReset();
+    authSessionMock.mockReset();
+    authSessionMock.mockReturnValue({
+      isSuccess: false,
+      isPending: false,
+    });
   });
 
   it("should render the main fields and buttons", () => {
@@ -105,6 +138,25 @@ describe("LoginForm", () => {
     expect(loginMock).toHaveBeenCalledWith({
       email: "user@email.com",
       password: "senhaForte",
+    });
+  });
+
+  it("should redirect to the post-login path when an auth session already exists", async () => {
+    authSessionMock.mockReturnValue({
+      data: {
+        id: "1",
+        name: "Fulano",
+        email: "fulano@email.com",
+        onboardingCompletedAt: null,
+      },
+      isSuccess: true,
+      isPending: false,
+    });
+
+    renderWithProviders(<LoginForm />);
+
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenCalledWith("/onboarding");
     });
   });
 });

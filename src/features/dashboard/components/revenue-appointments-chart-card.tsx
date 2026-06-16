@@ -1,11 +1,12 @@
 "use client";
 
+import { differenceInCalendarDays } from "date-fns";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Select } from "@/components/ui/select/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DashboardMetricsRevenueAndAppointments } from "@/features/dashboard/api/types";
+import type { DashboardMetricsRevenueAndAppointments } from "@/features/dashboard/types/api-types";
 import { cn } from "@/shared/utils/cn";
 import { formatCompactCurrency, formatCurrency, formatNumber } from "@/shared/utils/lib";
 import { useState } from "react";
@@ -22,6 +23,7 @@ type RevenueAppointmentsChartCardProps = {
     value: DashboardGranularity;
   }[];
   defaultGranularity: DashboardGranularity;
+  showMetrics: boolean;
   className?: string;
   filters?: DashboardMetricsFiltersBase;
 };
@@ -41,6 +43,10 @@ type RevenueTooltipProps = {
   payload?: RevenueTooltipPayload[];
 };
 
+type DateRangeLimits = {
+  days: number;
+};
+
 const chartConfig = {
   revenueInCents: {
     label: "Receita (R$)",
@@ -52,12 +58,83 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const revenueAppointmentsTooltip =
+  "Evolução da receita e dos agendamentos nos filtros selecionados. A granularidade controla o agrupamento dos pontos do gráfico.";
+
+const periodRangeDays = {
+  "last-7-days": {
+    days: 7,
+  },
+  "last-30-days": {
+    days: 30,
+  },
+} satisfies Record<
+  Exclude<NonNullable<DashboardMetricsFiltersBase["period"]>, "this-month">,
+  {
+    days: number;
+  }
+>;
+
 function formatTrend(value: number) {
   const formattedValue = new Intl.NumberFormat("pt-BR", {
     maximumFractionDigits: 1,
   }).format(value);
 
   return `${value > 0 ? "+" : ""}${formattedValue}%`;
+}
+
+function getDateRangeLimits(filters?: DashboardMetricsFiltersBase) {
+  if (filters?.startsAt && filters.endsAt) {
+    return {
+      days: Math.abs(differenceInCalendarDays(filters.endsAt, filters.startsAt)) + 1,
+    } satisfies DateRangeLimits;
+  }
+
+  if (filters?.period) {
+    if (filters.period === "this-month") {
+      return {
+        days: new Date().getDate(),
+      } satisfies DateRangeLimits;
+    }
+
+    return periodRangeDays[filters.period] satisfies DateRangeLimits;
+  }
+
+  return null;
+}
+
+function isGranularityEnabled(
+  granularity: DashboardGranularity,
+  rangeLimits: ReturnType<typeof getDateRangeLimits>,
+) {
+  if (!rangeLimits) {
+    return true;
+  }
+
+  if (granularity === "auto") {
+    return false;
+  }
+
+  if (rangeLimits.days <= 7) {
+    return granularity === "daily";
+  }
+
+  if (rangeLimits.days <= 31) {
+    return granularity === "daily" || granularity === "weekly";
+  }
+
+  if (rangeLimits.days <= 180) {
+    return granularity === "weekly" || granularity === "monthly";
+  }
+
+  return granularity === "monthly";
+}
+
+function getFiltersWithoutGranularity(filters?: DashboardMetricsFiltersBase) {
+  const nextFilters = { ...filters };
+  delete nextFilters.granularity;
+
+  return nextFilters;
 }
 
 function RevenueAppointmentsTooltip({ active, payload }: RevenueTooltipProps) {
@@ -106,10 +183,12 @@ function SummaryMetric({
   label,
   value,
   trend,
+  showMetrics,
 }: {
   label: string;
   value: string;
   trend: RevenueAppointmentsSummary["revenueTrendPercent"];
+  showMetrics: boolean;
 }) {
   const hasTrend = trend !== null;
 
@@ -117,13 +196,19 @@ function SummaryMetric({
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <p className="font-display text-xl font-semibold leading-none text-card-foreground">
+        <p
+          className={cn(
+            "font-display text-xl font-semibold leading-none text-card-foreground",
+            !showMetrics ? "blur-sm" : "blur-none",
+          )}
+        >
           {value}
         </p>
         <span
           className={cn(
             "text-xs font-semibold",
             hasTrend ? (trend >= 0 ? "text-success" : "text-danger") : "text-muted-foreground",
+            !showMetrics ? "blur-sm" : "blur-none",
           )}
         >
           {hasTrend ? formatTrend(trend) : "Sem comparação"}
@@ -136,14 +221,25 @@ function SummaryMetric({
 export function RevenueAppointmentsChartCard({
   granularityOptions,
   defaultGranularity,
+  showMetrics,
   className,
   filters,
 }: RevenueAppointmentsChartCardProps) {
   const [granularity, setGranularity] = useState(defaultGranularity);
+  const rangeLimits = getDateRangeLimits(filters);
+  const resolvedGranularityOptions = granularityOptions.map((option) => ({
+    ...option,
+    disabled: !isGranularityEnabled(option.value, rangeLimits),
+  }));
+  const selectedGranularity = isGranularityEnabled(granularity, rangeLimits)
+    ? granularity
+    : resolvedGranularityOptions.find((option) => !option.disabled)?.value;
+
+  const filtersWithoutGranularity = getFiltersWithoutGranularity(filters);
 
   const { data, error, isLoading, refetch } = useFetchMetricsRevenueAndAppointment({
-    ...filters,
-    granularity,
+    ...filtersWithoutGranularity,
+    ...(selectedGranularity ? { granularity: selectedGranularity } : {}),
   });
 
   const errorFeedback = useDashboardQueryErrorFeedback({
@@ -156,9 +252,9 @@ export function RevenueAppointmentsChartCard({
 
   const action = granularityOptions.length ? (
     <Select
-      options={granularityOptions}
-      className="h-8 w-32 border-border/80 bg-muted/30 text-xs"
-      value={granularity}
+      options={resolvedGranularityOptions}
+      className="h-8 w-32 border-border/80 bg-muted/30 text-xs shadow-xs"
+      value={selectedGranularity}
       onChange={setGranularity}
     />
   ) : null;
@@ -167,6 +263,7 @@ export function RevenueAppointmentsChartCard({
     return (
       <DashboardPanelSkeleton
         title="Receita e agendamentos ao longo do tempo"
+        titleTooltip={revenueAppointmentsTooltip}
         className={className}
         action={action}
       >
@@ -195,6 +292,7 @@ export function RevenueAppointmentsChartCard({
     return (
       <DashboardPanel
         title="Receita e agendamentos ao longo do tempo"
+        titleTooltip={revenueAppointmentsTooltip}
         className={className}
         action={action}
       >
@@ -211,6 +309,7 @@ export function RevenueAppointmentsChartCard({
   return (
     <DashboardPanel
       title="Receita e agendamentos ao longo do tempo"
+      titleTooltip={revenueAppointmentsTooltip}
       className={className}
       action={action}
     >
@@ -230,7 +329,7 @@ export function RevenueAppointmentsChartCard({
           config={chartConfig}
           role="img"
           aria-label="Gráfico de receita e agendamentos ao longo do tempo"
-          className="h-72 w-full aspect-auto"
+          className={cn("h-72 w-full aspect-auto", !showMetrics ? "blur-xl" : "blur-none")}
         >
           <AreaChart
             accessibilityLayer
@@ -263,9 +362,10 @@ export function RevenueAppointmentsChartCard({
 
             <YAxis
               yAxisId="revenue"
-              width={56}
+              width={72}
               tickLine={false}
               axisLine={false}
+              tickMargin={8}
               tickFormatter={formatCompactCurrency}
             />
 
@@ -319,11 +419,13 @@ export function RevenueAppointmentsChartCard({
             label="Receita no período"
             value={formatCurrency(summary.revenueInCents)}
             trend={summary.revenueTrendPercent}
+            showMetrics={showMetrics}
           />
           <SummaryMetric
             label="Agendamentos no período"
             value={formatNumber(summary.appointments)}
             trend={summary.appointmentsTrendPercent}
+            showMetrics={showMetrics}
           />
         </div>
       ) : null}

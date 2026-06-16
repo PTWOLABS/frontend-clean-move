@@ -15,6 +15,8 @@ This project uses:
 
 Your goal is to implement features with clean, maintainable, readable and consistent code, respecting the existing architecture and visual design.
 
+When you speak Portuguese, use inflections to omit unnecessary words.
+
 ---
 
 ## Required Reading by Task Type

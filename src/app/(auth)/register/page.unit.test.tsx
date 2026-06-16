@@ -23,8 +23,15 @@ vi.mock("next/image", () => ({
 vi.mock("@/features/register/api/brasilapi", () => ({
   fetchCompanyByCnpj: vi.fn(),
 }));
-vi.mock("@/features/register/api/viacep", () => ({
+vi.mock("@/shared/api/viacep", () => ({
   fetchAddressByZipCode: vi.fn(),
+}));
+
+vi.mock("@/features/auth/hooks/use-google-login", () => ({
+  useGoogleLogin: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 import RegisterPage from "./page";

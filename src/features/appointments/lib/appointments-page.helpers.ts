@@ -1,7 +1,8 @@
-import { addMinutes, format, startOfDay } from "date-fns";
+import { addMinutes, format, isSameDay, isSameYear, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import type { AppointmentStatus } from "@/shared/types/appointments";
+import { appointmentStatusBadgeClassName } from "@/shared/utils/appointments-status";
 
 import type {
   AppointmentCalendarEvent,
@@ -16,24 +17,53 @@ export const viewOptions: Array<{
   value: AppointmentCalendarView;
 }> = [
   {
-    label: "Visão mensal",
+    label: "Visualização: Mês",
     value: "dayGridMonth",
   },
   {
-    label: "Visão semanal",
+    label: "Visualização: Semana",
     value: "timeGridWeek",
   },
   {
-    label: "Visão diária",
+    label: "Visualização: Dia",
     value: "timeGridDay",
+  },
+  {
+    label: "Visualização: Lista",
+    value: "listWeek",
   },
 ];
 
-export const statusBadgeClassName: Record<AppointmentStatus, string> = {
-  DONE: "border-transparent bg-success-soft text-success-soft-foreground",
-  SCHEDULED: "border-transparent bg-info-soft text-info-soft-foreground",
-  CANCELLED: "border-transparent bg-danger-soft text-danger-soft-foreground",
-};
+export const compactViewOptions = viewOptions.filter((option) => option.value !== "timeGridWeek");
+
+export const viewToggleOptions: Array<{
+  label: string;
+  value: AppointmentCalendarView;
+}> = [
+  {
+    label: "Mês",
+    value: "dayGridMonth",
+  },
+  {
+    label: "Semana",
+    value: "timeGridWeek",
+  },
+  {
+    label: "Dia",
+    value: "timeGridDay",
+  },
+  {
+    label: "Lista",
+    value: "listWeek",
+  },
+];
+
+export const compactViewToggleOptions = viewToggleOptions.filter(
+  (option) => option.value !== "timeGridWeek",
+);
+
+export const statusBadgeClassName: Record<AppointmentStatus, string> =
+  appointmentStatusBadgeClassName;
 
 const toneContainerClassName: Record<AppointmentTone, string> = {
   primary: styles.eventTonePrimary,
@@ -74,19 +104,27 @@ export const navigationCalendarClassNames = {
     "inline-flex size-9 items-center justify-center rounded-sm p-0 text-sm font-normal leading-none transition-colors hover:bg-accent/20 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
 };
 
-export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {
-  return `${format(event.start, "HH:mm", { locale: ptBR })} - ${format(event.end, "HH:mm", {
+export function formatAppointmentDateTimeRange({ end, startsAt }: { end: Date; startsAt: Date }) {
+  if (isSameDay(startsAt, end)) {
+    return `${format(startsAt, "HH:mm", { locale: ptBR })} - ${format(end, "HH:mm", {
+      locale: ptBR,
+    })}`;
+  }
+
+  const dateTimeFormat = isSameYear(startsAt, end)
+    ? "d 'de' MMM, HH:mm"
+    : "d 'de' MMM 'de' yyyy, HH:mm";
+
+  return `${format(startsAt, dateTimeFormat, { locale: ptBR })} - ${format(end, dateTimeFormat, {
     locale: ptBR,
   })}`;
 }
 
-export function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
+export function formatAppointmentTimeRange(event: AppointmentCalendarEvent) {
+  return formatAppointmentDateTimeRange({
+    startsAt: event.startsAt,
+    end: event.end,
+  });
 }
 
 export function formatSlotKey(date: Date) {
@@ -95,6 +133,10 @@ export function formatSlotKey(date: Date) {
 
 export function formatDayKey(date: Date) {
   return format(date, "yyyy-MM-dd");
+}
+
+export function normalizeCalendarDate(date: Date) {
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
 
 export function buildSlotDate(date: Date, slotIndex: number) {
@@ -106,7 +148,7 @@ export function doesEventOverlapSlot(
   slotStart: Date,
   slotEnd: Date,
 ) {
-  return event.start.getTime() < slotEnd.getTime() && event.end.getTime() > slotStart.getTime();
+  return event.startsAt.getTime() < slotEnd.getTime() && event.end.getTime() > slotStart.getTime();
 }
 
 export function getCalendarEventClassNames({

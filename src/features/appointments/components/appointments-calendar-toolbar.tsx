@@ -1,26 +1,30 @@
 "use client";
 
 import type FullCalendar from "@fullcalendar/react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, type RefObject } from "react";
+import { addDays } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Calendar as MiniCalendar } from "@/components/ui/calendar";
 import { CardTitle } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select } from "@/components/ui/select/select";
+import { cn } from "@/shared/utils/cn";
 
 import type { AppointmentCalendarView } from "../types/appointment-calendar";
-import { navigationCalendarClassNames, viewOptions } from "../lib/appointments-page.helpers";
+import { viewToggleOptions } from "../lib/appointments-page.helpers";
+
+type ViewToggleOption = {
+  label: string;
+  value: AppointmentCalendarView;
+};
 
 type AppointmentsCalendarToolbarProps = {
   calendarRef: RefObject<FullCalendar | null>;
   calendarTitle: string;
   selectedDate: Date;
   selectedView: AppointmentCalendarView;
+  viewOptions?: ViewToggleOption[];
   onSelectDate: (date: Date) => void;
+  onSelectView: (view: AppointmentCalendarView) => void;
 };
 
 export function AppointmentsCalendarToolbar({
@@ -28,15 +32,21 @@ export function AppointmentsCalendarToolbar({
   calendarTitle,
   selectedDate,
   selectedView,
+  viewOptions: availableViewOptions = viewToggleOptions,
   onSelectDate,
+  onSelectView,
 }: AppointmentsCalendarToolbarProps) {
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
   function getCalendarApi() {
     return calendarRef.current?.getApi() ?? null;
   }
 
   function handleToday() {
+    if (selectedView === "listWeek") {
+      onSelectDate(new Date());
+
+      return;
+    }
+
     const calendarApi = getCalendarApi();
 
     if (!calendarApi) {
@@ -48,6 +58,12 @@ export function AppointmentsCalendarToolbar({
   }
 
   function handleNavigate(direction: "prev" | "next") {
+    if (selectedView === "listWeek") {
+      onSelectDate(addDays(selectedDate, direction === "prev" ? -7 : 7));
+
+      return;
+    }
+
     const calendarApi = getCalendarApi();
 
     if (!calendarApi) {
@@ -63,103 +79,79 @@ export function AppointmentsCalendarToolbar({
     onSelectDate(calendarApi.getDate());
   }
 
-  function handleViewChange(nextView: AppointmentCalendarView) {
-    const calendarApi = getCalendarApi();
-
-    if (!calendarApi) {
-      return;
-    }
-
-    calendarApi.changeView(nextView);
-    onSelectDate(calendarApi.getDate());
-  }
-
-  function handleMiniCalendarSelect(date: Date | undefined) {
-    if (!date) {
-      return;
-    }
-
-    setIsDatePickerOpen(false);
-    onSelectDate(date);
-    getCalendarApi()?.gotoDate(date);
-  }
-
   return (
-    <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
-      <div className="order-2 flex items-center gap-2 lg:order-1">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 shrink-0 rounded-xl border-border/80 bg-background/70"
-          onClick={() => handleNavigate("prev")}
-          aria-label="Período anterior"
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-9 shrink-0 rounded-xl border-border/80 bg-background/70 px-3.5"
-          onClick={handleToday}
-        >
-          Hoje
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 shrink-0 rounded-xl border-border/80 bg-background/70"
-          onClick={() => handleNavigate("next")}
-          aria-label="Próximo período"
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
+    <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between min-[420px]:gap-4">
+      <div className="flex min-w-0 items-center gap-3 min-[420px]:flex-1">
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8 rounded-lg border-border/80 bg-background/70 text-muted-foreground shadow-none hover:bg-muted/50 hover:text-foreground"
+            onClick={() => handleNavigate("prev")}
+            aria-label="Período anterior"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8 rounded-lg border-border/80 bg-background/70 text-muted-foreground shadow-none hover:bg-muted/50 hover:text-foreground"
+            onClick={() => handleNavigate("next")}
+            aria-label="Próximo período"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
 
-      <div className="order-1 min-w-0 text-left lg:order-2 lg:text-center">
-        <CardTitle className="truncate font-display text-lg font-semibold capitalize text-card-foreground sm:text-2xl">
+        <CardTitle className="min-w-0 truncate font-display text-lg font-semibold leading-tight tracking-tight text-card-foreground min-[520px]:text-xl">
           {calendarTitle}
         </CardTitle>
       </div>
 
-      <div className="order-3 grid min-w-0 grid-cols-1 gap-2 sm:flex sm:items-center sm:justify-end lg:ml-0">
-        <Select
-          value={selectedView}
-          onChange={handleViewChange}
-          options={viewOptions}
-          className="h-9 w-full rounded-xl border-border/80 bg-background/70 shadow-xs sm:w-40"
-        />
+      <div className="flex min-w-0 flex-col gap-2 min-[420px]:shrink-0 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-end">
+        <div
+          className={cn(
+            "grid h-9 min-w-0 rounded-lg border border-border/70 bg-background/60 p-1 shadow-xs",
+            availableViewOptions.length === 2 && "grid-cols-2 min-[420px]:w-36",
+            availableViewOptions.length === 3 && "grid-cols-3 min-[420px]:w-48",
+            availableViewOptions.length >= 4 &&
+              "grid-cols-3 min-[420px]:w-52 md:w-[16rem] md:grid-cols-4",
+          )}
+          role="group"
+          aria-label="Visualização do calendário"
+        >
+          {availableViewOptions.map((option) => {
+            const isActive = selectedView === option.value;
 
-        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9 w-full justify-between rounded-xl border-border/80 bg-background/70 px-3 shadow-xs sm:w-40 xl:hidden"
-            >
-              <span className="inline-flex min-w-0 items-center gap-2">
-                <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
-                <span className="truncate text-sm text-card-foreground">
-                  {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
-                </span>
-              </span>
-              <ChevronDown className="size-4 text-muted-foreground" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-[18.5rem] rounded-2xl border-border/80 p-0">
-            <MiniCalendar
-              key={format(selectedDate, "yyyy-MM")}
-              mode="single"
-              locale={ptBR}
-              defaultMonth={selectedDate}
-              selected={selectedDate}
-              onSelect={handleMiniCalendarSelect}
-              className="w-full"
-              classNames={navigationCalendarClassNames}
-            />
-          </PopoverContent>
-        </Popover>
+            return (
+              <Button
+                key={option.value}
+                type="button"
+                size="sm"
+                variant={isActive ? "default" : "ghost"}
+                className={cn(
+                  "h-7 min-w-0 rounded-md px-2 text-xs font-semibold shadow-none sm:px-3",
+                  isActive ? "" : "text-muted-foreground hover:text-foreground",
+                  option.value === "timeGridWeek" && "hidden md:inline-flex",
+                )}
+                onClick={() => onSelectView(option.value)}
+              >
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 w-full rounded-lg border-border/80 bg-background/70 px-4 text-xs font-semibold shadow-none hover:bg-muted/50 min-[420px]:w-auto"
+          onClick={handleToday}
+        >
+          Hoje
+        </Button>
       </div>
     </div>
   );

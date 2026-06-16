@@ -7,13 +7,14 @@ type CalendarMoreLinkContentProps = {
 
 export function CalendarMoreLinkContent({ count }: CalendarMoreLinkContentProps) {
   const fullLabel = `mais ${count} agendamento${count === 1 ? "" : "s"}...`;
-  const compactLabel = `mais ${count}...`;
+  const visibleLabel = `+${count} ag.`;
+  const compactLabel = `+${count}`;
 
   return (
     <>
       <span className="sr-only">{fullLabel}</span>
       <span aria-hidden="true" className={cn(styles.moreLinkLabel, styles.moreLinkFullLabel)}>
-        {fullLabel}
+        {visibleLabel}
       </span>
       <span aria-hidden="true" className={cn(styles.moreLinkLabel, styles.moreLinkCompactLabel)}>
         {compactLabel}

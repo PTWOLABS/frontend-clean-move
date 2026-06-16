@@ -1,6 +1,7 @@
 import type { EventContentArg } from "@fullcalendar/core/index.js";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { CalendarEventContent } from "./calendar-event-content";
 
@@ -25,12 +26,21 @@ function makeEventContentArg({
       start,
       end,
       extendedProps: {
+        customerId: "customer-1",
         customer: "Ana Martins",
+        serviceIds: [{ value: "service-1", label: "Lavagem completa" }],
         service: "Lavagem completa",
-        vehicle: "ABC-1234",
-        attendants: ["Patricia Costa"],
+        vehicleId: "vehicle-1",
+        vehicle: {
+          plate: "ABC-1234",
+          brand: "",
+          model: "",
+          displayName: "ABC-1234",
+        },
+        endsAt: end,
+        description: "Sem observações.",
+        discountValue: "",
         notes: "Sem observações.",
-        reminder: "Lembrete padrão",
         tone: "info",
         status: "SCHEDULED",
       },
@@ -48,6 +58,8 @@ describe("CalendarEventContent", () => {
           end: new Date("2026-05-20T10:00:00.000Z"),
           timeText: "09:00",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -65,6 +77,8 @@ describe("CalendarEventContent", () => {
           end: new Date("2026-05-20T10:00:00.000Z"),
           timeText: "09:00 - 10:00",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -82,6 +96,8 @@ describe("CalendarEventContent", () => {
           end: new Date("2026-05-20T09:30:00.000Z"),
           timeText: "09:00",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
@@ -99,9 +115,37 @@ describe("CalendarEventContent", () => {
           end: null,
           timeText: "",
         })}
+        onSlotPress={vi.fn()}
+        onCellAddIndicatorPress={vi.fn()}
       />,
     );
 
     expect(screen.getByText("Dia inteiro")).toBeInTheDocument();
+  });
+
+  it("opens the appointment sheet from the time grid event add indicator", async () => {
+    const user = userEvent.setup();
+    const onCellAddIndicatorPress = vi.fn();
+    const onSlotPress = vi.fn();
+    const { container } = render(
+      <CalendarEventContent
+        arg={makeEventContentArg({
+          viewType: "timeGridWeek",
+          start: new Date("2026-05-20T09:00:00.000Z"),
+          end: new Date("2026-05-20T10:00:00.000Z"),
+          timeText: "09:00 - 10:00",
+        })}
+        onSlotPress={onSlotPress}
+        onCellAddIndicatorPress={onCellAddIndicatorPress}
+      />,
+    );
+    const addIndicator = container.querySelector("span[class*='eventAddIndicator']");
+
+    expect(addIndicator).not.toBeNull();
+
+    await user.click(addIndicator!);
+
+    expect(onSlotPress).toHaveBeenCalledWith(new Date("2026-05-20T09:00:00.000Z"));
+    expect(onCellAddIndicatorPress).toHaveBeenCalledWith(true);
   });
 });

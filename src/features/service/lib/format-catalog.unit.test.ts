@@ -5,12 +5,23 @@ import { describe, expect, it } from "vitest";
 import { formatServicePriceBrl } from "./format-catalog";
 
 describe("formatServicePriceBrl", () => {
-  it("formats centavos as BRL", () => {
-    expect(formatServicePriceBrl(3000)).toMatch(/30/);
+  it("formats FIXED as BRL", () => {
+    expect(formatServicePriceBrl({ type: "FIXED", fixedPriceInCents: 3000 })).toMatch(/30/);
   });
 
-  it("handles undefined and invalid as zero", () => {
-    expect(formatServicePriceBrl(undefined)).toBe("R$ 0,00");
-    expect(formatServicePriceBrl("not-a-number")).toBe("R$ 0,00");
+  it("formats STARTING_AT", () => {
+    expect(formatServicePriceBrl({ type: "STARTING_AT", minPriceInCents: 25000 })).toContain(
+      "A partir de",
+    );
+  });
+
+  it("formats RANGE", () => {
+    expect(
+      formatServicePriceBrl({
+        type: "RANGE",
+        minPriceInCents: 30000,
+        maxPriceInCents: 60000,
+      }),
+    ).toContain(" - ");
   });
 });

@@ -16,12 +16,15 @@ const response: AppointmentDTO = {
       id: "appointment-2",
       establishmentId: "est-1",
       customerId: "customer-2",
+      customer: {
+        fullName: "Marina Oliveira",
+      },
       vehicleId: "vehicle-2",
       services: [
         {
           id: "service-2",
           name: "Vitrificacao",
-          category: "DETAILING",
+          category: { id: "cat-detailing", name: "Detailing Automotivo" },
           durationInMinutes: 120,
           priceInCents: 35000,
         },
@@ -47,19 +50,22 @@ const response: AppointmentDTO = {
       id: "appointment-1",
       establishmentId: "est-1",
       customerId: "customer-1",
+      customer: {
+        fullName: "João Pereira",
+      },
       vehicleId: null,
       services: [
         {
           id: "service-1",
           name: "Lavagem tecnica",
-          category: "WASH",
+          category: { id: "cat-wash", name: "Lavagem" },
           durationInMinutes: 45,
           priceInCents: 9000,
         },
         {
           id: "service-3",
           name: "Higienizacao",
-          category: "INTERIOR",
+          category: { id: "cat-interior", name: "Estofamento" },
           durationInMinutes: 30,
           priceInCents: 12000,
         },
@@ -79,12 +85,13 @@ const response: AppointmentDTO = {
       id: "appointment-3",
       establishmentId: "est-1",
       customerId: "customer-3",
+      customer: null,
       vehicleId: null,
       services: [
         {
           id: "service-4",
           name: "Polimento",
-          category: "DETAILING",
+          category: { id: "cat-detailing", name: "Detailing Automotivo" },
           durationInMinutes: 60,
           priceInCents: 15000,
         },
@@ -110,12 +117,49 @@ describe("appointments-calendar helpers", () => {
     expect(appointments).toHaveLength(3);
     expect(appointments[0]?.id).toBe("appointment-2");
     expect(appointments[1]?.title).toBe("Lavagem tecnica +1");
-    expect(appointments[1]?.end.toISOString()).toBe("2026-05-20T10:15:00.000Z");
-    expect(appointments[1]?.extendedProps.customer).toBeTruthy();
-    expect(appointments[1]?.extendedProps.attendants).toHaveLength(2);
-    expect(appointments[1]?.extendedProps.vehicle).toBe("Veículo não informado");
+    expect(appointments[1]?.end.getHours()).toBe(10);
+    expect(appointments[1]?.end.getMinutes()).toBe(15);
+    expect(appointments[1]?.extendedProps.customer).toBe("João Pereira");
+    expect(appointments[1]?.extendedProps.customerId).toBe("customer-1");
+    expect(appointments[1]?.extendedProps.serviceIds).toEqual([
+      { value: "service-1", label: "Lavagem tecnica" },
+      { value: "service-3", label: "Higienizacao" },
+    ]);
+    expect(appointments[1]?.extendedProps.vehicleId).toBe("");
+    expect(appointments[1]?.extendedProps.vehicle).toEqual({
+      plate: "",
+      brand: "",
+      model: "",
+      displayName: "Veículo não informado",
+    });
+    expect(appointments[1]?.extendedProps.endsAt).toBeNull();
+    expect(appointments[1]?.extendedProps.description).toBe("");
+    expect(appointments[1]?.extendedProps.discountValue).toBe("");
     expect(appointments[1]?.extendedProps.notes).toBe("Sem observações operacionais.");
-    expect(appointments[1]?.extendedProps.reminder).toBe("Lembrete automático padrão");
+  });
+
+  it("keeps vehicle plate separated from the display name", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[0]!,
+          vehicle: {
+            plate: null,
+            brand: "Toyota",
+            model: "Corolla",
+            color: "Preto",
+            year: 2024,
+          },
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.vehicle).toEqual({
+      plate: "",
+      brand: "Toyota",
+      model: "Corolla",
+      displayName: "Toyota • Corolla",
+    });
   });
 
   it("filters only the appointments of the selected day", () => {
@@ -126,6 +170,39 @@ describe("appointments-calendar helpers", () => {
 
     expect(filteredAppointments).toHaveLength(1);
     expect(filteredAppointments[0]?.title).toBe("Lavagem tecnica +1");
+  });
+
+  it("includes multi-day appointments that cover the selected day", () => {
+    const appointments = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[0]!,
+          startsAt: "2026-05-01T00:00:00.000Z",
+          endsAt: "2026-05-29T00:00:00.000Z",
+        },
+      ],
+    });
+
+    const filteredAppointments = getAppointmentsForDate(
+      appointments,
+      new Date("2026-05-18T12:00:00.000Z"),
+    );
+
+    expect(filteredAppointments).toHaveLength(1);
+    expect(filteredAppointments[0]?.id).toBe("appointment-2");
+  });
+
+  it("uses a fallback customer label when the API does not embed customer details", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[0]!,
+          customer: null,
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.customer).toBe("Cliente não informado");
   });
 
   it("returns the next upcoming appointment ignoring cancelled events", () => {
