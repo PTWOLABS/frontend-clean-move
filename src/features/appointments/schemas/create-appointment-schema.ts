@@ -45,7 +45,13 @@ export const appointmentServiceOptionSchema = z.object({
 const appointmentPricedServiceSchema = z.object({
   serviceId: z.string().trim().min(1, "Selecione um serviço válido."),
   serviceLabel: z.string().trim().min(1, "Selecione um serviço válido."),
+  priceType: z.enum(["FIXED", "STARTING_AT", "RANGE"]),
   minPriceInCents: z.number().int().nonnegative("O valor mínimo do serviço não pode ser negativo."),
+  maxPriceInCents: z
+    .number()
+    .int()
+    .nonnegative("O valor máximo do serviço não pode ser negativo.")
+    .optional(),
   price: z
     .string()
     .trim()
@@ -92,6 +98,35 @@ export const appointmentFormFieldsSchema = {
     }),
 };
 
+export function validateAppointmentServicePrices(
+  services: z.output<typeof appointmentPricedServiceSchema>[],
+  context: z.RefinementCtx,
+) {
+  services.forEach((service, index) => {
+    const amountInCents = Math.round(parseBrlMoneyToReais(service.price) * 100);
+
+    if (amountInCents < service.minPriceInCents) {
+      context.addIssue({
+        code: "custom",
+        message: "O valor não pode ser menor que o mínimo do serviço.",
+        path: ["services", index, "price"],
+      });
+    }
+
+    if (
+      service.priceType === "RANGE" &&
+      typeof service.maxPriceInCents === "number" &&
+      amountInCents > service.maxPriceInCents
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "O valor não pode ultrapassar o máximo do serviço.",
+        path: ["services", index, "price"],
+      });
+    }
+  });
+}
+
 export function isAppointmentDateRangeValid(values: {
   startsAt?: string | null;
   endsAt?: string | null;
@@ -121,16 +156,7 @@ export const createAppointmentFormSchema = z
       }
     }
 
-    values.services.forEach((service, index) => {
-      const amountInCents = Math.round(parseBrlMoneyToReais(service.price) * 100);
-      if (amountInCents < service.minPriceInCents) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "O valor não pode ser menor que o mínimo do serviço.",
-          path: ["services", index, "price"],
-        });
-      }
-    });
+    validateAppointmentServicePrices(values.services, context);
   })
   .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 
@@ -140,10 +166,9 @@ export type CreateAppointmentRequestBody = Omit<
   CreateAppointmentFormValues,
   "serviceIds" | "services"
 > & {
-  serviceIds: string[];
   services: Array<{
     serviceId: string;
-    priceInCents: string;
+    priceInCents: number;
   }>;
 };
 

@@ -435,14 +435,18 @@ describe("AppointmentFormSheet", () => {
       expect(vehicleInput).toBeEnabled();
     });
     await user.type(vehicleInput, "ABC-1234");
+
+    const servicePriceInput = screen.getByLabelText(/Valor do serviço: Lavagem completa/i);
+
+    expect(servicePriceInput).toHaveValue("90,00");
+    expect(servicePriceInput).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Salvar agendamento" }));
 
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith(
         expect.objectContaining({
           customerId: "customer-1",
-          serviceIds: ["service-1"],
-          services: [{ serviceId: "service-1", priceInCents: "9000" }],
+          services: [{ serviceId: "service-1", priceInCents: 9000 }],
           vehicleId: "vehicle-1",
         }),
         expect.objectContaining({
@@ -517,7 +521,7 @@ describe("AppointmentFormSheet", () => {
           {
             id: "service-1",
             label: "Lavagem completa",
-            priceSpecification: { type: "FIXED", fixedPriceInCents: 9000 },
+            priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
           },
         ],
       },
@@ -550,7 +554,79 @@ describe("AppointmentFormSheet", () => {
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith(
         expect.objectContaining({
-          services: [{ serviceId: "service-1", priceInCents: "9000" }],
+          services: [{ serviceId: "service-1", priceInCents: 9000 }],
+        }),
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+  });
+
+  it("corrige valor de serviço com faixa para o máximo permitido", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListCustomerOptionsMock.mockReturnValue({
+      data: { customers: [{ id: "customer-1", label: "Cliente Teste" }] },
+      isPending: false,
+    });
+    useListCustomerVehicleOptionsMock.mockReturnValue({
+      data: { vehicles: [{ id: "vehicle-1", label: "ABC-1234" }] },
+      isPending: false,
+    });
+    useListServiceOptionsMock.mockReturnValue({
+      data: {
+        services: [
+          {
+            id: "service-1",
+            label: "Polimento",
+            priceSpecification: {
+              type: "RANGE",
+              minPriceInCents: 5000,
+              maxPriceInCents: 10000,
+            },
+          },
+        ],
+      },
+      isPending: false,
+    });
+    useCreateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        defaultStartsAt={new Date("2026-05-20T08:30:00.000Z")}
+      />,
+    );
+
+    await user.type(screen.getByLabelText(/Nome do cliente/), "Cliente Teste");
+    await user.selectOptions(screen.getByLabelText(/Serviços/), "service-1");
+    await user.type(screen.getByLabelText(/Veículo/), "ABC-1234");
+
+    const servicePriceInput = screen.getByLabelText(/Valor do serviço: Polimento/i);
+
+    expect(servicePriceInput).toHaveValue("50,00");
+    expect(screen.getByText("Permitido: 50,00 a 100,00")).toBeInTheDocument();
+
+    await user.clear(servicePriceInput);
+    await user.type(servicePriceInput, "15000");
+    fireEvent.blur(servicePriceInput);
+
+    await waitFor(() => {
+      expect(servicePriceInput).toHaveValue("100,00");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Salvar agendamento" }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          services: [{ serviceId: "service-1", priceInCents: 10000 }],
         }),
         expect.objectContaining({
           onSuccess: expect.any(Function),

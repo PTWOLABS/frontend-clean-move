@@ -49,6 +49,7 @@ import { useListServiceOptions } from "../../hooks/queries/use-list-service-opti
 import { useCreateAppointment } from "../../hooks/mutations/use-create-appointment-mutation";
 import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
 import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+import type { ServiceOptionsDTO } from "../../types/options-dto";
 import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
 
 type AppointmentFormSheetProps = {
@@ -61,26 +62,37 @@ type AppointmentFormSheetProps = {
 type ServiceOptionWithPrice = {
   id: string;
   label: string;
+  priceType: "FIXED" | "STARTING_AT" | "RANGE";
   minPriceInCents: number;
+  maxPriceInCents?: number;
 };
 
-function resolveMinPriceInCents(option: {
-  priceInCents?: number;
-  priceSpecification?:
-    | { type: "FIXED"; fixedPriceInCents: number }
-    | { type: "STARTING_AT"; minPriceInCents: number }
-    | { type: "RANGE"; minPriceInCents: number; maxPriceInCents: number };
-}): number {
+function resolveServicePriceMetadata(
+  option: ServiceOptionsDTO["services"][number],
+): Omit<ServiceOptionWithPrice, "id" | "label"> {
   if (option.priceSpecification?.type === "FIXED") {
-    return option.priceSpecification.fixedPriceInCents;
+    return {
+      priceType: "FIXED",
+      minPriceInCents: option.priceSpecification.fixedPriceInCents,
+    };
   }
   if (option.priceSpecification?.type === "STARTING_AT") {
-    return option.priceSpecification.minPriceInCents;
+    return {
+      priceType: "STARTING_AT",
+      minPriceInCents: option.priceSpecification.minPriceInCents,
+    };
   }
   if (option.priceSpecification?.type === "RANGE") {
-    return option.priceSpecification.minPriceInCents;
+    return {
+      priceType: "RANGE",
+      minPriceInCents: option.priceSpecification.minPriceInCents,
+      maxPriceInCents: option.priceSpecification.maxPriceInCents,
+    };
   }
-  return Math.max(0, option.priceInCents ?? 0);
+  return {
+    priceType: "FIXED",
+    minPriceInCents: Math.max(0, option.priceInCents ?? 0),
+  };
 }
 
 function formatCentsToBrlInput(cents: number) {
@@ -94,12 +106,14 @@ function getAppointmentFormDefaultValues(
     appointment.extendedProps.services?.map((service) => ({
       serviceId: service.serviceId,
       serviceLabel: service.label,
+      priceType: "STARTING_AT" as const,
       minPriceInCents: service.priceInCents,
       price: formatCentsToBrlInput(service.priceInCents),
     })) ??
     appointment.extendedProps.serviceIds.map((service) => ({
       serviceId: service.value,
       serviceLabel: service.label,
+      priceType: "STARTING_AT" as const,
       minPriceInCents: 0,
       price: "0,00",
     }));
@@ -120,11 +134,15 @@ function buildAppointmentRequestBody(
   values: CreateAppointmentFormValues,
 ): CreateAppointmentRequestBody {
   return {
-    ...values,
-    serviceIds: values.serviceIds.map((item) => item.value),
+    customerId: values.customerId,
+    vehicleId: values.vehicleId,
+    startsAt: values.startsAt,
+    endsAt: values.endsAt,
+    description: values.description,
+    discountValue: values.discountValue,
     services: values.services.map((service) => ({
       serviceId: service.serviceId,
-      priceInCents: String(Math.round(parseBrlMoneyToReais(service.price) * 100)),
+      priceInCents: Math.round(parseBrlMoneyToReais(service.price) * 100),
     })),
   };
 }
@@ -133,10 +151,6 @@ function getComparableRequestBody(values: CreateAppointmentFormInput) {
   const result = createAppointmentFormSchema.safeParse(values);
 
   return result.success ? buildAppointmentRequestBody(result.data) : null;
-}
-
-function areServiceIdsEqual(left: string[], right: string[]) {
-  return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 function areServicesEqual(
@@ -165,10 +179,6 @@ function getChangedRequestBody(
 
   if (currentBody.customerId !== initialBody.customerId) {
     changedBody.customerId = currentBody.customerId;
-  }
-
-  if (!areServiceIdsEqual(currentBody.serviceIds, initialBody.serviceIds)) {
-    changedBody.serviceIds = currentBody.serviceIds;
   }
 
   if (!areServicesEqual(currentBody.services, initialBody.services)) {
@@ -252,6 +262,23 @@ export function AppointmentFormSheet({
     control,
     name: "services",
   });
+
+  const getServicePriceDescription = useCallback(
+    (service: NonNullable<typeof selectedServices>[number]) => {
+      if (service.priceType === "FIXED") {
+        return `Valor fixo: ${formatCentsToBrlInput(service.minPriceInCents)}`;
+      }
+
+      if (service.priceType === "RANGE" && typeof service.maxPriceInCents === "number") {
+        return `Permitido: ${formatCentsToBrlInput(service.minPriceInCents)} a ${formatCentsToBrlInput(
+          service.maxPriceInCents,
+        )}`;
+      }
+
+      return `Mínimo permitido: ${formatCentsToBrlInput(service.minPriceInCents)}`;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -416,11 +443,15 @@ export function AppointmentFormSheet({
 
   const serviceOptionsWithPrice = useMemo<ServiceOptionWithPrice[]>(
     () =>
-      serviceOptions?.services?.map((option) => ({
-        id: option.id,
-        label: option.label,
-        minPriceInCents: resolveMinPriceInCents(option),
-      })) ?? [],
+      serviceOptions?.services?.map((option) => {
+        const metadata = resolveServicePriceMetadata(option);
+
+        return {
+          id: option.id,
+          label: option.label,
+          ...metadata,
+        };
+      }) ?? [],
     [serviceOptions],
   );
 
@@ -434,6 +465,7 @@ export function AppointmentFormSheet({
         map.set(service.serviceId, {
           id: service.serviceId,
           label: service.label,
+          priceType: "STARTING_AT",
           minPriceInCents: service.priceInCents,
         });
       }
@@ -561,11 +593,14 @@ export function AppointmentFormSheet({
                             };
                           }
                           const metadata = servicePriceById.get(option.value);
+                          const priceType = metadata?.priceType ?? "STARTING_AT";
                           const minPriceInCents = metadata?.minPriceInCents ?? 0;
                           return {
                             serviceId: option.value,
                             serviceLabel: option.label,
+                            priceType,
                             minPriceInCents,
+                            maxPriceInCents: metadata?.maxPriceInCents,
                             price: formatCentsToBrlInput(minPriceInCents),
                           };
                         });
@@ -623,7 +658,7 @@ export function AppointmentFormSheet({
                                   "border-destructive/70 focus-visible:ring-destructive/30",
                               )}
                               value={typeof field.value === "string" ? field.value : ""}
-                              disabled={isSubmitting}
+                              disabled={isSubmitting || service.priceType === "FIXED"}
                               onChange={(event) =>
                                 handleNumericInputChange(event, field.onChange, {
                                   formatAsCurrency: true,
@@ -638,15 +673,19 @@ export function AppointmentFormSheet({
                                   const amountInCents = Math.round(parsedAmount * 100);
                                   if (amountInCents < service.minPriceInCents) {
                                     field.onChange(formatCentsToBrlInput(service.minPriceInCents));
+                                  } else if (
+                                    service.priceType === "RANGE" &&
+                                    typeof service.maxPriceInCents === "number" &&
+                                    amountInCents > service.maxPriceInCents
+                                  ) {
+                                    field.onChange(formatCentsToBrlInput(service.maxPriceInCents));
                                   }
                                 }
                                 field.onBlur();
                               }}
                             />
                           </FormControl>
-                          <FormDescription>
-                            Mínimo permitido: {formatCentsToBrlInput(service.minPriceInCents)}
-                          </FormDescription>
+                          <FormDescription>{getServicePriceDescription(service)}</FormDescription>
                         </div>
                       )}
                     </FormField>
