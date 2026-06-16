@@ -1,6 +1,7 @@
 /** @vitest-environment node */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { CreateServicePayload } from "../types";
 
 const httpClientMock = vi.fn();
 
@@ -18,7 +19,7 @@ describe("service/api/update-service", () => {
   it("calls PATCH /services/:id with body", async () => {
     httpClientMock.mockResolvedValueOnce({});
 
-    const body = {
+    const body: CreateServicePayload = {
       serviceName: "Lavagem",
       categoryId: "11cf3860-d512-47db-b9d1-c9044be6250d",
       estimatedDuration: { minInMinutes: 30, maxInMinutes: 60 },

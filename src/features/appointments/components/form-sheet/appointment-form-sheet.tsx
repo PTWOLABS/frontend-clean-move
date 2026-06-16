@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -236,7 +237,6 @@ export function AppointmentFormSheet({
     handleSubmit,
     reset,
     setValue,
-    watch,
   } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
   const sheetContentRef = useRef<HTMLDivElement | null>(null);
@@ -248,7 +248,10 @@ export function AppointmentFormSheet({
   const [serviceInputValue, setServiceInputValue] = useState("");
   const serviceSearch = useDebouncedValue(serviceInputValue, 500);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const selectedServices = watch("services");
+  const selectedServices = useWatch({
+    control,
+    name: "services",
+  });
 
   useEffect(() => {
     if (!open) return;

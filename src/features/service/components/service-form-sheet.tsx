@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   FormProvider,
   useForm,
+  useWatch,
   type Control,
   type FieldValues,
   type Resolver,
@@ -104,10 +105,13 @@ export function ServiceFormSheet({
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue, watch, formState } = methods;
+  const { control, handleSubmit, reset, setValue, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
-  const priceType = watch("priceType");
+  const priceType = useWatch({
+    control,
+    name: "priceType",
+  });
 
   useEffect(() => {
     if (!open) return;
