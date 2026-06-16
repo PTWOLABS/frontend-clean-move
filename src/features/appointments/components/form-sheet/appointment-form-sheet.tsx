@@ -473,6 +473,48 @@ export function AppointmentFormSheet({
     return map;
   }, [appointment, serviceOptionsWithPrice]);
 
+  useEffect(() => {
+    if (!open || !isEditing || !serviceOptions) return;
+
+    const currentServices = getValues("services") ?? [];
+    if (currentServices.length === 0) return;
+
+    let hasChanges = false;
+    const nextServices = currentServices.map((service) => {
+      const metadata = servicePriceById.get(service.serviceId);
+      if (!metadata) return service;
+
+      if (
+        service.priceType === metadata.priceType &&
+        service.minPriceInCents === metadata.minPriceInCents &&
+        service.maxPriceInCents === metadata.maxPriceInCents
+      ) {
+        return service;
+      }
+
+      hasChanges = true;
+      return {
+        ...service,
+        priceType: metadata.priceType,
+        minPriceInCents: metadata.minPriceInCents,
+        maxPriceInCents: metadata.maxPriceInCents,
+        price:
+          metadata.priceType === "FIXED"
+            ? formatCentsToBrlInput(metadata.minPriceInCents)
+            : service.price,
+      };
+    });
+
+    if (hasChanges) {
+      setValue("services", nextServices, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getValues e setValue são estáveis; servicePriceById já cobre serviceOptions
+  }, [open, isEditing, serviceOptions, servicePriceById]);
+
   const getServiceEmptyIndicator = () => {
     if (isLoadingServiceOptions) {
       return <p className="px-2 py-1 text-sm text-muted-foreground">Buscando serviços...</p>;
