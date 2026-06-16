@@ -45,10 +45,7 @@ export const appointmentServiceOptionSchema = z.object({
 const appointmentPricedServiceSchema = z.object({
   serviceId: z.string().trim().min(1, "Selecione um serviço válido."),
   serviceLabel: z.string().trim().min(1, "Selecione um serviço válido."),
-  minPriceInCents: z
-    .number()
-    .int()
-    .nonnegative("O valor mínimo do serviço não pode ser negativo."),
+  minPriceInCents: z.number().int().nonnegative("O valor mínimo do serviço não pode ser negativo."),
   price: z
     .string()
     .trim()
@@ -139,7 +136,10 @@ export const createAppointmentFormSchema = z
 
 export type CreateAppointmentFormInput = z.input<typeof createAppointmentFormSchema>;
 export type CreateAppointmentFormValues = z.output<typeof createAppointmentFormSchema>;
-export type CreateAppointmentRequestBody = Omit<CreateAppointmentFormValues, "serviceIds" | "services"> & {
+export type CreateAppointmentRequestBody = Omit<
+  CreateAppointmentFormValues,
+  "serviceIds" | "services"
+> & {
   serviceIds: string[];
   services: Array<{
     serviceId: string;

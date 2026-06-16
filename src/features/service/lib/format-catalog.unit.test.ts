@@ -10,9 +10,9 @@ describe("formatServicePriceBrl", () => {
   });
 
   it("formats STARTING_AT", () => {
-    expect(
-      formatServicePriceBrl({ type: "STARTING_AT", minPriceInCents: 25000 }),
-    ).toContain("A partir de");
+    expect(formatServicePriceBrl({ type: "STARTING_AT", minPriceInCents: 25000 })).toContain(
+      "A partir de",
+    );
   });
 
   it("formats RANGE", () => {

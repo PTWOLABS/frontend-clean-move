@@ -628,7 +628,9 @@ export function AppointmentFormSheet({
                                 })
                               }
                               onBlur={() => {
-                                const parsedAmount = parseBrlMoneyToReais(String(field.value ?? ""));
+                                const parsedAmount = parseBrlMoneyToReais(
+                                  String(field.value ?? ""),
+                                );
                                 if (Number.isFinite(parsedAmount)) {
                                   const amountInCents = Math.round(parsedAmount * 100);
                                   if (amountInCents < service.minPriceInCents) {

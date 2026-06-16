@@ -21,7 +21,10 @@ export const updateAppointmentFormSchema = z
 
 export type UpdateAppointmentFormInput = z.input<typeof updateAppointmentFormSchema>;
 export type UpdateAppointmentFormValues = z.output<typeof updateAppointmentFormSchema>;
-export type UpdateAppointmentRequestBody = Omit<UpdateAppointmentFormValues, "serviceIds" | "services"> & {
+export type UpdateAppointmentRequestBody = Omit<
+  UpdateAppointmentFormValues,
+  "serviceIds" | "services"
+> & {
   serviceIds?: string[];
   services?: Array<{
     serviceId: string;

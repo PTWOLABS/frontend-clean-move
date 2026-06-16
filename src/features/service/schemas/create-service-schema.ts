@@ -3,11 +3,7 @@ import { z } from "zod";
 import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
 import type { ServiceCategoryRef } from "@/features/service-category/types";
 
-import type {
-  CreateServicePayload,
-  ServiceItem,
-  ServicePriceSpecification,
-} from "../types";
+import type { CreateServicePayload, ServiceItem, ServicePriceSpecification } from "../types";
 
 function parseNumberFromInput(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
