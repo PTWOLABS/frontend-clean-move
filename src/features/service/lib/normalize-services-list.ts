@@ -1,6 +1,7 @@
 import type { ServiceCategoryRef } from "@/features/service-category/types";
 
 import type {
+  ServiceDto,
   ServiceItem,
   ServicePriceSpecification,
   ServiceListWireItem,
@@ -90,6 +91,11 @@ export function mapWireToServiceItem(raw: WireOrCatalogItem): ServiceItem {
     priceSpecification: normalizePriceSpecification(r),
     isActive: r.isActive ?? false,
   };
+}
+
+/** Converte {@link ServiceDto} da API para o modelo de UI. */
+export function mapServiceDtoToServiceItem(dto: ServiceDto): ServiceItem {
+  return mapWireToServiceItem(dto);
 }
 
 /**

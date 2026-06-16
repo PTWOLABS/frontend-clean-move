@@ -115,6 +115,11 @@ describe("useUpdateService", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(client.getQueryData<ServicesPage>(key)).toEqual(initialPage);
-    expect(toastErrorMock).toHaveBeenCalledWith("Dados inválidos");
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      "Não foi possível atualizar o serviço.",
+      expect.objectContaining({
+        description: "Verifique se os dados enviados estão corretos.",
+      }),
+    );
   });
 });

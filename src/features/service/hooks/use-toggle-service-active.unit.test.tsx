@@ -50,13 +50,7 @@ describe("useToggleServiceActive", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(updateServiceMock).toHaveBeenCalledWith(
-      "svc-1",
-      expect.objectContaining({
-        serviceName: "Lavagem Completa",
-        isActive: false,
-      }),
-    );
+    expect(updateServiceMock).toHaveBeenCalledWith("svc-1", { isActive: false });
     expect(toastSuccessMock).toHaveBeenCalledWith("Serviço desativado com sucesso.");
   });
 
@@ -69,10 +63,7 @@ describe("useToggleServiceActive", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(updateServiceMock).toHaveBeenCalledWith(
-      "svc-1",
-      expect.objectContaining({ isActive: true }),
-    );
+    expect(updateServiceMock).toHaveBeenCalledWith("svc-1", { isActive: true });
     expect(toastSuccessMock).toHaveBeenCalledWith("Serviço ativado com sucesso.");
   });
 });

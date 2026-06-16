@@ -1,10 +1,18 @@
 import { httpClient } from "@/shared/api/httpClient";
 
-import type { CreateServicePayload } from "../types";
+import { buildUpdateServicePayload } from "../lib/build-update-service-payload";
+import { mapServiceDtoToServiceItem } from "../lib/normalize-services-list";
+import type { UpdateServicePayload, UpdateServiceResponse } from "../types";
 
-export async function updateService(serviceId: string, body: CreateServicePayload) {
-  return httpClient<unknown>(`/services/${serviceId}`, {
+export async function updateService(serviceId: string, body: UpdateServicePayload) {
+  const payload = buildUpdateServicePayload(body);
+
+  const response = await httpClient<UpdateServiceResponse>(`/services/${serviceId}`, {
     method: "PATCH",
-    body,
+    body: payload,
   });
+
+  return {
+    service: mapServiceDtoToServiceItem(response.service),
+  };
 }

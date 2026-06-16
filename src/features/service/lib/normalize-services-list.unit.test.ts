@@ -83,6 +83,21 @@ describe("normalizeServicesList", () => {
     expect(out.total).toBe(99);
   });
 
+  it("prefers priceSpecification over priceInCents when both are present", () => {
+    const wire: ServiceListWireItem = {
+      id: "svc-1",
+      name: "Lavagem premium",
+      priceInCents: 4500,
+      priceSpecification: { type: "STARTING_AT", minPriceInCents: 9900 },
+      isActive: true,
+    };
+    const out = normalizeServicesList({ items: [wire], total: 1 }, 1, 20);
+    expect(out.items[0]?.priceSpecification).toEqual({
+      type: "STARTING_AT",
+      minPriceInCents: 9900,
+    });
+  });
+
   it("keeps STARTING_AT and RANGE from priceSpecification", () => {
     const out = normalizeServicesList(
       {

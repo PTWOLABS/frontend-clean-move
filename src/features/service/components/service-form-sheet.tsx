@@ -42,9 +42,12 @@ import {
 } from "@/features/service-category/components/service-category-create-inline";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
 import { useFormatBrlMoney } from "@/shared/money/use-format-brl-money";
+import { ApiError } from "@/shared/api/httpClient";
 
 import { useCreateService } from "../hooks/use-create-service";
 import { useUpdateService } from "../hooks/use-update-service";
+import { mapServiceApiFieldErrorsToForm } from "../lib/map-api-field-to-form";
+import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
 import type { ServiceItem } from "../types";
 import {
   createServiceDefaultValues,
@@ -56,6 +59,25 @@ import {
 } from "../schemas/create-service-schema";
 
 const NONE_CATEGORY_VALUE = "__none__";
+
+function applyServiceApiFieldErrors(
+  error: unknown,
+  mutationType: "create" | "update",
+  setError: ReturnType<
+    typeof useForm<CreateServiceFormInput, undefined, CreateServiceFormValues>
+  >["setError"],
+) {
+  if (!(error instanceof ApiError)) return;
+
+  const feedback = getServiceMutationFeedbackError(error, mutationType);
+  if (!feedback.fieldErrors) return;
+
+  const formErrors = mapServiceApiFieldErrorsToForm(feedback.fieldErrors);
+  for (const [field, message] of Object.entries(formErrors)) {
+    if (!message) continue;
+    setError(field as keyof CreateServiceFormInput, { type: "server", message });
+  }
+}
 
 type ServiceFormSheetProps = {
   open: boolean;
@@ -105,7 +127,7 @@ export function ServiceFormSheet({
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue, formState } = methods;
+  const { control, handleSubmit, reset, setValue, setError, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
   const priceType = useWatch({
@@ -152,6 +174,7 @@ export function ServiceFormSheet({
         },
         {
           onSuccess: closeSheetAfterSave,
+          onError: (error) => applyServiceApiFieldErrors(error, "update", setError),
         },
       );
       return;
@@ -159,6 +182,7 @@ export function ServiceFormSheet({
 
     createMutate(values, {
       onSuccess: closeSheetAfterSave,
+      onError: (error) => applyServiceApiFieldErrors(error, "create", setError),
     });
   };
 

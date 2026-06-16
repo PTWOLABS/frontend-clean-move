@@ -8,6 +8,7 @@ import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { updateService } from "../api/update-service";
+import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
 import {
   restoreServicesLists,
   snapshotServicesLists,
@@ -16,7 +17,7 @@ import {
 } from "../lib/services-query-cache";
 import {
   formValuesToServiceItem,
-  mapCreateServiceFormToPayload,
+  mapCreateServiceFormToUpdatePayload,
 } from "../schemas/create-service-schema";
 import type { CreateServiceFormValues } from "../schemas/create-service-schema";
 
@@ -31,7 +32,7 @@ export function useUpdateService() {
 
   return useMutation({
     mutationFn: async ({ serviceId, values }: UpdateServiceVariables) => {
-      return updateService(serviceId, mapCreateServiceFormToPayload(values));
+      return updateService(serviceId, mapCreateServiceFormToUpdatePayload(values));
     },
     onMutate: async ({ serviceId, values, category }) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.services() });
@@ -45,13 +46,13 @@ export function useUpdateService() {
     },
     onError: (error, _variables, context) => {
       restoreServicesLists(queryClient, context?.snapshot);
-      if (error instanceof ApiError) {
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Verifique os dados e tente novamente.");
-          return;
-        }
-        toast.error("Não foi possível atualizar o serviço. Tente novamente mais tarde.");
-      }
+      if (!(error instanceof ApiError)) return;
+
+      const feedback = getServiceMutationFeedbackError(error, "update");
+      toast.error(feedback.title, {
+        id: feedback.id,
+        ...(feedback.description ? { description: feedback.description } : {}),
+      });
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() });

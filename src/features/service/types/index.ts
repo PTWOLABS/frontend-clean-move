@@ -23,43 +23,69 @@ export type ServicePriceSpecification =
   | StartingAtPriceSpecification
   | RangePriceSpecification;
 
-/** Corpo de `POST /services` (camelCase). */
+export type EstimatedDurationPayload = {
+  minInMinutes: number;
+  maxInMinutes?: number;
+};
+
+/**
+ * Corpo de `POST /services`.
+ * Enviar exatamente um entre `price` e `priceSpecification`.
+ */
 export type CreateServicePayload = {
   serviceName: string;
   description?: string;
   categoryId?: string | null;
-  estimatedDuration: {
-    minInMinutes: number;
-    maxInMinutes: number;
-  };
-  priceSpecification: ServicePriceSpecification;
-  isActive: boolean;
+  estimatedDuration?: EstimatedDurationPayload;
+  price?: number;
+  priceSpecification?: ServicePriceSpecification;
+  isActive?: boolean;
 };
 
-/**
- * Forma possível devolvida pelo backend em listagens (`name`, `priceInCents`).
- * O frontend normaliza para {@link ServiceItem}.
- */
-export type ServiceListWireItem = {
-  id?: string;
-  name?: string;
-  serviceName?: string;
-  establishmentId?: string;
+/** Corpo de `PATCH /services/:serviceId` — todos opcionais, pelo menos 1 campo. */
+export type UpdateServicePayload = Partial<CreateServicePayload>;
+
+export type CreateServiceResponse = {
+  service: ServiceDto;
+};
+
+export type UpdateServiceResponse = {
+  service: ServiceDto;
+};
+
+/** Resposta da API (`ServiceDto`). Normalizado para {@link ServiceItem} na UI. */
+export type ServiceDto = {
+  id: string;
+  establishmentId: string;
+  name: string;
   description?: string | null;
-  category?: ServiceCategoryRef | null;
-  estimatedDuration?: {
+  category: ServiceCategoryRef | null;
+  estimatedDuration: {
     minInMinutes: number;
     maxInMinutes: number | null;
   } | null;
   priceInCents?: number;
-  price?: number;
-  priceSpecification?: Partial<ServicePriceSpecification> | null;
-  isActive?: boolean;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  priceSpecification: ServicePriceSpecification | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
-/** Item de serviço no catálogo (DTO da API, camelCase). */
+/**
+ * Forma possível devolvida pelo backend em listagens (inclui aliases legados).
+ * O frontend normaliza para {@link ServiceItem}.
+ */
+export type ServiceListWireItem = Partial<ServiceDto> & {
+  serviceName?: string;
+  /** @deprecated usar `priceInCents` */
+  price?: number;
+  priceSpecification?: Partial<ServicePriceSpecification> | null;
+};
+
+/**
+ * Item de serviço no catálogo (modelo de UI).
+ * Derivado de {@link ServiceDto} via `mapServiceDtoToServiceItem`.
+ */
 export type ServiceItem = {
   id?: string;
   serviceName: string;

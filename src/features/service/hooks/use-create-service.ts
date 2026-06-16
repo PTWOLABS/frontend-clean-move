@@ -7,6 +7,7 @@ import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { createService } from "../api/create-service";
+import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
 import { mapCreateServiceFormToPayload } from "../schemas/create-service-schema";
 import type { CreateServiceFormValues } from "../schemas/create-service-schema";
 
@@ -24,13 +25,13 @@ export function useCreateService() {
       toast.success("Serviço criado com sucesso.");
     },
     onError: (error) => {
-      if (error instanceof ApiError) {
-        if (error.statusCode === 400) {
-          toast.error(error.message || "Verifique os dados e tente novamente.");
-          return;
-        }
-        toast.error("Não foi possível criar o serviço. Tente novamente mais tarde.");
-      }
+      if (!(error instanceof ApiError)) return;
+
+      const feedback = getServiceMutationFeedbackError(error, "create");
+      toast.error(feedback.title, {
+        id: feedback.id,
+        ...(feedback.description ? { description: feedback.description } : {}),
+      });
     },
   });
 }

@@ -112,6 +112,28 @@ describe("formValuesToServiceItem", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("omits maxInMinutes when equal to minInMinutes", () => {
+    const parsed = createServiceFormSchema.parse({
+      ...serviceItemToFormDefaults(baseItem),
+      minInMinutes: 45,
+      maxInMinutes: 45,
+    });
+    const payload = mapCreateServiceFormToPayload(parsed);
+
+    expect(payload.estimatedDuration).toEqual({ minInMinutes: 45 });
+  });
+
+  it("never sends price together with priceSpecification", () => {
+    const parsed = createServiceFormSchema.parse(serviceItemToFormDefaults(baseItem));
+    const payload = mapCreateServiceFormToPayload(parsed);
+
+    expect(payload.price).toBeUndefined();
+    expect(payload.priceSpecification).toEqual({
+      type: "FIXED",
+      fixedPriceInCents: 6500,
+    });
+  });
+
   it("rejects invalid duration via schema before mapping", () => {
     const parsed = createServiceFormSchema.safeParse({
       ...serviceItemToFormDefaults(baseItem),

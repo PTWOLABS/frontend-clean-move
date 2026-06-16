@@ -3,7 +3,12 @@ import { z } from "zod";
 import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
 import type { ServiceCategoryRef } from "@/features/service-category/types";
 
-import type { CreateServicePayload, ServiceItem, ServicePriceSpecification } from "../types";
+import type {
+  CreateServicePayload,
+  ServiceItem,
+  ServicePriceSpecification,
+  UpdateServicePayload,
+} from "../types";
 
 function parseNumberFromInput(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -220,11 +225,18 @@ export function mapCreateServiceFormToPayload(
     categoryId: values.categoryId ?? null,
     estimatedDuration: {
       minInMinutes: values.minInMinutes,
-      maxInMinutes: values.maxInMinutes,
+      ...(values.maxInMinutes !== values.minInMinutes ? { maxInMinutes: values.maxInMinutes } : {}),
     },
     priceSpecification,
     isActive: values.isActive,
   };
+}
+
+/** Mapeia o formulário para o corpo completo de `PATCH /services/:serviceId` (edição). */
+export function mapCreateServiceFormToUpdatePayload(
+  values: CreateServiceFormValues,
+): UpdateServicePayload {
+  return mapCreateServiceFormToPayload(values);
 }
 
 /** Item de listagem derivado dos valores validados do formulário (update otimista). */
@@ -242,8 +254,11 @@ export function formValuesToServiceItem(
     serviceName: payload.serviceName,
     description: payload.description,
     category: resolvedCategory,
-    estimatedDuration: payload.estimatedDuration,
-    priceSpecification: payload.priceSpecification,
-    isActive: payload.isActive,
+    estimatedDuration: {
+      minInMinutes: values.minInMinutes,
+      maxInMinutes: values.maxInMinutes,
+    },
+    priceSpecification: payload.priceSpecification!,
+    isActive: payload.isActive ?? values.isActive,
   };
 }
