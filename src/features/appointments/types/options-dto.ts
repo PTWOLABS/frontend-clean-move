@@ -30,5 +30,5 @@ export type ServiceOptionsDTO = {
           minPriceInCents: number;
           maxPriceInCents: number;
         };
-  };
+  }>;
 };
