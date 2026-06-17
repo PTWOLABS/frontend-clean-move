@@ -1,12 +1,82 @@
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { normalizeQueryParamsFilters } from "@/shared/utils/lib";
 
 import {
+  areDashboardFiltersDefault,
   getCustomDashboardDateRangeFilters,
   getDashboardMetricsFilters,
   limitCustomDashboardDateRange,
+  MetricsSections,
 } from "./metrics-sessions";
+
+type SelectOptionMock = {
+  label: string;
+  value: string;
+};
+
+type SelectMockProps = {
+  className?: string;
+  onChange: (value: string) => void;
+  options: SelectOptionMock[];
+  value?: string;
+};
+
+vi.mock("@/components/ui/calendar/date-picker-with-range", () => ({
+  DatePickerWithRange: ({ disabled }: { disabled?: boolean }) => (
+    <button type="button" disabled={disabled}>
+      Período do dashboard
+    </button>
+  ),
+}));
+
+vi.mock("@/components/ui/select/select", () => ({
+  Select: ({ className, onChange, options, value }: SelectMockProps) => {
+    const ariaLabel = options.some((option) => option.value === "last-30-days")
+      ? "Período"
+      : "Status";
+
+    return (
+      <select
+        aria-label={ariaLabel}
+        className={className}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  },
+}));
+
+vi.mock("@/features/dashboard/providers/dashboard-metrics-visibility-provider", () => ({
+  useDashboardMetricsVisibility: () => ({ shouldShowMetrics: true }),
+}));
+
+vi.mock("./metrics-overview", () => ({
+  MetricsOverview: () => <div>Resumo de métricas</div>,
+}));
+
+vi.mock("./popular-services-card", () => ({
+  PopularServicesCard: () => <div>Serviços populares</div>,
+}));
+
+vi.mock("./revenue-appointments-chart-card", () => ({
+  RevenueAppointmentsChartCard: () => <div>Gráfico de receita</div>,
+}));
+
+vi.mock("./tables/appointments-history/appointments-history-table", () => ({
+  AppointmentsHistoryTable: () => <div>Histórico de agendamentos</div>,
+}));
+
+vi.mock("./tables/most-frequent-customers/most-frequent-customers-table", () => ({
+  MostFrequentCustomersTable: () => <div>Clientes frequentes</div>,
+}));
 
 afterEach(() => {
   vi.useRealTimers();
@@ -148,5 +218,57 @@ describe("getCustomDashboardDateRangeFilters", () => {
       endsAt: new Date(2026, 4, 29, 23, 59, 59, 999),
       status: ["DONE"],
     });
+  });
+});
+
+describe("areDashboardFiltersDefault", () => {
+  it("detects the default dashboard filter state", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-29T12:00:00"));
+
+    expect(
+      areDashboardFiltersDefault({
+        period: "last-30-days",
+        dateRange: {
+          from: new Date(2026, 3, 30),
+          to: new Date(2026, 4, 29),
+        },
+        status: "ALL",
+      }),
+    ).toBe(true);
+
+    expect(
+      areDashboardFiltersDefault({
+        period: "last-30-days",
+        dateRange: {
+          from: new Date(2026, 3, 30),
+          to: new Date(2026, 4, 29),
+        },
+        status: "DONE",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("MetricsSections", () => {
+  it("resets dashboard filters to their default values", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-29T12:00:00"));
+
+    render(<MetricsSections />);
+
+    const clearButton = screen.getByRole("button", { name: /limpar filtros/i });
+
+    expect(clearButton).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Status"), { target: { value: "DONE" } });
+
+    expect(clearButton).toBeEnabled();
+
+    fireEvent.click(clearButton);
+
+    expect(screen.getByLabelText("Período")).toHaveValue("last-30-days");
+    expect(screen.getByLabelText("Status")).toHaveValue("ALL");
+    expect(clearButton).toBeDisabled();
   });
 });

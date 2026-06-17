@@ -19,7 +19,7 @@ import { PopularServicesCard } from "./popular-services-card";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, RotateCcw } from "lucide-react";
 import { AppointmentStatus } from "@/shared/types/appointments";
 import { useDashboardMetricsVisibility } from "@/features/dashboard/providers/dashboard-metrics-visibility-provider";
 import {
@@ -36,6 +36,8 @@ type DashboardPeriodFilter = DashboardPeriod | "custom";
 type DashboardStatusFilter = "ALL" | AppointmentStatus;
 
 const MAX_CUSTOM_DATE_RANGE_MONTHS = 24;
+const DEFAULT_DASHBOARD_PERIOD = "last-30-days" satisfies DashboardPeriod;
+const DEFAULT_DASHBOARD_STATUS = "ALL" satisfies DashboardStatusFilter;
 
 const periodsOptions: {
   label: string;
@@ -79,6 +81,21 @@ function getDateRangeForPeriod(period: DashboardPeriod): DateRange {
         to: endOfMonth(today),
       };
   }
+}
+
+function areSameDateRanges(first?: DateRange, second?: DateRange) {
+  const firstFrom = first?.from;
+  const secondFrom = second?.from;
+  const firstTo = first?.to;
+  const secondTo = second?.to;
+
+  const hasSameFrom =
+    (!firstFrom && !secondFrom) ||
+    Boolean(firstFrom && secondFrom && isSameDay(firstFrom, secondFrom));
+  const hasSameTo =
+    (!firstTo && !secondTo) || Boolean(firstTo && secondTo && isSameDay(firstTo, secondTo));
+
+  return hasSameFrom && hasSameTo;
 }
 
 export function limitCustomDashboardDateRange(dateRange?: DateRange): DateRange | undefined {
@@ -199,12 +216,28 @@ export function getDashboardMetricsFilters({
   };
 }
 
-export function MetricsSections() {
-  const [period, setPeriod] = useState<DashboardPeriodFilter>("last-30-days");
-  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(() =>
-    getDateRangeForPeriod("last-30-days"),
+export function areDashboardFiltersDefault({
+  period,
+  dateRange,
+  status,
+}: {
+  period: DashboardPeriodFilter;
+  dateRange?: DateRange;
+  status: DashboardStatusFilter;
+}) {
+  return (
+    period === DEFAULT_DASHBOARD_PERIOD &&
+    status === DEFAULT_DASHBOARD_STATUS &&
+    areSameDateRanges(dateRange, getDateRangeForPeriod(DEFAULT_DASHBOARD_PERIOD))
   );
-  const [status, setStatus] = useState<DashboardStatusFilter>("ALL");
+}
+
+export function MetricsSections() {
+  const [period, setPeriod] = useState<DashboardPeriodFilter>(DEFAULT_DASHBOARD_PERIOD);
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(() =>
+    getDateRangeForPeriod(DEFAULT_DASHBOARD_PERIOD),
+  );
+  const [status, setStatus] = useState<DashboardStatusFilter>(DEFAULT_DASHBOARD_STATUS);
   const { shouldShowMetrics } = useDashboardMetricsVisibility();
 
   const isCustomPeriod = period === "custom";
@@ -227,7 +260,18 @@ export function MetricsSections() {
     setCustomDateRange(limitCustomDashboardDateRange(nextDateRange));
   }
 
+  function handleClearFilters() {
+    setPeriod(DEFAULT_DASHBOARD_PERIOD);
+    setCustomDateRange(getDateRangeForPeriod(DEFAULT_DASHBOARD_PERIOD));
+    setStatus(DEFAULT_DASHBOARD_STATUS);
+  }
+
   const filters = getDashboardMetricsFilters({
+    period,
+    dateRange: resolvedDateRange,
+    status,
+  });
+  const areFiltersDefault = areDashboardFiltersDefault({
     period,
     dateRange: resolvedDateRange,
     status,
@@ -236,14 +280,14 @@ export function MetricsSections() {
   return (
     <div className="space-y-4">
       <header className="flex flex-col gap-4">
-        <div className="flex justify-between">
+        <div className="flex flex-col sm:flex-row justify-between">
           <div className="space-y-1">
             <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
             <p className="text-sm text-muted-foreground">
               Acompanhe os principais indicadores da operação.
             </p>
           </div>
-          <div>
+          <div className="mt-4">
             <Button className="h-10 w-full sm:min-w-50" asChild>
               <Link href="/appointments?new=true">
                 <Plus className="size-4" />
@@ -255,7 +299,7 @@ export function MetricsSections() {
 
         <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex w-full flex-col gap-2 xl:max-w-[56rem] xl:flex-1">
-            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.7fr)_minmax(11rem,1fr)_minmax(11rem,1fr)]">
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.7fr)_minmax(11rem,1fr)_minmax(11rem,1fr)_auto]">
               <DatePickerWithRange
                 value={resolvedDateRange}
                 onChange={handleCustomDateRangeChange}
@@ -275,6 +319,16 @@ export function MetricsSections() {
                 onChange={(value) => setStatus(value)}
                 className="h-11 rounded-md border-border/80 bg-card/70 shadow-xs"
               />
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full bg-card/70 lg:w-auto"
+                disabled={areFiltersDefault}
+                onClick={handleClearFilters}
+              >
+                <RotateCcw className="size-4" />
+                Limpar filtros
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
