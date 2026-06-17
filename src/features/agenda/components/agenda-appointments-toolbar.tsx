@@ -8,6 +8,7 @@ import { DatePickerWithRange } from "@/components/ui/calendar/date-picker-with-r
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select } from "@/components/ui/select/select";
+import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
 
 import { periodModeOptions, searchFieldOptions, statusFilterOptions } from "../constants";
 import type { AgendaPeriodMode, AgendaSearchField, AgendaStatusFilter } from "../types";
@@ -23,6 +24,8 @@ type AgendaAppointmentsToolbarProps = {
   onSearchChange: (search: string) => void;
   onPeriodModeChange: (mode: AgendaPeriodMode) => void;
   onDateRangeChange: (range: DateRange | undefined) => void;
+  onClearFilters: () => void;
+  clearFiltersDisabled: boolean;
 };
 
 export function AgendaAppointmentsToolbar({
@@ -36,13 +39,15 @@ export function AgendaAppointmentsToolbar({
   onSearchChange,
   onPeriodModeChange,
   onDateRangeChange,
+  onClearFilters,
+  clearFiltersDisabled,
 }: AgendaAppointmentsToolbarProps) {
   const hasCustomPeriod = periodMode === "custom";
   const displayedDateRange = hasCustomPeriod ? dateRange : { from: undefined, to: undefined };
   const dateRangePlaceholder = hasCustomPeriod ? "Selecione as datas" : "Definido pelo período";
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,0.9fr)_minmax(0,1.7fr)_auto] lg:items-end">
+    <div className="grid gap-3 lg:grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,0.9fr)_minmax(0,1.7fr)_auto_auto] lg:items-end">
       <label className="grid gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Status</span>
         <Select
@@ -123,6 +128,12 @@ export function AgendaAppointmentsToolbar({
           </div>
         </PopoverContent>
       </Popover>
+
+      <ClearFiltersButton
+        className="h-10 w-full border-border/80 bg-background/60 shadow-xs lg:w-auto"
+        disabled={clearFiltersDisabled}
+        onClick={onClearFilters}
+      />
     </div>
   );
 }

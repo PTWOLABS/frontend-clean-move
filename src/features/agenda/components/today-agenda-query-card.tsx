@@ -16,6 +16,7 @@ import { mapAppointmentListItemToPresentationItem } from "@/shared/components/ap
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
 import type { AppointmentStatus } from "@/shared/types/appointments";
+import { areSameDateRanges } from "@/shared/utils/date-ranges";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 import { TodayAgendaCard, type TodayAgendaItem } from "./today-agenda-card";
@@ -24,7 +25,11 @@ import { AgendaAppointmentsPagination } from "./agenda-appointments-pagination";
 import { AgendaAppointmentsToolbar } from "./agenda-appointments-toolbar";
 import { AgendaAppointmentDetailsDialog } from "./agenda-appointment-details-dialog";
 import { AgendaAppointmentServicesDialog } from "./agenda-appointment-services-dialog";
-import { getInitialAgendaFiltersState, persistAgendaFilters } from "../lib/agenda-filters-storage";
+import {
+  getDefaultAgendaFiltersState,
+  getInitialAgendaFiltersState,
+  persistAgendaFilters,
+} from "../lib/agenda-filters-storage";
 import {
   AgendaSearchField,
   AgendaStatusFilter,
@@ -244,6 +249,13 @@ export function TodayAgendaQueryCard() {
   const updatingStatusAppointmentId = updateAppointmentStatusMutation.isPending
     ? (updateAppointmentStatusMutation.variables?.appointmentId ?? null)
     : null;
+  const defaultFilters = getDefaultAgendaFiltersState();
+  const areFiltersDefault =
+    statusFilter === defaultFilters.statusFilter &&
+    searchField === defaultFilters.searchField &&
+    search === defaultFilters.search &&
+    periodMode === defaultFilters.periodMode &&
+    (periodMode !== "custom" || areSameDateRanges(dateRange, defaultFilters.dateRange));
 
   function clearSelectedAppointments() {
     setSelectedAppointmentId(null);
@@ -277,6 +289,17 @@ export function TodayAgendaQueryCard() {
 
   function handlePeriodModeChange(nextPeriodMode: AgendaPeriodMode) {
     setPeriodMode(nextPeriodMode);
+    resetPage();
+  }
+
+  function handleClearFilters() {
+    const nextDefaultFilters = getDefaultAgendaFiltersState();
+
+    setStatusFilter(nextDefaultFilters.statusFilter);
+    setSearchField(nextDefaultFilters.searchField);
+    setSearch(nextDefaultFilters.search);
+    setPeriodMode(nextDefaultFilters.periodMode);
+    setDateRange(nextDefaultFilters.dateRange);
     resetPage();
   }
 
@@ -340,6 +363,8 @@ export function TodayAgendaQueryCard() {
             onSearchChange={handleSearchChange}
             onPeriodModeChange={handlePeriodModeChange}
             onDateRangeChange={handleDateRangeChange}
+            onClearFilters={handleClearFilters}
+            clearFiltersDisabled={areFiltersDefault}
           />
         }
       />
