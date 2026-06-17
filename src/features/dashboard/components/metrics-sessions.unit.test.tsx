@@ -103,7 +103,7 @@ describe("getCustomDashboardDateRangeFilters", () => {
         period: "custom",
         dateRange: {
           from: new Date(2026, 4, 1),
-          to: new Date(2026, 4, 29),
+          to: new Date(2026, 4, 31),
         },
         status: "SCHEDULED",
       }),

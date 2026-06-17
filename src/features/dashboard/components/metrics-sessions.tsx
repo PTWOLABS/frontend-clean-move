@@ -4,6 +4,7 @@ import {
   addDays,
   addMonths,
   endOfDay,
+  endOfMonth,
   isAfter,
   isSameDay,
   startOfDay,
@@ -75,7 +76,7 @@ function getDateRangeForPeriod(period: DashboardPeriod): DateRange {
     case "this-month":
       return {
         from: startOfMonth(today),
-        to: today,
+        to: endOfMonth(today),
       };
   }
 }
