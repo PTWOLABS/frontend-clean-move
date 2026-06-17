@@ -19,7 +19,7 @@ import { PopularServicesCard } from "./popular-services-card";
 import { RevenueAppointmentsChartCard } from "./revenue-appointments-chart-card";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, RotateCcw } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AppointmentStatus } from "@/shared/types/appointments";
 import { useDashboardMetricsVisibility } from "@/features/dashboard/providers/dashboard-metrics-visibility-provider";
 import {
@@ -31,6 +31,8 @@ import { Select } from "@/components/ui/select/select";
 import { AppointmentsHistoryTable } from "./tables/appointments-history/appointments-history-table";
 import { MostFrequentCustomersTable } from "./tables/most-frequent-customers/most-frequent-customers-table";
 import Link from "next/link";
+import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
+import { areSameDateRanges } from "@/shared/utils/date-ranges";
 
 type DashboardPeriodFilter = DashboardPeriod | "custom";
 type DashboardStatusFilter = "ALL" | AppointmentStatus;
@@ -81,21 +83,6 @@ function getDateRangeForPeriod(period: DashboardPeriod): DateRange {
         to: endOfMonth(today),
       };
   }
-}
-
-function areSameDateRanges(first?: DateRange, second?: DateRange) {
-  const firstFrom = first?.from;
-  const secondFrom = second?.from;
-  const firstTo = first?.to;
-  const secondTo = second?.to;
-
-  const hasSameFrom =
-    (!firstFrom && !secondFrom) ||
-    Boolean(firstFrom && secondFrom && isSameDay(firstFrom, secondFrom));
-  const hasSameTo =
-    (!firstTo && !secondTo) || Boolean(firstTo && secondTo && isSameDay(firstTo, secondTo));
-
-  return hasSameFrom && hasSameTo;
 }
 
 export function limitCustomDashboardDateRange(dateRange?: DateRange): DateRange | undefined {
@@ -319,16 +306,11 @@ export function MetricsSections() {
                 onChange={(value) => setStatus(value)}
                 className="h-11 rounded-md border-border/80 bg-card/70 shadow-xs"
               />
-              <Button
-                type="button"
-                variant="outline"
+              <ClearFiltersButton
                 className="h-11 w-full bg-card/70 lg:w-auto"
                 disabled={areFiltersDefault}
                 onClick={handleClearFilters}
-              >
-                <RotateCcw className="size-4" />
-                Limpar filtros
-              </Button>
+              />
             </div>
 
             <p className="text-xs text-muted-foreground">
