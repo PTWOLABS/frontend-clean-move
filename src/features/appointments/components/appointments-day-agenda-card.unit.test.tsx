@@ -1,6 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
+import { renderWithProviders } from "@/test/test-utils";
 
 import type { AppointmentCalendarEvent } from "../types/appointment-calendar";
 import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
@@ -33,7 +35,7 @@ const appointmentEvent: AppointmentCalendarEvent = {
 
 describe("AppointmentsDayAgendaCard", () => {
   it("renders a loading state", () => {
-    render(
+    renderWithProviders(
       <AppointmentsDayAgendaCard
         selectedDate={new Date("2026-05-20T12:00:00.000Z")}
         selectedEventId={null}
@@ -57,7 +59,7 @@ describe("AppointmentsDayAgendaCard", () => {
     const user = userEvent.setup();
     const onSelectEvent = vi.fn();
 
-    render(
+    renderWithProviders(
       <AppointmentsDayAgendaCard
         selectedDate={new Date("2026-05-20T12:00:00.000Z")}
         selectedEventId={null}
@@ -89,7 +91,7 @@ describe("AppointmentsDayAgendaCard", () => {
       },
     };
 
-    render(
+    renderWithProviders(
       <AppointmentsDayAgendaCard
         selectedDate={new Date("2026-05-18T12:00:00.000Z")}
         selectedEventId={null}
@@ -109,7 +111,7 @@ describe("AppointmentsDayAgendaCard", () => {
   });
 
   it("renders the agenda loading state while refreshing", () => {
-    render(
+    renderWithProviders(
       <AppointmentsDayAgendaCard
         selectedDate={new Date("2026-05-20T12:00:00.000Z")}
         selectedEventId={null}

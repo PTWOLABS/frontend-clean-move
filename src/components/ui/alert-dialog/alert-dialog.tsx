@@ -16,6 +16,7 @@ type AlertDialogProps = {
   descriptionContent: ReactNode;
   isLoading?: boolean;
   actionMessage?: string;
+  cancelMessage?: string;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -27,6 +28,7 @@ export function AlertDialog({
   descriptionContent,
   isLoading,
   actionMessage,
+  cancelMessage = "Cancelar",
   onOpenChange,
   onConfirm,
   onCancel,
@@ -40,7 +42,7 @@ export function AlertDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading} onClick={() => onCancel()}>
-            Cancelar
+            {cancelMessage}
           </AlertDialogCancel>
           <Button
             type="button"

@@ -1,18 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CalendarClock, CheckCircle2, Loader2, Pencil, Settings, XCircle } from "lucide-react";
-
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  CalendarClock,
+  CheckCircle2,
+  Loader2,
+  Pencil,
+  Settings,
+  Trash2,
+  XCircle,
+} from "lucide-react";
+
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,6 +24,7 @@ import {
 import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 
+import { useDeleteAppointment } from "../hooks/mutations/use-delete-appointment-mutation";
 import { getStatusLabel } from "../lib/appointments-calendar";
 
 type AppointmentStatusActionsProps = {
@@ -93,7 +93,8 @@ export function AppointmentStatusActions({
   onStatusChange,
 }: AppointmentStatusActionsProps) {
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [cancellationConfirmationOpen, setCancellationConfirmationOpen] = useState(false);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const mountedRef = useRef(false);
   const consumeOutsideInteractionFollowUpRef = useRef(false);
   const clearOutsideInteractionFollowUpTimeoutRef = useRef<ReturnType<
@@ -190,13 +191,15 @@ export function AppointmentStatusActions({
     };
   }, [actionsMenuOpen]);
 
+  const { mutate: deleteAppointment, isPending: isDeletingAppointment } = useDeleteAppointment();
+
   function handleStatusAction(status: AppointmentStatus) {
-    if (status === currentStatus || isUpdating) {
+    if (status === currentStatus || isUpdating || isDeletingAppointment) {
       return;
     }
 
     if (status === "CANCELLED") {
-      setConfirmationOpen(true);
+      setCancellationConfirmationOpen(true);
       return;
     }
 
@@ -207,10 +210,32 @@ export function AppointmentStatusActions({
     void Promise.resolve(onStatusChange(appointmentId, "CANCELLED"))
       .then(() => {
         if (mountedRef.current) {
-          setConfirmationOpen(false);
+          setCancellationConfirmationOpen(false);
         }
       })
       .catch(() => undefined);
+  }
+
+  function handleDeleteAction() {
+    if (currentStatus === "DONE" || isUpdating || isDeletingAppointment) {
+      return;
+    }
+
+    setDeleteConfirmationOpen(true);
+  }
+
+  function handleConfirmDelete() {
+    if (currentStatus === "DONE" || isUpdating || isDeletingAppointment) {
+      return;
+    }
+
+    deleteAppointment(appointmentId, {
+      onSuccess: () => {
+        if (mountedRef.current) {
+          setDeleteConfirmationOpen(false);
+        }
+      },
+    });
   }
 
   const availableActions = appointmentStatusActions.filter(
@@ -218,19 +243,11 @@ export function AppointmentStatusActions({
   );
   const actionsLabel = onEdit ? "Ações do agendamento" : "Alterar status";
   const actionsAriaLabel = onEdit ? "Ações do agendamento" : "Alterar status do agendamento";
-  const isCancellationPending = confirmationOpen && isUpdating;
+  const canDeleteAppointment = currentStatus !== "DONE";
+  const isActionPending = isUpdating || isDeletingAppointment;
 
   return (
-    <AlertDialog
-      open={confirmationOpen}
-      onOpenChange={(open) => {
-        if (isUpdating) {
-          return;
-        }
-
-        setConfirmationOpen(open);
-      }}
-    >
+    <>
       <DropdownMenu open={actionsMenuOpen} onOpenChange={setActionsMenuOpen}>
         <HintTooltipProvider>
           <HintTooltip label={actionsLabel} side="left">
@@ -241,10 +258,10 @@ export function AppointmentStatusActions({
                 variant="outline"
                 size="icon"
                 className="size-8 shrink-0 rounded-xl border-border/70 bg-background/70"
-                disabled={isUpdating}
+                disabled={isActionPending}
                 aria-label={actionsAriaLabel}
               >
-                {isUpdating ? (
+                {isActionPending ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden />
                 ) : (
                   <Settings className="size-4" aria-hidden />
@@ -259,7 +276,7 @@ export function AppointmentStatusActions({
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
                 Ações
               </DropdownMenuLabel>
-              <DropdownMenuItem disabled={isUpdating} onSelect={onEdit}>
+              <DropdownMenuItem disabled={isActionPending} onSelect={onEdit}>
                 <Pencil className="size-4" aria-hidden />
                 Editar agendamento
               </DropdownMenuItem>
@@ -276,8 +293,10 @@ export function AppointmentStatusActions({
             return (
               <DropdownMenuItem
                 key={action.status}
-                className={action.status === "CANCELLED" ? "text-danger focus:text-danger" : ""}
-                disabled={isUpdating}
+                className={
+                  action.status === "CANCELLED" ? "text-destructive focus:text-destructive" : ""
+                }
+                disabled={isActionPending}
                 onSelect={() => handleStatusAction(action.status)}
               >
                 <Icon className="size-4" aria-hidden />
@@ -285,32 +304,64 @@ export function AppointmentStatusActions({
               </DropdownMenuItem>
             );
           })}
+          {canDeleteAppointment ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                disabled={isActionPending}
+                onSelect={handleDeleteAction}
+              >
+                <Trash2 className="size-4" aria-hidden />
+                Excluir agendamento
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Cancelar agendamento?</AlertDialogTitle>
-          <AlertDialogDescription>
+      <AlertDialog
+        open={cancellationConfirmationOpen}
+        title="Cancelar agendamento?"
+        descriptionContent={
+          <>
             Esta ação altera o status do agendamento para cancelado. Tem certeza que deseja cancelar
             este agendamento?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isUpdating}>Manter agendamento</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-danger text-danger-foreground hover:bg-danger/90"
-            disabled={isUpdating}
-            onClick={(event) => {
-              event.preventDefault();
-              handleConfirmCancellation();
-            }}
-          >
-            {isCancellationPending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-            Cancelar agendamento
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </>
+        }
+        isLoading={isUpdating}
+        actionMessage="Cancelar agendamento"
+        cancelMessage="Manter agendamento"
+        onOpenChange={(open) => {
+          if (isUpdating) {
+            return;
+          }
+
+          setCancellationConfirmationOpen(open);
+        }}
+        onConfirm={handleConfirmCancellation}
+        onCancel={() => setCancellationConfirmationOpen(false)}
+      />
+
+      <AlertDialog
+        open={deleteConfirmationOpen}
+        title="Excluir agendamento?"
+        descriptionContent={
+          <>Esta ação não pode ser desfeita. O agendamento será removido permanentemente.</>
+        }
+        isLoading={isDeletingAppointment}
+        actionMessage="Excluir agendamento"
+        cancelMessage="Manter agendamento"
+        onOpenChange={(open) => {
+          if (isDeletingAppointment) {
+            return;
+          }
+
+          setDeleteConfirmationOpen(open);
+        }}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirmationOpen(false)}
+      />
+    </>
   );
 }

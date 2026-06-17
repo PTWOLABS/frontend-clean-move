@@ -35,6 +35,16 @@ function getDefaultAgendaDateRange(): DateRange {
   };
 }
 
+export function getDefaultAgendaFiltersState(): AgendaFiltersState {
+  return {
+    statusFilter: "ALL",
+    searchField: "serviceName",
+    search: "",
+    periodMode: DEFAULT_AGENDA_PERIOD_MODE,
+    dateRange: getDefaultAgendaDateRange(),
+  };
+}
+
 function isAgendaStatusFilter(value: unknown): value is AgendaStatusFilter {
   return statusFilterOptions.some((option) => option.value === value);
 }
@@ -86,13 +96,7 @@ function readStoredAgendaFilters(): StoredAgendaFilters | undefined {
 }
 
 export function getInitialAgendaFiltersState(): AgendaFiltersState {
-  const defaultFilters: AgendaFiltersState = {
-    statusFilter: "ALL",
-    searchField: "serviceName",
-    search: "",
-    periodMode: DEFAULT_AGENDA_PERIOD_MODE,
-    dateRange: getDefaultAgendaDateRange(),
-  };
+  const defaultFilters = getDefaultAgendaFiltersState();
   const storedFilters = readStoredAgendaFilters();
 
   if (!storedFilters) return defaultFilters;
