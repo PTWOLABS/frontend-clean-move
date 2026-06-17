@@ -1,10 +1,10 @@
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import type FullCalendar from "@fullcalendar/react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { RefObject } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const useListCalendarAppointmentsMock = vi.hoisted(() => vi.fn());
 const useQueryFeedbackErrorMock = vi.hoisted(() => vi.fn());
@@ -52,13 +52,9 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/components/ui/select/select", () => ({
   Select: ({ className, onChange, options, value }: SelectMockProps) => {
-    const ariaLabel = options.some((option) => option.label.startsWith("Status"))
-      ? "Status"
-      : "Visualização";
-
     return (
       <select
-        aria-label={ariaLabel}
+        aria-label="Status"
         className={className}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -76,6 +72,7 @@ vi.mock("@/components/ui/select/select", () => ({
 vi.mock("./appointments-calendar-toolbar", () => ({
   AppointmentsCalendarToolbar: ({
     calendarTitle,
+    selectedView,
     onSelectDate,
     onSelectView,
   }: {
@@ -88,11 +85,15 @@ vi.mock("./appointments-calendar-toolbar", () => ({
   }) => (
     <div>
       <p>Título do calendário: {calendarTitle}</p>
+      <p>Visualização no toolbar: {selectedView}</p>
       <button type="button" onClick={() => onSelectDate(new Date("2026-05-22T12:00:00.000Z"))}>
         Selecionar no toolbar
       </button>
       <button type="button" onClick={() => onSelectView("timeGridWeek")}>
         Selecionar semana no toolbar
+      </button>
+      <button type="button" onClick={() => onSelectView("listWeek")}>
+        Selecionar lista no toolbar
       </button>
     </div>
   ),
@@ -501,6 +502,10 @@ function makeFutureAppointmentEvent({
   };
 }
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("AppointmentsPage", () => {
   beforeEach(() => {
     mockMatchMedia(false);
@@ -641,6 +646,46 @@ describe("AppointmentsPage", () => {
     expect(screen.queryByText("Próximos agendamentos: Polimento filtrado")).not.toBeInTheDocument();
   });
 
+  it("resets calendar filters to their default values", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-20T12:00:00.000Z"));
+
+    render(<AppointmentsPage />);
+
+    const clearButton = screen.getByRole("button", { name: /limpar filtros/i });
+
+    expect(clearButton).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Status"), { target: { value: "DONE" } });
+    fireEvent.click(screen.getByRole("button", { name: /selecionar lista no toolbar/i }));
+
+    expect(clearButton).toBeEnabled();
+
+    fireEvent.click(clearButton);
+
+    expect(screen.getByLabelText("Status")).toHaveValue("ALL");
+    expect(screen.getByText("Visualização no toolbar: dayGridMonth")).toBeInTheDocument();
+    expect(clearButton).toBeDisabled();
+    expect(useListCalendarAppointmentsMock).toHaveBeenLastCalledWith(
+      expect.not.objectContaining({ status: expect.any(Array) }),
+    );
+  });
+
+  it("keeps clear filters disabled when only an appointment selection changes", async () => {
+    const user = userEvent.setup();
+
+    render(<AppointmentsPage />);
+
+    const clearButton = screen.getByRole("button", { name: /limpar filtros/i });
+
+    expect(clearButton).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: /selecionar item da agenda/i }));
+
+    expect(screen.getByText("Evento selecionado no calendário: appointment-1")).toBeInTheDocument();
+    expect(clearButton).toBeDisabled();
+  });
+
   it("uses the separated vehicle plate for upcoming appointments", async () => {
     useListCalendarAppointmentsMock.mockReturnValue({
       data: [
@@ -671,8 +716,7 @@ describe("AppointmentsPage", () => {
     await user.click(screen.getByRole("button", { name: /atualizar semana em lista/i }));
 
     expect(screen.getByText("Título do calendário: 8 - 14 de mai de 2026")).toBeInTheDocument();
-    expect(screen.getByLabelText("Visualização")).toHaveValue("listWeek");
-    expect(screen.getByDisplayValue("Visualização: Lista")).toBeInTheDocument();
+    expect(screen.getByText("Visualização no toolbar: listWeek")).toBeInTheDocument();
   });
 
   it("switches to list view when the user clicks a day number in the calendar", async () => {
@@ -683,8 +727,7 @@ describe("AppointmentsPage", () => {
     await user.click(screen.getByRole("button", { name: /clicar número do dia/i }));
 
     expect(screen.getByText("Título do calendário: 17 - 23 de mai de 2026")).toBeInTheDocument();
-    expect(screen.getByLabelText("Visualização")).toHaveValue("listWeek");
-    expect(screen.getByDisplayValue("Visualização: Lista")).toBeInTheDocument();
+    expect(screen.getByText("Visualização no toolbar: listWeek")).toBeInTheDocument();
     expect(screen.getByText("Slot selecionado no calendário: nenhum")).toBeInTheDocument();
   });
 
@@ -700,7 +743,7 @@ describe("AppointmentsPage", () => {
       endsAt: "2026-06-07T00:00:00.000Z",
     });
     expect(screen.getByText("Título do calendário: Maio de 2026")).toBeInTheDocument();
-    expect(screen.getByLabelText("Visualização")).toHaveValue("dayGridMonth");
+    expect(screen.getByText("Visualização no toolbar: dayGridMonth")).toBeInTheDocument();
   });
 
   it("syncs selection when the user selects an agenda item or calendar event", async () => {

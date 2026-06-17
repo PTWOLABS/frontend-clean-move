@@ -12,30 +12,6 @@ import type {
 } from "../types/appointment-calendar";
 import styles from "../components/appointments-page.module.css";
 
-export const viewOptions: Array<{
-  label: string;
-  value: AppointmentCalendarView;
-}> = [
-  {
-    label: "Visualização: Mês",
-    value: "dayGridMonth",
-  },
-  {
-    label: "Visualização: Semana",
-    value: "timeGridWeek",
-  },
-  {
-    label: "Visualização: Dia",
-    value: "timeGridDay",
-  },
-  {
-    label: "Visualização: Lista",
-    value: "listWeek",
-  },
-];
-
-export const compactViewOptions = viewOptions.filter((option) => option.value !== "timeGridWeek");
-
 export const viewToggleOptions: Array<{
   label: string;
   value: AppointmentCalendarView;
