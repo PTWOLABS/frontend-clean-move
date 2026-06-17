@@ -39,10 +39,14 @@ vi.mock("@/components/ui/calendar/date-picker-with-range", () => ({
 }));
 
 function renderToolbar({
+  applyFiltersDisabled = false,
   clearFiltersDisabled = false,
+  onApplyFilters = vi.fn(),
   onClearFilters = vi.fn(),
 }: {
+  applyFiltersDisabled?: boolean;
   clearFiltersDisabled?: boolean;
+  onApplyFilters?: () => void;
   onClearFilters?: () => void;
 } = {}) {
   render(
@@ -56,10 +60,16 @@ function renderToolbar({
       onSearchChange={vi.fn()}
       onPeriodModeChange={vi.fn()}
       onDateRangeChange={vi.fn()}
+      onApplyFilters={onApplyFilters}
       onClearFilters={onClearFilters}
+      applyFiltersDisabled={applyFiltersDisabled}
       clearFiltersDisabled={clearFiltersDisabled}
     />,
   );
+}
+
+function openAdvancedFilters() {
+  fireEvent.click(screen.getByRole("button", { name: /filtros/i }));
 }
 
 describe("AgendaAppointmentsToolbar", () => {
@@ -67,6 +77,7 @@ describe("AgendaAppointmentsToolbar", () => {
     const onClearFilters = vi.fn();
 
     renderToolbar({ onClearFilters });
+    openAdvancedFilters();
 
     fireEvent.click(screen.getByRole("button", { name: /limpar filtros/i }));
 
@@ -75,7 +86,27 @@ describe("AgendaAppointmentsToolbar", () => {
 
   it("disables the clear filters button when filters are already default", () => {
     renderToolbar({ clearFiltersDisabled: true });
+    openAdvancedFilters();
 
     expect(screen.getByRole("button", { name: /limpar filtros/i })).toBeDisabled();
+  });
+
+  it("calls the apply filters callback from the apply button", () => {
+    const onApplyFilters = vi.fn();
+
+    renderToolbar({ onApplyFilters });
+    openAdvancedFilters();
+
+    fireEvent.click(screen.getByRole("button", { name: /aplicar filtros/i }));
+
+    expect(onApplyFilters).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: /aplicar filtros/i })).not.toBeInTheDocument();
+  });
+
+  it("disables the apply filters button when draft filters are already applied", () => {
+    renderToolbar({ applyFiltersDisabled: true });
+    openAdvancedFilters();
+
+    expect(screen.getByRole("button", { name: /aplicar filtros/i })).toBeDisabled();
   });
 });

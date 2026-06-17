@@ -13,14 +13,13 @@ import type {
   AppointmentTone,
 } from "@/features/appointments/types/appointment-calendar";
 import { mapAppointmentListItemToPresentationItem } from "@/shared/components/appointments/appointment-presenters";
-import { useDebounce } from "@/shared/hooks/use-debounced-value";
 import { useQueryFeedbackError } from "@/shared/hooks/use-query-feedback-error";
 import type { AppointmentStatus } from "@/shared/types/appointments";
 import { areSameDateRanges } from "@/shared/utils/date-ranges";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 import { TodayAgendaCard, type TodayAgendaItem } from "./today-agenda-card";
-import { AGENDA_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from "../constants";
+import { AGENDA_PAGE_SIZE } from "../constants";
 import { AgendaAppointmentsPagination } from "./agenda-appointments-pagination";
 import { AgendaAppointmentsToolbar } from "./agenda-appointments-toolbar";
 import { AgendaAppointmentDetailsDialog } from "./agenda-appointment-details-dialog";
@@ -29,6 +28,7 @@ import {
   getDefaultAgendaFiltersState,
   getInitialAgendaFiltersState,
   persistAgendaFilters,
+  type AgendaFiltersState,
 } from "../lib/agenda-filters-storage";
 import {
   AgendaSearchField,
@@ -178,13 +178,20 @@ function mapAppointmentsToTodayAgendaItems(
     .sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
 }
 
+function areAgendaFiltersStateEqual(left: AgendaFiltersState, right: AgendaFiltersState) {
+  return (
+    left.statusFilter === right.statusFilter &&
+    left.searchField === right.searchField &&
+    left.search === right.search &&
+    left.periodMode === right.periodMode &&
+    (left.periodMode !== "custom" || areSameDateRanges(left.dateRange, right.dateRange))
+  );
+}
+
 export function TodayAgendaQueryCard() {
   const [initialFilters] = useState(getInitialAgendaFiltersState);
-  const [statusFilter, setStatusFilter] = useState<AgendaStatusFilter>(initialFilters.statusFilter);
-  const [searchField, setSearchField] = useState<AgendaSearchField>(initialFilters.searchField);
-  const [search, setSearch] = useState(initialFilters.search);
-  const [periodMode, setPeriodMode] = useState<AgendaPeriodMode>(initialFilters.periodMode);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialFilters.dateRange);
+  const [appliedFilters, setAppliedFilters] = useState<AgendaFiltersState>(initialFilters);
+  const [draftFilters, setDraftFilters] = useState<AgendaFiltersState>(initialFilters);
   const [page, setPage] = useState(1);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [selectedServicesAppointmentId, setSelectedServicesAppointmentId] = useState<string | null>(
@@ -192,29 +199,22 @@ export function TodayAgendaQueryCard() {
   );
   const [appointmentToEdit, setAppointmentToEdit] = useState<AppointmentCalendarEvent | null>(null);
   const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
-  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
 
   useEffect(() => {
-    persistAgendaFilters({
-      statusFilter,
-      searchField,
-      search,
-      periodMode,
-      dateRange,
-    });
-  }, [dateRange, periodMode, search, searchField, statusFilter]);
+    persistAgendaFilters(appliedFilters);
+  }, [appliedFilters]);
 
   const filters = useMemo(
     () =>
       buildAgendaAppointmentsFilters({
-        status: statusFilter,
-        search: debouncedSearch,
-        searchField,
-        periodMode,
-        dateRange,
+        status: appliedFilters.statusFilter,
+        search: appliedFilters.search,
+        searchField: appliedFilters.searchField,
+        periodMode: appliedFilters.periodMode,
+        dateRange: appliedFilters.dateRange,
         page,
       }),
-    [dateRange, debouncedSearch, page, periodMode, searchField, statusFilter],
+    [appliedFilters, page],
   );
 
   const { data, error, isPending, isPlaceholderData, refetch } = useListAppointments(filters);
@@ -250,12 +250,9 @@ export function TodayAgendaQueryCard() {
     ? (updateAppointmentStatusMutation.variables?.appointmentId ?? null)
     : null;
   const defaultFilters = getDefaultAgendaFiltersState();
-  const areFiltersDefault =
-    statusFilter === defaultFilters.statusFilter &&
-    searchField === defaultFilters.searchField &&
-    search === defaultFilters.search &&
-    periodMode === defaultFilters.periodMode &&
-    (periodMode !== "custom" || areSameDateRanges(dateRange, defaultFilters.dateRange));
+  const areDraftFiltersDefault = areAgendaFiltersStateEqual(draftFilters, defaultFilters);
+  const areAppliedFiltersDefault = areAgendaFiltersStateEqual(appliedFilters, defaultFilters);
+  const areDraftFiltersApplied = areAgendaFiltersStateEqual(draftFilters, appliedFilters);
 
   function clearSelectedAppointments() {
     setSelectedAppointmentId(null);
@@ -268,38 +265,50 @@ export function TodayAgendaQueryCard() {
   }
 
   function handleStatusChange(nextStatus: AgendaStatusFilter) {
-    setStatusFilter(nextStatus);
-    resetPage();
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      statusFilter: nextStatus,
+    }));
   }
 
   function handleSearchFieldChange(nextSearchField: AgendaSearchField) {
-    setSearchField(nextSearchField);
-    resetPage();
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      searchField: nextSearchField,
+    }));
   }
 
   function handleSearchChange(nextSearch: string) {
-    setSearch(nextSearch);
-    resetPage();
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      search: nextSearch,
+    }));
   }
 
   function handleDateRangeChange(nextDateRange: DateRange | undefined) {
-    setDateRange(nextDateRange);
-    resetPage();
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      dateRange: nextDateRange,
+    }));
   }
 
   function handlePeriodModeChange(nextPeriodMode: AgendaPeriodMode) {
-    setPeriodMode(nextPeriodMode);
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      periodMode: nextPeriodMode,
+    }));
+  }
+
+  function handleApplyFilters() {
+    setAppliedFilters({ ...draftFilters });
     resetPage();
   }
 
   function handleClearFilters() {
     const nextDefaultFilters = getDefaultAgendaFiltersState();
 
-    setStatusFilter(nextDefaultFilters.statusFilter);
-    setSearchField(nextDefaultFilters.searchField);
-    setSearch(nextDefaultFilters.search);
-    setPeriodMode(nextDefaultFilters.periodMode);
-    setDateRange(nextDefaultFilters.dateRange);
+    setDraftFilters(nextDefaultFilters);
+    setAppliedFilters(nextDefaultFilters);
     resetPage();
   }
 
@@ -323,7 +332,7 @@ export function TodayAgendaQueryCard() {
       status,
     });
 
-    if (statusFilter !== "ALL" && statusFilter !== status) {
+    if (appliedFilters.statusFilter !== "ALL" && appliedFilters.statusFilter !== status) {
       setSelectedAppointmentId(null);
     }
   }
@@ -353,18 +362,20 @@ export function TodayAgendaQueryCard() {
         }
         toolbar={
           <AgendaAppointmentsToolbar
-            statusFilter={statusFilter}
-            searchField={searchField}
-            search={search}
-            periodMode={periodMode}
-            dateRange={dateRange}
+            statusFilter={draftFilters.statusFilter}
+            searchField={draftFilters.searchField}
+            search={draftFilters.search}
+            periodMode={draftFilters.periodMode}
+            dateRange={draftFilters.dateRange}
             onStatusChange={handleStatusChange}
             onSearchFieldChange={handleSearchFieldChange}
             onSearchChange={handleSearchChange}
             onPeriodModeChange={handlePeriodModeChange}
             onDateRangeChange={handleDateRangeChange}
+            onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
-            clearFiltersDisabled={areFiltersDefault}
+            applyFiltersDisabled={areDraftFiltersApplied}
+            clearFiltersDisabled={areDraftFiltersDefault && areAppliedFiltersDefault}
           />
         }
       />

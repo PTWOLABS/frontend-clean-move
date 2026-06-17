@@ -1,14 +1,15 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { DatePickerWithRange } from "@/components/ui/calendar/date-picker-with-range";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select } from "@/components/ui/select/select";
 import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
+import { SearchSelectInput } from "@/shared/components/search-select-input";
 
 import { periodModeOptions, searchFieldOptions, statusFilterOptions } from "../constants";
 import type { AgendaPeriodMode, AgendaSearchField, AgendaStatusFilter } from "../types";
@@ -24,7 +25,9 @@ type AgendaAppointmentsToolbarProps = {
   onSearchChange: (search: string) => void;
   onPeriodModeChange: (mode: AgendaPeriodMode) => void;
   onDateRangeChange: (range: DateRange | undefined) => void;
+  onApplyFilters: () => void;
   onClearFilters: () => void;
+  applyFiltersDisabled: boolean;
   clearFiltersDisabled: boolean;
 };
 
@@ -39,52 +42,48 @@ export function AgendaAppointmentsToolbar({
   onSearchChange,
   onPeriodModeChange,
   onDateRangeChange,
+  onApplyFilters,
   onClearFilters,
+  applyFiltersDisabled,
   clearFiltersDisabled,
 }: AgendaAppointmentsToolbarProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const hasCustomPeriod = periodMode === "custom";
   const displayedDateRange = hasCustomPeriod ? dateRange : { from: undefined, to: undefined };
   const dateRangePlaceholder = hasCustomPeriod ? "Selecione as datas" : "Definido pelo período";
 
+  function handleApplyFilters() {
+    onApplyFilters();
+    setFiltersOpen(false);
+  }
+
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,0.9fr)_minmax(0,1.7fr)_auto_auto] lg:items-end">
-      <label className="grid gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Status</span>
-        <Select
-          className="h-10 border-border/80 bg-background/60 shadow-xs"
-          options={statusFilterOptions}
-          value={statusFilter}
-          onChange={onStatusChange}
-        />
-      </label>
-
-      <label className="grid gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Buscar por</span>
-        <Select
-          className="h-10 border-border/80 bg-background/60 shadow-xs"
-          options={searchFieldOptions}
-          value={searchField}
-          onChange={onSearchFieldChange}
-        />
-      </label>
-
-      <label className="grid gap-1.5">
+    <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+      <div className="grid gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Filtro</span>
-        <div className="relative">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            className="h-10 border-border/80 bg-background/60 pl-9 shadow-xs"
-            placeholder="Digite para filtrar"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
-        </div>
-      </label>
+        <SearchSelectInput
+          value={search}
+          onChange={onSearchChange}
+          selectValue={searchField}
+          onSelectChange={onSearchFieldChange}
+          options={searchFieldOptions}
+          placeholder="Buscar agendamentos por cliente, veículo ou serviço"
+          aria-label="Buscar agendamentos por cliente, veículo, placa ou serviço"
+          selectAriaLabel="Campo da busca"
+          searchButtonLabel="Buscar agendamentos"
+          className="rounded-sm h-10"
+          buttonClassName="rounded-sm h-8"
+          onSearchClick={onApplyFilters}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onApplyFilters();
+            }
+          }}
+        />
+      </div>
 
-      <Popover>
+      <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
         <PopoverTrigger asChild>
           <Button
             type="button"
@@ -99,11 +98,17 @@ export function AgendaAppointmentsToolbar({
           <div className="space-y-4">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-popover-foreground">Filtros avançados</p>
-              <p className="text-xs text-muted-foreground">
-                Refine a consulta por período sem ocupar espaço da lista.
-              </p>
             </div>
 
+            <label className="grid gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Status</span>
+              <Select
+                className="h-10 border-border/80 bg-background/60 shadow-xs"
+                options={statusFilterOptions}
+                value={statusFilter}
+                onChange={onStatusChange}
+              />
+            </label>
             <label className="grid gap-1.5">
               <span className="text-xs font-medium text-muted-foreground">Período</span>
               <Select
@@ -125,15 +130,20 @@ export function AgendaAppointmentsToolbar({
                 onChange={onDateRangeChange}
               />
             </label>
+
+            <div className="grid grid-cols-2 gap-2 items-center">
+              <ClearFiltersButton
+                className="h-10 w-full border-border/80 bg-background/60 shadow-xs lg:w-auto"
+                disabled={clearFiltersDisabled}
+                onClick={onClearFilters}
+              />
+              <Button type="button" disabled={applyFiltersDisabled} onClick={handleApplyFilters}>
+                Aplicar filtros
+              </Button>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
-
-      <ClearFiltersButton
-        className="h-10 w-full border-border/80 bg-background/60 shadow-xs lg:w-auto"
-        disabled={clearFiltersDisabled}
-        onClick={onClearFilters}
-      />
     </div>
   );
 }
