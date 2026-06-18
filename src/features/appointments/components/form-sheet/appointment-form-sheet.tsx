@@ -106,6 +106,7 @@ function getAppointmentFormDefaultValues(
     appointment.extendedProps.services?.map((service) => ({
       serviceId: service.serviceId,
       serviceLabel: service.label,
+      source: "snapshot" as const,
       priceType: "STARTING_AT" as const,
       minPriceInCents: service.priceInCents,
       price: formatCentsToBrlInput(service.priceInCents),
@@ -113,6 +114,7 @@ function getAppointmentFormDefaultValues(
     appointment.extendedProps.serviceIds.map((service) => ({
       serviceId: service.value,
       serviceLabel: service.label,
+      source: "snapshot" as const,
       priceType: "STARTING_AT" as const,
       minPriceInCents: 0,
       price: "0,00",
@@ -262,9 +264,17 @@ export function AppointmentFormSheet({
     control,
     name: "services",
   });
+  const selectedServiceOptions = useWatch({
+    control,
+    name: "serviceIds",
+  });
 
   const getServicePriceDescription = useCallback(
     (service: NonNullable<typeof selectedServices>[number]) => {
+      if (service.source === "snapshot") {
+        return `Valor registrado: ${service.price}`;
+      }
+
       if (service.priceType === "FIXED") {
         return `Valor fixo: ${formatCentsToBrlInput(service.minPriceInCents)}`;
       }
@@ -438,8 +448,13 @@ export function AppointmentFormSheet({
         value: option.id,
       })) ?? [];
 
-    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? []);
-  }, [appointment, serviceOptions]);
+    const hasSelectedServiceOptions =
+      Array.isArray(selectedServiceOptions) && selectedServiceOptions.length > 0;
+
+    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? [], {
+      preferFetchedOptions: serviceInputValue.trim().length > 0 || !hasSelectedServiceOptions,
+    });
+  }, [appointment, selectedServiceOptions, serviceInputValue, serviceOptions]);
 
   const serviceOptionsWithPrice = useMemo<ServiceOptionWithPrice[]>(
     () =>
@@ -481,6 +496,10 @@ export function AppointmentFormSheet({
 
     let hasChanges = false;
     const nextServices = currentServices.map((service) => {
+      if (service.source === "snapshot") {
+        return service;
+      }
+
       const metadata = servicePriceById.get(service.serviceId);
       if (!metadata) return service;
 
@@ -640,6 +659,7 @@ export function AppointmentFormSheet({
                           return {
                             serviceId: option.value,
                             serviceLabel: option.label,
+                            source: "catalog" as const,
                             priceType,
                             minPriceInCents,
                             maxPriceInCents: metadata?.maxPriceInCents,
@@ -700,31 +720,18 @@ export function AppointmentFormSheet({
                                   "border-destructive/70 focus-visible:ring-destructive/30",
                               )}
                               value={typeof field.value === "string" ? field.value : ""}
-                              disabled={isSubmitting || service.priceType === "FIXED"}
+                              disabled={
+                                isSubmitting ||
+                                service.priceType === "FIXED" ||
+                                service.source === "snapshot"
+                              }
                               onChange={(event) =>
                                 handleNumericInputChange(event, field.onChange, {
                                   formatAsCurrency: true,
                                   showCurrencySymbol: false,
                                 })
                               }
-                              onBlur={() => {
-                                const parsedAmount = parseBrlMoneyToReais(
-                                  String(field.value ?? ""),
-                                );
-                                if (Number.isFinite(parsedAmount)) {
-                                  const amountInCents = Math.round(parsedAmount * 100);
-                                  if (amountInCents < service.minPriceInCents) {
-                                    field.onChange(formatCentsToBrlInput(service.minPriceInCents));
-                                  } else if (
-                                    service.priceType === "RANGE" &&
-                                    typeof service.maxPriceInCents === "number" &&
-                                    amountInCents > service.maxPriceInCents
-                                  ) {
-                                    field.onChange(formatCentsToBrlInput(service.maxPriceInCents));
-                                  }
-                                }
-                                field.onBlur();
-                              }}
+                              onBlur={field.onBlur}
                             />
                           </FormControl>
                           <FormDescription>{getServicePriceDescription(service)}</FormDescription>
