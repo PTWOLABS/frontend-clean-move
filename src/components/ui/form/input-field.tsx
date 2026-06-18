@@ -34,6 +34,7 @@ export const InputField = ({
 }: InputFieldProps) => {
   const inputClassName = cn(className, image && "pr-12");
   const inputId = props.id ?? name;
+  const { onChange: onChangeProp, ...inputProps } = props;
 
   return (
     <FormField
@@ -55,8 +56,12 @@ export const InputField = ({
                 component={Input}
                 replacement={{ _: /\d/ }}
                 {...field}
-                {...props}
+                {...inputProps}
                 value={field.value ?? ""}
+                onChange={(event) => {
+                  field.onChange(event);
+                  onChangeProp?.(event);
+                }}
                 id={inputId}
                 required={required}
                 className={inputClassName}
@@ -79,8 +84,12 @@ export const InputField = ({
             <FormControl>
               <Input
                 {...field}
-                {...props}
+                {...inputProps}
                 value={field.value ?? ""}
+                onChange={(event) => {
+                  field.onChange(event);
+                  onChangeProp?.(event);
+                }}
                 id={inputId}
                 required={required}
                 className={inputClassName}
