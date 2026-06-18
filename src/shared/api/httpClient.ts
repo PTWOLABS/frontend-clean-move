@@ -12,12 +12,10 @@ const api = axios.create({
   withCredentials: true,
 });
 
-/** Não tentar refresh em 401 nestes paths (login/google/refresh/sign-out/cadastro público). */
 const AUTH_PATHS_SKIP_REFRESH = new Set([
   "/auth/login",
   "/auth/google",
   "/auth/refresh",
-  "/auth/sign-out",
   "/register/establishment",
 ]);
 
