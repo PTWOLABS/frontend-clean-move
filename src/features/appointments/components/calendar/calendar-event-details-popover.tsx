@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, type CSSProperties } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, CarFront, UserRound, Wrench, X } from "lucide-react";
+import { CalendarClock, CarFront, Tag, UserRound, Wrench, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
@@ -18,6 +18,7 @@ import {
   statusBadgeClassName,
 } from "../../lib/appointments-page.helpers";
 import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+import { formatCurrency } from "@/shared/utils/lib";
 
 type CalendarEventDetailsPopoverProps = {
   event: AppointmentCalendarEvent;
@@ -79,6 +80,12 @@ export function CalendarEventDetailsPopover({
   onStatusChange,
 }: CalendarEventDetailsPopoverProps) {
   const setPopoverElement = useCalendarEventDetailsPopoverRef(popoverRef);
+
+  const amount = formatCurrency(
+    event.extendedProps.services?.reduce((acc, current) => {
+      return (acc += current.priceInCents);
+    }, 0) || 0,
+  );
 
   return (
     <div
@@ -168,6 +175,13 @@ export function CalendarEventDetailsPopover({
                 {event.extendedProps.vehicle.displayName}
               </p>
               <p className={styles.eventDetailsInfoSecondary}>Veículo</p>
+            </div>
+          </div>
+          <div className={styles.eventDetailsInfoRow}>
+            <Tag className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <div className="min-w-0">
+              <p className={styles.eventDetailsInfoPrimary}>{amount}</p>
+              <p className={styles.eventDetailsInfoSecondary}>Valor total</p>
             </div>
           </div>
 

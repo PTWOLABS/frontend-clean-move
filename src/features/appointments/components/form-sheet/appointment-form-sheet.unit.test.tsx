@@ -503,6 +503,38 @@ describe("AppointmentFormSheet", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it("clears the appointment end date when the clear button is clicked", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    await user.click(screen.getByRole("button", { name: "Limpar data de encerramento" }));
+
+    expect(screen.getAllByTestId("date-picker-time")[1]).toHaveTextContent("empty");
+
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            endsAt: null,
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+  });
+
   it("preenche valor inicial do serviço e corrige para o mínimo ao tentar salvar abaixo", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();

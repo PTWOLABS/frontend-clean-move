@@ -2,7 +2,7 @@
 
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, CarFront, FileText, UserRound, Wrench } from "lucide-react";
+import { CalendarClock, CarFront, Tag, UserRound, Wrench } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 
@@ -173,8 +173,8 @@ export function AgendaAppointmentDetailsDialog({
 
               <motion.div {...getContentMotion(0.2)} className="min-w-0">
                 <DetailRow
-                  icon={FileText}
-                  label="Valor estimado"
+                  icon={Tag}
+                  label="Valor total"
                   value={formatCurrency(appointment.amountInCents)}
                 />
               </motion.div>

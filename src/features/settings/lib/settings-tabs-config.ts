@@ -1,13 +1,13 @@
-export const SETTINGS_TAB_IDS = ["perfil", "negocio", "aparencia"] as const;
+export const SETTINGS_TAB_IDS = ["profile", "company", "appearance"] as const;
 
 export type SettingsTabId = (typeof SETTINGS_TAB_IDS)[number];
 
-export const DEFAULT_SETTINGS_TAB: SettingsTabId = "perfil";
+export const DEFAULT_SETTINGS_TAB: SettingsTabId = "profile";
 
 export const SETTINGS_TAB_LABELS: Record<SettingsTabId, string> = {
-  perfil: "Perfil",
-  negocio: "Negócio",
-  aparencia: "Aparência",
+  profile: "Perfil",
+  company: "Negócio",
+  appearance: "Aparência",
 };
 
 export function isSettingsTabId(value: string | null): value is SettingsTabId {
@@ -22,7 +22,7 @@ export function resolveSettingsTabId(
     return DEFAULT_SETTINGS_TAB;
   }
 
-  if (value === "negocio" && options?.showBusinessTab === false) {
+  if (value === "company" && options?.showBusinessTab === false) {
     return DEFAULT_SETTINGS_TAB;
   }
 
@@ -32,5 +32,5 @@ export function resolveSettingsTabId(
 export function getVisibleSettingsTabIds(showBusinessTab: boolean): SettingsTabId[] {
   return showBusinessTab
     ? [...SETTINGS_TAB_IDS]
-    : SETTINGS_TAB_IDS.filter((tabId) => tabId !== "negocio");
+    : SETTINGS_TAB_IDS.filter((tabId) => tabId !== "company");
 }

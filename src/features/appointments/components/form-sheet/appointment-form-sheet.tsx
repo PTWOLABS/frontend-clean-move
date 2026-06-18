@@ -785,6 +785,7 @@ export function AppointmentFormSheet({
                   disabled={isSubmitting}
                   className="w-full"
                   timeInputClassName="w-24 min-[380px]:w-28"
+                  clearable
                 />
               </div>
 

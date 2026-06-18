@@ -49,17 +49,17 @@ export function SettingsTabs({ user }: SettingsTabsProps) {
         </TabsList>
       </div>
 
-      <TabsContent value={"perfil" satisfies SettingsTabId} className="mt-0">
+      <TabsContent value={"profile" satisfies SettingsTabId} className="mt-0">
         <SettingsProfileTab user={user} />
       </TabsContent>
 
       {showBusinessTab ? (
-        <TabsContent value={"negocio" satisfies SettingsTabId} className="mt-0">
+        <TabsContent value={"company" satisfies SettingsTabId} className="mt-0">
           <SettingsBusinessTab user={user} />
         </TabsContent>
       ) : null}
 
-      <TabsContent value={"aparencia" satisfies SettingsTabId} className="mt-0">
+      <TabsContent value={"appearance" satisfies SettingsTabId} className="mt-0">
         <SettingsAppearanceTab user={user} showBannerUpload={showBusinessTab} />
       </TabsContent>
     </Tabs>
