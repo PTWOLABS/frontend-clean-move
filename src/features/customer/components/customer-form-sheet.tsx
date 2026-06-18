@@ -121,6 +121,11 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const needsVehicleRecovery =
     Boolean(persistedCustomer) && includeVehicle && !vehicleId;
 
+  const primaryVehicleFromCustomer =
+    activeCustomer?.vehicles?.[0] ?? activeCustomer?.primaryVehicle ?? null;
+  const hasExistingPrimaryVehicle = isEditMode && Boolean(primaryVehicleFromCustomer?.id);
+  const showVehicleSection = includeVehicle || hasExistingPrimaryVehicle;
+
   const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(
     zipCodeAutofillForm,
     {
@@ -153,6 +158,32 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
     reset(customerFormDefaultValues);
   }, [open, editingCustomer, persistedCustomer, reset]);
 
+  useEffect(() => {
+    if (!open || !hasExistingPrimaryVehicle || !activeCustomer) return;
+
+    if (!includeVehicle) {
+      setValue("includeVehicle", true, { shouldValidate: true, shouldDirty: false });
+    }
+
+    const currentVehicle = getValues("vehicle");
+    if (currentVehicle?.id || hasVehicleFormData(currentVehicle)) return;
+    if (!hasVehicleData(primaryVehicleFromCustomer)) return;
+
+    setValue(
+      "vehicle",
+      customerToFormDefaults(activeCustomer, primaryVehicleFromCustomer).vehicle,
+      { shouldValidate: true, shouldDirty: false },
+    );
+  }, [
+    open,
+    activeCustomer,
+    getValues,
+    hasExistingPrimaryVehicle,
+    includeVehicle,
+    primaryVehicleFromCustomer,
+    setValue,
+  ]);
+
   const handleSheetOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setPersistedCustomer(null);
@@ -177,6 +208,8 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   };
 
   const handleIncludeVehicleChange = (checked: boolean) => {
+    if (hasExistingPrimaryVehicle) return;
+
     setValue("includeVehicle", checked, { shouldDirty: true, shouldValidate: true });
 
     if (!checked) {
@@ -433,15 +466,16 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
               >
                 {({ field }) => (
                   <Switch
-                    checked={field.value}
+                    checked={hasExistingPrimaryVehicle ? true : field.value}
                     onCheckedChange={handleIncludeVehicleChange}
+                    disabled={hasExistingPrimaryVehicle || isPending}
                     aria-label="Incluir veículo"
                     className="shrink-0"
                   />
                 )}
               </FormField>
 
-              {includeVehicle ? (
+              {showVehicleSection ? (
                 <div className="space-y-4 rounded-lg border border-border p-4">
                   <h3 className="text-sm font-semibold text-foreground">Veículo principal</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
