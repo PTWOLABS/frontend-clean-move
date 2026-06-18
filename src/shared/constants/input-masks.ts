@@ -13,7 +13,13 @@ export function getCpfCnpjMask(value = ""): string {
 }
 
 /** Troca dinamicamente entre máscara de CPF e CNPJ durante a digitação. */
-export const cpfCnpjMaskModify: Modify = ({ value }) => {
-  const digits = value.replace(/\D/g, "");
+export const cpfCnpjMaskModify: Modify = ({ value, data, selectionStart, selectionEnd }) => {
+  const hasSelection =
+    typeof selectionStart === "number" && typeof selectionEnd === "number";
+  const nextValue = hasSelection
+    ? value.slice(0, selectionStart) + (data ?? "") + value.slice(selectionEnd)
+    : value;
+  const digits = nextValue.replace(/\D/g, "");
+
   return digits.length > 11 ? { mask: CNPJ_MASK } : { mask: CPF_MASK };
 };
