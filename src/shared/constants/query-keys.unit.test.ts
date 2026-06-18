@@ -28,3 +28,18 @@ describe("QUERY_KEYS appointments", () => {
     ]);
   });
 });
+
+describe("QUERY_KEYS services", () => {
+  it("builds service list keys separate from options", () => {
+    const filters = { page: 1, size: 5, name: "lavagem", isActive: true as const };
+
+    expect(QUERY_KEYS.services()).toEqual(["services", "list"]);
+    expect(QUERY_KEYS.services(filters)).toEqual(["services", "list", filters]);
+    expect(QUERY_KEYS.serviceOptions()).toEqual(["services", "options"]);
+    expect(QUERY_KEYS.serviceOptions({ limit: 1000 })).toEqual([
+      "services",
+      "options",
+      { limit: 1000 },
+    ]);
+  });
+});

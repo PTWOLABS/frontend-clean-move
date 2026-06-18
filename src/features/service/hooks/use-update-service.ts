@@ -9,6 +9,7 @@ import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { updateService } from "../api/update-service";
 import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
+import { invalidateServiceQueries } from "../lib/invalidate-service-queries";
 import {
   restoreServicesLists,
   snapshotServicesLists,
@@ -55,7 +56,7 @@ export function useUpdateService() {
       });
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() });
+      invalidateServiceQueries(queryClient);
     },
   });
 }

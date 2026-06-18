@@ -9,12 +9,29 @@ export type ServicesListSnapshotEntry = {
   data: ServicesPage | undefined;
 };
 
+function isServicesListQueryKey(queryKey: QueryKey): boolean {
+  const root = QUERY_KEYS.services();
+  return queryKey[0] === root[0] && queryKey[1] === root[1];
+}
+
+function isServicesPageData(data: unknown): data is ServicesPage {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    Array.isArray((data as ServicesPage).items) &&
+    typeof (data as ServicesPage).total === "number"
+  );
+}
+
 export function getServicesListQueries(
   queryClient: QueryClient,
 ): Array<[QueryKey, ServicesPage | undefined]> {
-  return queryClient.getQueriesData<ServicesPage>({
-    queryKey: QUERY_KEYS.services(),
-  });
+  return queryClient
+    .getQueriesData<ServicesPage>({ queryKey: QUERY_KEYS.services() })
+    .filter(
+      (entry): entry is [QueryKey, ServicesPage] =>
+        isServicesListQueryKey(entry[0]) && isServicesPageData(entry[1]),
+    );
 }
 
 export function snapshotServicesLists(queryClient: QueryClient): ServicesListSnapshotEntry[] {
