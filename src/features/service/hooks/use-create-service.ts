@@ -4,10 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { ApiError } from "@/shared/api/httpClient";
-import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { createService } from "../api/create-service";
 import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
+import { invalidateServiceQueries } from "../lib/invalidate-service-queries";
 import { mapCreateServiceFormToPayload } from "../schemas/create-service-schema";
 import type { CreateServiceFormValues } from "../schemas/create-service-schema";
 
@@ -19,9 +19,7 @@ export function useCreateService() {
       return createService(mapCreateServiceFormToPayload(values));
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.services(),
-      });
+      invalidateServiceQueries(queryClient);
       toast.success("Serviço criado com sucesso.");
     },
     onError: (error) => {

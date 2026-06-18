@@ -43,7 +43,7 @@ export const QUERY_KEYS = {
     return root;
   },
   services: (filters?: { page?: number; size?: number; name?: string; isActive?: boolean }) =>
-    filters ? (["services", filters] as const) : (["services"] as const),
+    filters ? (["services", "list", filters] as const) : (["services", "list"] as const),
   customers: (filters?: ListCustomersQuery) =>
     filters ? (["customers", filters] as const) : (["customers"] as const),
   topCustomers: (filters?: DashboardTopCustomersFilters) =>
