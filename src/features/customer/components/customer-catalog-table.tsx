@@ -11,7 +11,7 @@ import {
 import { RowIconActions } from "@/shared/components/row-icon-actions";
 import { catalogTableRowClass } from "@/shared/components/catalog-table-row-selection";
 
-import { formatCpfCnpj, formatPhone } from "../lib/format-customer-catalog";
+import { formatCpfCnpj, formatOptionalContact, formatPhone } from "../lib/format-customer-catalog";
 import { isSameCustomerItem } from "../lib/is-same-customer-item";
 import type { CustomerWithPrimaryVehicle } from "../types";
 import { CustomerCatalogVehicleCell } from "./customer-catalog-vehicle-cell";
@@ -85,7 +85,7 @@ export function CustomerCatalogTable({
                 <TableCell>
                   <div className="space-y-0.5">
                     <p className="text-foreground">{formatPhone(item.phone)}</p>
-                    <p className="text-sm text-muted-foreground">{item.email}</p>
+                    <p className="text-sm text-muted-foreground">{formatOptionalContact(item.email)}</p>
                   </div>
                 </TableCell>
                 <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>
