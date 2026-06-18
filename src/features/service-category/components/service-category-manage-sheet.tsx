@@ -234,7 +234,7 @@ export function ServiceCategoryManageSheet({
                   type="submit"
                   disabled={updateMutation.isPending || !renameForm.formState.isValid}
                 >
-                  {updateMutation.isPending ? "A guardar…" : "Guardar"}
+                  {updateMutation.isPending ? "Salvando..." : "Salvar"}
                 </Button>
               </DialogFooter>
             </form>

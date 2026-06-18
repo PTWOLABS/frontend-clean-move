@@ -231,7 +231,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
 
           <CardFooter>
             <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
-              {isPending ? "Salvando..." : "Salvar Alterações"}
+              {isPending ? "Salvando..." : "Salvar alterações"}
             </Button>
           </CardFooter>
         </form>

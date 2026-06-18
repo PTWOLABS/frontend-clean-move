@@ -213,7 +213,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
       }
 
       if (!isDirty && !needsVehicleRecovery) {
-        toast.info("Nenhuma alteração para guardar.");
+        toast.info("Nenhuma alteração para salvar.");
         return;
       }
 
@@ -508,7 +508,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                 className="w-full sm:w-auto"
                 disabled={isPending || (isEditMode && !isDirty && !needsVehicleRecovery)}
               >
-                {isPending ? "A guardar..." : isEditMode ? "Guardar alterações" : "Criar cliente"}
+                {isPending ? "Salvando..." : isEditMode ? "Salvar alterações" : "Criar cliente"}
               </Button>
             </SheetFooter>
           </form>
