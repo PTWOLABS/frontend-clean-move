@@ -274,7 +274,7 @@ export function MetricsSections() {
               Acompanhe os principais indicadores da operação.
             </p>
           </div>
-          <div className="mt-4">
+          <div className="max-sm:mt-4">
             <Button className="h-10 w-full sm:min-w-50" asChild>
               <Link href="/appointments?new=true">
                 <Plus className="size-4" />
