@@ -28,8 +28,6 @@ import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
 
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
-import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
-import { NextAppointment, UpcomingAppointmentsCard } from "./upcoming-appointments-card";
 import { useUpdateAppointmentStatus } from "../hooks/mutations/use-update-appointment-status-mutation";
 import { useListCalendarAppointments } from "../hooks/queries/use-list-calendar-appointments";
 import { findNextAppointment } from "../lib/appointments-calendar";
@@ -393,23 +391,23 @@ export function AppointmentsPage() {
     setAppointmentSheetOpen(true);
   }, [shouldOpenCreateSheet]);
 
-  const upcomingEventsSource = initialUpcomingEvents ?? events;
+  // const upcomingEventsSource = initialUpcomingEvents ?? events;
 
-  const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
-    if (upcomingEventsSource.length === 0 || !initialSelectedDate) return [];
+  // const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
+  //   if (upcomingEventsSource.length === 0 || !initialSelectedDate) return [];
 
-    return upcomingEventsSource
-      .filter((event) => new Date(event.startsAt) > initialSelectedDate)
-      .filter((_event, index) => index < 5)
-      .map((event) => ({
-        id: event.id,
-        startsAt: event.startsAt,
-        serviceName: event.extendedProps.service,
-        vehiclePlate: event.extendedProps.vehicle.plate || "-------",
-        tone: event.extendedProps.tone,
-        customerName: event.extendedProps.customer,
-      }));
-  }, [upcomingEventsSource, initialSelectedDate]);
+  //   return upcomingEventsSource
+  //     .filter((event) => new Date(event.startsAt) > initialSelectedDate)
+  //     .filter((_event, index) => index < 5)
+  //     .map((event) => ({
+  //       id: event.id,
+  //       startsAt: event.startsAt,
+  //       serviceName: event.extendedProps.service,
+  //       vehiclePlate: event.extendedProps.vehicle.plate || "-------",
+  //       tone: event.extendedProps.tone,
+  //       customerName: event.extendedProps.customer,
+  //     }));
+  // }, [upcomingEventsSource, initialSelectedDate]);
 
   const defaultSelectedEvent =
     selectionSource === "auto" ? (findNextAppointment(events) ?? events[0] ?? null) : null;
@@ -617,10 +615,10 @@ export function AppointmentsPage() {
     });
   }
 
-  function handleAgendaItemClick(event: AppointmentCalendarEvent) {
-    handleSelectEvent(event);
-    calendarRef.current?.getApi()?.gotoDate(event.startsAt);
-  }
+  // function handleAgendaItemClick(event: AppointmentCalendarEvent) {
+  //   handleSelectEvent(event);
+  //   calendarRef.current?.getApi()?.gotoDate(event.startsAt);
+  // }
 
   function handleCreateAppointmentSheetOpen(open: boolean) {
     if (open) {
@@ -639,12 +637,12 @@ export function AppointmentsPage() {
     }
   }
 
-  function handleEditAppointment(event: AppointmentCalendarEvent) {
-    handleSelectEvent(event);
-    setAppointmentToEdit(event);
-    setAppointmentSheetOpen(true);
-    handleClearSelectedEvent();
-  }
+  // function handleEditAppointment(event: AppointmentCalendarEvent) {
+  //   handleSelectEvent(event);
+  //   setAppointmentToEdit(event);
+  //   setAppointmentSheetOpen(true);
+  //   handleClearSelectedEvent();
+  // }
 
   function handleEditAppointmentFromPopover(event: AppointmentCalendarEvent) {
     setSelectionSource("manual");
@@ -719,7 +717,7 @@ export function AppointmentsPage() {
         ) : null}
       </header>
 
-      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid min-w-0 items-start gap-4">
         <Card className="min-w-0 overflow-visible rounded-2xl border-border/80 bg-card/80 shadow-xl backdrop-blur-sm sm:rounded-3xl">
           <CardHeader className="border-b border-border/70 px-4 py-3 sm:px-5 sm:py-4">
             <AppointmentsCalendarToolbar
@@ -763,26 +761,6 @@ export function AppointmentsPage() {
             <CalendarStatusLegend />
           </CardContent>
         </Card>
-
-        <div className="flex min-h-0 min-w-0 flex-col gap-4 h-full xl:max-h-[52rem] xl:overflow-hidden">
-          <UpcomingAppointmentsCard
-            appointments={upcommingFiveAppointments}
-            isLoading={isLoadingAppointments}
-          />
-          <AppointmentsDayAgendaCard
-            selectedDate={resolvedSelectedDate}
-            selectedEventId={resolvedSelectedEventId}
-            events={events}
-            isLoading={isLoadingAppointments}
-            isRefreshing={isRefreshingAppointments}
-            isError={!!errorFeedback || hasAppointmentsError}
-            updatingStatusAppointmentId={updatingStatusAppointmentId}
-            onRetry={refetchAppointments}
-            onEditEvent={handleEditAppointment}
-            onSelectEvent={handleAgendaItemClick}
-            onStatusChange={handleAppointmentStatusChange}
-          />
-        </div>
       </div>
       <AppointmentFormSheet
         open={appointmentSheetOpen}
