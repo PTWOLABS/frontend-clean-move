@@ -11,16 +11,22 @@ export function useLogout() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  function finalizeLogout() {
+    setAccessToken(null);
+    queryClient.removeQueries({ queryKey: QUERY_KEYS.authSession });
+    queryClient.removeQueries({ queryKey: QUERY_KEYS.userMe() });
+    router.replace("/login");
+  }
+
   return useMutation({
     mutationFn: signOut,
     mutationKey: QUERY_KEYS.logout,
-    onSuccess: () => {
-      setAccessToken(null);
-      queryClient.removeQueries({ queryKey: QUERY_KEYS.authSession });
-      queryClient.removeQueries({ queryKey: QUERY_KEYS.userMe() });
-      router.replace("/login");
-    },
+    onSuccess: finalizeLogout,
     onError: (error) => {
+      if (error instanceof ApiError && error.statusCode === 401) {
+        finalizeLogout();
+        return;
+      }
       if (error instanceof ApiError) {
         toast.error(error.message || "Não foi possível terminar a sessão.");
         return;
