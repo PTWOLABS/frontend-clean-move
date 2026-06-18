@@ -15,6 +15,8 @@ export function useDeleteCustomer() {
     mutationFn: async (customerId: string) => deleteCustomer(customerId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customerOptions() });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicleOptions() });
       toast.success("Cliente removido com sucesso.");
     },
     onError: (error) => {
