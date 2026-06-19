@@ -1,6 +1,8 @@
 import { AppointmentStatus } from "@/shared/types/appointments";
 import type { ServiceCategoryRef } from "@/features/service-category/types";
 
+export type ResourceStatus = "UNCHANGED" | "UPDATED" | "DELETED";
+
 export type AppointmentDTO = {
   appointments: {
     id: string;
@@ -8,6 +10,7 @@ export type AppointmentDTO = {
     customerId: string;
     customer?: {
       fullName?: string | null;
+      currentResourceStatus: ResourceStatus;
     } | null;
     vehicleId: string | null;
     services: {
@@ -16,6 +19,7 @@ export type AppointmentDTO = {
       category: ServiceCategoryRef | null;
       durationInMinutes: number | null;
       priceInCents: number;
+      currentResourceStatus: ResourceStatus;
     }[];
     vehicle: {
       plate: string | null;
@@ -23,6 +27,7 @@ export type AppointmentDTO = {
       model: string | null;
       color: string | null;
       year: number | null;
+      currentResourceStatus: ResourceStatus;
     } | null;
     startsAt: string;
     endsAt: string | null;

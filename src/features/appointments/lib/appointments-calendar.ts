@@ -29,6 +29,10 @@ function getCustomerLabel(appointment: AppointmentListItem) {
   return customerLabel?.trim() || FALLBACK_CUSTOMER_LABEL;
 }
 
+function getCustomerResourceStatus(appointment: AppointmentListItem) {
+  return appointment.customer?.currentResourceStatus ?? "UNCHANGED";
+}
+
 function getServicesSummary(appointment: AppointmentListItem) {
   const serviceNames = appointment.services
     .map((service) => service.name.trim())
@@ -66,6 +70,7 @@ function getPricedServices(appointment: AppointmentListItem) {
     serviceId: service.id,
     label: service.name.trim() || "Serviço não informado",
     priceInCents: service.priceInCents,
+    currentResourceStatus: service.currentResourceStatus,
   }));
 }
 
@@ -80,6 +85,7 @@ function getVehicleDetails(appointment: AppointmentListItem): AppointmentVehicle
       brand: "",
       model: "",
       displayName: FALLBACK_VEHICLE_LABEL,
+      currentResourceStatus: "UNCHANGED",
     };
   }
 
@@ -93,6 +99,7 @@ function getVehicleDetails(appointment: AppointmentListItem): AppointmentVehicle
     brand,
     model,
     displayName,
+    currentResourceStatus: appointment.vehicle.currentResourceStatus,
   };
 }
 
@@ -153,6 +160,7 @@ export function mapAppointmentToCalendarEvent(
     extendedProps: {
       customerId: appointment.customerId,
       customer: getCustomerLabel(appointment),
+      customerResourceStatus: getCustomerResourceStatus(appointment),
       serviceIds: getServiceOptions(appointment),
       services: getPricedServices(appointment),
       service: services.label,

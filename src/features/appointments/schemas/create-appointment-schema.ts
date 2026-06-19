@@ -153,7 +153,7 @@ export const createAppointmentFormSchema = z
     for (const serviceId of selectedServiceIds) {
       if (!pricedServiceIds.has(serviceId)) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Defina o valor para todos os serviços selecionados.",
           path: ["services"],
         });
