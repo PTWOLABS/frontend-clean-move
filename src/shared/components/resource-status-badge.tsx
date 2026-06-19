@@ -8,7 +8,7 @@ const resourceStatusBadgeMeta = {
     label: "Atualizado",
     className: "border-transparent bg-warning-soft text-warning-soft-foreground",
     tooltipLabel:
-      "Dados desse recurso mudaram após a criação do agendamento. O histórico original foi preservado; remova e selecione novamente para usar os dados atuais.",
+      "Dados desse recurso mudaram após a criação do agendamento. O histórico original foi preservado; remova e selecione novamente para usar os dados atuais caso desejar.",
   },
   DELETED: {
     label: "Removido",
