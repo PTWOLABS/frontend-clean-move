@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   FormProvider,
   useForm,
@@ -81,6 +82,7 @@ function applyCustomerApiFieldErrors(
 }
 
 export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: CustomerFormSheetProps) {
+  const router = useRouter();
   const { mutate: createMutate, isPending: isCreatePending } = useCreateCustomer();
   const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateCustomer();
   const [persistedCustomer, setPersistedCustomer] = useState<CustomerWithPrimaryVehicle | null>(
@@ -191,6 +193,13 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
     }
 
     onOpenChange(nextOpen);
+  };
+
+  const handleNavigateToAddVehicle = () => {
+    if (!activeCustomer?.id) return;
+
+    handleSheetOpenChange(false);
+    router.push(`/vehicles?new=true&customerId=${encodeURIComponent(activeCustomer.id)}`);
   };
 
   const handleCloseAfterSave = () => {
@@ -524,6 +533,19 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                     )}
                   </FormField>
                 </div>
+              ) : null}
+
+              {isEditMode && activeCustomer?.id ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full gap-2 sm:w-auto"
+                  disabled={isPending}
+                  onClick={handleNavigateToAddVehicle}
+                >
+                  <Plus className="size-4" aria-hidden />
+                  Adicionar outro veículo
+                </Button>
               ) : null}
             </div>
 

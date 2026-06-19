@@ -65,12 +65,14 @@ export function VehicleCatalog() {
 
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
   const shouldOpenCreateSheet = searchParams.get("new") === "true";
+  const createCustomerIdParam = searchParams.get("customerId")?.trim() ?? "";
 
-  const removeNewSearchParam = useCallback(() => {
-    if (!searchParams.has("new")) return;
+  const removeCreateSearchParams = useCallback(() => {
+    if (!searchParams.has("new") && !searchParams.has("customerId")) return;
 
     const nextSearchParams = new URLSearchParams(searchParams.toString());
     nextSearchParams.delete("new");
+    nextSearchParams.delete("customerId");
     const queryString = nextSearchParams.toString();
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
@@ -120,8 +122,21 @@ export function VehicleCatalog() {
     if (createParamHandledRef.current) return;
 
     createParamHandledRef.current = true;
-    openCreateFormFromHeader();
-  }, [openCreateFormFromHeader, shouldOpenCreateSheet]);
+
+    if (createCustomerIdParam) {
+      openCreateForm(createCustomerIdParam);
+    } else {
+      openCreateFormFromHeader();
+    }
+
+    removeCreateSearchParams();
+  }, [
+    createCustomerIdParam,
+    openCreateForm,
+    openCreateFormFromHeader,
+    removeCreateSearchParams,
+    shouldOpenCreateSheet,
+  ]);
 
   const listFilters = useMemo(
     () =>
@@ -198,7 +213,7 @@ export function VehicleCatalog() {
             setEditingVehicle(null);
             setCreateCustomerId("");
             setShowCustomerPicker(false);
-            removeNewSearchParam();
+            removeCreateSearchParams();
           }
         }}
         customerId={createCustomerId}
