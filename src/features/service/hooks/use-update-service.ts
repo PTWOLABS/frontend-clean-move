@@ -21,12 +21,53 @@ import {
   mapCreateServiceFormToUpdatePayload,
 } from "../schemas/create-service-schema";
 import type { CreateServiceFormValues } from "../schemas/create-service-schema";
+import type { ServiceItem, ServicePriceSpecification } from "../types";
 
 type UpdateServiceVariables = {
   serviceId: string;
   values: CreateServiceFormValues;
   category?: ServiceCategoryRef | null;
+  previousService: ServiceItem;
 };
+
+function arePriceSpecificationsEqual(
+  previous: ServicePriceSpecification,
+  next: ServicePriceSpecification,
+): boolean {
+  if (previous.type !== next.type) {
+    return false;
+  }
+
+  if (previous.type === "FIXED" && next.type === "FIXED") {
+    return previous.fixedPriceInCents === next.fixedPriceInCents;
+  }
+
+  if (previous.type === "STARTING_AT" && next.type === "STARTING_AT") {
+    return previous.minPriceInCents === next.minPriceInCents;
+  }
+
+  if (previous.type === "RANGE" && next.type === "RANGE") {
+    return (
+      previous.minPriceInCents === next.minPriceInCents &&
+      previous.maxPriceInCents === next.maxPriceInCents
+    );
+  }
+
+  return false;
+}
+
+function hasServicePriceSpecificationChanged({
+  previousService,
+  values,
+}: UpdateServiceVariables): boolean {
+  const nextPriceSpecification = mapCreateServiceFormToUpdatePayload(values).priceSpecification;
+
+  if (!nextPriceSpecification) {
+    return false;
+  }
+
+  return !arePriceSpecificationsEqual(previousService.priceSpecification, nextPriceSpecification);
+}
 
 export function useUpdateService() {
   const queryClient = useQueryClient();
@@ -42,8 +83,10 @@ export function useUpdateService() {
       upsertServiceInLists(queryClient, serviceId, () => optimistic);
       return { snapshot } satisfies { snapshot: ServicesListSnapshotEntry[] };
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.appointments() });
+    onSuccess: (_data, variables) => {
+      if (hasServicePriceSpecificationChanged(variables)) {
+        void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.appointments() });
+      }
       toast.success("Serviço atualizado com sucesso.");
     },
     onError: (error, _variables, context) => {
