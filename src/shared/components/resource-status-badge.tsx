@@ -8,13 +8,13 @@ const resourceStatusBadgeMeta = {
     label: "Atualizado",
     className: "border-transparent bg-warning-soft text-warning-soft-foreground",
     tooltipLabel:
-      "Dados desse recurso mudaram após a criação do agendamento. O histórico original foi preservado; remova e selecione novamente para usar os dados atuais caso desejar.",
+      "Este serviço mudou no catálogo após a criação do agendamento. O histórico original foi preservado; remova e selecione novamente para usar as condições atuais, se desejar.",
   },
   DELETED: {
     label: "Removido",
     className: "border-transparent bg-danger-soft text-danger-soft-foreground",
     tooltipLabel:
-      "Esse recurso não está mais disponível para novas seleções. O histórico original foi preservado; remova e escolha outro recurso se precisar atualizar.",
+      "Este serviço não está mais disponível no catálogo. O histórico original foi preservado; remova para escolher outro serviço, se precisar atualizar.",
   },
 } satisfies Partial<
   Record<

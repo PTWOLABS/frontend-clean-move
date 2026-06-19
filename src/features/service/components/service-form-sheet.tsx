@@ -152,8 +152,9 @@ export function ServiceFormSheet({
 
   const onSubmit = (values: CreateServiceFormValues) => {
     if (isEditMode) {
-      const serviceId = editingService?.id;
-      if (!serviceId) {
+      const previousService = editingService;
+      const serviceId = previousService?.id;
+      if (!previousService || !serviceId) {
         toast.error("Identificador do serviço em falta. Atualize a página.");
         return;
       }
@@ -169,6 +170,7 @@ export function ServiceFormSheet({
           serviceId,
           values,
           category: selectedOption ? { id: selectedOption.id, name: selectedOption.label } : null,
+          previousService,
         },
         {
           onSuccess: closeSheetAfterSave,
