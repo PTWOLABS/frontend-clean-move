@@ -85,7 +85,9 @@ export function CustomerCatalogTable({
                 <TableCell>
                   <div className="space-y-0.5">
                     <p className="text-foreground">{formatPhone(item.phone)}</p>
-                    <p className="text-sm text-muted-foreground">{formatOptionalContact(item.email)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatOptionalContact(item.email)}
+                    </p>
                   </div>
                 </TableCell>
                 <TableCell>{formatCpfCnpj(item.cpfCnpj)}</TableCell>

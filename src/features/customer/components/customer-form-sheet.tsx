@@ -30,7 +30,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/shared/api/httpClient";
 import {
-  CPF_MASK,
   cpfCnpjMaskModify,
   DATE_MASK,
   getCpfCnpjMask,
@@ -88,7 +87,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const [persistedCustomer, setPersistedCustomer] = useState<CustomerWithPrimaryVehicle | null>(
     null,
   );
-  const [cpfCnpjMask, setCpfCnpjMask] = useState(CPF_MASK);
 
   const activeCustomer = editingCustomer ?? persistedCustomer;
   const isEditMode = Boolean(activeCustomer?.id);
@@ -119,9 +117,10 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
 
   const includeAddress = useWatch({ control, name: "includeAddress" });
   const includeVehicle = useWatch({ control, name: "includeVehicle" });
+  const cpfCnpjValue = useWatch({ control, name: "cpfCnpj" });
   const vehicleId = useWatch({ control, name: "vehicle.id" });
-  const needsVehicleRecovery =
-    Boolean(persistedCustomer) && includeVehicle && !vehicleId;
+  const cpfCnpjMask = getCpfCnpjMask(cpfCnpjValue ?? "");
+  const needsVehicleRecovery = Boolean(persistedCustomer) && includeVehicle && !vehicleId;
 
   const primaryVehicleFromCustomer =
     activeCustomer?.vehicles?.[0] ?? activeCustomer?.primaryVehicle ?? null;
@@ -149,14 +148,12 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
       const primaryVehicle =
         editingCustomer.vehicles?.[0] ?? editingCustomer.primaryVehicle ?? null;
       const defaults = customerToFormDefaults(editingCustomer, primaryVehicle);
-      setCpfCnpjMask(getCpfCnpjMask(defaults.cpfCnpj ?? ""));
       reset(defaults);
       return;
     }
 
     if (persistedCustomer) return;
 
-    setCpfCnpjMask(CPF_MASK);
     reset(customerFormDefaultValues);
   }, [open, editingCustomer, persistedCustomer, reset]);
 
@@ -189,7 +186,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const handleSheetOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setPersistedCustomer(null);
-      setCpfCnpjMask(CPF_MASK);
     }
 
     onOpenChange(nextOpen);
@@ -204,7 +200,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
 
   const handleCloseAfterSave = () => {
     setPersistedCustomer(null);
-    setCpfCnpjMask(CPF_MASK);
     reset(customerFormDefaultValues);
     onOpenChange(false);
   };
@@ -292,7 +287,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
             vehicle: currentVehicle,
           };
           setPersistedCustomer(error.customer);
-          setCpfCnpjMask(getCpfCnpjMask(defaults.cpfCnpj ?? ""));
           clearErrors();
           reset(defaults, { keepDirty: true });
           return;
@@ -353,10 +347,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   mask={cpfCnpjMask}
                   modify={cpfCnpjMaskModify}
                   inputMode="numeric"
-                  onChange={(event) => {
-                    const nextMask = getCpfCnpjMask(event.target.value);
-                    setCpfCnpjMask((current) => (current === nextMask ? current : nextMask));
-                  }}
                 />
                 <InputField
                   control={fieldControl}

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { formatVehicleName, formatPhone, formatOptionalContact, getCustomerVehiclesCount } from "./format-customer-catalog";
+import {
+  formatVehicleName,
+  formatPhone,
+  formatOptionalContact,
+  getCustomerVehiclesCount,
+} from "./format-customer-catalog";
 
 describe("format-customer-catalog", () => {
   it("formatPhone returns em dash when value is null or empty", () => {

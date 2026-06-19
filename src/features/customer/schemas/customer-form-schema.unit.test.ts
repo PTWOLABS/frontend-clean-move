@@ -184,6 +184,7 @@ describe("customerFormSchema", () => {
   it("preserves 14-digit CNPJ when mapping customer to form defaults", () => {
     const defaults = customerToFormDefaults({
       id: "cust-1",
+      establishmentId: "est-1",
       fullName: "Empresa LTDA",
       phone: null,
       email: null,
@@ -191,6 +192,8 @@ describe("customerFormSchema", () => {
       nickname: null,
       birthDate: null,
       address: null,
+      createdAt: "2024-01-01T00:00:00.000Z",
+      updatedAt: "2024-01-01T00:00:00.000Z",
       vehicles: [],
     });
 

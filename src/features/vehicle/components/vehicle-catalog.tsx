@@ -123,11 +123,13 @@ export function VehicleCatalog() {
 
     createParamHandledRef.current = true;
 
+    /* eslint-disable react-hooks/set-state-in-effect -- abre o sheet a partir de ?new=true ou ?customerId= na URL */
     if (createCustomerIdParam) {
       openCreateForm(createCustomerIdParam);
     } else {
       openCreateFormFromHeader();
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     removeCreateSearchParams();
   }, [
