@@ -328,6 +328,36 @@ export function TodayAgendaQueryCard() {
     resetPage();
   }
 
+  function handleClearStatusFilter() {
+    const defaultFilters = getDefaultAgendaFiltersState();
+
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      statusFilter: defaultFilters.statusFilter,
+    }));
+    setAppliedFilters((currentFilters) => ({
+      ...currentFilters,
+      statusFilter: defaultFilters.statusFilter,
+    }));
+    resetPage();
+  }
+
+  function handleClearPeriodFilter() {
+    const defaultFilters = getDefaultAgendaFiltersState();
+
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      periodMode: defaultFilters.periodMode,
+      dateRange: defaultFilters.dateRange,
+    }));
+    setAppliedFilters((currentFilters) => ({
+      ...currentFilters,
+      periodMode: defaultFilters.periodMode,
+      dateRange: defaultFilters.dateRange,
+    }));
+    resetPage();
+  }
+
   function handleEditAppointment(appointment: TodayAgendaItem) {
     const appointmentListItem = appointmentListItemById.get(appointment.id);
 
@@ -396,8 +426,11 @@ export function TodayAgendaQueryCard() {
             onDateRangeChange={handleDateRangeChange}
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
+            onClearPeriodFilter={handleClearPeriodFilter}
+            onClearStatusFilter={handleClearStatusFilter}
             applyFiltersDisabled={areDraftFiltersApplied}
             clearFiltersDisabled={areDraftFiltersDefault && areAppliedFiltersDefault}
+            appliedFilters={appliedFilters}
           />
         }
       />
