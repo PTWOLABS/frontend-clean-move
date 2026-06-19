@@ -41,7 +41,7 @@ export function AppointmentServiceResourceStatusAction({
         type="button"
         variant="outline"
         size="sm"
-        className="h-7 px-2 text-xs"
+        className="h-7 shrink-0 border-border/70 bg-background/60 px-2.5 text-xs text-muted-foreground shadow-xs hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
         disabled={disabled}
         aria-label={`Remover serviço ${serviceLabel}`}
         onClick={() => setConfirmationOpen(true)}
