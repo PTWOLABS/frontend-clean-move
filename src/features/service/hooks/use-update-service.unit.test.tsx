@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/shared/api/httpClient";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
@@ -57,7 +57,13 @@ function createWrapper(client: QueryClient) {
 }
 
 describe("useUpdateService", () => {
-  it("optimistically updates service in cached list", async () => {
+  beforeEach(() => {
+    updateServiceMock.mockReset();
+    toastSuccessMock.mockClear();
+    toastErrorMock.mockClear();
+  });
+
+  it("optimistically updates service in cached list without invalidating appointments when price did not change", async () => {
     updateServiceMock.mockImplementation(
       () => new Promise((resolve) => setTimeout(() => resolve({}), 50)),
     );
@@ -78,7 +84,7 @@ describe("useUpdateService", () => {
       wrapper: createWrapper(client),
     });
 
-    result.current.mutate({ serviceId: "svc-1", values });
+    result.current.mutate({ serviceId: "svc-1", values, previousService: baseItem });
 
     await waitFor(() => {
       const page = client.getQueryData<ServicesPage>(key);
@@ -86,11 +92,63 @@ describe("useUpdateService", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.appointments() });
+    expect(invalidateQueriesSpy).not.toHaveBeenCalledWith({ queryKey: QUERY_KEYS.appointments() });
     expect(updateServiceMock).toHaveBeenCalledWith(
       "svc-1",
       expect.objectContaining({ serviceName: "Lavagem Premium" }),
     );
+  });
+
+  it("invalidates appointments when the service price changes", async () => {
+    updateServiceMock.mockResolvedValueOnce({});
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    const key = QUERY_KEYS.services({ page: 1, size: 5 });
+    client.setQueryData(key, initialPage);
+    const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
+
+    const values = createServiceFormSchema.parse({
+      ...serviceItemToFormDefaults(baseItem),
+      fixedPriceInReais: "80,00",
+    });
+
+    const { result } = renderHook(() => useUpdateService(), {
+      wrapper: createWrapper(client),
+    });
+
+    result.current.mutate({ serviceId: "svc-1", values, previousService: baseItem });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.appointments() });
+  });
+
+  it("invalidates appointments when the service price modality changes", async () => {
+    updateServiceMock.mockResolvedValueOnce({});
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    const key = QUERY_KEYS.services({ page: 1, size: 5 });
+    client.setQueryData(key, initialPage);
+    const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
+
+    const values = createServiceFormSchema.parse({
+      ...serviceItemToFormDefaults(baseItem),
+      priceType: "STARTING_AT",
+      fixedPriceInReais: "",
+      minPriceInReais: "65,00",
+    });
+
+    const { result } = renderHook(() => useUpdateService(), {
+      wrapper: createWrapper(client),
+    });
+
+    result.current.mutate({ serviceId: "svc-1", values, previousService: baseItem });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.appointments() });
   });
 
   it("restores cache when update fails", async () => {
@@ -114,6 +172,7 @@ describe("useUpdateService", () => {
     result.current.mutate({
       serviceId: "svc-1",
       values: { ...values, serviceName: "Nome temporário" },
+      previousService: baseItem,
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));

@@ -312,7 +312,7 @@ describe("AppointmentFormSheet", () => {
     expect(screen.getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
   });
 
-  it("shows badges for appointment resources changed after the snapshot", () => {
+  it("shows badges only for services changed after the snapshot", () => {
     render(
       <AppointmentFormSheet
         open
@@ -321,7 +321,6 @@ describe("AppointmentFormSheet", () => {
           ...appointmentToEdit,
           extendedProps: {
             ...appointmentToEdit.extendedProps,
-            customerResourceStatus: "UPDATED",
             services: [
               {
                 serviceId: "service-1",
@@ -330,17 +329,13 @@ describe("AppointmentFormSheet", () => {
                 currentResourceStatus: "UPDATED",
               },
             ],
-            vehicle: {
-              ...appointmentToEdit.extendedProps.vehicle,
-              currentResourceStatus: "DELETED",
-            },
           },
         }}
       />,
     );
 
-    expect(screen.getAllByText("Atualizado")).toHaveLength(2);
-    expect(screen.getByText("Removido")).toBeInTheDocument();
+    expect(screen.getByText("Atualizado")).toBeInTheDocument();
+    expect(screen.queryByText("Removido")).not.toBeInTheDocument();
   });
 
   it("locks the service selector until a changed snapshot service is removed", async () => {

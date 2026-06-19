@@ -14,9 +14,7 @@ function makeAgendaAppointment({
   return {
     id: "appointment-1",
     customerId: "customer-1",
-    customerResourceStatus: "UNCHANGED",
     vehicleId: "vehicle-1",
-    vehicleCurrentResourceStatus: "UNCHANGED",
     startsAt,
     endsAt,
     time: "09:00",

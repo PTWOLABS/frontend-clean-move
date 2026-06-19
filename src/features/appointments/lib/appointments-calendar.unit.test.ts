@@ -138,9 +138,7 @@ describe("appointments-calendar helpers", () => {
       brand: "",
       model: "",
       displayName: "Veículo não informado",
-      currentResourceStatus: "UNCHANGED",
     });
-    expect(appointments[1]?.extendedProps.customerResourceStatus).toBe("UPDATED");
     expect(appointments[1]?.extendedProps.services).toEqual([
       {
         serviceId: "service-1",
@@ -183,7 +181,6 @@ describe("appointments-calendar helpers", () => {
       brand: "Toyota",
       model: "Corolla",
       displayName: "Toyota • Corolla",
-      currentResourceStatus: "UNCHANGED",
     });
   });
 
