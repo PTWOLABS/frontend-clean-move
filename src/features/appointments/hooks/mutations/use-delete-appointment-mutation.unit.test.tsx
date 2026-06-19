@@ -33,7 +33,7 @@ const appointmentA: Appointment = {
   id: "appointment-a",
   establishmentId: "establishment-1",
   customerId: "customer-1",
-  customer: { fullName: "Ana Souza" },
+  customer: { fullName: "Ana Souza", currentResourceStatus: "UNCHANGED" },
   vehicleId: "vehicle-1",
   services: [
     {
@@ -42,6 +42,7 @@ const appointmentA: Appointment = {
       category: null,
       durationInMinutes: 60,
       priceInCents: 9000,
+      currentResourceStatus: "UNCHANGED",
     },
   ],
   vehicle: {
@@ -50,6 +51,7 @@ const appointmentA: Appointment = {
     model: "Fit",
     color: "Prata",
     year: 2020,
+    currentResourceStatus: "UNCHANGED",
   },
   startsAt: "2026-05-20T09:00:00.000Z",
   endsAt: "2026-05-20T10:00:00.000Z",
@@ -66,7 +68,7 @@ const appointmentB: Appointment = {
   ...appointmentA,
   id: "appointment-b",
   customerId: "customer-2",
-  customer: { fullName: "Bia Lima" },
+  customer: { fullName: "Bia Lima", currentResourceStatus: "UNCHANGED" },
   startsAt: "2026-05-20T11:00:00.000Z",
   endsAt: "2026-05-20T12:00:00.000Z",
 };
