@@ -25,9 +25,7 @@ export type AppointmentPresentationService = {
 export type AppointmentPresentationItem = {
   id: string;
   customerId: string;
-  customerResourceStatus: ResourceStatus;
   vehicleId: string;
-  vehicleCurrentResourceStatus: ResourceStatus;
   startsAt: Date;
   endsAt: Date | null;
   time: string;
@@ -79,9 +77,7 @@ export function mapAppointmentListItemToPresentationItem(
   return {
     id: appointment.id,
     customerId: appointment.customerId,
-    customerResourceStatus: appointment.customer?.currentResourceStatus ?? "UNCHANGED",
     vehicleId: appointment.vehicleId ?? "",
-    vehicleCurrentResourceStatus: appointment.vehicle?.currentResourceStatus ?? "UNCHANGED",
     startsAt,
     endsAt,
     time: startTime,

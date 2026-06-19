@@ -53,7 +53,6 @@ import type { AppointmentCalendarEvent } from "../../types/appointment-calendar"
 import type { ResourceStatus } from "../../types/appointments-dto";
 import type { ServiceOptionsDTO } from "../../types/options-dto";
 import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
-import { ResourceStatusBadge } from "@/shared/components/resource-status-badge";
 
 type AppointmentFormSheetProps = {
   open: boolean;
@@ -671,31 +670,26 @@ export function AppointmentFormSheet({
                 renderControl={false}
               >
                 {({ field }) => (
-                  <>
-                    <FormControl>
-                      <Combobox
-                        ref={field.ref}
-                        id={field.name}
-                        name={field.name}
-                        value={customerLabel}
-                        onValueChange={setCustomerLabel}
-                        onDebouncedValueChange={setCustomerSearch}
-                        onSelectedItemChange={handleCustomerSelectedItemChange}
-                        onBlur={field.onBlur}
-                        items={customerOptionsItems}
-                        portalContainer={sheetContentRef}
-                        placeholder="Digite o nome do cliente"
-                        emptyMessage={getCustomerEmptyMessage()}
-                        autoComplete="name"
-                        disabled={isSubmitting}
-                        required
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <ResourceStatusBadge
-                      status={appointment?.extendedProps.customerResourceStatus}
+                  <FormControl>
+                    <Combobox
+                      ref={field.ref}
+                      id={field.name}
+                      name={field.name}
+                      value={customerLabel}
+                      onValueChange={setCustomerLabel}
+                      onDebouncedValueChange={setCustomerSearch}
+                      onSelectedItemChange={handleCustomerSelectedItemChange}
+                      onBlur={field.onBlur}
+                      items={customerOptionsItems}
+                      portalContainer={sheetContentRef}
+                      placeholder="Digite o nome do cliente"
+                      emptyMessage={getCustomerEmptyMessage()}
+                      autoComplete="name"
+                      disabled={isSubmitting}
+                      required
+                      className="w-full"
                     />
-                  </>
+                  </FormControl>
                 )}
               </FormField>
 
@@ -841,31 +835,26 @@ export function AppointmentFormSheet({
                 renderControl={false}
               >
                 {({ field }) => (
-                  <>
-                    <FormControl>
-                      <Combobox
-                        ref={field.ref}
-                        id={field.name}
-                        name={field.name}
-                        value={vehicleLabel}
-                        onValueChange={setVehicleLabel}
-                        onDebouncedValueChange={setVehicleSearch}
-                        onSelectedItemChange={handleVehicleSelectedItemChange}
-                        onBlur={field.onBlur}
-                        items={customerVehicleOptionsItems}
-                        portalContainer={sheetContentRef}
-                        placeholder="Digite o nome do veículo"
-                        emptyMessage={getVehicleEmptyMessage()}
-                        autoComplete="off"
-                        disabled={!selectedCustomerId || isSubmitting}
-                        required
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <ResourceStatusBadge
-                      status={appointment?.extendedProps.vehicle.currentResourceStatus}
+                  <FormControl>
+                    <Combobox
+                      ref={field.ref}
+                      id={field.name}
+                      name={field.name}
+                      value={vehicleLabel}
+                      onValueChange={setVehicleLabel}
+                      onDebouncedValueChange={setVehicleSearch}
+                      onSelectedItemChange={handleVehicleSelectedItemChange}
+                      onBlur={field.onBlur}
+                      items={customerVehicleOptionsItems}
+                      portalContainer={sheetContentRef}
+                      placeholder="Digite o nome do veículo"
+                      emptyMessage={getVehicleEmptyMessage()}
+                      autoComplete="off"
+                      disabled={!selectedCustomerId || isSubmitting}
+                      required
+                      className="w-full"
                     />
-                  </>
+                  </FormControl>
                 )}
               </FormField>
 

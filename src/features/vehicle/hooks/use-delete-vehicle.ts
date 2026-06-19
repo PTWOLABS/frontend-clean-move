@@ -24,7 +24,6 @@ export function useDeleteVehicle() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehiclesAll() });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicleOptions() });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.appointments() });
       toast.success("Veículo removido com sucesso.");
     },
     onError: (error) => {

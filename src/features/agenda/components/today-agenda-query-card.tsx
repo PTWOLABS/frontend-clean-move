@@ -149,7 +149,6 @@ function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): Appointment
     extendedProps: {
       customerId: appointment.customerId,
       customer: appointment.customerName,
-      customerResourceStatus: appointment.customerResourceStatus,
       serviceIds: appointment.services.map((service) => ({
         value: service.id,
         label: service.name,
@@ -167,7 +166,6 @@ function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): Appointment
         brand: appointment.vehicleBrand,
         model: appointment.vehicleModel,
         displayName: appointment.vehicleDisplayName,
-        currentResourceStatus: appointment.vehicleCurrentResourceStatus,
       },
       endsAt: appointment.endsAt,
       description: appointment.description,
