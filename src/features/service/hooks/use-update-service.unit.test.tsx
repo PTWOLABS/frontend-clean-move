@@ -67,6 +67,7 @@ describe("useUpdateService", () => {
     });
     const key = QUERY_KEYS.services({ page: 1, size: 5 });
     client.setQueryData(key, initialPage);
+    const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
 
     const values = createServiceFormSchema.parse({
       ...serviceItemToFormDefaults(baseItem),
@@ -85,6 +86,7 @@ describe("useUpdateService", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.appointments() });
     expect(updateServiceMock).toHaveBeenCalledWith(
       "svc-1",
       expect.objectContaining({ serviceName: "Lavagem Premium" }),
@@ -101,6 +103,7 @@ describe("useUpdateService", () => {
     });
     const key = QUERY_KEYS.services({ page: 1, size: 5 });
     client.setQueryData(key, initialPage);
+    const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
 
     const values = createServiceFormSchema.parse(serviceItemToFormDefaults(baseItem));
 
@@ -115,6 +118,9 @@ describe("useUpdateService", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(client.getQueryData<ServicesPage>(key)).toEqual(initialPage);
+    expect(invalidateQueriesSpy).not.toHaveBeenCalledWith({
+      queryKey: QUERY_KEYS.appointments(),
+    });
     expect(toastErrorMock).toHaveBeenCalledWith(
       "Não foi possível atualizar o serviço.",
       expect.objectContaining({

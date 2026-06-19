@@ -14,7 +14,9 @@ function makeAgendaAppointment({
   return {
     id: "appointment-1",
     customerId: "customer-1",
+    customerResourceStatus: "UNCHANGED",
     vehicleId: "vehicle-1",
+    vehicleCurrentResourceStatus: "UNCHANGED",
     startsAt,
     endsAt,
     time: "09:00",
@@ -38,6 +40,7 @@ function makeAgendaAppointment({
         name: "Consultoria de Detailing",
         durationInMinutes: 60,
         priceInCents: 15000,
+        currentResourceStatus: "UNCHANGED",
       },
     ],
   };
