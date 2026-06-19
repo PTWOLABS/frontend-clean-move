@@ -28,6 +28,7 @@ export function useDeleteService() {
       return { snapshot } satisfies { snapshot: ServicesListSnapshotEntry[] };
     },
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.appointments() });
       toast.success("Serviço eliminado com sucesso.");
     },
     onError: (error, _serviceId, context) => {

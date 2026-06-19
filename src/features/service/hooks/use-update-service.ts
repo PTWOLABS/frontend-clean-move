@@ -43,6 +43,7 @@ export function useUpdateService() {
       return { snapshot } satisfies { snapshot: ServicesListSnapshotEntry[] };
     },
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.appointments() });
       toast.success("Serviço atualizado com sucesso.");
     },
     onError: (error, _variables, context) => {
