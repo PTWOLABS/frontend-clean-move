@@ -7,6 +7,7 @@ import type { DateRange } from "react-day-picker";
 import { AppointmentFormSheet } from "@/features/appointments/components/form-sheet/appointment-form-sheet";
 import { useListAppointments } from "@/features/appointments/hooks/queries/use-list-appointments";
 import { useUpdateAppointmentStatus } from "@/features/appointments/hooks/mutations/use-update-appointment-status-mutation";
+import { mapAppointmentToCalendarEvent } from "@/features/appointments/lib/appointments-calendar";
 import type { AppointmentsFilters } from "@/features/appointments/types/api-filters";
 import type {
   AppointmentCalendarEvent,
@@ -148,9 +149,16 @@ function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): Appointment
     extendedProps: {
       customerId: appointment.customerId,
       customer: appointment.customerName,
+      customerResourceStatus: appointment.customerResourceStatus,
       serviceIds: appointment.services.map((service) => ({
         value: service.id,
         label: service.name,
+      })),
+      services: appointment.services.map((service) => ({
+        serviceId: service.id,
+        label: service.name,
+        priceInCents: service.priceInCents,
+        currentResourceStatus: service.currentResourceStatus,
       })),
       service: servicesLabel || appointment.serviceName,
       vehicleId: appointment.vehicleId,
@@ -159,6 +167,7 @@ function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): Appointment
         brand: appointment.vehicleBrand,
         model: appointment.vehicleModel,
         displayName: appointment.vehicleDisplayName,
+        currentResourceStatus: appointment.vehicleCurrentResourceStatus,
       },
       endsAt: appointment.endsAt,
       description: appointment.description,
@@ -230,6 +239,15 @@ export function TodayAgendaQueryCard() {
     () => mapAppointmentsToTodayAgendaItems(data?.appointments),
     [data?.appointments],
   );
+  const appointmentListItemById = useMemo(() => {
+    const map = new Map<string, AppointmentListItem>();
+
+    for (const appointment of data?.appointments ?? []) {
+      map.set(appointment.id, appointment);
+    }
+
+    return map;
+  }, [data?.appointments]);
   const selectedAppointment = useMemo(
     () =>
       selectedAppointmentId
@@ -313,7 +331,13 @@ export function TodayAgendaQueryCard() {
   }
 
   function handleEditAppointment(appointment: TodayAgendaItem) {
-    setAppointmentToEdit(mapAgendaItemToCalendarEvent(appointment));
+    const appointmentListItem = appointmentListItemById.get(appointment.id);
+
+    setAppointmentToEdit(
+      appointmentListItem
+        ? mapAppointmentToCalendarEvent(appointmentListItem)
+        : mapAgendaItemToCalendarEvent(appointment),
+    );
     setSelectedAppointmentId(null);
     setAppointmentSheetOpen(true);
   }

@@ -12,18 +12,22 @@ import {
 import { formatBrlFromCents, formatReaisToBrlInput } from "@/shared/money/format-brl-money";
 import type { AppointmentMobileCardItem } from "./appointment-mobile-cards";
 import type { AppointmentDisplayStatus } from "@/shared/utils/appointments-status";
+import type { ResourceStatus } from "@/features/appointments/types/appointments-dto";
 
 export type AppointmentPresentationService = {
   id: string;
   name: string;
   durationInMinutes: number | null;
   priceInCents: number;
+  currentResourceStatus: ResourceStatus;
 };
 
 export type AppointmentPresentationItem = {
   id: string;
   customerId: string;
+  customerResourceStatus: ResourceStatus;
   vehicleId: string;
+  vehicleCurrentResourceStatus: ResourceStatus;
   startsAt: Date;
   endsAt: Date | null;
   time: string;
@@ -52,6 +56,7 @@ function mapAppointmentServices(
     name: service.name.trim() || "Serviço não informado",
     durationInMinutes: service.durationInMinutes,
     priceInCents: service.priceInCents,
+    currentResourceStatus: service.currentResourceStatus,
   }));
 }
 
@@ -74,7 +79,9 @@ export function mapAppointmentListItemToPresentationItem(
   return {
     id: appointment.id,
     customerId: appointment.customerId,
+    customerResourceStatus: appointment.customer?.currentResourceStatus ?? "UNCHANGED",
     vehicleId: appointment.vehicleId ?? "",
+    vehicleCurrentResourceStatus: appointment.vehicle?.currentResourceStatus ?? "UNCHANGED",
     startsAt,
     endsAt,
     time: startTime,

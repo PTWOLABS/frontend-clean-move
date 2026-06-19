@@ -24,7 +24,6 @@ import { Calendar as MiniCalendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select } from "@/components/ui/select/select";
-import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
 
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
@@ -494,35 +493,6 @@ export function AppointmentsPage() {
     setSelectedSlotKey(null);
   }
 
-  function handleClearFilters() {
-    const initialRange = getInitialVisibleRange(initialSelectedDate);
-    const calendarApi = calendarRef.current?.getApi();
-
-    setAppointmentStatusFilter(DEFAULT_APPOINTMENT_STATUS_FILTER);
-    setSelectionSource("auto");
-    setSelectedEventId(null);
-    setSelectedSlotKey(null);
-    setSelectedView(DEFAULT_APPOINTMENT_CALENDAR_VIEW);
-    setSelectedDate(initialSelectedDate);
-    setVisibleRange(initialRange);
-    setCalendarTitle(
-      formatCalendarToolbarTitle(
-        initialRange.start,
-        initialRange.end,
-        DEFAULT_APPOINTMENT_CALENDAR_VIEW,
-      ),
-    );
-
-    calendarApi?.changeView(DEFAULT_APPOINTMENT_CALENDAR_VIEW);
-    calendarApi?.gotoDate(initialSelectedDate);
-  }
-
-  const defaultVisibleRange = getInitialVisibleRange(initialSelectedDate);
-  const areFiltersDefault =
-    appointmentStatusFilter === DEFAULT_APPOINTMENT_STATUS_FILTER &&
-    isSameDay(visibleRange.start, defaultVisibleRange.start) &&
-    isSameDay(visibleRange.end, defaultVisibleRange.end);
-
   useEffect(() => {
     if (!isCompactCalendarNavigation || selectedView !== "timeGridWeek") {
       return;
@@ -689,7 +659,7 @@ export function AppointmentsPage() {
           </Button>
         </div>
 
-        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(11rem,1fr)_auto] xl:max-w-[52rem]">
+        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(11rem,1fr)_auto] xl:max-w-120">
           <AppointmentsDateFilter value={resolvedSelectedDate} onChange={handleDateFilterSelect} />
 
           <Select
@@ -697,12 +667,6 @@ export function AppointmentsPage() {
             onChange={handleStatusFilterChange}
             options={statusFilterOptions}
             className="h-11 rounded-md border-border/80 bg-card/70 shadow-xs"
-          />
-
-          <ClearFiltersButton
-            className="h-11 w-full bg-card/70 lg:w-auto"
-            disabled={areFiltersDefault}
-            onClick={handleClearFilters}
           />
         </div>
 
