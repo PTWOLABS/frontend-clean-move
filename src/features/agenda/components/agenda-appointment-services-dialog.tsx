@@ -14,6 +14,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -66,6 +67,14 @@ export function AgendaAppointmentServicesDialog({
   }
 
   const services = getAppointmentServices(appointment);
+  const servicesSubtotalInCents = services.reduce((total, service) => {
+    return total + service.priceInCents;
+  }, 0);
+  const discountInCents = Math.max(servicesSubtotalInCents - appointment.amountInCents, 0);
+  const subtotalAmount = formatCurrency(servicesSubtotalInCents);
+  const discountAmount = formatCurrency(discountInCents);
+  const totalAmount = formatCurrency(appointment.amountInCents);
+
   const modalInitial = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985, y: 8 };
   const modalAnimate = shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 };
   const modalTransition = shouldReduceMotion
@@ -134,6 +143,41 @@ export function AgendaAppointmentServicesDialog({
                   </dl>
                 </motion.article>
               ))}
+              <motion.dl
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0.12, ease: "easeOut" as const }
+                    : { duration: 0.28, ease: entranceEase, delay: 0.08 + services.length * 0.04 }
+                }
+                className="space-y-2 rounded-2xl border border-border/80 bg-muted/25 px-4 py-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Subtotal dos serviços
+                  </dt>
+                  <dd className="shrink-0 text-sm font-medium tabular-nums text-card-foreground">
+                    {subtotalAmount}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Desconto
+                  </dt>
+                  <dd className="shrink-0 text-sm font-medium tabular-nums text-muted-foreground">
+                    {discountInCents > 0 ? `- ${discountAmount}` : discountAmount}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-2">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-card-foreground">
+                    Total
+                  </dt>
+                  <dd className="shrink-0 text-base font-semibold tabular-nums text-card-foreground">
+                    {totalAmount}
+                  </dd>
+                </div>
+              </motion.dl>
             </div>
 
             <div className="hidden overflow-hidden rounded-2xl border border-border/70 sm:block">
@@ -166,6 +210,41 @@ export function AgendaAppointmentServicesDialog({
                     </TableRow>
                   ))}
                 </TableBody>
+                <TableFooter className="border-t border-border/80 bg-muted/25">
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell
+                      colSpan={2}
+                      className="pl-4 py-2.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                    >
+                      Subtotal dos serviços
+                    </TableCell>
+                    <TableCell className="pr-4 py-2.5 text-right font-medium tabular-nums text-card-foreground">
+                      {subtotalAmount}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell
+                      colSpan={2}
+                      className="pl-4 py-2.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                    >
+                      Desconto
+                    </TableCell>
+                    <TableCell className="pr-4 py-2.5 text-right font-medium tabular-nums text-muted-foreground">
+                      {discountInCents > 0 ? `- ${discountAmount}` : discountAmount}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="border-t border-border/70 hover:bg-transparent">
+                    <TableCell
+                      colSpan={2}
+                      className="pl-4 py-3 text-xs font-semibold uppercase tracking-wide text-card-foreground"
+                    >
+                      Total
+                    </TableCell>
+                    <TableCell className="pr-4 py-3 text-right text-base font-semibold tabular-nums text-card-foreground">
+                      {totalAmount}
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
               </Table>
             </div>
           </div>

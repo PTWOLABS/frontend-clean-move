@@ -13,6 +13,7 @@ describe("appointments calendar timezone mapping", () => {
           customerId: "customer-1",
           customer: {
             fullName: "Cliente",
+            currentResourceStatus: "UNCHANGED",
           },
           vehicleId: null,
           services: [
@@ -22,6 +23,7 @@ describe("appointments calendar timezone mapping", () => {
               category: { id: "cat-wash", name: "Lavagem" },
               durationInMinutes: 60,
               priceInCents: 10000,
+              currentResourceStatus: "UNCHANGED",
             },
           ],
           vehicle: null,

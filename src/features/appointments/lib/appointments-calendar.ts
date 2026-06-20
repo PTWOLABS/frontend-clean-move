@@ -66,6 +66,7 @@ function getPricedServices(appointment: AppointmentListItem) {
     serviceId: service.id,
     label: service.name.trim() || "Serviço não informado",
     priceInCents: service.priceInCents,
+    currentResourceStatus: service.currentResourceStatus,
   }));
 }
 

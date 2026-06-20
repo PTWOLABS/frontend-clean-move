@@ -1,5 +1,6 @@
 import type { EventInput } from "@fullcalendar/core/index.js";
 import type { AppointmentStatus } from "@/shared/types/appointments";
+import type { ResourceStatus } from "./appointments-dto";
 
 export type AppointmentCalendarView = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek";
 
@@ -23,6 +24,7 @@ export type AppointmentExtendedProps = {
     serviceId: string;
     label: string;
     priceInCents: number;
+    currentResourceStatus?: ResourceStatus;
   }[];
   service: string;
   vehicleId: string;

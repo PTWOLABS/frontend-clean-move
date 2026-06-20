@@ -45,6 +45,7 @@ export const appointmentServiceOptionSchema = z.object({
 const appointmentPricedServiceSchema = z.object({
   serviceId: z.string().trim().min(1, "Selecione um serviço válido."),
   serviceLabel: z.string().trim().min(1, "Selecione um serviço válido."),
+  source: z.enum(["snapshot", "catalog"]).optional(),
   priceType: z.enum(["FIXED", "STARTING_AT", "RANGE"]),
   minPriceInCents: z.number().int().nonnegative("O valor mínimo do serviço não pode ser negativo."),
   maxPriceInCents: z
@@ -103,6 +104,10 @@ export function validateAppointmentServicePrices(
   context: z.RefinementCtx,
 ) {
   services.forEach((service, index) => {
+    if (service.source === "snapshot") {
+      return;
+    }
+
     const amountInCents = Math.round(parseBrlMoneyToReais(service.price) * 100);
 
     if (amountInCents < service.minPriceInCents) {
@@ -148,7 +153,7 @@ export const createAppointmentFormSchema = z
     for (const serviceId of selectedServiceIds) {
       if (!pricedServiceIds.has(serviceId)) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Defina o valor para todos os serviços selecionados.",
           path: ["services"],
         });

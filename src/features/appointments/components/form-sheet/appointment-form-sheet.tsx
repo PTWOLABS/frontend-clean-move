@@ -43,12 +43,14 @@ import {
 } from "../../schemas/create-appointment-schema";
 import { updateAppointmentFormSchema } from "../../schemas/update-appointment-schema";
 import { AppointmentDateField } from "./appointment-date-field";
+import { AppointmentServiceResourceStatusAction } from "./appointment-service-resource-status-action";
 import { useListCustomerOptions } from "../../hooks/queries/use-list-customer-options";
 import { useListCustomerVehicleOptions } from "../../hooks/queries/use-list-customer-vehicle-options";
 import { useListServiceOptions } from "../../hooks/queries/use-list-service-options";
 import { useCreateAppointment } from "../../hooks/mutations/use-create-appointment-mutation";
 import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
 import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
+import type { ResourceStatus } from "../../types/appointments-dto";
 import type { ServiceOptionsDTO } from "../../types/options-dto";
 import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
 
@@ -99,20 +101,32 @@ function formatCentsToBrlInput(cents: number) {
   return formatReaisToBrlInput(Math.max(cents, 0) / 100);
 }
 
+function hasResourceChanged(status?: ResourceStatus) {
+  return status === "UPDATED" || status === "DELETED";
+}
+
 function getAppointmentFormDefaultValues(
   appointment: AppointmentCalendarEvent,
 ): CreateAppointmentFormInput {
   const pricedServices =
-    appointment.extendedProps.services?.map((service) => ({
-      serviceId: service.serviceId,
-      serviceLabel: service.label,
-      priceType: "STARTING_AT" as const,
-      minPriceInCents: service.priceInCents,
-      price: formatCentsToBrlInput(service.priceInCents),
-    })) ??
+    appointment.extendedProps.services?.map((service) => {
+      const source = hasResourceChanged(service.currentResourceStatus)
+        ? ("snapshot" as const)
+        : ("catalog" as const);
+
+      return {
+        serviceId: service.serviceId,
+        serviceLabel: service.label,
+        source,
+        priceType: "STARTING_AT" as const,
+        minPriceInCents: service.priceInCents,
+        price: formatCentsToBrlInput(service.priceInCents),
+      };
+    }) ??
     appointment.extendedProps.serviceIds.map((service) => ({
       serviceId: service.value,
       serviceLabel: service.label,
+      source: "catalog" as const,
       priceType: "STARTING_AT" as const,
       minPriceInCents: 0,
       price: "0,00",
@@ -262,9 +276,29 @@ export function AppointmentFormSheet({
     control,
     name: "services",
   });
+  const selectedServiceOptions = useWatch({
+    control,
+    name: "serviceIds",
+  });
+
+  const serviceResourceStatusById = useMemo(() => {
+    const map = new Map<string, ResourceStatus>();
+
+    for (const service of appointment?.extendedProps.services ?? []) {
+      if (hasResourceChanged(service.currentResourceStatus)) {
+        map.set(service.serviceId, service.currentResourceStatus);
+      }
+    }
+
+    return map;
+  }, [appointment]);
 
   const getServicePriceDescription = useCallback(
     (service: NonNullable<typeof selectedServices>[number]) => {
+      if (service.source === "snapshot") {
+        return `Valor registrado: ${service.price}`;
+      }
+
       if (service.priceType === "FIXED") {
         return `Valor fixo: ${formatCentsToBrlInput(service.minPriceInCents)}`;
       }
@@ -278,6 +312,46 @@ export function AppointmentFormSheet({
       return `Mínimo permitido: ${formatCentsToBrlInput(service.minPriceInCents)}`;
     },
     [],
+  );
+
+  const getServiceResourceStatus = useCallback(
+    (service: NonNullable<typeof selectedServices>[number]) => {
+      if (service.source !== "snapshot") {
+        return undefined;
+      }
+
+      return serviceResourceStatusById.get(service.serviceId);
+    },
+    [serviceResourceStatusById],
+  );
+
+  const hasLockedSnapshotService = useMemo(
+    () => selectedServices?.some((service) => Boolean(getServiceResourceStatus(service))) ?? false,
+    [getServiceResourceStatus, selectedServices],
+  );
+
+  const handleRemoveService = useCallback(
+    (serviceId: string) => {
+      const nextServiceIds = (getValues("serviceIds") ?? []).filter(
+        (service) => service.value !== serviceId,
+      );
+      const nextServices = (getValues("services") ?? []).filter(
+        (service) => service.serviceId !== serviceId,
+      );
+
+      setValue("serviceIds", nextServiceIds, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      setValue("services", nextServices, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      setServiceInputValue("");
+    },
+    [getValues, setValue],
   );
 
   useEffect(() => {
@@ -438,8 +512,13 @@ export function AppointmentFormSheet({
         value: option.id,
       })) ?? [];
 
-    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? []);
-  }, [appointment, serviceOptions]);
+    const hasSelectedServiceOptions =
+      Array.isArray(selectedServiceOptions) && selectedServiceOptions.length > 0;
+
+    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? [], {
+      preferFetchedOptions: serviceInputValue.trim().length > 0 || !hasSelectedServiceOptions,
+    });
+  }, [appointment, selectedServiceOptions, serviceInputValue, serviceOptions]);
 
   const serviceOptionsWithPrice = useMemo<ServiceOptionWithPrice[]>(
     () =>
@@ -481,6 +560,10 @@ export function AppointmentFormSheet({
 
     let hasChanges = false;
     const nextServices = currentServices.map((service) => {
+      if (service.source === "snapshot") {
+        return service;
+      }
+
       const metadata = servicePriceById.get(service.serviceId);
       if (!metadata) return service;
 
@@ -618,60 +701,68 @@ export function AppointmentFormSheet({
                 renderControl={false}
               >
                 {({ field, fieldState }) => (
-                  <FormControl>
-                    <MultipleSelector
-                      value={Array.isArray(field.value) ? (field.value as Option[]) : []}
-                      onChange={(options) => {
-                        field.onChange(options);
-                        const currentServices = getValues("services") ?? [];
-                        const nextServices = options.map((option) => {
-                          const existing = currentServices.find(
-                            (service) => service.serviceId === option.value,
-                          );
-                          if (existing) {
+                  <>
+                    <FormControl>
+                      <MultipleSelector
+                        value={Array.isArray(field.value) ? (field.value as Option[]) : []}
+                        onChange={(options) => {
+                          field.onChange(options);
+                          const currentServices = getValues("services") ?? [];
+                          const nextServices = options.map((option) => {
+                            const existing = currentServices.find(
+                              (service) => service.serviceId === option.value,
+                            );
+                            if (existing) {
+                              return {
+                                ...existing,
+                                serviceLabel: option.label,
+                              };
+                            }
+                            const metadata = servicePriceById.get(option.value);
+                            const priceType = metadata?.priceType ?? "STARTING_AT";
+                            const minPriceInCents = metadata?.minPriceInCents ?? 0;
                             return {
-                              ...existing,
+                              serviceId: option.value,
                               serviceLabel: option.label,
+                              source: "catalog" as const,
+                              priceType,
+                              minPriceInCents,
+                              maxPriceInCents: metadata?.maxPriceInCents,
+                              price: formatCentsToBrlInput(minPriceInCents),
                             };
-                          }
-                          const metadata = servicePriceById.get(option.value);
-                          const priceType = metadata?.priceType ?? "STARTING_AT";
-                          const minPriceInCents = metadata?.minPriceInCents ?? 0;
-                          return {
-                            serviceId: option.value,
-                            serviceLabel: option.label,
-                            priceType,
-                            minPriceInCents,
-                            maxPriceInCents: metadata?.maxPriceInCents,
-                            price: formatCentsToBrlInput(minPriceInCents),
-                          };
-                        });
-                        setValue("services", nextServices, {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                          shouldValidate: true,
-                        });
-                        setServiceInputValue("");
-                      }}
-                      options={serviceOptionsItems}
-                      portalContainer={sheetContentElement}
-                      placeholder="Selecione os serviços"
-                      emptyIndicator={getServiceEmptyIndicator()}
-                      disabled={isSubmitting}
-                      className={cn(
-                        "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-full",
-                        fieldState.invalid &&
-                          "border-destructive/70 focus-within:ring-destructive/30",
-                      )}
-                      inputProps={{
-                        id: field.name,
-                        onBlur: field.onBlur,
-                        onValueChange: setServiceInputValue,
-                        className: "text-sm",
-                      }}
-                      commandProps={{ shouldFilter: false }}
-                    />
-                  </FormControl>
+                          });
+                          setValue("services", nextServices, {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                            shouldValidate: true,
+                          });
+                          setServiceInputValue("");
+                        }}
+                        options={serviceOptionsItems}
+                        portalContainer={sheetContentElement}
+                        placeholder="Selecione os serviços"
+                        emptyIndicator={getServiceEmptyIndicator()}
+                        disabled={isSubmitting || hasLockedSnapshotService}
+                        className={cn(
+                          "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-full",
+                          fieldState.invalid &&
+                            "border-destructive/70 focus-within:ring-destructive/30",
+                        )}
+                        inputProps={{
+                          id: field.name,
+                          onBlur: field.onBlur,
+                          onValueChange: setServiceInputValue,
+                          className: "text-sm",
+                        }}
+                        commandProps={{ shouldFilter: false }}
+                      />
+                    </FormControl>
+                    {hasLockedSnapshotService ? (
+                      <FormDescription>
+                        Remova os serviços atualizados ou removidos antes de alterar a lista.
+                      </FormDescription>
+                    ) : null}
+                  </>
                 )}
               </FormField>
 
@@ -685,51 +776,52 @@ export function AppointmentFormSheet({
                       label={`Valor do serviço: ${service.serviceLabel}`}
                       renderControl={false}
                     >
-                      {({ field, fieldState }) => (
-                        <div className="space-y-1.5">
-                          <FormControl>
-                            <Input
-                              id={field.name}
-                              type="text"
-                              inputMode="decimal"
-                              autoComplete="off"
-                              placeholder="0,00"
-                              className={cn(
-                                "h-10 border-border/80 bg-background/40 tabular-nums w-full",
-                                fieldState.invalid &&
-                                  "border-destructive/70 focus-visible:ring-destructive/30",
-                              )}
-                              value={typeof field.value === "string" ? field.value : ""}
-                              disabled={isSubmitting || service.priceType === "FIXED"}
-                              onChange={(event) =>
-                                handleNumericInputChange(event, field.onChange, {
-                                  formatAsCurrency: true,
-                                  showCurrencySymbol: false,
-                                })
-                              }
-                              onBlur={() => {
-                                const parsedAmount = parseBrlMoneyToReais(
-                                  String(field.value ?? ""),
-                                );
-                                if (Number.isFinite(parsedAmount)) {
-                                  const amountInCents = Math.round(parsedAmount * 100);
-                                  if (amountInCents < service.minPriceInCents) {
-                                    field.onChange(formatCentsToBrlInput(service.minPriceInCents));
-                                  } else if (
-                                    service.priceType === "RANGE" &&
-                                    typeof service.maxPriceInCents === "number" &&
-                                    amountInCents > service.maxPriceInCents
-                                  ) {
-                                    field.onChange(formatCentsToBrlInput(service.maxPriceInCents));
-                                  }
+                      {({ field, fieldState }) => {
+                        const serviceResourceStatus = getServiceResourceStatus(service);
+
+                        return (
+                          <div className="space-y-1.5">
+                            <FormControl>
+                              <Input
+                                id={field.name}
+                                type="text"
+                                inputMode="decimal"
+                                autoComplete="off"
+                                placeholder="0,00"
+                                className={cn(
+                                  "h-10 border-border/80 bg-background/40 tabular-nums w-full",
+                                  fieldState.invalid &&
+                                    "border-destructive/70 focus-visible:ring-destructive/30",
+                                )}
+                                value={typeof field.value === "string" ? field.value : ""}
+                                disabled={
+                                  isSubmitting ||
+                                  service.priceType === "FIXED" ||
+                                  Boolean(serviceResourceStatus)
                                 }
-                                field.onBlur();
-                              }}
-                            />
-                          </FormControl>
-                          <FormDescription>{getServicePriceDescription(service)}</FormDescription>
-                        </div>
-                      )}
+                                onChange={(event) =>
+                                  handleNumericInputChange(event, field.onChange, {
+                                    formatAsCurrency: true,
+                                    showCurrencySymbol: false,
+                                  })
+                                }
+                                onBlur={field.onBlur}
+                              />
+                            </FormControl>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <FormDescription>
+                                {getServicePriceDescription(service)}
+                              </FormDescription>
+                              <AppointmentServiceResourceStatusAction
+                                disabled={isSubmitting}
+                                serviceLabel={service.serviceLabel}
+                                status={serviceResourceStatus}
+                                onConfirmRemove={() => handleRemoveService(service.serviceId)}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }}
                     </FormField>
                   ))}
                 </div>

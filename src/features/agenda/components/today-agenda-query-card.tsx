@@ -7,6 +7,7 @@ import type { DateRange } from "react-day-picker";
 import { AppointmentFormSheet } from "@/features/appointments/components/form-sheet/appointment-form-sheet";
 import { useListAppointments } from "@/features/appointments/hooks/queries/use-list-appointments";
 import { useUpdateAppointmentStatus } from "@/features/appointments/hooks/mutations/use-update-appointment-status-mutation";
+import { mapAppointmentToCalendarEvent } from "@/features/appointments/lib/appointments-calendar";
 import type { AppointmentsFilters } from "@/features/appointments/types/api-filters";
 import type {
   AppointmentCalendarEvent,
@@ -152,6 +153,12 @@ function mapAgendaItemToCalendarEvent(appointment: TodayAgendaItem): Appointment
         value: service.id,
         label: service.name,
       })),
+      services: appointment.services.map((service) => ({
+        serviceId: service.id,
+        label: service.name,
+        priceInCents: service.priceInCents,
+        currentResourceStatus: service.currentResourceStatus,
+      })),
       service: servicesLabel || appointment.serviceName,
       vehicleId: appointment.vehicleId,
       vehicle: {
@@ -230,6 +237,15 @@ export function TodayAgendaQueryCard() {
     () => mapAppointmentsToTodayAgendaItems(data?.appointments),
     [data?.appointments],
   );
+  const appointmentListItemById = useMemo(() => {
+    const map = new Map<string, AppointmentListItem>();
+
+    for (const appointment of data?.appointments ?? []) {
+      map.set(appointment.id, appointment);
+    }
+
+    return map;
+  }, [data?.appointments]);
   const selectedAppointment = useMemo(
     () =>
       selectedAppointmentId
@@ -312,8 +328,44 @@ export function TodayAgendaQueryCard() {
     resetPage();
   }
 
+  function handleClearStatusFilter() {
+    const defaultFilters = getDefaultAgendaFiltersState();
+
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      statusFilter: defaultFilters.statusFilter,
+    }));
+    setAppliedFilters((currentFilters) => ({
+      ...currentFilters,
+      statusFilter: defaultFilters.statusFilter,
+    }));
+    resetPage();
+  }
+
+  function handleClearPeriodFilter() {
+    const defaultFilters = getDefaultAgendaFiltersState();
+
+    setDraftFilters((currentFilters) => ({
+      ...currentFilters,
+      periodMode: defaultFilters.periodMode,
+      dateRange: defaultFilters.dateRange,
+    }));
+    setAppliedFilters((currentFilters) => ({
+      ...currentFilters,
+      periodMode: defaultFilters.periodMode,
+      dateRange: defaultFilters.dateRange,
+    }));
+    resetPage();
+  }
+
   function handleEditAppointment(appointment: TodayAgendaItem) {
-    setAppointmentToEdit(mapAgendaItemToCalendarEvent(appointment));
+    const appointmentListItem = appointmentListItemById.get(appointment.id);
+
+    setAppointmentToEdit(
+      appointmentListItem
+        ? mapAppointmentToCalendarEvent(appointmentListItem)
+        : mapAgendaItemToCalendarEvent(appointment),
+    );
     setSelectedAppointmentId(null);
     setAppointmentSheetOpen(true);
   }
@@ -374,8 +426,11 @@ export function TodayAgendaQueryCard() {
             onDateRangeChange={handleDateRangeChange}
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
+            onClearPeriodFilter={handleClearPeriodFilter}
+            onClearStatusFilter={handleClearStatusFilter}
             applyFiltersDisabled={areDraftFiltersApplied}
             clearFiltersDisabled={areDraftFiltersDefault && areAppliedFiltersDefault}
+            appliedFilters={appliedFilters}
           />
         }
       />

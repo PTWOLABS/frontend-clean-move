@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, ReactElement, ReactNode } from "react";
+import type { ComponentProps, MouseEventHandler, ReactElement, ReactNode } from "react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/shared/utils/cn";
@@ -26,6 +26,8 @@ type HintTooltipProps = {
   side?: ComponentProps<typeof TooltipContent>["side"];
   sideOffset?: number;
   className?: string;
+  triggerClassName?: string;
+  onTriggerClick?: MouseEventHandler<HTMLSpanElement>;
 };
 
 export function HintTooltip({
@@ -34,11 +36,15 @@ export function HintTooltip({
   side = "top",
   sideOffset = 6,
   className,
+  triggerClassName,
+  onTriggerClick,
 }: HintTooltipProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex">{children}</span>
+        <span className={cn("inline-flex", triggerClassName)} onClick={onTriggerClick}>
+          {children}
+        </span>
       </TooltipTrigger>
       <TooltipContent
         side={side}

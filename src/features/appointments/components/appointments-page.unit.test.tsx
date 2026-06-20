@@ -491,44 +491,40 @@ describe("AppointmentsPage", () => {
     expect(screen.getByText("Título do calendário: Maio de 2026")).toBeInTheDocument();
   });
 
-  it("resets calendar filters to their default values", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-20T12:00:00.000Z"));
-
+  it("applies and clears status filters through the status select", () => {
     render(<AppointmentsPage />);
 
-    const clearButton = screen.getByRole("button", { name: /limpar filtros/i });
-
-    expect(clearButton).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /limpar filtros/i })).not.toBeInTheDocument();
+    expect(useListCalendarAppointmentsMock).toHaveBeenLastCalledWith(
+      expect.not.objectContaining({ status: expect.any(Array) }),
+    );
 
     fireEvent.change(screen.getByLabelText("Status"), { target: { value: "DONE" } });
-    fireEvent.click(screen.getByRole("button", { name: /selecionar lista no toolbar/i }));
 
-    expect(clearButton).toBeEnabled();
+    expect(screen.getByLabelText("Status")).toHaveValue("DONE");
+    expect(useListCalendarAppointmentsMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: ["DONE"] }),
+    );
 
-    fireEvent.click(clearButton);
+    fireEvent.change(screen.getByLabelText("Status"), { target: { value: "ALL" } });
 
     expect(screen.getByLabelText("Status")).toHaveValue("ALL");
-    expect(screen.getByText("Visualização no toolbar: dayGridMonth")).toBeInTheDocument();
-    expect(clearButton).toBeDisabled();
     expect(useListCalendarAppointmentsMock).toHaveBeenLastCalledWith(
       expect.not.objectContaining({ status: expect.any(Array) }),
     );
   });
 
-  it("keeps clear filters disabled when only an appointment selection changes", async () => {
+  it("keeps query filters unchanged when only an appointment selection changes", async () => {
     const user = userEvent.setup();
 
     render(<AppointmentsPage />);
 
-    const clearButton = screen.getByRole("button", { name: /limpar filtros/i });
-
-    expect(clearButton).toBeDisabled();
+    const initialFilters = useListCalendarAppointmentsMock.mock.lastCall?.[0];
 
     await user.click(screen.getByRole("button", { name: /selecionar evento da lista/i }));
 
     expect(screen.getByText("Evento selecionado no calendário: appointment-1")).toBeInTheDocument();
-    expect(clearButton).toBeDisabled();
+    expect(useListCalendarAppointmentsMock.mock.lastCall?.[0]).toEqual(initialFilters);
   });
 
   it("keeps list ranges mapped to the list view filter and weekly title", async () => {

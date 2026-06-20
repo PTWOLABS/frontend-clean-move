@@ -69,6 +69,7 @@ describe("useDeleteService", () => {
     });
     const key = QUERY_KEYS.services({ page: 1, size: 5 });
     client.setQueryData(key, initialPage);
+    const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
 
     const { result } = renderHook(() => useDeleteService(), {
       wrapper: createWrapper(client),
@@ -84,6 +85,7 @@ describe("useDeleteService", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.appointments() });
     expect(deleteServiceMock).toHaveBeenCalledWith("svc-a");
   });
 
@@ -95,6 +97,7 @@ describe("useDeleteService", () => {
     });
     const key = QUERY_KEYS.services({ page: 1, size: 5 });
     client.setQueryData(key, initialPage);
+    const invalidateQueriesSpy = vi.spyOn(client, "invalidateQueries");
 
     const { result } = renderHook(() => useDeleteService(), {
       wrapper: createWrapper(client),
@@ -104,6 +107,9 @@ describe("useDeleteService", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(client.getQueryData<ServicesPage>(key)).toEqual(initialPage);
+    expect(invalidateQueriesSpy).not.toHaveBeenCalledWith({
+      queryKey: QUERY_KEYS.appointments(),
+    });
     expect(toastErrorMock).toHaveBeenCalled();
   });
 });

@@ -155,25 +155,32 @@ vi.mock("@/components/ui/multiple-selector", () => {
     void portalContainer;
 
     return (
-      <select
-        id={inputProps?.id}
-        disabled={disabled}
-        value={value[0]?.value ?? ""}
-        onBlur={inputProps?.onBlur}
-        onChange={(event) => {
-          const selectedOption = options.find((option) => option.value === event.target.value);
+      <>
+        <input
+          aria-label="Options search"
+          disabled={disabled}
+          onChange={(event) => inputProps?.onValueChange?.(event.target.value)}
+        />
+        <select
+          id={inputProps?.id}
+          disabled={disabled}
+          value={value[0]?.value ?? ""}
+          onBlur={inputProps?.onBlur}
+          onChange={(event) => {
+            const selectedOption = options.find((option) => option.value === event.target.value);
 
-          onChange?.(selectedOption ? [selectedOption] : []);
-          inputProps?.onValueChange?.("");
-        }}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+            onChange?.(selectedOption ? [selectedOption] : []);
+            inputProps?.onValueChange?.("");
+          }}
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </>
     );
   };
 
@@ -224,7 +231,14 @@ const appointmentToEdit: AppointmentCalendarEvent = {
     customerId: "customer-1",
     customer: "Cliente Teste",
     serviceIds: [{ value: "service-1", label: "Lavagem completa" }],
-    services: [{ serviceId: "service-1", label: "Lavagem completa", priceInCents: 9000 }],
+    services: [
+      {
+        serviceId: "service-1",
+        label: "Lavagem completa",
+        priceInCents: 9000,
+        currentResourceStatus: "UNCHANGED",
+      },
+    ],
     service: "Lavagem completa",
     vehicleId: "vehicle-1",
     vehicle: {
@@ -296,6 +310,122 @@ describe("AppointmentFormSheet", () => {
     expect(screen.getByLabelText(/Descrição/)).toHaveValue("Observação original");
     expect(screen.getByLabelText(/Desconto/)).toHaveValue("15,00");
     expect(screen.getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
+  });
+
+  it("shows badges only for services changed after the snapshot", () => {
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            services: [
+              {
+                serviceId: "service-1",
+                label: "Lavagem completa",
+                priceInCents: 9000,
+                currentResourceStatus: "UPDATED",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Atualizado")).toBeInTheDocument();
+    expect(screen.queryByText("Removido")).not.toBeInTheDocument();
+  });
+
+  it("locks the service selector until a changed snapshot service is removed", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListServiceOptionsMock.mockReturnValue({
+      data: {
+        services: [
+          {
+            id: "service-1",
+            label: "Lavagem detalhada",
+            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+          },
+        ],
+      },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            services: [
+              {
+                serviceId: "service-1",
+                label: "Lavagem completa",
+                priceInCents: 9000,
+                currentResourceStatus: "UPDATED",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    const servicesSelect = screen.getByLabelText(/Servi.os/);
+
+    expect(servicesSelect).toBeDisabled();
+    expect(
+      screen.getByText("Remova os serviços atualizados ou removidos antes de alterar a lista."),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Remover servi.o Lavagem completa/ }));
+
+    expect(screen.getByText("Remover serviço deste agendamento?")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Isso remove "Lavagem completa" da edi..o atual e libera a sele..o de servi.os./,
+      ),
+    ).toBeInTheDocument();
+    expect(servicesSelect).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Remover serviço" }));
+
+    await waitFor(() => {
+      expect(servicesSelect).toBeEnabled();
+    });
+
+    await user.type(screen.getByLabelText("Options search"), "Lavagem detalhada");
+    await user.selectOptions(servicesSelect, "service-1");
+
+    const servicePriceInput = screen.getByLabelText(/Valor do servi.*Lavagem detalhada/i);
+
+    expect(servicePriceInput).toHaveValue("40,00");
+    expect(servicePriceInput).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            services: [{ serviceId: "service-1", priceInCents: 4000 }],
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
   });
 
   it("shows feedback instead of updating when an edit submit has no changed fields", async () => {
@@ -503,6 +633,167 @@ describe("AppointmentFormSheet", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it("keeps changed snapshot service price read-only when current catalog metadata changed", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListServiceOptionsMock.mockReturnValue({
+      data: {
+        services: [
+          {
+            id: "service-1",
+            label: "Lavagem detalhada",
+            priceSpecification: { type: "FIXED", fixedPriceInCents: 12000 },
+          },
+        ],
+      },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            services: [
+              {
+                serviceId: "service-1",
+                label: "Lavagem completa",
+                priceInCents: 9000,
+                currentResourceStatus: "UPDATED",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    const servicePriceInput = screen.getByLabelText(/Valor do servi.*Lavagem completa/i);
+
+    await waitFor(() => {
+      expect(servicePriceInput).toHaveValue("90,00");
+    });
+    expect(servicePriceInput).toBeDisabled();
+    expect(screen.getByText("Valor registrado: 90,00")).toBeInTheDocument();
+
+    const descriptionInput = screen.getByLabelText(/Descri..o/);
+
+    await user.clear(descriptionInput);
+    await user.type(descriptionInput, "Nova observaÃ§Ã£o");
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            description: "Nova observaÃ§Ã£o",
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+  });
+
+  it("allows editing an unchanged non-fixed snapshot service price", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListServiceOptionsMock.mockReturnValue({
+      data: {
+        services: [
+          {
+            id: "service-1",
+            label: "Lavagem completa",
+            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+          },
+        ],
+      },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const servicePriceInput = screen.getByLabelText(/Valor do servi.*Lavagem completa/i);
+
+    await waitFor(() => {
+      expect(screen.getByText(/M.nimo permitido: 40,00/)).toBeInTheDocument();
+    });
+    expect(servicePriceInput).toHaveValue("90,00");
+    expect(servicePriceInput).toBeEnabled();
+
+    fireEvent.change(servicePriceInput, { target: { value: "10,00" } });
+    fireEvent.blur(servicePriceInput);
+
+    expect(
+      await screen.findByText(/O valor n.o pode ser menor que o m.nimo do servi.o./),
+    ).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+
+    fireEvent.change(servicePriceInput, { target: { value: "100,00" } });
+    fireEvent.blur(servicePriceInput);
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            services: [{ serviceId: "service-1", priceInCents: 10000 }],
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+  });
+
+  it("uses current catalog label and price after removing and reselecting a snapshot service", async () => {
+    const user = userEvent.setup();
+
+    useListServiceOptionsMock.mockReturnValue({
+      data: {
+        services: [
+          {
+            id: "service-1",
+            label: "Lavagem detalhada",
+            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+          },
+        ],
+      },
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const servicesSelect = screen.getByLabelText(/Servi.os/);
+
+    await user.type(screen.getByLabelText("Options search"), "Lavagem detalhada");
+    await user.selectOptions(servicesSelect, "");
+    await user.selectOptions(servicesSelect, "service-1");
+
+    const servicePriceInput = screen.getByLabelText(/Valor do servi.*Lavagem detalhada/i);
+
+    expect(servicePriceInput).toHaveValue("40,00");
+    expect(servicePriceInput).toBeEnabled();
+    expect(screen.getByText(/M.nimo permitido: 40,00/)).toBeInTheDocument();
+  });
+
   it("clears the appointment end date when the clear button is clicked", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();
@@ -535,7 +826,7 @@ describe("AppointmentFormSheet", () => {
     });
   });
 
-  it("preenche valor inicial do serviço e corrige para o mínimo ao tentar salvar abaixo", async () => {
+  it("shows a form error when a starting-at service price is below the minimum", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();
 
@@ -579,23 +870,20 @@ describe("AppointmentFormSheet", () => {
     const servicePriceInput = screen.getByLabelText(/Valor do serviço: Lavagem completa/i);
     expect(servicePriceInput).toHaveValue("90,00");
 
-    await user.clear(servicePriceInput);
-    await user.type(servicePriceInput, "10");
+    fireEvent.change(servicePriceInput, { target: { value: "10,00" } });
+    fireEvent.blur(servicePriceInput);
+
+    expect(servicePriceInput).toHaveValue("10,00");
+    expect(
+      await screen.findByText("O valor não pode ser menor que o mínimo do serviço."),
+    ).toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: "Salvar agendamento" }));
 
-    await waitFor(() => {
-      expect(mutate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          services: [{ serviceId: "service-1", priceInCents: 9000 }],
-        }),
-        expect.objectContaining({
-          onSuccess: expect.any(Function),
-        }),
-      );
-    });
+    expect(mutate).not.toHaveBeenCalled();
   });
 
-  it("corrige valor de serviço com faixa para o máximo permitido", async () => {
+  it("shows a form error when a range service price is above the maximum", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();
 
@@ -645,25 +933,16 @@ describe("AppointmentFormSheet", () => {
     expect(servicePriceInput).toHaveValue("50,00");
     expect(screen.getByText("Permitido: 50,00 a 100,00")).toBeInTheDocument();
 
-    await user.clear(servicePriceInput);
-    await user.type(servicePriceInput, "15000");
+    fireEvent.change(servicePriceInput, { target: { value: "150,00" } });
     fireEvent.blur(servicePriceInput);
 
-    await waitFor(() => {
-      expect(servicePriceInput).toHaveValue("100,00");
-    });
+    expect(servicePriceInput).toHaveValue("150,00");
+    expect(
+      await screen.findByText("O valor não pode ultrapassar o máximo do serviço."),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Salvar agendamento" }));
 
-    await waitFor(() => {
-      expect(mutate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          services: [{ serviceId: "service-1", priceInCents: 10000 }],
-        }),
-        expect.objectContaining({
-          onSuccess: expect.any(Function),
-        }),
-      );
-    });
+    expect(mutate).not.toHaveBeenCalled();
   });
 });
