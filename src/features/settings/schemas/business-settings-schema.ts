@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { formatCpfCnpj } from "@/features/customer/lib/format-customer-catalog";
 import type { Establishment, UpdateEstablishmentPayload } from "@/features/establishment/types";
+import { isValidCnpj } from "@/shared/lib/validate-cpf-cnpj";
 import { optionalText } from "@/shared/utils/required-text";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
@@ -9,16 +10,26 @@ const onlyDigits = (value: string) => value.replace(/\D/g, "");
 export const businessSettingsSchema = z.object({
   tradeName: optionalText(),
   legalBusinessName: optionalText(),
-  cnpj: optionalText().refine(
-    (value) => {
-      if (!value) return true;
+  cnpj: optionalText().superRefine((value, ctx) => {
+    if (!value) return;
 
-      return onlyDigits(value).length === 14;
-    },
-    {
-      message: "Informe um CNPJ válido.",
-    },
-  ),
+    const digits = onlyDigits(value);
+
+    if (digits.length < 14) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ incompleto",
+      });
+      return;
+    }
+
+    if (!isValidCnpj(digits)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ inválido",
+      });
+    }
+  }),
 });
 
 export type BusinessSettingsFormInput = z.input<typeof businessSettingsSchema>;

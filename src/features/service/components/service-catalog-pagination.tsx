@@ -12,6 +12,7 @@ type ServiceCatalogPaginationProps = {
   /** Enquanto a query está a buscar (ex.: mudança de página), mostra spinner e bloqueia os botões. */
   isFetching?: boolean;
   onPageChange: (page: number) => void;
+  className?: string;
 };
 
 export function ServiceCatalogPagination({
@@ -20,6 +21,7 @@ export function ServiceCatalogPagination({
   total,
   isFetching = false,
   onPageChange,
+  className,
 }: ServiceCatalogPaginationProps) {
   const canPrev = page > 1;
   const canNext = page < totalPages;
@@ -28,7 +30,7 @@ export function ServiceCatalogPagination({
     totalPages > 0 ? Math.min(100, Math.max(0, (page / totalPages) * 100)) : 0;
 
   return (
-    <div className="space-y-4 border-t border-border pt-4">
+    <div className={cn("space-y-4 border-t border-border pt-4", className)}>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
         <div
           className="h-full rounded-full bg-primary/85 transition-[width] duration-300 ease-out"

@@ -145,7 +145,7 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
               disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
               className="w-full sm:w-auto"
             >
-              {isPending ? "Salvando..." : "Salvar Alterações"}
+              {isPending ? "Salvando..." : "Salvar alterações"}
             </Button>
           </CardFooter>
         </form>

@@ -159,7 +159,7 @@ export function ServiceFormSheet({
         return;
       }
       if (!isDirty) {
-        toast.info("Nenhuma alteração para guardar.");
+        toast.info("Nenhuma alteração para salvar.");
         return;
       }
       const selectedOption = values.categoryId
@@ -221,7 +221,7 @@ export function ServiceFormSheet({
               {isEditMode
                 ? "Altere os campos abaixo. Os valores usam formato brasileiro (ex.: 30,00); o sistema guarda em centavos."
                 : isDuplicateMode
-                  ? "Revise os dados copiados do serviço original. Ao guardar, será criado um novo serviço no catálogo."
+                  ? "Revise os dados copiados do serviço original. Ao salvar, será criado um novo serviço no catálogo."
                   : "Preencha os dados abaixo. Para os preços use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda em centavos."}
             </SheetDescription>
           </SheetHeader>
@@ -439,9 +439,9 @@ export function ServiceFormSheet({
                   disabled={isPending || (isEditMode && !isDirty) || categoryOptionsQuery.isLoading}
                 >
                   {isPending
-                    ? "A guardar…"
+                    ? "Salvando..."
                     : isEditMode
-                      ? "Guardar alterações"
+                      ? "Salvar alterações"
                       : isDuplicateMode
                         ? "Criar cópia"
                         : "Criar serviço"}

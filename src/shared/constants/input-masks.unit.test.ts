@@ -34,6 +34,17 @@ describe("input-masks", () => {
     expect(cpfCnpjMaskModify({ value: "123.456.789-01" } as never)).toEqual({ mask: CPF_MASK });
   });
 
+  it("cpfCnpjMaskModify should switch to CNPJ mask when inserting the 12th digit", () => {
+    expect(
+      cpfCnpjMaskModify({
+        value: "123.456.789-01",
+        data: "2",
+        selectionStart: 14,
+        selectionEnd: 14,
+      } as never),
+    ).toEqual({ mask: CNPJ_MASK });
+  });
+
   it("cpfCnpjMaskModify should switch to CNPJ mask after 11 digits", () => {
     expect(cpfCnpjMaskModify({ value: "12.345.678/0001-90" } as never)).toEqual({
       mask: CNPJ_MASK,

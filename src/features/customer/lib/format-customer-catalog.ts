@@ -15,7 +15,14 @@ export function formatCpfCnpj(value?: string | null): string {
   return value;
 }
 
-export function formatPhone(value: string): string {
+export function formatOptionalContact(value?: string | null): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : "-";
+}
+
+export function formatPhone(value?: string | null): string {
+  if (!value?.trim()) return "-";
+
   const digits = value.replace(/\D/g, "");
 
   if (digits.length === 11) {

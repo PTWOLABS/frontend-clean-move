@@ -265,44 +265,46 @@ export function ServiceCatalog() {
             onActiveFilterChange={setActiveFilter}
           />
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1 space-y-6">
-              {showListSkeleton ? (
-                <ServiceCatalogListSkeleton count={PAGE_SIZE} />
-              ) : items.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-                  Nenhum serviço encontrado para os filtros atuais.
-                </p>
-              ) : (
-                <>
-                  <ServiceCatalogTable
-                    items={items}
-                    selectedService={resolvedSelectedService}
-                    onSelect={setSelectedService}
-                    onEdit={(item) => {
-                      setDuplicateSource(null);
-                      setEditingService(item);
-                      setServiceSheetOpen(true);
-                    }}
-                    onDuplicate={handleDuplicate}
-                    onToggleActive={handleToggleActive}
-                    onDelete={(item) => setDeleteTarget(item)}
-                    togglingServiceId={togglingServiceId}
-                  />
-                  <ServiceCatalogMobileCards
-                    items={items}
-                    onEdit={(item) => {
-                      setDuplicateSource(null);
-                      setEditingService(item);
-                      setServiceSheetOpen(true);
-                    }}
-                    onDuplicate={handleDuplicate}
-                    onToggleActive={handleToggleActive}
-                    onDelete={(item) => setDeleteTarget(item)}
-                    togglingServiceId={togglingServiceId}
-                  />
-                </>
-              )}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
+              <div className="space-y-6">
+                {showListSkeleton ? (
+                  <ServiceCatalogListSkeleton count={PAGE_SIZE} />
+                ) : items.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum serviço encontrado para os filtros atuais.
+                  </p>
+                ) : (
+                  <>
+                    <ServiceCatalogTable
+                      items={items}
+                      selectedService={resolvedSelectedService}
+                      onSelect={setSelectedService}
+                      onEdit={(item) => {
+                        setDuplicateSource(null);
+                        setEditingService(item);
+                        setServiceSheetOpen(true);
+                      }}
+                      onDuplicate={handleDuplicate}
+                      onToggleActive={handleToggleActive}
+                      onDelete={(item) => setDeleteTarget(item)}
+                      togglingServiceId={togglingServiceId}
+                    />
+                    <ServiceCatalogMobileCards
+                      items={items}
+                      onEdit={(item) => {
+                        setDuplicateSource(null);
+                        setEditingService(item);
+                        setServiceSheetOpen(true);
+                      }}
+                      onDuplicate={handleDuplicate}
+                      onToggleActive={handleToggleActive}
+                      onDelete={(item) => setDeleteTarget(item)}
+                      togglingServiceId={togglingServiceId}
+                    />
+                  </>
+                )}
+              </div>
 
               {!showListSkeleton && total > 0 ? (
                 <ServiceCatalogPagination
@@ -311,6 +313,7 @@ export function ServiceCatalog() {
                   total={total}
                   isFetching={isFetching}
                   onPageChange={setPage}
+                  className="mt-auto shrink-0"
                 />
               ) : null}
             </div>

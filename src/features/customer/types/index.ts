@@ -23,8 +23,8 @@ export type CustomerDto = {
   cpfCnpj?: string | null;
   documentType?: DocumentType | null;
   fullName: string;
-  phone: string;
-  email: string;
+  phone?: string | null;
+  email?: string | null;
   address?: CustomerAddress | null;
   birthDate?: string | null;
   nickname?: string | null;
@@ -70,8 +70,8 @@ export type CustomersPage = {
 
 export type CreateCustomerPayload = {
   fullName: string;
-  phone: string;
-  email: string;
+  phone?: string | null;
+  email?: string | null;
   cpfCnpj?: string | null;
   address?: CustomerAddress | null;
   birthDate?: string | null;

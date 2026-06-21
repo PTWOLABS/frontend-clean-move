@@ -301,7 +301,7 @@ export function VehicleFormSheet({
                   isPending || (isEditMode && !isDirty) || (!isEditMode && !canSubmitCreate)
                 }
               >
-                {isPending ? "A guardar..." : isEditMode ? "Guardar alterações" : "Criar veículo"}
+                {isPending ? "Salvando..." : isEditMode ? "Salvar alterações" : "Criar veículo"}
               </Button>
             </SheetFooter>
           </form>
