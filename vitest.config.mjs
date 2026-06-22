@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
-    exclude: [...configDefaults.exclude, ".kilo/**"],
+    exclude: [...configDefaults.exclude, ".kilo/**", "tests/**/*.spec.ts", "tests/**/*.setup.ts"],
     globals: true,
     setupFiles: ["./src/test/setup-tests.ts"],
   },
