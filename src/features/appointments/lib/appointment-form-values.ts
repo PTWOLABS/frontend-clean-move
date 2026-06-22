@@ -67,7 +67,7 @@ export function getAppointmentFormDefaultValues(
         serviceId: service.serviceId,
         serviceLabel: service.label,
         source,
-        priceType: "STARTING_AT" as const,
+        priceType: "FIXED" as const,
         minPriceInCents: service.priceInCents,
         price: formatCentsToBrlInput(service.priceInCents),
       };
@@ -76,7 +76,7 @@ export function getAppointmentFormDefaultValues(
       serviceId: service.value,
       serviceLabel: service.label,
       source: "catalog" as const,
-      priceType: "STARTING_AT" as const,
+      priceType: "FIXED" as const,
       minPriceInCents: 0,
       price: "0,00",
     }));

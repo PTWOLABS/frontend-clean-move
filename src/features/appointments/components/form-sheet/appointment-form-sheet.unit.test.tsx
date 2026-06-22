@@ -1047,6 +1047,16 @@ describe("AppointmentFormSheet", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it("keeps an existing appointment service price read-only when catalog metadata is unavailable", async () => {
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const servicePriceInput = screen.getByLabelText(/Valor do servi.*Lavagem completa/i);
+
+    expect(servicePriceInput).toHaveValue("90,00");
+    expect(servicePriceInput).toBeDisabled();
+    expect(screen.getByText("Valor fixo: 90,00")).toBeInTheDocument();
+  });
+
   it("keeps changed snapshot service price read-only when current catalog metadata changed", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();

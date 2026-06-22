@@ -152,7 +152,7 @@ export function useAppointmentFormOptions({
         map.set(service.serviceId, {
           id: service.serviceId,
           label: service.label,
-          priceType: "STARTING_AT",
+          priceType: "FIXED",
           minPriceInCents: service.priceInCents,
         });
       }
