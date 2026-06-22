@@ -33,7 +33,8 @@ import {
   cpfCnpjMaskModify,
   DATE_MASK,
   getCpfCnpjMask,
-  PHONE_MASK,
+  getPhoneMask,
+  phoneMaskModify,
   ZIP_CODE_MASK,
 } from "@/shared/constants/input-masks";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
@@ -118,8 +119,10 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const includeAddress = useWatch({ control, name: "includeAddress" });
   const includeVehicle = useWatch({ control, name: "includeVehicle" });
   const cpfCnpjValue = useWatch({ control, name: "cpfCnpj" });
+  const phoneValue = useWatch({ control, name: "phone" });
   const vehicleId = useWatch({ control, name: "vehicle.id" });
   const cpfCnpjMask = getCpfCnpjMask(cpfCnpjValue ?? "");
+  const phoneMask = getPhoneMask(phoneValue ?? "");
   const needsVehicleRecovery = Boolean(persistedCustomer) && includeVehicle && !vehicleId;
 
   const primaryVehicleFromCustomer =
@@ -327,7 +330,8 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   control={fieldControl}
                   name="phone"
                   label="Telefone"
-                  mask={PHONE_MASK}
+                  mask={phoneMask}
+                  modify={phoneMaskModify}
                   inputMode="tel"
                 />
                 <InputField

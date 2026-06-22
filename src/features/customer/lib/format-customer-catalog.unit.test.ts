@@ -18,6 +18,10 @@ describe("format-customer-catalog", () => {
     expect(formatPhone("11999991234")).toBe("(11) 99999-1234");
   });
 
+  it("formatPhone formats 10-digit numbers", () => {
+    expect(formatPhone("1133334444")).toBe("(11) 3333-4444");
+  });
+
   it("formatOptionalContact returns em dash when value is null or empty", () => {
     expect(formatOptionalContact(null)).toBe("-");
     expect(formatOptionalContact("")).toBe("-");
