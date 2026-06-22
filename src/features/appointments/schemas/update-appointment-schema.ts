@@ -29,8 +29,9 @@ export type UpdateAppointmentFormInput = z.input<typeof updateAppointmentFormSch
 export type UpdateAppointmentFormValues = z.output<typeof updateAppointmentFormSchema>;
 export type UpdateAppointmentRequestBody = Omit<
   UpdateAppointmentFormValues,
-  "serviceIds" | "services"
+  "discountValue" | "serviceIds" | "services"
 > & {
+  discountInCents?: number;
   services?: Array<{
     serviceId: string;
     priceInCents: number;

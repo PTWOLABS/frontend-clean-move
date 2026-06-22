@@ -78,7 +78,7 @@ describe("appointment form request helpers", () => {
       startsAt: "2026-05-20T08:30:00.000Z",
       endsAt: null,
       description: "Original note",
-      discountValue: "10,00",
+      discountInCents: 1000,
       services: [{ serviceId: "service-1", priceInCents: 9050 }],
     });
   });
@@ -95,8 +95,16 @@ describe("appointment form request helpers", () => {
         customerId: "customer-1",
         vehicleId: "vehicle-1",
         description: "Original note",
-        discountValue: "10,00",
+        discountInCents: 1000,
         services: [{ serviceId: "service-1", priceInCents: 9050 }],
+      }),
+    );
+  });
+
+  it("maps an empty discount form value to zero cents", () => {
+    expect(buildAppointmentRequestBody({ ...formValues, discountValue: "" })).toEqual(
+      expect.objectContaining({
+        discountInCents: 0,
       }),
     );
   });
@@ -110,11 +118,13 @@ describe("appointment form request helpers", () => {
     const currentBody: CreateAppointmentRequestBody = {
       ...initialBody,
       description: "New note",
+      discountInCents: 1500,
       services: [{ serviceId: "service-1", priceInCents: 10000 }],
     };
 
     expect(getChangedRequestBody(currentBody, initialBody)).toEqual({
       description: "New note",
+      discountInCents: 1500,
       services: [{ serviceId: "service-1", priceInCents: 10000 }],
     });
   });

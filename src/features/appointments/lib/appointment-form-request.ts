@@ -25,16 +25,28 @@ type AppointmentResourceResolutionLabels = {
   vehicleLabel?: string;
 };
 
+function parseOptionalDiscountInCents(value: string) {
+  const normalizedValue = value.replace(/^R\$\s?/i, "").trim();
+
+  if (!normalizedValue) {
+    return 0;
+  }
+
+  return Math.round(parseBrlMoneyToReais(normalizedValue) * 100);
+}
+
 export function buildAppointmentRequestBody(
   values: CreateAppointmentFormValues,
 ): CreateAppointmentRequestBody {
+  const discountInCents = parseOptionalDiscountInCents(values.discountValue);
+
   return {
     customerId: values.customerId,
     vehicleId: values.vehicleId,
     startsAt: values.startsAt,
     endsAt: values.endsAt,
     description: values.description,
-    discountValue: values.discountValue,
+    discountInCents,
     services: values.services.map((service) => ({
       serviceId: service.serviceId,
       priceInCents: Math.round(parseBrlMoneyToReais(service.price) * 100),
@@ -102,10 +114,10 @@ export function getChangedRequestBody(
   }
 
   if (
-    currentBody.discountValue !== initialBody.discountValue ||
-    forcedFieldSet.has("discountValue")
+    currentBody.discountInCents !== initialBody.discountInCents ||
+    forcedFieldSet.has("discountInCents")
   ) {
-    changedBody.discountValue = currentBody.discountValue;
+    changedBody.discountInCents = currentBody.discountInCents;
   }
 
   return changedBody;

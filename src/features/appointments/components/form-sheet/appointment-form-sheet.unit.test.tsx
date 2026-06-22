@@ -990,6 +990,7 @@ describe("AppointmentFormSheet", () => {
       expect(mutate).toHaveBeenCalledWith(
         expect.objectContaining({
           customerId: "customer-1",
+          discountInCents: 0,
           services: [{ serviceId: "service-1", priceInCents: 9000 }],
           vehicleId: "vehicle-1",
         }),
@@ -1045,6 +1046,39 @@ describe("AppointmentFormSheet", () => {
     mutationOptions?.onSuccess?.();
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("sends discount changes as cents in the update payload", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const discountInput = screen.getByLabelText(/Desconto/);
+
+    fireEvent.change(discountInput, { target: { value: "20,00" } });
+    fireEvent.blur(discountInput);
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            discountInCents: 2000,
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
   });
 
   it("keeps an existing appointment service price read-only when catalog metadata is unavailable", async () => {

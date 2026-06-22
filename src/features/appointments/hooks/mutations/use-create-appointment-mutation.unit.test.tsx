@@ -50,7 +50,7 @@ describe("useCreateAppointment", () => {
       startsAt: "2026-05-20T09:00:00.000Z",
       endsAt: "2026-05-20T10:00:00.000Z",
       description: "",
-      discountValue: "",
+      discountInCents: 0,
     };
 
     createAppointmentMock.mockResolvedValueOnce({

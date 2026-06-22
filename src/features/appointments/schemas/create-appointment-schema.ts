@@ -169,8 +169,9 @@ export type CreateAppointmentFormInput = z.input<typeof createAppointmentFormSch
 export type CreateAppointmentFormValues = z.output<typeof createAppointmentFormSchema>;
 export type CreateAppointmentRequestBody = Omit<
   CreateAppointmentFormValues,
-  "serviceIds" | "services"
+  "discountValue" | "serviceIds" | "services"
 > & {
+  discountInCents: number;
   services: Array<{
     serviceId: string;
     priceInCents: number;
