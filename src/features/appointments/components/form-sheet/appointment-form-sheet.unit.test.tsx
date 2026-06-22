@@ -1081,6 +1081,30 @@ describe("AppointmentFormSheet", () => {
     });
   });
 
+  it("blocks discount changes above the appointment services total", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const discountInput = screen.getByLabelText(/Desconto/);
+
+    fireEvent.change(discountInput, { target: { value: "90,01" } });
+    fireEvent.blur(discountInput);
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    expect(
+      await screen.findByText("O desconto não pode ser maior que o valor total dos serviços."),
+    ).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
   it("keeps an existing appointment service price read-only when catalog metadata is unavailable", async () => {
     render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
 

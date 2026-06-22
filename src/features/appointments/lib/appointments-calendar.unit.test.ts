@@ -4,6 +4,7 @@ import type { AppointmentDTO } from "../types/appointments-dto";
 import {
   findNextAppointment,
   formatCalendarRange,
+  getAppointmentCalendarAmountInCents,
   getAppointmentsForDate,
   getStatusLabel,
   getViewLabel,
@@ -184,6 +185,21 @@ describe("appointments-calendar helpers", () => {
       displayName: "Toyota • Corolla",
       currentResourceStatus: "UNCHANGED",
     });
+  });
+
+  it("maps the appointment discount and computes the discounted calendar amount", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[1]!,
+          discountInCents: 5000,
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.discountValue).toBe("50,00");
+    expect(appointment?.extendedProps.discountInCents).toBe(5000);
+    expect(appointment ? getAppointmentCalendarAmountInCents(appointment) : null).toBe(16000);
   });
 
   it("filters only the appointments of the selected day", () => {
