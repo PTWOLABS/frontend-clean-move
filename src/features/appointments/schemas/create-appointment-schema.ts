@@ -72,6 +72,20 @@ function isValidDiscount(value: string) {
   return Number.isFinite(amount) && amount >= 0;
 }
 
+function parseOptionalMoneyInCents(value: string) {
+  const normalizedValue = value.replace(/^R\$\s?/i, "").trim();
+
+  if (!normalizedValue) return 0;
+
+  const amount = parseBrlMoneyToReais(normalizedValue);
+
+  if (!Number.isFinite(amount)) {
+    return null;
+  }
+
+  return Math.round(amount * 100);
+}
+
 export const appointmentFormFieldsSchema = {
   customerId: z.string().trim().min(1, "Selecione um cliente."),
   serviceIds: z.array(appointmentServiceOptionSchema).min(1, "Selecione pelo menos um serviço."),
@@ -132,6 +146,38 @@ export function validateAppointmentServicePrices(
   });
 }
 
+export function validateAppointmentDiscount(
+  values: {
+    discountValue?: string | null;
+    services?: z.output<typeof appointmentPricedServiceSchema>[];
+  },
+  context: z.RefinementCtx,
+) {
+  if (!values.services?.length) {
+    return;
+  }
+
+  const discountInCents = parseOptionalMoneyInCents(values.discountValue ?? "");
+
+  if (discountInCents === null) {
+    return;
+  }
+
+  const servicesAmountInCents = values.services.reduce((total, service) => {
+    const amount = parseOptionalMoneyInCents(service.price);
+
+    return total + (amount ?? 0);
+  }, 0);
+
+  if (discountInCents > servicesAmountInCents) {
+    context.addIssue({
+      code: "custom",
+      message: "O desconto não pode ser maior que o valor total dos serviços.",
+      path: ["discountValue"],
+    });
+  }
+}
+
 export function isAppointmentDateRangeValid(values: {
   startsAt?: string | null;
   endsAt?: string | null;
@@ -162,6 +208,7 @@ export const createAppointmentFormSchema = z
     }
 
     validateAppointmentServicePrices(values.services, context);
+    validateAppointmentDiscount(values, context);
   })
   .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 

@@ -4,6 +4,7 @@ import {
   appointmentDateRangeRefinement,
   appointmentFormFieldsSchema,
   isAppointmentDateRangeValid,
+  validateAppointmentDiscount,
   validateAppointmentServicePrices,
 } from "./create-appointment-schema";
 
@@ -22,6 +23,8 @@ export const updateAppointmentFormSchema = z
     if (values.services) {
       validateAppointmentServicePrices(values.services, context);
     }
+
+    validateAppointmentDiscount(values, context);
   })
   .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 

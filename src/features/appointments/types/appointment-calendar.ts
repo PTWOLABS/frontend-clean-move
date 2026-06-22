@@ -34,6 +34,7 @@ export type AppointmentExtendedProps = {
   endsAt: Date | null;
   description: string;
   discountValue: string;
+  discountInCents?: number;
   notes: string;
   tone: AppointmentTone;
   status: AppointmentStatus;
