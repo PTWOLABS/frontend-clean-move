@@ -60,7 +60,7 @@ export function useCreateCustomer() {
           queryKey: QUERY_KEYS.vehicles(error.customer.id),
         });
 
-        toast.warning("Cliente guardado, mas o veículo não foi cadastrado.", {
+        toast.warning("Cliente salvo, mas o veículo não foi cadastrado.", {
           description: getVehicleCreationErrorMessage(error.apiError),
         });
         return;

@@ -35,7 +35,7 @@ export function PendingQuotesCard({ quotes }: PendingQuotesCardProps) {
               Orçamentos Pendentes
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Propostas enviadas aguardando retorno.
+              Propostas enviadas sem resposta ainda.
             </p>
           </div>
 
@@ -73,7 +73,7 @@ export function PendingQuotesCard({ quotes }: PendingQuotesCardProps) {
           <div className="rounded-2xl border border-dashed border-border/70 bg-background/45 p-5">
             <p className="font-medium text-card-foreground">Nenhum orçamento pendente.</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              As propostas aguardando resposta aparecerão aqui.
+              As propostas sem resposta aparecerão aqui.
             </p>
             <Button asChild variant="outline" className="mt-4 h-10 rounded-xl px-4">
               <Link href="/quotes">Ver orçamentos</Link>

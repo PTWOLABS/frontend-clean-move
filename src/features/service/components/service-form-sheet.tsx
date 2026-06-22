@@ -219,10 +219,10 @@ export function ServiceFormSheet({
             </SheetTitle>
             <SheetDescription>
               {isEditMode
-                ? "Altere os campos abaixo. Os valores usam formato brasileiro (ex.: 30,00); o sistema guarda em centavos."
+                ? "Altere os campos abaixo. Os valores usam formato brasileiro (ex.: 30,00); o sistema salva em centavos."
                 : isDuplicateMode
                   ? "Revise os dados copiados do serviço original. Ao salvar, será criado um novo serviço no catálogo."
-                  : "Preencha os dados abaixo. Para os preços use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema guarda em centavos."}
+                  : "Preencha os dados abaixo. Para os preços use formato brasileiro (ex.: 30,00 ou 1.234,56); o sistema salva em centavos."}
             </SheetDescription>
           </SheetHeader>
 
