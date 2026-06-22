@@ -94,6 +94,7 @@ function getVehicleDetails(appointment: AppointmentListItem): AppointmentVehicle
     brand,
     model,
     displayName,
+    currentResourceStatus: appointment.vehicle.currentResourceStatus,
   };
 }
 
@@ -154,6 +155,7 @@ export function mapAppointmentToCalendarEvent(
     extendedProps: {
       customerId: appointment.customerId,
       customer: getCustomerLabel(appointment),
+      customerResourceStatus: appointment.customer?.currentResourceStatus,
       serviceIds: getServiceOptions(appointment),
       services: getPricedServices(appointment),
       service: services.label,
