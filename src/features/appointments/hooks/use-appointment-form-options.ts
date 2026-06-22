@@ -147,6 +147,23 @@ export function useAppointmentFormOptions({
     setSelectedCustomerId(null);
   }, []);
 
+  const clearCustomerAndVehicleSelection = useCallback(() => {
+    setCustomerSearch("");
+    setCustomerLabel("");
+    setSelectedCustomerId(null);
+    setVehicleLabel("");
+    setVehicleSearch("");
+  }, []);
+
+  const clearVehicleSelection = useCallback(() => {
+    setVehicleLabel("");
+    setVehicleSearch("");
+  }, []);
+
+  const clearServiceSearch = useCallback(() => {
+    setServiceInputValue("");
+  }, []);
+
   const hydrateOptionState = useCallback(
     ({ customerLabel, selectedCustomerId, vehicleLabel }: HydrateAppointmentOptionStateParams) => {
       setCustomerSearch("");
@@ -172,6 +189,9 @@ export function useAppointmentFormOptions({
     : "Nenhum serviço encontrado.";
 
   return {
+    clearCustomerAndVehicleSelection,
+    clearServiceSearch,
+    clearVehicleSelection,
     customerEmptyMessage,
     customerLabel,
     customerOptionsItems,
