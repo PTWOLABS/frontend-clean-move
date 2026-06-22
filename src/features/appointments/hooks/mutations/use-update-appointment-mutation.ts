@@ -30,7 +30,8 @@ const updateAppointmentFeedbackOverride = {
       statusCode: 404,
       match: "Resource not found: customer.",
       title: "Cliente não encontrado.",
-      message: "O cliente selecionado pode ter sido removido. Atualize a página e selecione outro cliente.",
+      message:
+        "O cliente selecionado pode ter sido removido. Atualize a página e selecione outro cliente.",
     },
     {
       statusCode: 404,
@@ -43,7 +44,8 @@ const updateAppointmentFeedbackOverride = {
       statusCode: 404,
       match: "Resource not found: vehicle.",
       title: "Veículo não encontrado.",
-      message: "O veículo selecionado pode ter sido removido. Atualize a página e selecione outro veículo.",
+      message:
+        "O veículo selecionado pode ter sido removido. Atualize a página e selecione outro veículo.",
     },
   ],
 } satisfies MutationFeedbackErrorOverride;

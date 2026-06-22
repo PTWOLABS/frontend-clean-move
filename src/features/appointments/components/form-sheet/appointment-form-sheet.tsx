@@ -387,9 +387,10 @@ export function AppointmentFormSheet({
                         removeTitle="Remover cliente deste agendamento?"
                         removeDescription={
                           <>
-                            Isso remove &quot;{customerLabel}&quot; da edição atual e libera a seleção
-                            de cliente. O veículo também será removido porque depende do cliente
-                            selecionado. A alteração só será enviada ao salvar o agendamento.
+                            Isso remove &quot;{customerLabel}&quot; da edição atual e libera a
+                            seleção de cliente. O veículo também será removido porque depende do
+                            cliente selecionado. A alteração só será enviada ao salvar o
+                            agendamento.
                           </>
                         }
                         status={customerResourceStatus}
@@ -545,8 +546,8 @@ export function AppointmentFormSheet({
                         removeTitle="Remover veículo deste agendamento?"
                         removeDescription={
                           <>
-                            Isso remove &quot;{vehicleLabel}&quot; da edição atual e libera a seleção
-                            de veículo. A alteração só será enviada ao salvar o agendamento.
+                            Isso remove &quot;{vehicleLabel}&quot; da edição atual e libera a
+                            seleção de veículo. A alteração só será enviada ao salvar o agendamento.
                           </>
                         }
                         status={vehicleResourceStatus}

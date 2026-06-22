@@ -3,10 +3,7 @@ import type { UseFormGetValues, UseFormSetValue } from "react-hook-form";
 
 import type { Option } from "@/components/ui/multiple-selector";
 
-import {
-  formatCentsToBrlInput,
-  type ServiceOptionWithPrice,
-} from "../lib/appointment-form-values";
+import { formatCentsToBrlInput, type ServiceOptionWithPrice } from "../lib/appointment-form-values";
 import type { CreateAppointmentFormInput } from "../schemas/create-appointment-schema";
 import type { ServiceOptionsDTO } from "../types/options-dto";
 

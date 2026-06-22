@@ -547,17 +547,13 @@ describe("AppointmentFormSheet", () => {
       data: { customers: [{ id: "customer-2", label: "Anael" }] },
       isPending: false,
     });
-    useListCustomerVehicleOptionsMock.mockImplementation(
-      (filters?: { customerId?: string }) => ({
-        data: {
-          vehicles:
-            filters?.customerId === "customer-1"
-              ? [{ id: "vehicle-1", label: "ABC-1234" }]
-              : [],
-        },
-        isPending: false,
-      }),
-    );
+    useListCustomerVehicleOptionsMock.mockImplementation((filters?: { customerId?: string }) => ({
+      data: {
+        vehicles:
+          filters?.customerId === "customer-1" ? [{ id: "vehicle-1", label: "ABC-1234" }] : [],
+      },
+      isPending: false,
+    }));
     useUpdateAppointmentMock.mockReturnValue({
       mutate,
       isPending: false,

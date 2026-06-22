@@ -131,11 +131,12 @@ describe("appointment form values helpers", () => {
       }),
     ).toEqual({ priceType: "RANGE", minPriceInCents: 5000, maxPriceInCents: 10000 });
 
-    expect(resolveServicePriceMetadata({ id: "legacy", label: "Legacy", priceInCents: -100 }))
-      .toEqual({
-        priceType: "FIXED",
-        minPriceInCents: 0,
-      });
+    expect(
+      resolveServicePriceMetadata({ id: "legacy", label: "Legacy", priceInCents: -100 }),
+    ).toEqual({
+      priceType: "FIXED",
+      minPriceInCents: 0,
+    });
   });
 
   it("formats cents and identifies changed resources", () => {
