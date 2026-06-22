@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 import { getMutationFeedbackError } from "@/shared/hooks/use-mutation-feedback-error";
+import type { MutationFeedbackErrorOverride } from "@/shared/hooks/use-mutation-feedback-error";
 import { updateAppointment } from "../../api/update-appointment";
 import type { UpdateAppointmentRequestBody } from "../../schemas/update-appointment-schema";
 
@@ -18,6 +19,34 @@ const metricsQueriesToInvalidate: QueryKey[] = [
   QUERY_KEYS.metricsAppointment,
   QUERY_KEYS.revenueAndAppointments,
 ];
+
+const updateAppointmentFeedbackOverride = {
+  notFound: {
+    title: "Recurso do agendamento não encontrado.",
+    message: "Atualize a página e revise os dados selecionados.",
+  },
+  messages: [
+    {
+      statusCode: 404,
+      match: "Resource not found: customer.",
+      title: "Cliente não encontrado.",
+      message: "O cliente selecionado pode ter sido removido. Atualize a página e selecione outro cliente.",
+    },
+    {
+      statusCode: 404,
+      match: "Resource not found: service.",
+      title: "Serviço não encontrado.",
+      message:
+        "Um dos serviços selecionados pode ter sido removido. Atualize a página e selecione novamente.",
+    },
+    {
+      statusCode: 404,
+      match: "Resource not found: vehicle.",
+      title: "Veículo não encontrado.",
+      message: "O veículo selecionado pode ter sido removido. Atualize a página e selecione outro veículo.",
+    },
+  ],
+} satisfies MutationFeedbackErrorOverride;
 
 export function useUpdateAppointment() {
   const queryClient = useQueryClient();
@@ -52,7 +81,13 @@ export function useUpdateAppointment() {
       const resourceLabel = "agendamento";
       const mutationType = "update";
 
-      const feedback = getMutationFeedbackError(resourceLabel, resourceKey, error, mutationType);
+      const feedback = getMutationFeedbackError(
+        resourceLabel,
+        resourceKey,
+        error,
+        mutationType,
+        updateAppointmentFeedbackOverride,
+      );
 
       toast.error(feedback.title, {
         id: feedback.id,
