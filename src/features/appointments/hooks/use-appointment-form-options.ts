@@ -15,7 +15,9 @@ import { useListServiceOptions } from "./queries/use-list-service-options";
 
 type UseAppointmentFormOptionsParams = {
   appointment?: AppointmentCalendarEvent | null;
+  selectedCustomerFormId?: string | null;
   selectedServiceOptions?: CreateAppointmentFormInput["serviceIds"];
+  selectedVehicleFormId?: string | null;
 };
 
 type HydrateAppointmentOptionStateParams = {
@@ -26,7 +28,9 @@ type HydrateAppointmentOptionStateParams = {
 
 export function useAppointmentFormOptions({
   appointment,
+  selectedCustomerFormId,
   selectedServiceOptions,
+  selectedVehicleFormId,
 }: UseAppointmentFormOptionsParams) {
   const [customerSearch, setCustomerSearch] = useState("");
   const [vehicleSearch, setVehicleSearch] = useState("");
@@ -59,8 +63,11 @@ export function useAppointmentFormOptions({
         label: option.label,
         value: option.id,
       })) ?? [];
+    const shouldKeepSnapshotCustomer =
+      appointment?.extendedProps.customerId &&
+      selectedCustomerFormId === appointment.extendedProps.customerId;
     const selectedOptions =
-      appointment && appointment.extendedProps.customerId
+      appointment && shouldKeepSnapshotCustomer
         ? [
             {
               label: appointment.extendedProps.customer,
@@ -69,8 +76,10 @@ export function useAppointmentFormOptions({
           ]
         : [];
 
-    return mergeOptionItems(options, selectedOptions);
-  }, [appointment, customerOptions]);
+    return mergeOptionItems(options, selectedOptions, {
+      preferFetchedOptions: customerSearch.trim().length > 0,
+    });
+  }, [appointment, customerOptions, customerSearch, selectedCustomerFormId]);
 
   const customerVehicleOptionsItems = useMemo(() => {
     const options =
@@ -78,8 +87,12 @@ export function useAppointmentFormOptions({
         label: option.label,
         value: option.id,
       })) ?? [];
+    const shouldKeepSnapshotVehicle =
+      appointment?.extendedProps.vehicleId &&
+      selectedCustomerFormId === appointment.extendedProps.customerId &&
+      selectedVehicleFormId === appointment.extendedProps.vehicleId;
     const selectedOptions =
-      appointment && appointment.extendedProps.vehicleId
+      appointment && shouldKeepSnapshotVehicle
         ? [
             {
               label: appointment.extendedProps.vehicle.displayName,
@@ -88,8 +101,10 @@ export function useAppointmentFormOptions({
           ]
         : [];
 
-    return mergeOptionItems(options, selectedOptions);
-  }, [appointment, vehicleOptions]);
+    return mergeOptionItems(options, selectedOptions, {
+      preferFetchedOptions: vehicleSearch.trim().length > 0,
+    });
+  }, [appointment, selectedCustomerFormId, selectedVehicleFormId, vehicleOptions, vehicleSearch]);
 
   const serviceOptionsItems = useMemo(() => {
     const options =
@@ -101,7 +116,14 @@ export function useAppointmentFormOptions({
     const hasSelectedServiceOptions =
       Array.isArray(selectedServiceOptions) && selectedServiceOptions.length > 0;
 
-    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? [], {
+    const selectedServiceValues = new Set(
+      (selectedServiceOptions ?? []).map((service) => service.value),
+    );
+    const selectedSnapshotServiceOptions = (appointment?.extendedProps.serviceIds ?? []).filter(
+      (service) => selectedServiceValues.has(service.value),
+    );
+
+    return mergeOptionItems(options, selectedSnapshotServiceOptions, {
       preferFetchedOptions: serviceInputValue.trim().length > 0 || !hasSelectedServiceOptions,
     });
   }, [appointment, selectedServiceOptions, serviceInputValue, serviceOptions]);
