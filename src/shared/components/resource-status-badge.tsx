@@ -7,14 +7,14 @@ const resourceStatusBadgeMeta = {
   UPDATED: {
     label: "Atualizado",
     className: "border-transparent bg-warning-soft text-warning-soft-foreground",
-    tooltipLabel:
-      "Este serviço mudou no catálogo após a criação do agendamento. O histórico original foi preservado; remova e selecione novamente para usar as condições atuais, se desejar.",
+    getTooltipLabel: (resourceName: string, sourceName: string) =>
+      `Este ${resourceName} mudou no ${sourceName} após a criação do agendamento. O histórico original foi preservado; remova e selecione novamente para usar as condições atuais, se desejar.`,
   },
   DELETED: {
     label: "Removido",
     className: "border-transparent bg-danger-soft text-danger-soft-foreground",
-    tooltipLabel:
-      "Este serviço não está mais disponível no catálogo. O histórico original foi preservado; remova para escolher outro serviço, se precisar atualizar.",
+    getTooltipLabel: (resourceName: string, sourceName: string) =>
+      `Este ${resourceName} não está mais disponível no ${sourceName}. O histórico original foi preservado; remova para escolher outro ${resourceName}, se precisar atualizar.`,
   },
 } satisfies Partial<
   Record<
@@ -22,12 +22,22 @@ const resourceStatusBadgeMeta = {
     {
       label: string;
       className: string;
-      tooltipLabel: string;
+      getTooltipLabel: (resourceName: string, sourceName: string) => string;
     }
   >
 >;
 
-export function ResourceStatusBadge({ status }: { status?: ResourceStatus }) {
+type ResourceStatusBadgeProps = {
+  status?: ResourceStatus;
+  resourceName?: string;
+  sourceName?: string;
+};
+
+export function ResourceStatusBadge({
+  status,
+  resourceName = "serviço",
+  sourceName = "catálogo",
+}: ResourceStatusBadgeProps) {
   if (!status || status === "UNCHANGED") {
     return null;
   }
@@ -40,7 +50,7 @@ export function ResourceStatusBadge({ status }: { status?: ResourceStatus }) {
 
   return (
     <HintTooltipProvider>
-      <HintTooltip label={meta.tooltipLabel} className="max-w-100">
+      <HintTooltip label={meta.getTooltipLabel(resourceName, sourceName)} className="max-w-100">
         <Badge
           variant="outline"
           className={cn("w-fit rounded-full px-2 py-0.5 text-[11px]", meta.className)}
