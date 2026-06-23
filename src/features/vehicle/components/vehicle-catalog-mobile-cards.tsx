@@ -8,7 +8,6 @@ import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-toolt
 import { cn } from "@/shared/utils/cn";
 
 import {
-  formatVehicleName,
   formatVehiclePlate,
   formatVehicleYear,
   getVehicleColorSwatchClass,
@@ -111,17 +110,6 @@ function formatBrandLabel(item: VehicleDto): string {
   return item.brand?.trim().toUpperCase() || "—";
 }
 
-function formatModelLabel(item: VehicleDto): string {
-  const model = item.model?.trim();
-  if (model) return model;
-
-  const name = formatVehicleName(item);
-  const plate = formatVehiclePlate(item);
-  if (name !== "—" && name !== plate) return name;
-
-  return "—";
-}
-
 function formatColorLabel(item: VehicleDto): string {
   return item.color?.trim() || "—";
 }
@@ -174,7 +162,7 @@ export function VehicleCatalogMobileCards({
                 </div>
                 <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                   <Car className="size-4 shrink-0" aria-hidden />
-                  <span className="truncate">{formatModelLabel(item)}</span>
+                  <span className="truncate">{item.model?.trim() || "—"}</span>
                   {colorLabel !== "—" ? (
                     <>
                       <span className="shrink-0 text-border" aria-hidden>
