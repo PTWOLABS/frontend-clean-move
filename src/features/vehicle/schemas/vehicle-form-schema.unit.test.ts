@@ -3,6 +3,48 @@ import { describe, expect, it } from "vitest";
 import { mapVehicleFormToPayload, vehicleFormSchema } from "./vehicle-form-schema";
 
 describe("vehicleFormSchema", () => {
+  it("rejects when brand is missing", () => {
+    const result = vehicleFormSchema.safeParse({
+      plate: "ABC1234",
+      brand: "",
+      model: "Uno",
+      color: "",
+      year: undefined,
+      notes: "",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["brand"], message: "Informe a marca." }),
+      ]),
+    );
+  });
+
+  it("rejects when model is missing", () => {
+    const result = vehicleFormSchema.safeParse({
+      plate: "ABC1234",
+      brand: "Fiat",
+      model: "",
+      color: "",
+      year: undefined,
+      notes: "",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["model"], message: "Informe o modelo." }),
+      ]),
+    );
+  });
+
   it("rejects plate with invalid length when provided", () => {
     const result = vehicleFormSchema.safeParse({
       plate: "ABC12",

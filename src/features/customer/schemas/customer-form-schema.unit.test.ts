@@ -201,6 +201,42 @@ describe("customerFormSchema", () => {
     expect(defaults.cpfCnpj).toBe("12.345.678/0001-95");
   });
 
+  it("formats raw phone digits when mapping customer to form defaults", () => {
+    const mobileDefaults = customerToFormDefaults({
+      id: "cust-1",
+      establishmentId: "est-1",
+      fullName: "João Silva",
+      phone: "11999991234",
+      email: null,
+      cpfCnpj: null,
+      nickname: null,
+      birthDate: null,
+      address: null,
+      createdAt: "2024-01-01T00:00:00.000Z",
+      updatedAt: "2024-01-01T00:00:00.000Z",
+      vehicles: [],
+    });
+
+    expect(mobileDefaults.phone).toBe("(11) 99999-1234");
+
+    const landlineDefaults = customerToFormDefaults({
+      id: "cust-2",
+      establishmentId: "est-1",
+      fullName: "Maria Souza",
+      phone: "1133334444",
+      email: null,
+      cpfCnpj: null,
+      nickname: null,
+      birthDate: null,
+      address: null,
+      createdAt: "2024-01-01T00:00:00.000Z",
+      updatedAt: "2024-01-01T00:00:00.000Z",
+      vehicles: [],
+    });
+
+    expect(landlineDefaults.phone).toBe("(11) 3333-4444");
+  });
+
   it("accepts birthDate in dd/MM/yyyy and normalizes to ISO", () => {
     const result = customerFormSchema.safeParse({
       ...baseValues,

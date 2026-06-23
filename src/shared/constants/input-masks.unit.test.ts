@@ -6,7 +6,11 @@ import {
   cpfCnpjMaskModify,
   DATE_MASK,
   getCpfCnpjMask,
+  getPhoneMask,
   PHONE_MASK,
+  PHONE_MASK_LANDLINE,
+  PHONE_MASK_MOBILE,
+  phoneMaskModify,
   ZIP_CODE_MASK,
 } from "./input-masks";
 
@@ -48,6 +52,42 @@ describe("input-masks", () => {
   it("cpfCnpjMaskModify should switch to CNPJ mask after 11 digits", () => {
     expect(cpfCnpjMaskModify({ value: "12.345.678/0001-90" } as never)).toEqual({
       mask: CNPJ_MASK,
+    });
+  });
+
+  it("should use landline mask for up to 10 digits without leading 9", () => {
+    expect(getPhoneMask("")).toBe(PHONE_MASK_LANDLINE);
+    expect(getPhoneMask("(11) 3333")).toBe(PHONE_MASK_LANDLINE);
+    expect(getPhoneMask("1133334444")).toBe(PHONE_MASK_LANDLINE);
+    expect(getPhoneMask("(11) 3333-4444")).toBe(PHONE_MASK_LANDLINE);
+  });
+
+  it("should use mobile mask for 11 digits or when local number starts with 9", () => {
+    expect(getPhoneMask("11999991234")).toBe(PHONE_MASK_MOBILE);
+    expect(getPhoneMask("(11) 99999-1234")).toBe(PHONE_MASK_MOBILE);
+    expect(getPhoneMask("(11) 9")).toBe(PHONE_MASK_MOBILE);
+  });
+
+  it("phoneMaskModify should keep landline mask for up to 10 digits", () => {
+    expect(phoneMaskModify({ value: "(11) 3333-4444" } as never)).toEqual({
+      mask: PHONE_MASK_LANDLINE,
+    });
+  });
+
+  it("phoneMaskModify should switch to mobile mask when inserting 9 as third digit", () => {
+    expect(
+      phoneMaskModify({
+        value: "(11) ",
+        data: "9",
+        selectionStart: 5,
+        selectionEnd: 5,
+      } as never),
+    ).toEqual({ mask: PHONE_MASK_MOBILE });
+  });
+
+  it("phoneMaskModify should use mobile mask after 11 digits", () => {
+    expect(phoneMaskModify({ value: "(11) 99999-1234" } as never)).toEqual({
+      mask: PHONE_MASK_MOBILE,
     });
   });
 });

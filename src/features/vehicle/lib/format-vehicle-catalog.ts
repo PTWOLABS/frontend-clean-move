@@ -1,15 +1,23 @@
 import type { VehicleDto } from "../types";
 
-export function formatVehicleName(vehicle?: VehicleDto | null): string {
-  if (!vehicle) return "—";
+export const VEHICLE_DISPLAY_NAME_FALLBACK = "—";
 
-  const model = [vehicle.brand, vehicle.model].filter(Boolean).join(" ").trim();
+export type VehicleDisplayNameSource = Pick<VehicleDto, "brand" | "model">;
+
+export function buildVehicleDisplayName(vehicle: VehicleDisplayNameSource): string {
+  const brand = vehicle.brand?.trim();
+  const model = vehicle.model?.trim();
+
+  if (brand && model) return `${brand} ${model}`;
+  if (brand) return brand;
   if (model) return model;
 
-  const plate = vehicle.plate?.trim();
-  if (plate) return plate;
+  return VEHICLE_DISPLAY_NAME_FALLBACK;
+}
 
-  return "—";
+export function formatVehicleName(vehicle?: VehicleDto | null): string {
+  if (!vehicle) return VEHICLE_DISPLAY_NAME_FALLBACK;
+  return buildVehicleDisplayName(vehicle);
 }
 
 export function formatVehiclePlate(vehicle?: VehicleDto | null): string {

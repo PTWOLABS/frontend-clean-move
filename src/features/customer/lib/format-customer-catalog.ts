@@ -1,3 +1,5 @@
+import { buildVehicleDisplayName } from "@/features/vehicle/lib/format-vehicle-catalog";
+
 import type { CustomerDto, CustomerVehicleDto } from "../types";
 
 export function formatCpfCnpj(value?: string | null): string {
@@ -38,14 +40,7 @@ export function formatPhone(value?: string | null): string {
 
 export function formatVehicleName(vehicle?: CustomerVehicleDto | null): string {
   if (!vehicle) return "Sem veículo";
-
-  const model = [vehicle.brand, vehicle.model].filter(Boolean).join(" ").trim();
-  if (model) return model;
-
-  const plate = vehicle.plate?.trim();
-  if (plate) return plate;
-
-  return "Sem veículo";
+  return buildVehicleDisplayName(vehicle);
 }
 
 export function getCustomerVehiclesCount(

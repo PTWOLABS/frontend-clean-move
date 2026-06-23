@@ -32,6 +32,7 @@ export type OnboardingPayload = {
   };
   vehicle?: {
     plate: string | null;
+    brand?: string | null;
     model: string | null;
     color?: string | null;
   };

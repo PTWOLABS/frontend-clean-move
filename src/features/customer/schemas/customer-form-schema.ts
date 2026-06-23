@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { formatCpfCnpj } from "@/features/customer/lib/format-customer-catalog";
+import { formatCpfCnpj, formatPhone } from "@/features/customer/lib/format-customer-catalog";
 import { formatIsoDateToBr, parseBrDateToIso } from "@/shared/lib/br-date-input";
 import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
 
@@ -266,7 +266,7 @@ export function customerToFormDefaults(
 ): CustomerFormInput {
   return {
     fullName: customer.fullName ?? "",
-    phone: customer.phone ?? "",
+    phone: customer.phone ? formatPhone(customer.phone) : "",
     email: customer.email ?? "",
     cpfCnpj: customer.cpfCnpj ? formatCpfCnpj(customer.cpfCnpj) : "",
     nickname: customer.nickname ?? "",

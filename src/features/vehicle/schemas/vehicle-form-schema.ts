@@ -13,6 +13,22 @@ export const vehicleFieldsSchema = z.object({
 });
 
 export const vehicleFormSchema = vehicleFieldsSchema.superRefine((data, ctx) => {
+  if (!data.brand?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["brand"],
+      message: "Informe a marca.",
+    });
+  }
+
+  if (!data.model?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["model"],
+      message: "Informe o modelo.",
+    });
+  }
+
   const plate = normalizePlate(data.plate);
   if (plate && plate.length !== 7) {
     ctx.addIssue({
