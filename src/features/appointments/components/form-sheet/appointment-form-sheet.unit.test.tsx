@@ -321,6 +321,11 @@ describe("AppointmentFormSheet", () => {
           ...appointmentToEdit,
           extendedProps: {
             ...appointmentToEdit.extendedProps,
+            customerResourceStatus: "UPDATED",
+            vehicle: {
+              ...appointmentToEdit.extendedProps.vehicle,
+              currentResourceStatus: "UPDATED",
+            },
             services: [
               {
                 serviceId: "service-1",
@@ -335,7 +340,298 @@ describe("AppointmentFormSheet", () => {
     );
 
     expect(screen.getByText("Atualizado")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Remover cliente/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Remover veículo/ })).not.toBeInTheDocument();
     expect(screen.queryByText("Removido")).not.toBeInTheDocument();
+  });
+
+  it("locks a deleted customer until it is removed from the appointment edit", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            customerResourceStatus: "DELETED",
+          },
+        }}
+      />,
+    );
+
+    const customerInput = screen.getByLabelText(/Nome do cliente/);
+    const vehicleInput = screen.getByLabelText(/Veículo/);
+
+    expect(customerInput).toBeDisabled();
+    expect(vehicleInput).toBeDisabled();
+    expect(screen.getByText("Removido")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Remover cliente Cliente Teste/ }));
+
+    expect(screen.getByText("Remover cliente deste agendamento?")).toBeInTheDocument();
+    expect(
+      screen.getByText(/O veículo também será removido porque depende do cliente selecionado./),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Remover cliente" }));
+
+    await waitFor(() => {
+      expect(customerInput).toBeEnabled();
+    });
+    expect(customerInput).toHaveValue("");
+    expect(vehicleInput).toHaveValue("");
+    expect(vehicleInput).toBeDisabled();
+  });
+
+  it("does not keep a removed deleted customer selectable from the snapshot", async () => {
+    const user = userEvent.setup();
+
+    useListCustomerOptionsMock.mockReturnValue({
+      data: { customers: [] },
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            customerResourceStatus: "DELETED",
+          },
+        }}
+      />,
+    );
+
+    const customerInput = screen.getByLabelText(/Nome do cliente/);
+
+    await user.click(screen.getByRole("button", { name: /Remover cliente Cliente Teste/ }));
+    await user.click(screen.getByRole("button", { name: "Remover cliente" }));
+
+    await waitFor(() => {
+      expect(customerInput).toBeEnabled();
+    });
+
+    await user.type(customerInput, "Cliente Teste");
+
+    expect(screen.queryByText("Removido")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    expect(await screen.findByText(/Selecione um cliente./)).toBeInTheDocument();
+  });
+
+  it("locks a deleted vehicle until it is removed and replaced", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListCustomerVehicleOptionsMock.mockReturnValue({
+      data: { vehicles: [{ id: "vehicle-2", label: "XYZ-9876" }] },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            vehicle: {
+              ...appointmentToEdit.extendedProps.vehicle,
+              currentResourceStatus: "DELETED",
+            },
+          },
+        }}
+      />,
+    );
+
+    const vehicleInput = screen.getByLabelText(/Veículo/);
+
+    expect(vehicleInput).toBeDisabled();
+    expect(screen.getByText("Removido")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Remover veículo ABC-1234/ }));
+
+    expect(screen.getByText("Remover veículo deste agendamento?")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Remover veículo" }));
+
+    await waitFor(() => {
+      expect(vehicleInput).toBeEnabled();
+    });
+    expect(vehicleInput).toHaveValue("");
+
+    await user.type(vehicleInput, "XYZ-9876");
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            vehicleId: "vehicle-2",
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+  });
+
+  it("does not keep a removed deleted vehicle selectable from the snapshot", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListCustomerVehicleOptionsMock.mockReturnValue({
+      data: { vehicles: [] },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            vehicle: {
+              ...appointmentToEdit.extendedProps.vehicle,
+              currentResourceStatus: "DELETED",
+            },
+          },
+        }}
+      />,
+    );
+
+    const vehicleInput = screen.getByLabelText(/Ve.culo/);
+
+    await user.click(screen.getByRole("button", { name: /Remover ve.culo ABC-1234/ }));
+    await user.click(screen.getByRole("button", { name: /Remover ve.culo$/ }));
+
+    await waitFor(() => {
+      expect(vehicleInput).toBeEnabled();
+    });
+
+    await user.type(vehicleInput, "ABC-1234");
+
+    expect(screen.queryByText("Removido")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    expect(await screen.findByText(/Selecione um ve.culo./)).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("does not keep the previous customer's vehicle selectable after changing customer", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListCustomerOptionsMock.mockReturnValue({
+      data: { customers: [{ id: "customer-2", label: "Anael" }] },
+      isPending: false,
+    });
+    useListCustomerVehicleOptionsMock.mockImplementation((filters?: { customerId?: string }) => ({
+      data: {
+        vehicles:
+          filters?.customerId === "customer-1" ? [{ id: "vehicle-1", label: "ABC-1234" }] : [],
+      },
+      isPending: false,
+    }));
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const customerInput = screen.getByLabelText(/Nome do cliente/);
+    const vehicleInput = screen.getByLabelText(/Ve.culo/);
+
+    await user.clear(customerInput);
+    await user.type(customerInput, "Anael");
+
+    await waitFor(() => {
+      expect(vehicleInput).toBeEnabled();
+    });
+
+    expect(vehicleInput).toHaveValue("");
+
+    await user.type(vehicleInput, "ABC-1234");
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    expect(await screen.findByText(/Selecione um ve.culo./)).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("sends the vehicle when an updated snapshot vehicle is reselected with the current label", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListCustomerVehicleOptionsMock.mockReturnValue({
+      data: { vehicles: [{ id: "vehicle-1", label: "Honda Civic atualizado" }] },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            vehicle: {
+              ...appointmentToEdit.extendedProps.vehicle,
+              displayName: "Honda Civic antigo",
+              currentResourceStatus: "UPDATED",
+            },
+          },
+        }}
+      />,
+    );
+
+    const vehicleInput = screen.getByLabelText(/Ve.culo/);
+
+    expect(vehicleInput).toHaveValue("Honda Civic antigo");
+
+    await user.clear(vehicleInput);
+    await user.type(vehicleInput, "Honda Civic atualizado");
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            vehicleId: "vehicle-1",
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
   });
 
   it("locks the service selector until a changed snapshot service is removed", async () => {
@@ -426,6 +722,120 @@ describe("AppointmentFormSheet", () => {
         }),
       );
     });
+  });
+
+  it("sends services when a changed snapshot service is reselected with the same price", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useListServiceOptionsMock.mockReturnValue({
+      data: {
+        services: [
+          {
+            id: "service-1",
+            label: "Lavagem detalhada",
+            priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
+          },
+        ],
+      },
+      isPending: false,
+    });
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            services: [
+              {
+                serviceId: "service-1",
+                label: "Lavagem completa",
+                priceInCents: 9000,
+                currentResourceStatus: "UPDATED",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    const servicesSelect = screen.getByLabelText(/Servi.os/);
+
+    await user.click(screen.getByRole("button", { name: /Remover servi.o Lavagem completa/ }));
+    await user.click(screen.getByRole("button", { name: /Remover servi.o$/ }));
+
+    await waitFor(() => {
+      expect(servicesSelect).toBeEnabled();
+    });
+
+    await user.type(screen.getByLabelText("Options search"), "Lavagem detalhada");
+    await user.selectOptions(servicesSelect, "service-1");
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            services: [{ serviceId: "service-1", priceInCents: 9000 }],
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+    expect(toastInfoMock).not.toHaveBeenCalledWith("Nenhuma alteraÃ§Ã£o para salvar.");
+  });
+
+  it("does not keep a removed deleted snapshot service in the selector options", async () => {
+    const user = userEvent.setup();
+
+    useListServiceOptionsMock.mockReturnValue({
+      data: { services: [] },
+      isPending: false,
+    });
+
+    render(
+      <AppointmentFormSheet
+        open
+        onOpenChange={vi.fn()}
+        appointment={{
+          ...appointmentToEdit,
+          extendedProps: {
+            ...appointmentToEdit.extendedProps,
+            services: [
+              {
+                serviceId: "service-1",
+                label: "Lavagem completa",
+                priceInCents: 9000,
+                currentResourceStatus: "DELETED",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    const servicesSelect = screen.getByLabelText(/Servi.os/);
+
+    expect(servicesSelect).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: /Remover servi.o Lavagem completa/ }));
+    await user.click(screen.getByRole("button", { name: /Remover servi.o$/ }));
+
+    await waitFor(() => {
+      expect(servicesSelect).toBeEnabled();
+    });
+
+    expect(screen.queryByRole("option", { name: "Lavagem completa" })).not.toBeInTheDocument();
   });
 
   it("shows feedback instead of updating when an edit submit has no changed fields", async () => {
@@ -576,6 +986,7 @@ describe("AppointmentFormSheet", () => {
       expect(mutate).toHaveBeenCalledWith(
         expect.objectContaining({
           customerId: "customer-1",
+          discountInCents: 0,
           services: [{ serviceId: "service-1", priceInCents: 9000 }],
           vehicleId: "vehicle-1",
         }),
@@ -631,6 +1042,73 @@ describe("AppointmentFormSheet", () => {
     mutationOptions?.onSuccess?.();
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("sends discount changes as cents in the update payload", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const discountInput = screen.getByLabelText(/Desconto/);
+
+    fireEvent.change(discountInput, { target: { value: "20,00" } });
+    fireEvent.blur(discountInput);
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    await waitFor(() => {
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          appointmentId: "appointment-1",
+          body: {
+            discountInCents: 2000,
+          },
+        },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+        }),
+      );
+    });
+  });
+
+  it("blocks discount changes above the appointment services total", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+
+    useUpdateAppointmentMock.mockReturnValue({
+      mutate,
+      isPending: false,
+    });
+
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const discountInput = screen.getByLabelText(/Desconto/);
+
+    fireEvent.change(discountInput, { target: { value: "90,01" } });
+    fireEvent.blur(discountInput);
+
+    await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
+
+    expect(
+      await screen.findByText("O desconto não pode ser maior que o valor total dos serviços."),
+    ).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("keeps an existing appointment service price read-only when catalog metadata is unavailable", async () => {
+    render(<AppointmentFormSheet open onOpenChange={vi.fn()} appointment={appointmentToEdit} />);
+
+    const servicePriceInput = screen.getByLabelText(/Valor do servi.*Lavagem completa/i);
+
+    expect(servicePriceInput).toHaveValue("90,00");
+    expect(servicePriceInput).toBeDisabled();
+    expect(screen.getByText("Valor fixo: 90,00")).toBeInTheDocument();
   });
 
   it("keeps changed snapshot service price read-only when current catalog metadata changed", async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Trash2 } from "lucide-react";
 
@@ -10,19 +10,29 @@ import { ResourceStatusBadge } from "@/shared/components/resource-status-badge";
 
 import type { ResourceStatus } from "../../types/appointments-dto";
 
-type AppointmentServiceResourceStatusActionProps = {
+type AppointmentResourceStatusActionProps = {
   disabled?: boolean;
-  serviceLabel: string;
+  resourceLabel: string;
+  resourceName: string;
+  resourceSourceName?: string;
+  removeActionLabel: string;
+  removeDescription: ReactNode;
+  removeTitle: string;
   status?: ResourceStatus;
   onConfirmRemove: () => void;
 };
 
-export function AppointmentServiceResourceStatusAction({
+export function AppointmentResourceStatusAction({
   disabled,
-  serviceLabel,
+  resourceLabel,
+  resourceName,
+  resourceSourceName = "cadastro",
+  removeActionLabel,
+  removeDescription,
+  removeTitle,
   status,
   onConfirmRemove,
-}: AppointmentServiceResourceStatusActionProps) {
+}: AppointmentResourceStatusActionProps) {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
 
   if (!status || status === "UNCHANGED") {
@@ -36,14 +46,18 @@ export function AppointmentServiceResourceStatusAction({
 
   return (
     <>
-      <ResourceStatusBadge status={status} />
+      <ResourceStatusBadge
+        status={status}
+        resourceName={resourceName}
+        sourceName={resourceSourceName}
+      />
       <Button
         type="button"
         variant="outline"
         size="sm"
         className="h-7 shrink-0 border-border/70 bg-background/60 px-2.5 text-xs text-muted-foreground shadow-xs hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
         disabled={disabled}
-        aria-label={`Remover serviço ${serviceLabel}`}
+        aria-label={`Remover ${resourceName} ${resourceLabel}`}
         onClick={() => setConfirmationOpen(true)}
       >
         <Trash2 className="size-3.5" aria-hidden />
@@ -51,19 +65,45 @@ export function AppointmentServiceResourceStatusAction({
       </Button>
       <AlertDialog
         open={confirmationOpen}
-        title="Remover serviço deste agendamento?"
-        descriptionContent={
-          <>
-            Isso remove &quot;{serviceLabel}&quot; da edição atual e libera a seleção de serviços. A
-            alteração só será enviada ao salvar o agendamento.
-          </>
-        }
-        actionMessage="Remover serviço"
-        cancelMessage="Manter serviço"
+        title={removeTitle}
+        descriptionContent={removeDescription}
+        actionMessage={removeActionLabel}
+        cancelMessage={`Manter ${resourceName}`}
         onOpenChange={setConfirmationOpen}
         onCancel={() => setConfirmationOpen(false)}
         onConfirm={handleConfirmRemove}
       />
     </>
+  );
+}
+
+export function AppointmentServiceResourceStatusAction({
+  disabled,
+  serviceLabel,
+  status,
+  onConfirmRemove,
+}: {
+  disabled?: boolean;
+  serviceLabel: string;
+  status?: ResourceStatus;
+  onConfirmRemove: () => void;
+}) {
+  return (
+    <AppointmentResourceStatusAction
+      disabled={disabled}
+      resourceLabel={serviceLabel}
+      resourceName="serviço"
+      resourceSourceName="catálogo"
+      removeActionLabel="Remover serviço"
+      removeTitle="Remover serviço deste agendamento?"
+      removeDescription={
+        <>
+          Isso remove &quot;{serviceLabel}&quot; da edição atual e libera a seleção de serviços. A
+          alteração só será enviada ao salvar o agendamento.
+        </>
+      }
+      status={status}
+      onConfirmRemove={onConfirmRemove}
+    />
   );
 }

@@ -11,11 +11,13 @@ export type AppointmentVehicleExtendedProps = {
   brand: string;
   model: string;
   displayName: string;
+  currentResourceStatus?: ResourceStatus;
 };
 
 export type AppointmentExtendedProps = {
   customerId: string;
   customer: string;
+  customerResourceStatus?: ResourceStatus;
   serviceIds: {
     value: string;
     label: string;
@@ -32,6 +34,7 @@ export type AppointmentExtendedProps = {
   endsAt: Date | null;
   description: string;
   discountValue: string;
+  discountInCents?: number;
   notes: string;
   tone: AppointmentTone;
   status: AppointmentStatus;

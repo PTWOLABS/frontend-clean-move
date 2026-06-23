@@ -12,7 +12,10 @@ import { cn } from "@/shared/utils/cn";
 
 import { AppointmentStatusActions } from "../appointment-status-actions";
 import styles from "../appointments-page.module.css";
-import { getStatusLabel } from "../../lib/appointments-calendar";
+import {
+  getAppointmentCalendarAmountInCents,
+  getStatusLabel,
+} from "../../lib/appointments-calendar";
 import {
   formatAppointmentTimeRange,
   statusBadgeClassName,
@@ -81,11 +84,7 @@ export function CalendarEventDetailsPopover({
 }: CalendarEventDetailsPopoverProps) {
   const setPopoverElement = useCalendarEventDetailsPopoverRef(popoverRef);
 
-  const amount = formatCurrency(
-    event.extendedProps.services?.reduce((acc, current) => {
-      return (acc += current.priceInCents);
-    }, 0) || 0,
-  );
+  const amount = formatCurrency(getAppointmentCalendarAmountInCents(event));
 
   return (
     <div

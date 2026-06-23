@@ -4,6 +4,7 @@ import type { AppointmentDTO } from "../types/appointments-dto";
 import {
   findNextAppointment,
   formatCalendarRange,
+  getAppointmentCalendarAmountInCents,
   getAppointmentsForDate,
   getStatusLabel,
   getViewLabel,
@@ -128,6 +129,7 @@ describe("appointments-calendar helpers", () => {
     expect(appointments[1]?.end.getMinutes()).toBe(15);
     expect(appointments[1]?.extendedProps.customer).toBe("João Pereira");
     expect(appointments[1]?.extendedProps.customerId).toBe("customer-1");
+    expect(appointments[1]?.extendedProps.customerResourceStatus).toBe("UPDATED");
     expect(appointments[1]?.extendedProps.serviceIds).toEqual([
       { value: "service-1", label: "Lavagem tecnica" },
       { value: "service-3", label: "Higienizacao" },
@@ -181,7 +183,23 @@ describe("appointments-calendar helpers", () => {
       brand: "Toyota",
       model: "Corolla",
       displayName: "Toyota • Corolla",
+      currentResourceStatus: "UNCHANGED",
     });
+  });
+
+  it("maps the appointment discount and computes the discounted calendar amount", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[1]!,
+          discountInCents: 5000,
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.discountValue).toBe("50,00");
+    expect(appointment?.extendedProps.discountInCents).toBe(5000);
+    expect(appointment ? getAppointmentCalendarAmountInCents(appointment) : null).toBe(16000);
   });
 
   it("filters only the appointments of the selected day", () => {
