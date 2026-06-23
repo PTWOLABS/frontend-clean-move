@@ -9,6 +9,16 @@ import {
   onboardingServiceStepSchema,
 } from "./onboarding-schema";
 
+const emptyServiceStepValues = {
+  serviceName: "",
+  description: "",
+  category: "",
+  minDurationInMinutes: "",
+  maxDurationInMinutes: "",
+  price: "",
+  isActive: true,
+};
+
 describe("onboardingCompanyStepSchema", () => {
   it("allows all company fields to be empty", () => {
     const result = onboardingCompanyStepSchema.safeParse({
@@ -23,27 +33,14 @@ describe("onboardingCompanyStepSchema", () => {
 
 describe("onboardingServiceStepSchema", () => {
   it("allows the service step to be empty", () => {
-    const result = onboardingServiceStepSchema.safeParse({
-      serviceName: "",
-      description: "",
-      categoryId: "",
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
-      isActive: true,
-    });
+    const result = onboardingServiceStepSchema.safeParse(emptyServiceStepValues);
 
     expect(result.success).toBe(true);
   });
 
   it("does not treat isActive as a started service when it is the only changed field", () => {
     const result = onboardingServiceStepSchema.safeParse({
-      serviceName: "",
-      description: "",
-      categoryId: "",
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
+      ...emptyServiceStepValues,
       isActive: false,
     });
 
@@ -52,12 +49,8 @@ describe("onboardingServiceStepSchema", () => {
 
   it("requires service core fields when any service field is filled", () => {
     const result = onboardingServiceStepSchema.safeParse({
-      serviceName: "",
+      ...emptyServiceStepValues,
       description: "Lavagem externa simples.",
-      categoryId: undefined,
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
       isActive: false,
     });
 
@@ -70,19 +63,15 @@ describe("onboardingServiceStepSchema", () => {
         expect.objectContaining({ path: ["serviceName"] }),
         expect.objectContaining({ path: ["minDurationInMinutes"] }),
         expect.objectContaining({ path: ["price"] }),
+        expect.objectContaining({ path: ["category"] }),
       ]),
     );
   });
 
-  it("treats category as a started service without requiring category itself", () => {
+  it("requires category when category is the only started service field", () => {
     const result = onboardingServiceStepSchema.safeParse({
-      serviceName: "",
-      description: "",
+      ...emptyServiceStepValues,
       category: "category-id",
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
-      isActive: true,
     });
 
     expect(result.success).toBe(false);
@@ -101,11 +90,36 @@ describe("onboardingServiceStepSchema", () => {
     );
   });
 
+  it("requires category when service core fields are filled without category", () => {
+    const result = onboardingServiceStepSchema.safeParse({
+      serviceName: "Lavagem premium",
+      description: "",
+      category: "",
+      minDurationInMinutes: "30",
+      maxDurationInMinutes: "",
+      price: "120,00",
+      isActive: true,
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ["category"],
+          message: "Selecione uma categoria.",
+        }),
+      ]),
+    );
+  });
+
   it("allows a filled service when required fields are valid", () => {
     const result = onboardingServiceStepSchema.safeParse({
       serviceName: "Lavagem premium",
       description: "",
-      categoryId: "",
+      category: "category-id",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "",
       price: "120,00",
@@ -119,7 +133,7 @@ describe("onboardingServiceStepSchema", () => {
     const result = onboardingServiceStepSchema.safeParse({
       serviceName: "Lavagem premium",
       description: "",
-      categoryId: "category-id",
+      category: "category-id",
       minDurationInMinutes: "60",
       maxDurationInMinutes: "30",
       price: "120,00",
@@ -142,6 +156,7 @@ describe("onboardingCustomerVehicleStepSchema", () => {
     customerPhone: "",
     customerEmail: "",
     vehiclePlate: "",
+    vehicleBrand: "",
     vehicleModel: "",
     vehicleColor: "",
   };
@@ -162,7 +177,7 @@ describe("onboardingCustomerVehicleStepSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects vehicle plate without vehicle model", () => {
+  it("rejects vehicle plate without brand and model", () => {
     const result = onboardingCustomerVehicleStepSchema.safeParse({
       ...emptyCustomerVehicleStepValues,
       customerFullName: "Maria Oliveira",
@@ -175,16 +190,64 @@ describe("onboardingCustomerVehicleStepSchema", () => {
     if (result.success) return;
 
     expect(result.error.issues).toEqual(
-      expect.arrayContaining([expect.objectContaining({ path: ["vehicleModel"] })]),
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["vehicleBrand"], message: "Informe a marca." }),
+        expect.objectContaining({ path: ["vehicleModel"], message: "Informe o modelo." }),
+      ]),
     );
   });
 
-  it("allows only vehicle model when customer full name and phone are valid", () => {
+  it("rejects only model without brand when vehicle data is started", () => {
     const result = onboardingCustomerVehicleStepSchema.safeParse({
       ...emptyCustomerVehicleStepValues,
       customerFullName: "Maria Oliveira",
       customerPhone: "(11) 99999-9999",
-      vehicleModel: "Honda Civic",
+      vehicleModel: "Civic",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["vehicleBrand"], message: "Informe a marca." }),
+      ]),
+    );
+    expect(result.error.issues).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: ["vehicleModel"] })]),
+    );
+  });
+
+  it("rejects only brand without model when vehicle data is started", () => {
+    const result = onboardingCustomerVehicleStepSchema.safeParse({
+      ...emptyCustomerVehicleStepValues,
+      customerFullName: "Maria Oliveira",
+      customerPhone: "(11) 99999-9999",
+      vehicleBrand: "Honda",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (result.success) return;
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["vehicleModel"], message: "Informe o modelo." }),
+      ]),
+    );
+    expect(result.error.issues).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: ["vehicleBrand"] })]),
+    );
+  });
+
+  it("allows brand and model when customer full name and phone are valid", () => {
+    const result = onboardingCustomerVehicleStepSchema.safeParse({
+      ...emptyCustomerVehicleStepValues,
+      customerFullName: "Maria Oliveira",
+      customerPhone: "(11) 99999-9999",
+      vehicleBrand: "Honda",
+      vehicleModel: "Civic",
     });
 
     expect(result.success).toBe(true);
@@ -212,7 +275,8 @@ describe("onboardingCustomerVehicleStepSchema", () => {
     const result = onboardingCustomerVehicleStepSchema.safeParse({
       ...emptyCustomerVehicleStepValues,
       customerFullName: "Maria Oliveira",
-      vehicleModel: "Honda Civic",
+      vehicleBrand: "Honda",
+      vehicleModel: "Civic",
     });
 
     expect(result.success).toBe(false);
@@ -224,7 +288,7 @@ describe("onboardingCustomerVehicleStepSchema", () => {
     );
   });
 
-  it("rejects vehicle color without vehicle model", () => {
+  it("rejects vehicle color without brand and model", () => {
     const result = onboardingCustomerVehicleStepSchema.safeParse({
       ...emptyCustomerVehicleStepValues,
       customerFullName: "Maria Oliveira",
@@ -237,16 +301,20 @@ describe("onboardingCustomerVehicleStepSchema", () => {
     if (result.success) return;
 
     expect(result.error.issues).toEqual(
-      expect.arrayContaining([expect.objectContaining({ path: ["vehicleModel"] })]),
+      expect.arrayContaining([
+        expect.objectContaining({ path: ["vehicleBrand"] }),
+        expect.objectContaining({ path: ["vehicleModel"] }),
+      ]),
     );
   });
 
-  it("allows vehicle color when vehicle model is filled", () => {
+  it("allows vehicle color when brand and model are filled", () => {
     const result = onboardingCustomerVehicleStepSchema.safeParse({
       ...emptyCustomerVehicleStepValues,
       customerFullName: "Maria Oliveira",
       customerPhone: "(11) 99999-9999",
-      vehicleModel: "Honda Civic",
+      vehicleBrand: "Honda",
+      vehicleModel: "Civic",
       vehicleColor: "Preto",
     });
 
@@ -405,17 +473,13 @@ describe("onboardingSchema", () => {
       cnpj: "",
       legalName: "",
       tradeName: "",
-      serviceName: "",
-      description: "",
-      categoryId: "",
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
+      ...emptyServiceStepValues,
       isActive: false,
       customerFullName: "Maria Oliveira",
       customerPhone: "(11) 99999-9999",
       customerEmail: "",
       vehiclePlate: "",
+      vehicleBrand: "",
       vehicleModel: "",
       vehicleColor: "",
       startsAt: null,
@@ -430,17 +494,12 @@ describe("onboardingSchema", () => {
       cnpj: "",
       legalName: "",
       tradeName: "",
-      serviceName: "",
-      description: "",
-      categoryId: "",
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
-      isActive: true,
+      ...emptyServiceStepValues,
       customerFullName: "",
       customerPhone: "",
       customerEmail: "",
       vehiclePlate: "",
+      vehicleBrand: "",
       vehicleModel: "",
       vehicleColor: "",
       startsAt: new Date(2026, 8, 9, 9, 27),
@@ -455,7 +514,7 @@ describe("onboardingSchema", () => {
       expect.arrayContaining([
         expect.objectContaining({ path: ["customerFullName"] }),
         expect.objectContaining({ path: ["serviceName"] }),
-        expect.objectContaining({ path: ["vehicleModel"] }),
+        expect.objectContaining({ path: ["vehicleBrand"] }),
       ]),
     );
   });
@@ -478,7 +537,8 @@ describe("mapOnboardingSubmitToPayload", () => {
       customerPhone: "(11) 99999-9999",
       customerEmail: "maria@email.com",
       vehiclePlate: "abc1d23",
-      vehicleModel: "Honda Civic",
+      vehicleBrand: "Honda",
+      vehicleModel: "Civic",
       vehicleColor: "Preto",
       startsAt: new Date(2026, 8, 9, 9, 27),
       endsAt: new Date(2026, 8, 9, 10, 27),
@@ -511,7 +571,8 @@ describe("mapOnboardingSubmitToPayload", () => {
       },
       vehicle: {
         plate: "ABC1D23",
-        model: "Honda Civic",
+        brand: "Honda",
+        model: "Civic",
         color: "Preto",
       },
       appointment: {
@@ -526,17 +587,13 @@ describe("mapOnboardingSubmitToPayload", () => {
       cnpj: "",
       legalName: "",
       tradeName: "",
-      serviceName: "",
-      description: "",
-      categoryId: "",
-      minDurationInMinutes: "",
-      maxDurationInMinutes: "",
-      price: "",
+      ...emptyServiceStepValues,
       isActive: false,
       customerFullName: "",
       customerPhone: "",
       customerEmail: "",
       vehiclePlate: "",
+      vehicleBrand: "",
       vehicleModel: "",
       vehicleColor: "",
       startsAt: null,
@@ -556,7 +613,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       tradeName: "",
       serviceName: "Lavagem premium",
       description: "",
-      categoryId: "",
+      category: "category-id",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "",
       price: "120,00",
@@ -564,6 +621,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       customerPhone: "",
       customerEmail: "",
       vehiclePlate: "",
+      vehicleBrand: "",
       vehicleModel: "",
       vehicleColor: "",
       startsAt: null,
@@ -583,7 +641,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       tradeName: "",
       serviceName: "Lavagem premium",
       description: "",
-      categoryId: "",
+      category: "category-id",
       minDurationInMinutes: "30",
       maxDurationInMinutes: "",
       price: "120,00",
@@ -592,6 +650,7 @@ describe("mapOnboardingSubmitToPayload", () => {
       customerPhone: "(11) 99999-9999",
       customerEmail: "",
       vehiclePlate: "",
+      vehicleBrand: "",
       vehicleModel: "",
       vehicleColor: "",
       startsAt: new Date(2026, 8, 9, 9, 27),
@@ -603,7 +662,7 @@ describe("mapOnboardingSubmitToPayload", () => {
     if (result.success) return;
 
     expect(result.error.issues).toEqual(
-      expect.arrayContaining([expect.objectContaining({ path: ["vehicleModel"] })]),
+      expect.arrayContaining([expect.objectContaining({ path: ["vehicleBrand"] })]),
     );
   });
 });

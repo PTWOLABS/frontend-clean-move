@@ -24,6 +24,10 @@ import { OnboardingStepsCard } from "./onboarding-steps-card";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { useEstablishment } from "@/features/establishment/hooks/use-establishment";
 import type { Establishment } from "@/features/establishment/types";
+import {
+  buildVehicleDisplayName,
+  VEHICLE_DISPLAY_NAME_FALLBACK,
+} from "@/features/vehicle/lib/format-vehicle-catalog";
 
 const stepHeaders = [
   {
@@ -126,7 +130,15 @@ export function OnboardingForm() {
 
     if (currentStep.id === "customerVehicle") {
       setCustomerLabel(data.customerFullName ?? DEFAULT_CUSTOMER_LABEL);
-      setVehicleLabel(data.vehicleModel ?? DEFAULT_VEHICLE_LABEL);
+      const vehicleDisplayName = buildVehicleDisplayName({
+        brand: data.vehicleBrand,
+        model: data.vehicleModel,
+      });
+      setVehicleLabel(
+        vehicleDisplayName === VEHICLE_DISPLAY_NAME_FALLBACK
+          ? DEFAULT_VEHICLE_LABEL
+          : vehicleDisplayName,
+      );
     }
 
     if (step < lastStep) {

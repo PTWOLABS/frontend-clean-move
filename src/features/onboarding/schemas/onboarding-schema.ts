@@ -122,6 +122,14 @@ export const onboardingServiceStepSchema = z
       });
     }
 
+    if (!data.category?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Selecione uma categoria.",
+        path: ["category"],
+      });
+    }
+
     if (
       data.minDurationInMinutes !== undefined &&
       data.maxDurationInMinutes !== undefined &&
@@ -142,6 +150,7 @@ export const onboardingCustomerVehicleStepSchema = z
     customerEmail: z.preprocess(emptyStringToUndefined, customerEmailField.optional()),
 
     vehiclePlate: optionalTrimmedText,
+    vehicleBrand: optionalTrimmedText,
     vehicleModel: optionalTrimmedText,
     vehicleColor: optionalTrimmedText,
   })
@@ -149,7 +158,9 @@ export const onboardingCustomerVehicleStepSchema = z
     const hasCustomerData = Boolean(
       data.customerFullName || data.customerPhone || data.customerEmail,
     );
-    const hasVehicleData = Boolean(data.vehiclePlate || data.vehicleModel || data.vehicleColor);
+    const hasVehicleData = Boolean(
+      data.vehiclePlate || data.vehicleBrand || data.vehicleModel || data.vehicleColor,
+    );
     const hasAnyStepData = hasCustomerData || hasVehicleData;
     const normalizedPlate = normalizePlate(data.vehiclePlate);
 
@@ -199,18 +210,20 @@ export const onboardingCustomerVehicleStepSchema = z
       });
     }
 
-    if (normalizedPlate && !data.vehicleModel) {
+    if (!hasVehicleData) return;
+
+    if (!data.vehicleBrand?.trim()) {
       ctx.addIssue({
         code: "custom",
-        message: "Informe marca/modelo para adicionar a placa do veículo.",
-        path: ["vehicleModel"],
+        message: "Informe a marca.",
+        path: ["vehicleBrand"],
       });
     }
 
-    if (data.vehicleColor && !data.vehicleModel) {
+    if (!data.vehicleModel?.trim()) {
       ctx.addIssue({
         code: "custom",
-        message: "Informe marca/modelo para adicionar a cor do veículo.",
+        message: "Informe o modelo.",
         path: ["vehicleModel"],
       });
     }
@@ -293,9 +306,10 @@ export const onboardingSchema = onboardingBaseSchema.superRefine((data, ctx) => 
   const hasService =
     Boolean(data.serviceName) &&
     data.minDurationInMinutes !== undefined &&
-    data.price !== undefined;
+    data.price !== undefined &&
+    Boolean(data.category?.trim());
   const hasCustomer = Boolean(data.customerFullName && data.customerPhone);
-  const hasVehicle = Boolean(data.vehicleModel);
+  const hasVehicle = Boolean(data.vehicleBrand?.trim() && data.vehicleModel?.trim());
 
   if (!hasCustomer) {
     ctx.addIssue({
@@ -317,7 +331,7 @@ export const onboardingSchema = onboardingBaseSchema.superRefine((data, ctx) => 
     ctx.addIssue({
       code: "custom",
       message: "Cadastre um veículo antes de criar o agendamento.",
-      path: ["vehicleModel"],
+      path: ["vehicleBrand"],
     });
   }
 });
@@ -390,12 +404,14 @@ export function mapOnboardingSubmitToPayload(values: OnboardingSubmitValues): On
   }
 
   const plate = normalizePlate(values.vehiclePlate);
+  const brand = toOptionalTrimmedText(values.vehicleBrand);
   const model = toOptionalTrimmedText(values.vehicleModel);
   const color = toOptionalTrimmedText(values.vehicleColor);
 
-  if (plate || model || color) {
+  if (plate || brand || model || color) {
     payload.vehicle = {
       plate: plate ?? null,
+      ...(brand ? { brand } : {}),
       model: model ?? null,
       ...(color ? { color } : {}),
     };
