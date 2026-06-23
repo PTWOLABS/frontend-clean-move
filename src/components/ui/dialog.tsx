@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 
 import { cn } from "@/shared/utils/cn";
+import { composeSelectAwareInteractOutside } from "./dismissable-layer-utils";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -34,7 +35,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     showCloseButton?: boolean;
   }
->(({ className, children, showCloseButton = true, ...props }, ref) => (
+>(({ className, children, showCloseButton = true, onInteractOutside, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
 
@@ -45,6 +46,7 @@ const DialogContent = React.forwardRef<
         className,
       )}
       {...props}
+      onInteractOutside={composeSelectAwareInteractOutside(onInteractOutside)}
     >
       {children}
 
