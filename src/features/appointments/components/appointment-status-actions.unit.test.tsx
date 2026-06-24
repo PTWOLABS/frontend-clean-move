@@ -1,10 +1,24 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppointmentStatusActions } from "./appointment-status-actions";
 
+const deleteAppointmentMutationMock = vi.hoisted(() => ({
+  mutate: vi.fn(),
+  isPending: false,
+}));
+
+vi.mock("../hooks/mutations/use-delete-appointment-mutation", () => ({
+  useDeleteAppointment: () => deleteAppointmentMutationMock,
+}));
+
 describe("AppointmentStatusActions", () => {
+  beforeEach(() => {
+    deleteAppointmentMutationMock.mutate.mockClear();
+    deleteAppointmentMutationMock.isPending = false;
+  });
+
   it("shows edit action inside the actions menu when provided", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
@@ -143,10 +157,62 @@ describe("AppointmentStatusActions", () => {
     await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
     await user.click(screen.getByRole("menuitem", { name: /cancelar agendamento/i }));
 
-    expect(screen.getByRole("alertdialog", { name: /cancelar agendamento/i })).toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog", { name: /cancelar agendamento/i });
 
-    await user.click(screen.getByRole("button", { name: /^cancelar agendamento$/i }));
+    expect(dialog).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("button", { name: /^cancelar agendamento$/i }));
 
     expect(onStatusChange).toHaveBeenCalledWith("appointment-1", "CANCELLED");
+  });
+
+  it("asks for confirmation before deleting an appointment", async () => {
+    const user = userEvent.setup();
+    const onStatusChange = vi.fn();
+
+    render(
+      <AppointmentStatusActions
+        appointmentId="appointment-1"
+        currentStatus="SCHEDULED"
+        isUpdating={false}
+        onStatusChange={onStatusChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
+    await user.click(screen.getByRole("menuitem", { name: /excluir agendamento/i }));
+
+    const dialog = screen.getByRole("alertdialog", { name: /excluir agendamento/i });
+
+    expect(dialog).toBeInTheDocument();
+    expect(deleteAppointmentMutationMock.mutate).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole("button", { name: /^excluir agendamento$/i }));
+
+    expect(deleteAppointmentMutationMock.mutate).toHaveBeenCalledWith(
+      "appointment-1",
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+    expect(onStatusChange).not.toHaveBeenCalled();
+  });
+
+  it("does not show delete action for completed appointments", async () => {
+    const user = userEvent.setup();
+    const onStatusChange = vi.fn();
+
+    render(
+      <AppointmentStatusActions
+        appointmentId="appointment-1"
+        currentStatus="DONE"
+        isUpdating={false}
+        onStatusChange={onStatusChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /alterar status do agendamento/i }));
+
+    expect(
+      screen.queryByRole("menuitem", { name: /excluir agendamento/i }),
+    ).not.toBeInTheDocument();
   });
 });

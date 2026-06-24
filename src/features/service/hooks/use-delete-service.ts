@@ -8,6 +8,7 @@ import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { deleteService } from "../api/delete-service";
 import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
+import { invalidateServiceQueries } from "../lib/invalidate-service-queries";
 import {
   removeServiceFromLists,
   restoreServicesLists,
@@ -27,6 +28,7 @@ export function useDeleteService() {
       return { snapshot } satisfies { snapshot: ServicesListSnapshotEntry[] };
     },
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.appointments() });
       toast.success("Serviço eliminado com sucesso.");
     },
     onError: (error, _serviceId, context) => {
@@ -40,7 +42,7 @@ export function useDeleteService() {
       });
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() });
+      invalidateServiceQueries(queryClient);
     },
   });
 }

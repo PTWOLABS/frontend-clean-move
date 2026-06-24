@@ -29,8 +29,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
-import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { cn } from "@/shared/utils/cn";
 import { handleNumericInputChange } from "@/shared/utils/lib";
 
@@ -38,19 +36,27 @@ import {
   createAppointmentDefaultValues,
   createAppointmentFormSchema,
   type CreateAppointmentFormInput,
-  type CreateAppointmentRequestBody,
   type CreateAppointmentFormValues,
 } from "../../schemas/create-appointment-schema";
 import { updateAppointmentFormSchema } from "../../schemas/update-appointment-schema";
+import {
+  buildAppointmentRequestBody,
+  getChangedRequestBody,
+  getComparableRequestBody,
+  getResolvedResourceRequestFields,
+} from "../../lib/appointment-form-request";
+import { getAppointmentFormDefaultValues } from "../../lib/appointment-form-values";
 import { AppointmentDateField } from "./appointment-date-field";
-import { useListCustomerOptions } from "../../hooks/queries/use-list-customer-options";
-import { useListCustomerVehicleOptions } from "../../hooks/queries/use-list-customer-vehicle-options";
-import { useListServiceOptions } from "../../hooks/queries/use-list-service-options";
+import {
+  AppointmentResourceStatusAction,
+  AppointmentServiceResourceStatusAction,
+} from "./appointment-service-resource-status-action";
+import { useAppointmentFormOptions } from "../../hooks/use-appointment-form-options";
+import { useAppointmentFormResourceStatus } from "../../hooks/use-appointment-form-resource-status";
+import { useAppointmentFormServices } from "../../hooks/use-appointment-form-services";
 import { useCreateAppointment } from "../../hooks/mutations/use-create-appointment-mutation";
 import { useUpdateAppointment } from "../../hooks/mutations/use-update-appointment-mutation";
 import type { AppointmentCalendarEvent } from "../../types/appointment-calendar";
-import type { ServiceOptionsDTO } from "../../types/options-dto";
-import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
 
 type AppointmentFormSheetProps = {
   open: boolean;
@@ -58,155 +64,6 @@ type AppointmentFormSheetProps = {
   defaultStartsAt?: Date;
   appointment?: AppointmentCalendarEvent | null;
 };
-
-type ServiceOptionWithPrice = {
-  id: string;
-  label: string;
-  priceType: "FIXED" | "STARTING_AT" | "RANGE";
-  minPriceInCents: number;
-  maxPriceInCents?: number;
-};
-
-function resolveServicePriceMetadata(
-  option: ServiceOptionsDTO["services"][number],
-): Omit<ServiceOptionWithPrice, "id" | "label"> {
-  if (option.priceSpecification?.type === "FIXED") {
-    return {
-      priceType: "FIXED",
-      minPriceInCents: option.priceSpecification.fixedPriceInCents,
-    };
-  }
-  if (option.priceSpecification?.type === "STARTING_AT") {
-    return {
-      priceType: "STARTING_AT",
-      minPriceInCents: option.priceSpecification.minPriceInCents,
-    };
-  }
-  if (option.priceSpecification?.type === "RANGE") {
-    return {
-      priceType: "RANGE",
-      minPriceInCents: option.priceSpecification.minPriceInCents,
-      maxPriceInCents: option.priceSpecification.maxPriceInCents,
-    };
-  }
-  return {
-    priceType: "FIXED",
-    minPriceInCents: Math.max(0, option.priceInCents ?? 0),
-  };
-}
-
-function formatCentsToBrlInput(cents: number) {
-  return formatReaisToBrlInput(Math.max(cents, 0) / 100);
-}
-
-function getAppointmentFormDefaultValues(
-  appointment: AppointmentCalendarEvent,
-): CreateAppointmentFormInput {
-  const pricedServices =
-    appointment.extendedProps.services?.map((service) => ({
-      serviceId: service.serviceId,
-      serviceLabel: service.label,
-      priceType: "STARTING_AT" as const,
-      minPriceInCents: service.priceInCents,
-      price: formatCentsToBrlInput(service.priceInCents),
-    })) ??
-    appointment.extendedProps.serviceIds.map((service) => ({
-      serviceId: service.value,
-      serviceLabel: service.label,
-      priceType: "STARTING_AT" as const,
-      minPriceInCents: 0,
-      price: "0,00",
-    }));
-
-  return {
-    customerId: appointment.extendedProps.customerId,
-    serviceIds: appointment.extendedProps.serviceIds,
-    services: pricedServices,
-    vehicleId: appointment.extendedProps.vehicleId,
-    startsAt: appointment.startsAt,
-    endsAt: appointment.extendedProps.endsAt,
-    description: appointment.extendedProps.description,
-    discountValue: appointment.extendedProps.discountValue,
-  };
-}
-
-function buildAppointmentRequestBody(
-  values: CreateAppointmentFormValues,
-): CreateAppointmentRequestBody {
-  return {
-    customerId: values.customerId,
-    vehicleId: values.vehicleId,
-    startsAt: values.startsAt,
-    endsAt: values.endsAt,
-    description: values.description,
-    discountValue: values.discountValue,
-    services: values.services.map((service) => ({
-      serviceId: service.serviceId,
-      priceInCents: Math.round(parseBrlMoneyToReais(service.price) * 100),
-    })),
-  };
-}
-
-function getComparableRequestBody(values: CreateAppointmentFormInput) {
-  const result = createAppointmentFormSchema.safeParse(values);
-
-  return result.success ? buildAppointmentRequestBody(result.data) : null;
-}
-
-function areServicesEqual(
-  left: CreateAppointmentRequestBody["services"],
-  right: CreateAppointmentRequestBody["services"],
-) {
-  return (
-    left.length === right.length &&
-    left.every(
-      (service, index) =>
-        service.serviceId === right[index]?.serviceId &&
-        service.priceInCents === right[index]?.priceInCents,
-    )
-  );
-}
-
-function getChangedRequestBody(
-  currentBody: CreateAppointmentRequestBody,
-  initialBody: CreateAppointmentRequestBody | null,
-) {
-  if (!initialBody) {
-    return currentBody;
-  }
-
-  const changedBody: Partial<CreateAppointmentRequestBody> = {};
-
-  if (currentBody.customerId !== initialBody.customerId) {
-    changedBody.customerId = currentBody.customerId;
-  }
-
-  if (!areServicesEqual(currentBody.services, initialBody.services)) {
-    changedBody.services = currentBody.services;
-  }
-
-  if (currentBody.vehicleId !== initialBody.vehicleId) {
-    changedBody.vehicleId = currentBody.vehicleId;
-  }
-
-  if (currentBody.startsAt !== initialBody.startsAt) {
-    changedBody.startsAt = currentBody.startsAt;
-  }
-
-  if (currentBody.endsAt !== initialBody.endsAt) {
-    changedBody.endsAt = currentBody.endsAt;
-  }
-
-  if (currentBody.description !== initialBody.description) {
-    changedBody.description = currentBody.description;
-  }
-
-  if (currentBody.discountValue !== initialBody.discountValue) {
-    changedBody.discountValue = currentBody.discountValue;
-  }
-
-  return changedBody;
-}
 
 export function AppointmentFormSheet({
   open,
@@ -251,106 +108,119 @@ export function AppointmentFormSheet({
   const fieldControl = control as unknown as Control<FieldValues>;
   const sheetContentRef = useRef<HTMLDivElement | null>(null);
   const [sheetContentElement, setSheetContentElement] = useState<HTMLDivElement | null>(null);
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [vehicleSearch, setVehicleSearch] = useState("");
-  const [customerLabel, setCustomerLabel] = useState("");
-  const [vehicleLabel, setVehicleLabel] = useState("");
-  const [serviceInputValue, setServiceInputValue] = useState("");
-  const serviceSearch = useDebouncedValue(serviceInputValue, 500);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const selectedServices = useWatch({
     control,
     name: "services",
   });
-
-  const getServicePriceDescription = useCallback(
-    (service: NonNullable<typeof selectedServices>[number]) => {
-      if (service.priceType === "FIXED") {
-        return `Valor fixo: ${formatCentsToBrlInput(service.minPriceInCents)}`;
-      }
-
-      if (service.priceType === "RANGE" && typeof service.maxPriceInCents === "number") {
-        return `Permitido: ${formatCentsToBrlInput(service.minPriceInCents)} a ${formatCentsToBrlInput(
-          service.maxPriceInCents,
-        )}`;
-      }
-
-      return `Mínimo permitido: ${formatCentsToBrlInput(service.minPriceInCents)}`;
-    },
-    [],
-  );
+  const selectedServiceOptions = useWatch({
+    control,
+    name: "serviceIds",
+  });
+  const selectedCustomerFormId = useWatch({
+    control,
+    name: "customerId",
+  });
+  const selectedVehicleFormId = useWatch({
+    control,
+    name: "vehicleId",
+  });
+  const {
+    clearCustomerAndVehicleSelection,
+    clearServiceSearch,
+    clearVehicleSelection,
+    customerEmptyMessage,
+    customerLabel,
+    customerOptionsItems,
+    customerVehicleOptionsItems,
+    hydrateOptionState,
+    resetOptionState,
+    selectedCustomerId,
+    serviceEmptyMessage,
+    serviceOptions,
+    serviceOptionsItems,
+    servicePriceById,
+    setCustomerLabel,
+    setCustomerSearch,
+    setSelectedCustomerId,
+    setServiceInputValue,
+    setVehicleLabel,
+    setVehicleSearch,
+    vehicleEmptyMessage,
+    vehicleLabel,
+  } = useAppointmentFormOptions({
+    appointment,
+    selectedCustomerFormId,
+    selectedServiceOptions,
+    selectedVehicleFormId,
+  });
+  const {
+    customerResourceStatus,
+    getServiceResourceStatus,
+    handleRemoveCustomer,
+    handleRemoveService,
+    handleRemoveVehicle,
+    hasLockedSnapshotService,
+    vehicleResourceStatus,
+  } = useAppointmentFormResourceStatus({
+    appointment,
+    clearCustomerAndVehicleSelection,
+    clearServiceSearch,
+    clearVehicleSelection,
+    control,
+    getValues,
+    selectedServices,
+    setValue,
+  });
 
   useEffect(() => {
     if (!open) return;
 
     reset(formDefaultValues);
-    /* eslint-disable react-hooks/set-state-in-effect -- hidrata inputs controlados ao abrir o sheet em modo criação/edição */
-    setCustomerSearch("");
-    setCustomerLabel(appointment?.extendedProps.customer ?? "");
-    setVehicleSearch("");
-    setVehicleLabel(appointment?.extendedProps.vehicle.displayName ?? "");
-    setServiceInputValue("");
-    setSelectedCustomerId(formDefaultValues.customerId || null);
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [appointment, formDefaultValues, open, reset]);
-
-  const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: 1000,
-    search: customerSearch || undefined,
-  });
-
-  const { data: vehicleOptions, isPending: isLoadingCustomerVehicleOptions } =
-    useListCustomerVehicleOptions({
-      customerId: selectedCustomerId ?? undefined,
-      limit: 1000,
-      search: vehicleSearch || undefined,
+    hydrateOptionState({
+      customerLabel: appointment?.extendedProps.customer ?? "",
+      vehicleLabel: appointment?.extendedProps.vehicle.displayName ?? "",
+      selectedCustomerId: formDefaultValues.customerId || null,
     });
+  }, [appointment, formDefaultValues, hydrateOptionState, open, reset]);
 
-  const { data: serviceOptions, isPending: isLoadingServiceOptions } = useListServiceOptions({
-    limit: 1000,
-    search: serviceSearch || undefined,
+  const { getServicePriceDescription, handleServiceOptionsChange } = useAppointmentFormServices({
+    clearServiceSearch,
+    getValues,
+    isEditing,
+    open,
+    serviceOptions,
+    servicePriceById,
+    setValue,
   });
+
+  const resolvedResourceRequestFields = useMemo(
+    () =>
+      getResolvedResourceRequestFields(
+        appointment,
+        {
+          customerId: selectedCustomerFormId ?? "",
+          vehicleId: selectedVehicleFormId ?? "",
+          services: selectedServices ?? [],
+        },
+        {
+          customerLabel,
+          vehicleLabel,
+        },
+      ),
+    [
+      appointment,
+      customerLabel,
+      selectedCustomerFormId,
+      selectedServices,
+      selectedVehicleFormId,
+      vehicleLabel,
+    ],
+  );
+  const hasResolvedResourceChange = resolvedResourceRequestFields.length > 0;
+
   const { mutate: createAppointment, isPending: creatingAppointment } = useCreateAppointment();
   const { mutate: updateAppointment, isPending: updatingAppointment } = useUpdateAppointment();
   const isSubmitting = creatingAppointment || updatingAppointment;
-
-  const customerOptionsItems = useMemo(() => {
-    const options =
-      customerOptions?.customers?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [];
-    const selectedOptions =
-      appointment && appointment.extendedProps.customerId
-        ? [
-            {
-              label: appointment.extendedProps.customer,
-              value: appointment.extendedProps.customerId,
-            },
-          ]
-        : [];
-
-    return mergeOptionItems(options, selectedOptions);
-  }, [appointment, customerOptions]);
-
-  const customerVehicleOptionsItems = useMemo(() => {
-    const options =
-      vehicleOptions?.vehicles?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [];
-    const selectedOptions =
-      appointment && appointment.extendedProps.vehicleId
-        ? [
-            {
-              label: appointment.extendedProps.vehicle.displayName,
-              value: appointment.extendedProps.vehicleId,
-            },
-          ]
-        : [];
-
-    return mergeOptionItems(options, selectedOptions);
-  }, [appointment, vehicleOptions]);
 
   const handleCustomerSelectedItemChange = useCallback(
     (option: ComboboxItemOption | null) => {
@@ -362,14 +232,18 @@ export function AppointmentFormSheet({
       });
       setVehicleSearch("");
       setVehicleLabel("");
+      const shouldValidateClearedVehicle = isEditing && Boolean(option);
+
       setValue("vehicleId", "", {
         shouldDirty: true,
-        shouldTouch: false,
-        shouldValidate: false,
+        shouldTouch: shouldValidateClearedVehicle,
+        shouldValidate: shouldValidateClearedVehicle,
       });
-      clearErrors("vehicleId");
+      if (!shouldValidateClearedVehicle) {
+        clearErrors("vehicleId");
+      }
     },
-    [clearErrors, setValue],
+    [clearErrors, isEditing, setSelectedCustomerId, setValue, setVehicleLabel, setVehicleSearch],
   );
 
   const handleVehicleSelectedItemChange = useCallback(
@@ -382,15 +256,6 @@ export function AppointmentFormSheet({
     },
     [setValue],
   );
-
-  const resetOptionState = useCallback(() => {
-    setCustomerSearch("");
-    setCustomerLabel("");
-    setVehicleLabel("");
-    setServiceInputValue("");
-    setVehicleSearch("");
-    setSelectedCustomerId(null);
-  }, []);
 
   const closeSheetAfterSave = useCallback(() => {
     reset(formDefaultValues);
@@ -418,109 +283,8 @@ export function AppointmentFormSheet({
     setSheetContentElement(node);
   }, []);
 
-  const getCustomerEmptyMessage = () => {
-    if (isLoadingCustomerOptions) return "Buscando clientes...";
-
-    return "Nenhum cliente encontrado.";
-  };
-
-  const getVehicleEmptyMessage = () => {
-    if (!selectedCustomerId) return "Selecione um cliente primeiro.";
-    if (isLoadingCustomerVehicleOptions) return "Buscando veículos...";
-
-    return "Nenhum veículo encontrado.";
-  };
-
-  const serviceOptionsItems = useMemo(() => {
-    const options =
-      serviceOptions?.services?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [];
-
-    return mergeOptionItems(options, appointment?.extendedProps.serviceIds ?? []);
-  }, [appointment, serviceOptions]);
-
-  const serviceOptionsWithPrice = useMemo<ServiceOptionWithPrice[]>(
-    () =>
-      serviceOptions?.services?.map((option) => {
-        const metadata = resolveServicePriceMetadata(option);
-
-        return {
-          id: option.id,
-          label: option.label,
-          ...metadata,
-        };
-      }) ?? [],
-    [serviceOptions],
-  );
-
-  const servicePriceById = useMemo(() => {
-    const map = new Map<string, ServiceOptionWithPrice>();
-    for (const option of serviceOptionsWithPrice) {
-      map.set(option.id, option);
-    }
-    for (const service of appointment?.extendedProps.services ?? []) {
-      if (!map.has(service.serviceId)) {
-        map.set(service.serviceId, {
-          id: service.serviceId,
-          label: service.label,
-          priceType: "STARTING_AT",
-          minPriceInCents: service.priceInCents,
-        });
-      }
-    }
-    return map;
-  }, [appointment, serviceOptionsWithPrice]);
-
-  useEffect(() => {
-    if (!open || !isEditing || !serviceOptions) return;
-
-    const currentServices = getValues("services") ?? [];
-    if (currentServices.length === 0) return;
-
-    let hasChanges = false;
-    const nextServices = currentServices.map((service) => {
-      const metadata = servicePriceById.get(service.serviceId);
-      if (!metadata) return service;
-
-      if (
-        service.priceType === metadata.priceType &&
-        service.minPriceInCents === metadata.minPriceInCents &&
-        service.maxPriceInCents === metadata.maxPriceInCents
-      ) {
-        return service;
-      }
-
-      hasChanges = true;
-      return {
-        ...service,
-        priceType: metadata.priceType,
-        minPriceInCents: metadata.minPriceInCents,
-        maxPriceInCents: metadata.maxPriceInCents,
-        price:
-          metadata.priceType === "FIXED"
-            ? formatCentsToBrlInput(metadata.minPriceInCents)
-            : service.price,
-      };
-    });
-
-    if (hasChanges) {
-      setValue("services", nextServices, {
-        shouldDirty: false,
-        shouldTouch: false,
-        shouldValidate: true,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- getValues e setValue são estáveis; servicePriceById já cobre serviceOptions
-  }, [open, isEditing, serviceOptions, servicePriceById]);
-
   const getServiceEmptyIndicator = () => {
-    if (isLoadingServiceOptions) {
-      return <p className="px-2 py-1 text-sm text-muted-foreground">Buscando serviços...</p>;
-    }
-
-    return <p className="px-2 py-1 text-sm text-muted-foreground">Nenhum serviço encontrado.</p>;
+    return <p className="px-2 py-1 text-sm text-muted-foreground">{serviceEmptyMessage}</p>;
   };
 
   const onSubmit = (values: CreateAppointmentFormValues) => {
@@ -529,7 +293,13 @@ export function AppointmentFormSheet({
     const body = buildAppointmentRequestBody(values);
 
     if (appointment) {
-      const changedBody = getChangedRequestBody(body, initialUpdateRequestBody);
+      const forcedFields = getResolvedResourceRequestFields(appointment, values, {
+        customerLabel,
+        vehicleLabel,
+      });
+      const changedBody = getChangedRequestBody(body, initialUpdateRequestBody, {
+        forceFields: forcedFields,
+      });
 
       if (Object.keys(changedBody).length === 0) {
         toast.info("Nenhuma alteração para salvar.");
@@ -587,26 +357,47 @@ export function AppointmentFormSheet({
                 renderControl={false}
               >
                 {({ field }) => (
-                  <FormControl>
-                    <Combobox
-                      ref={field.ref}
-                      id={field.name}
-                      name={field.name}
-                      value={customerLabel}
-                      onValueChange={setCustomerLabel}
-                      onDebouncedValueChange={setCustomerSearch}
-                      onSelectedItemChange={handleCustomerSelectedItemChange}
-                      onBlur={field.onBlur}
-                      items={customerOptionsItems}
-                      portalContainer={sheetContentRef}
-                      placeholder="Digite o nome do cliente"
-                      emptyMessage={getCustomerEmptyMessage()}
-                      autoComplete="name"
-                      disabled={isSubmitting}
-                      required
-                      className="w-full"
-                    />
-                  </FormControl>
+                  <div className="space-y-1.5">
+                    <FormControl>
+                      <Combobox
+                        ref={field.ref}
+                        id={field.name}
+                        name={field.name}
+                        value={customerLabel}
+                        onValueChange={setCustomerLabel}
+                        onDebouncedValueChange={setCustomerSearch}
+                        onSelectedItemChange={handleCustomerSelectedItemChange}
+                        onBlur={field.onBlur}
+                        items={customerOptionsItems}
+                        portalContainer={sheetContentRef}
+                        placeholder="Digite o nome do cliente"
+                        emptyMessage={customerEmptyMessage}
+                        autoComplete="name"
+                        disabled={isSubmitting || Boolean(customerResourceStatus)}
+                        required
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <AppointmentResourceStatusAction
+                        disabled={isSubmitting}
+                        resourceLabel={customerLabel}
+                        resourceName="cliente"
+                        removeActionLabel="Remover cliente"
+                        removeTitle="Remover cliente deste agendamento?"
+                        removeDescription={
+                          <>
+                            Isso remove &quot;{customerLabel}&quot; da edição atual e libera a
+                            seleção de cliente. O veículo também será removido porque depende do
+                            cliente selecionado. A alteração só será enviada ao salvar o
+                            agendamento.
+                          </>
+                        }
+                        status={customerResourceStatus}
+                        onConfirmRemove={handleRemoveCustomer}
+                      />
+                    </div>
+                  </div>
                 )}
               </FormField>
 
@@ -618,60 +409,36 @@ export function AppointmentFormSheet({
                 renderControl={false}
               >
                 {({ field, fieldState }) => (
-                  <FormControl>
-                    <MultipleSelector
-                      value={Array.isArray(field.value) ? (field.value as Option[]) : []}
-                      onChange={(options) => {
-                        field.onChange(options);
-                        const currentServices = getValues("services") ?? [];
-                        const nextServices = options.map((option) => {
-                          const existing = currentServices.find(
-                            (service) => service.serviceId === option.value,
-                          );
-                          if (existing) {
-                            return {
-                              ...existing,
-                              serviceLabel: option.label,
-                            };
-                          }
-                          const metadata = servicePriceById.get(option.value);
-                          const priceType = metadata?.priceType ?? "STARTING_AT";
-                          const minPriceInCents = metadata?.minPriceInCents ?? 0;
-                          return {
-                            serviceId: option.value,
-                            serviceLabel: option.label,
-                            priceType,
-                            minPriceInCents,
-                            maxPriceInCents: metadata?.maxPriceInCents,
-                            price: formatCentsToBrlInput(minPriceInCents),
-                          };
-                        });
-                        setValue("services", nextServices, {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                          shouldValidate: true,
-                        });
-                        setServiceInputValue("");
-                      }}
-                      options={serviceOptionsItems}
-                      portalContainer={sheetContentElement}
-                      placeholder="Selecione os serviços"
-                      emptyIndicator={getServiceEmptyIndicator()}
-                      disabled={isSubmitting}
-                      className={cn(
-                        "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-full",
-                        fieldState.invalid &&
-                          "border-destructive/70 focus-within:ring-destructive/30",
-                      )}
-                      inputProps={{
-                        id: field.name,
-                        onBlur: field.onBlur,
-                        onValueChange: setServiceInputValue,
-                        className: "text-sm",
-                      }}
-                      commandProps={{ shouldFilter: false }}
-                    />
-                  </FormControl>
+                  <>
+                    <FormControl>
+                      <MultipleSelector
+                        value={Array.isArray(field.value) ? (field.value as Option[]) : []}
+                        onChange={(options) => handleServiceOptionsChange(options, field.onChange)}
+                        options={serviceOptionsItems}
+                        portalContainer={sheetContentElement}
+                        placeholder="Selecione os serviços"
+                        emptyIndicator={getServiceEmptyIndicator()}
+                        disabled={isSubmitting || hasLockedSnapshotService}
+                        className={cn(
+                          "min-h-10 border-border/80 bg-background/40 py-2 shadow-sm w-full",
+                          fieldState.invalid &&
+                            "border-destructive/70 focus-within:ring-destructive/30",
+                        )}
+                        inputProps={{
+                          id: field.name,
+                          onBlur: field.onBlur,
+                          onValueChange: setServiceInputValue,
+                          className: "text-sm",
+                        }}
+                        commandProps={{ shouldFilter: false }}
+                      />
+                    </FormControl>
+                    {hasLockedSnapshotService ? (
+                      <FormDescription>
+                        Remova os serviços atualizados ou removidos antes de alterar a lista.
+                      </FormDescription>
+                    ) : null}
+                  </>
                 )}
               </FormField>
 
@@ -685,51 +452,52 @@ export function AppointmentFormSheet({
                       label={`Valor do serviço: ${service.serviceLabel}`}
                       renderControl={false}
                     >
-                      {({ field, fieldState }) => (
-                        <div className="space-y-1.5">
-                          <FormControl>
-                            <Input
-                              id={field.name}
-                              type="text"
-                              inputMode="decimal"
-                              autoComplete="off"
-                              placeholder="0,00"
-                              className={cn(
-                                "h-10 border-border/80 bg-background/40 tabular-nums w-full",
-                                fieldState.invalid &&
-                                  "border-destructive/70 focus-visible:ring-destructive/30",
-                              )}
-                              value={typeof field.value === "string" ? field.value : ""}
-                              disabled={isSubmitting || service.priceType === "FIXED"}
-                              onChange={(event) =>
-                                handleNumericInputChange(event, field.onChange, {
-                                  formatAsCurrency: true,
-                                  showCurrencySymbol: false,
-                                })
-                              }
-                              onBlur={() => {
-                                const parsedAmount = parseBrlMoneyToReais(
-                                  String(field.value ?? ""),
-                                );
-                                if (Number.isFinite(parsedAmount)) {
-                                  const amountInCents = Math.round(parsedAmount * 100);
-                                  if (amountInCents < service.minPriceInCents) {
-                                    field.onChange(formatCentsToBrlInput(service.minPriceInCents));
-                                  } else if (
-                                    service.priceType === "RANGE" &&
-                                    typeof service.maxPriceInCents === "number" &&
-                                    amountInCents > service.maxPriceInCents
-                                  ) {
-                                    field.onChange(formatCentsToBrlInput(service.maxPriceInCents));
-                                  }
+                      {({ field, fieldState }) => {
+                        const serviceResourceStatus = getServiceResourceStatus(service);
+
+                        return (
+                          <div className="space-y-1.5">
+                            <FormControl>
+                              <Input
+                                id={field.name}
+                                type="text"
+                                inputMode="decimal"
+                                autoComplete="off"
+                                placeholder="0,00"
+                                className={cn(
+                                  "h-10 border-border/80 bg-background/40 tabular-nums w-full",
+                                  fieldState.invalid &&
+                                    "border-destructive/70 focus-visible:ring-destructive/30",
+                                )}
+                                value={typeof field.value === "string" ? field.value : ""}
+                                disabled={
+                                  isSubmitting ||
+                                  service.priceType === "FIXED" ||
+                                  Boolean(serviceResourceStatus)
                                 }
-                                field.onBlur();
-                              }}
-                            />
-                          </FormControl>
-                          <FormDescription>{getServicePriceDescription(service)}</FormDescription>
-                        </div>
-                      )}
+                                onChange={(event) =>
+                                  handleNumericInputChange(event, field.onChange, {
+                                    formatAsCurrency: true,
+                                    showCurrencySymbol: false,
+                                  })
+                                }
+                                onBlur={field.onBlur}
+                              />
+                            </FormControl>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <FormDescription>
+                                {getServicePriceDescription(service)}
+                              </FormDescription>
+                              <AppointmentServiceResourceStatusAction
+                                disabled={isSubmitting}
+                                serviceLabel={service.serviceLabel}
+                                status={serviceResourceStatus}
+                                onConfirmRemove={() => handleRemoveService(service.serviceId)}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }}
                     </FormField>
                   ))}
                 </div>
@@ -743,26 +511,50 @@ export function AppointmentFormSheet({
                 renderControl={false}
               >
                 {({ field }) => (
-                  <FormControl>
-                    <Combobox
-                      ref={field.ref}
-                      id={field.name}
-                      name={field.name}
-                      value={vehicleLabel}
-                      onValueChange={setVehicleLabel}
-                      onDebouncedValueChange={setVehicleSearch}
-                      onSelectedItemChange={handleVehicleSelectedItemChange}
-                      onBlur={field.onBlur}
-                      items={customerVehicleOptionsItems}
-                      portalContainer={sheetContentRef}
-                      placeholder="Digite o nome do veículo"
-                      emptyMessage={getVehicleEmptyMessage()}
-                      autoComplete="off"
-                      disabled={!selectedCustomerId || isSubmitting}
-                      required
-                      className="w-full"
-                    />
-                  </FormControl>
+                  <div className="space-y-1.5">
+                    <FormControl>
+                      <Combobox
+                        ref={field.ref}
+                        id={field.name}
+                        name={field.name}
+                        value={vehicleLabel}
+                        onValueChange={setVehicleLabel}
+                        onDebouncedValueChange={setVehicleSearch}
+                        onSelectedItemChange={handleVehicleSelectedItemChange}
+                        onBlur={field.onBlur}
+                        items={customerVehicleOptionsItems}
+                        portalContainer={sheetContentRef}
+                        placeholder="Digite o nome do veículo"
+                        emptyMessage={vehicleEmptyMessage}
+                        autoComplete="off"
+                        disabled={
+                          !selectedCustomerId ||
+                          isSubmitting ||
+                          Boolean(customerResourceStatus) ||
+                          Boolean(vehicleResourceStatus)
+                        }
+                        required
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <AppointmentResourceStatusAction
+                        disabled={isSubmitting}
+                        resourceLabel={vehicleLabel}
+                        resourceName="veículo"
+                        removeActionLabel="Remover veículo"
+                        removeTitle="Remover veículo deste agendamento?"
+                        removeDescription={
+                          <>
+                            Isso remove &quot;{vehicleLabel}&quot; da edição atual e libera a
+                            seleção de veículo. A alteração só será enviada ao salvar o agendamento.
+                          </>
+                        }
+                        status={vehicleResourceStatus}
+                        onConfirmRemove={handleRemoveVehicle}
+                      />
+                    </div>
+                  </div>
                 )}
               </FormField>
 
@@ -785,6 +577,7 @@ export function AppointmentFormSheet({
                   disabled={isSubmitting}
                   className="w-full"
                   timeInputClassName="w-24 min-[380px]:w-28"
+                  clearable
                 />
               </div>
 
@@ -887,7 +680,7 @@ export function AppointmentFormSheet({
                 <Button
                   type="submit"
                   className="h-10 w-full sm:w-40"
-                  disabled={isSubmitting || (isEditing && !isDirty)}
+                  disabled={isSubmitting || (isEditing && !isDirty && !hasResolvedResourceChange)}
                   aria-busy={isSubmitting}
                 >
                   {isSubmitting ? (

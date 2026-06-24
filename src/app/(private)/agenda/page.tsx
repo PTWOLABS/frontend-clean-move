@@ -5,6 +5,8 @@ import { AgendaSummaryQueryCard } from "@/features/agenda/components/agenda-summ
 import { PendingQuotesCard } from "@/features/agenda/components/pending-quotes-card";
 import { TodayAgendaQueryCard } from "@/features/agenda/components/today-agenda-query-card";
 
+import styles from "./page.module.css";
+
 export const metadata: Metadata = {
   title: "Agenda",
   description: "Acompanhe os agendamentos, horários e serviços do dia no CleanMove.",
@@ -24,14 +26,18 @@ export default function AgendaPage() {
         <AgendaNewAppointmentButton />
       </header>
 
-      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
-        <TodayAgendaQueryCard />
-        <div className="flex min-w-0 flex-col gap-4 xl:h-full xl:min-h-0">
-          <div className="shrink-0">
-            <AgendaSummaryQueryCard />
+      <div className={styles.agendaLayoutContainer}>
+        <div className={styles.agendaLayoutGrid} data-testid="agenda-layout-grid">
+          <div className={styles.agendaPrimaryColumn} data-testid="agenda-primary-column">
+            <TodayAgendaQueryCard />
           </div>
-          <div className="xl:min-h-0 xl:flex-1">
-            <PendingQuotesCard quotes={[]} />
+          <div className={styles.agendaSecondaryColumn} data-testid="agenda-secondary-column">
+            <div className={styles.agendaSummarySection}>
+              <AgendaSummaryQueryCard />
+            </div>
+            <div className={styles.agendaPendingQuotesSection}>
+              <PendingQuotesCard quotes={[]} />
+            </div>
           </div>
         </div>
       </div>

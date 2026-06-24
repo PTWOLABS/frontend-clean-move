@@ -73,6 +73,28 @@ describe("useLogout", () => {
     expect(pushMock).toHaveBeenCalledWith("/login");
   });
 
+  it("should clear token, remove session queries and redirect on 401 without toast", async () => {
+    signOutApiMock.mockRejectedValueOnce(
+      new ApiError({ message: "Sessão expirada", statusCode: 401 }),
+    );
+    const client = createTestQueryClient();
+    client.setQueryData(QUERY_KEYS.authSession, { id: "1", name: "A", email: "a@b.com" });
+    client.setQueryData(QUERY_KEYS.userMe(), { id: "1", name: "A", email: "a@b.com" });
+
+    const { result } = renderHook(() => useLogout(), { wrapper: wrapperWithClient(client) });
+    result.current.mutate();
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(toastErrorMock).not.toHaveBeenCalled();
+    expect(setAccessTokenMock).toHaveBeenCalledWith(null);
+    expect(client.getQueryData(QUERY_KEYS.authSession)).toBeUndefined();
+    expect(client.getQueryData(QUERY_KEYS.userMe())).toBeUndefined();
+    expect(pushMock).toHaveBeenCalledWith("/login");
+  });
+
   it("should show toast and not redirect on api error", async () => {
     signOutApiMock.mockRejectedValueOnce(new ApiError({ message: "Falhou", statusCode: 500 }));
     const client = createTestQueryClient();

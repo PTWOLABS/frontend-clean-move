@@ -4,6 +4,7 @@ import {
   appointmentDateRangeRefinement,
   appointmentFormFieldsSchema,
   isAppointmentDateRangeValid,
+  validateAppointmentDiscount,
   validateAppointmentServicePrices,
 } from "./create-appointment-schema";
 
@@ -22,6 +23,8 @@ export const updateAppointmentFormSchema = z
     if (values.services) {
       validateAppointmentServicePrices(values.services, context);
     }
+
+    validateAppointmentDiscount(values, context);
   })
   .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 
@@ -29,8 +32,9 @@ export type UpdateAppointmentFormInput = z.input<typeof updateAppointmentFormSch
 export type UpdateAppointmentFormValues = z.output<typeof updateAppointmentFormSchema>;
 export type UpdateAppointmentRequestBody = Omit<
   UpdateAppointmentFormValues,
-  "serviceIds" | "services"
+  "discountValue" | "serviceIds" | "services"
 > & {
+  discountInCents?: number;
   services?: Array<{
     serviceId: string;
     priceInCents: number;

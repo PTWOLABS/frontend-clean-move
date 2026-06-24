@@ -84,4 +84,32 @@ describe("services-query-cache", () => {
     restoreServicesLists(client, snapshot);
     expect(client.getQueryData<ServicesPage>(key)).toEqual(page1);
   });
+
+  it("ignores service options cache when mutating lists", () => {
+    const client = new QueryClient();
+    const listKey = QUERY_KEYS.services({ page: 1, size: 5 });
+    const optionsKey = QUERY_KEYS.serviceOptions({ limit: 1000 });
+    const serviceOptions = {
+      services: [{ id: "a", label: "Lavagem A" }],
+    };
+
+    client.setQueryData(listKey, page1);
+    client.setQueryData(optionsKey, serviceOptions);
+
+    expect(() => removeServiceFromLists(client, "a")).not.toThrow();
+    expect(client.getQueryData(optionsKey)).toEqual(serviceOptions);
+
+    client.setQueryData(listKey, page1);
+
+    expect(() =>
+      upsertServiceInLists(client, "a", () => ({
+        ...itemA,
+        serviceName: "Lavagem A atualizada",
+      })),
+    ).not.toThrow();
+    expect(client.getQueryData(optionsKey)).toEqual(serviceOptions);
+    expect(client.getQueryData<ServicesPage>(listKey)?.items[0]?.serviceName).toBe(
+      "Lavagem A atualizada",
+    );
+  });
 });

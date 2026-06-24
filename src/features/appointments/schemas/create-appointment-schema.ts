@@ -45,6 +45,7 @@ export const appointmentServiceOptionSchema = z.object({
 const appointmentPricedServiceSchema = z.object({
   serviceId: z.string().trim().min(1, "Selecione um serviço válido."),
   serviceLabel: z.string().trim().min(1, "Selecione um serviço válido."),
+  source: z.enum(["snapshot", "catalog"]).optional(),
   priceType: z.enum(["FIXED", "STARTING_AT", "RANGE"]),
   minPriceInCents: z.number().int().nonnegative("O valor mínimo do serviço não pode ser negativo."),
   maxPriceInCents: z
@@ -69,6 +70,20 @@ function isValidDiscount(value: string) {
 
   const amount = parseBrlMoneyToReais(normalizedValue);
   return Number.isFinite(amount) && amount >= 0;
+}
+
+function parseOptionalMoneyInCents(value: string) {
+  const normalizedValue = value.replace(/^R\$\s?/i, "").trim();
+
+  if (!normalizedValue) return 0;
+
+  const amount = parseBrlMoneyToReais(normalizedValue);
+
+  if (!Number.isFinite(amount)) {
+    return null;
+  }
+
+  return Math.round(amount * 100);
 }
 
 export const appointmentFormFieldsSchema = {
@@ -103,6 +118,10 @@ export function validateAppointmentServicePrices(
   context: z.RefinementCtx,
 ) {
   services.forEach((service, index) => {
+    if (service.source === "snapshot") {
+      return;
+    }
+
     const amountInCents = Math.round(parseBrlMoneyToReais(service.price) * 100);
 
     if (amountInCents < service.minPriceInCents) {
@@ -127,6 +146,38 @@ export function validateAppointmentServicePrices(
   });
 }
 
+export function validateAppointmentDiscount(
+  values: {
+    discountValue?: string | null;
+    services?: z.output<typeof appointmentPricedServiceSchema>[];
+  },
+  context: z.RefinementCtx,
+) {
+  if (!values.services?.length) {
+    return;
+  }
+
+  const discountInCents = parseOptionalMoneyInCents(values.discountValue ?? "");
+
+  if (discountInCents === null) {
+    return;
+  }
+
+  const servicesAmountInCents = values.services.reduce((total, service) => {
+    const amount = parseOptionalMoneyInCents(service.price);
+
+    return total + (amount ?? 0);
+  }, 0);
+
+  if (discountInCents > servicesAmountInCents) {
+    context.addIssue({
+      code: "custom",
+      message: "O desconto não pode ser maior que o valor total dos serviços.",
+      path: ["discountValue"],
+    });
+  }
+}
+
 export function isAppointmentDateRangeValid(values: {
   startsAt?: string | null;
   endsAt?: string | null;
@@ -148,7 +199,7 @@ export const createAppointmentFormSchema = z
     for (const serviceId of selectedServiceIds) {
       if (!pricedServiceIds.has(serviceId)) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Defina o valor para todos os serviços selecionados.",
           path: ["services"],
         });
@@ -157,6 +208,7 @@ export const createAppointmentFormSchema = z
     }
 
     validateAppointmentServicePrices(values.services, context);
+    validateAppointmentDiscount(values, context);
   })
   .refine(isAppointmentDateRangeValid, appointmentDateRangeRefinement);
 
@@ -164,8 +216,9 @@ export type CreateAppointmentFormInput = z.input<typeof createAppointmentFormSch
 export type CreateAppointmentFormValues = z.output<typeof createAppointmentFormSchema>;
 export type CreateAppointmentRequestBody = Omit<
   CreateAppointmentFormValues,
-  "serviceIds" | "services"
+  "discountValue" | "serviceIds" | "services"
 > & {
+  discountInCents: number;
   services: Array<{
     serviceId: string;
     priceInCents: number;

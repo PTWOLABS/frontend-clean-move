@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-import { formatCpfCnpj } from "@/features/customer/lib/format-customer-catalog";
+import { formatCpfCnpj, formatPhone } from "@/features/customer/lib/format-customer-catalog";
 import { formatIsoDateToBr, parseBrDateToIso } from "@/shared/lib/br-date-input";
+import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
 
 import {
   emptyVehicleFormValues,
@@ -18,9 +19,36 @@ import type {
   CustomerAddress,
   CustomerDto,
   CustomerVehicleDto,
+  UpdateCustomerPayload,
 } from "../types";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const optionalPhoneField = z.string().superRefine((value, ctx) => {
+  const digits = onlyDigits(value);
+  if (digits.length === 0) return;
+
+  const phoneResult = customerPhoneField.safeParse(value);
+  if (!phoneResult.success) {
+    ctx.addIssue({
+      code: "custom",
+      message:
+        phoneResult.error.issues[0]?.message ?? "Informe um telefone válido (10 ou 11 dígitos).",
+    });
+  }
+});
+
+const optionalEmailField = z.string().superRefine((value, ctx) => {
+  if (!value.trim()) return;
+
+  const emailResult = customerEmailField.safeParse(value.trim());
+  if (!emailResult.success) {
+    ctx.addIssue({
+      code: "custom",
+      message: emailResult.error.issues[0]?.message ?? "Informe um e-mail válido.",
+    });
+  }
+});
 
 const optionalNullableTrimmed = z
   .string()
@@ -45,12 +73,44 @@ export const customerEmailField = z.email("Informe um e-mail válido.");
 const cpfCnpjField = z
   .string()
   .optional()
+  .superRefine((value, ctx) => {
+    const digits = onlyDigits(value ?? "");
+    if (digits.length === 0) return;
+
+    if (digits.length < 11) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CPF ou CNPJ incompleto",
+      });
+      return;
+    }
+
+    if (digits.length > 11 && digits.length < 14) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ incompleto",
+      });
+      return;
+    }
+
+    if (digits.length === 11 && !isValidCpf(digits)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CPF inválido",
+      });
+      return;
+    }
+
+    if (digits.length === 14 && !isValidCnpj(digits)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ inválido",
+      });
+    }
+  })
   .transform((value) => {
     const digits = onlyDigits(value ?? "");
     return digits.length > 0 ? digits : undefined;
-  })
-  .refine((value) => !value || value.length === 11 || value.length === 14, {
-    message: "Informe um CPF ou CNPJ válido.",
   });
 
 const birthDateField = z
@@ -103,8 +163,8 @@ export function hasCompleteAddress(address?: CustomerAddress | null): boolean {
 
 const customerFormBaseSchema = z.object({
   fullName: customerFullNameField,
-  phone: customerPhoneField,
-  email: customerEmailField,
+  phone: optionalPhoneField,
+  email: optionalEmailField,
   cpfCnpj: cpfCnpjField,
   nickname: optionalNullableTrimmed,
   birthDate: birthDateField,
@@ -149,6 +209,22 @@ export const customerFormSchema = customerFormBaseSchema.superRefine((data, ctx)
 
   if (!data.includeVehicle) return;
 
+  if (!data.vehicle.brand?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["vehicle", "brand"],
+      message: "Informe a marca.",
+    });
+  }
+
+  if (!data.vehicle.model?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["vehicle", "model"],
+      message: "Informe o modelo.",
+    });
+  }
+
   const plate = normalizePlate(data.vehicle.plate);
   if (plate && plate.length !== 7) {
     ctx.addIssue({
@@ -190,7 +266,7 @@ export function customerToFormDefaults(
 ): CustomerFormInput {
   return {
     fullName: customer.fullName ?? "",
-    phone: customer.phone ?? "",
+    phone: customer.phone ? formatPhone(customer.phone) : "",
     email: customer.email ?? "",
     cpfCnpj: customer.cpfCnpj ? formatCpfCnpj(customer.cpfCnpj) : "",
     nickname: customer.nickname ?? "",
@@ -241,14 +317,32 @@ function buildAddressPayload(address: CustomerFormValues["address"]): CustomerAd
 }
 
 export function mapCustomerFormToPayload(values: CustomerFormValues): CreateCustomerPayload {
+  const phoneDigits = onlyDigits(values.phone ?? "");
+  const phone = phoneDigits.length > 0 ? phoneDigits : null;
+  const email = values.email.trim() ? values.email.trim() : null;
+
   return {
     fullName: values.fullName.trim(),
-    phone: onlyDigits(values.phone),
-    email: values.email.trim(),
+    phone,
+    email,
     cpfCnpj: values.cpfCnpj ?? null,
     nickname: values.nickname ?? null,
     birthDate: values.birthDate ?? null,
     address: values.includeAddress ? buildAddressPayload(values.address) : null,
+  };
+}
+
+export function mapCustomerFormToUpdatePayload(values: CustomerFormValues): UpdateCustomerPayload {
+  const payload = mapCustomerFormToPayload(values);
+
+  return {
+    fullName: payload.fullName,
+    cpfCnpj: payload.cpfCnpj,
+    nickname: payload.nickname,
+    birthDate: payload.birthDate,
+    address: payload.address,
+    ...(payload.phone ? { phone: payload.phone } : {}),
+    ...(payload.email ? { email: payload.email } : {}),
   };
 }
 

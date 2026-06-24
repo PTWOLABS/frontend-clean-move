@@ -38,6 +38,7 @@ function makeAgendaAppointment({
         name: "Consultoria de Detailing",
         durationInMinutes: 60,
         priceInCents: 15000,
+        currentResourceStatus: "UNCHANGED",
       },
     ],
   };

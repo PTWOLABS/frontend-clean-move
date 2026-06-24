@@ -83,7 +83,7 @@ export function AppointmentStep({
             icon={CarFront}
             disabled={hasVehicle}
             onClick={onVehicleClick}
-            error={errors.vehicleModel?.message}
+            error={errors.vehicleBrand?.message ?? errors.vehicleModel?.message}
           />
         </div>
 

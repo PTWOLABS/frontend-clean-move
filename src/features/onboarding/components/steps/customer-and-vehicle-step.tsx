@@ -79,7 +79,7 @@ export function CustomerAndVehicleStep({
             </p>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2">
             <StandartInputField
               id="onboarding-vehicle-plate"
               name="vehiclePlate"
@@ -92,22 +92,34 @@ export function CustomerAndVehicleStep({
             />
 
             <StandartInputField
-              id="onboarding-vehicle-model"
-              name="vehicleModel"
-              label="Marca/Modelo"
-              placeholder="Ex.: Honda Civic"
-              autoComplete="off"
-              icon={CarFront}
-              className="shadow-xs"
-            />
-
-            <StandartInputField
               id="onboarding-vehicle-color"
               name="vehicleColor"
               label="Cor"
               placeholder="Ex.: Preto"
               autoComplete="off"
               icon={Palette}
+              className="shadow-xs"
+            />
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <StandartInputField
+              id="onboarding-vehicle-brand"
+              name="vehicleBrand"
+              label="Marca"
+              placeholder="Ex.: Honda"
+              autoComplete="off"
+              icon={CarFront}
+              className="shadow-xs"
+            />
+
+            <StandartInputField
+              id="onboarding-vehicle-model"
+              name="vehicleModel"
+              label="Modelo"
+              placeholder="Civic"
+              autoComplete="off"
+              icon={CarFront}
               className="shadow-xs"
             />
           </div>

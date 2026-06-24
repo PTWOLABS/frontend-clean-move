@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { HintTooltip, HintTooltipProvider } from "@/shared/components/hint-tooltip";
 import { cn } from "@/shared/utils/cn";
 
-import { formatCpfCnpj, formatPhone } from "../lib/format-customer-catalog";
+import { formatCpfCnpj, formatOptionalContact, formatPhone } from "../lib/format-customer-catalog";
 import type { CustomerWithPrimaryVehicle } from "../types";
 import { CustomerCatalogVehicleCell } from "./customer-catalog-vehicle-cell";
 
@@ -96,7 +96,9 @@ export function CustomerCatalogMobileCards({
                       Apelido: {item.nickname}
                     </p>
                   ) : null}
-                  <p className="truncate text-sm text-muted-foreground">{item.email}</p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {formatOptionalContact(item.email)}
+                  </p>
                 </div>
 
                 <div className="flex shrink-0 flex-col items-end py-0.5">

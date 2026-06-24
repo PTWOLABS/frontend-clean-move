@@ -66,6 +66,7 @@ function getPricedServices(appointment: AppointmentListItem) {
     serviceId: service.id,
     label: service.name.trim() || "Serviço não informado",
     priceInCents: service.priceInCents,
+    currentResourceStatus: service.currentResourceStatus,
   }));
 }
 
@@ -93,6 +94,7 @@ function getVehicleDetails(appointment: AppointmentListItem): AppointmentVehicle
     brand,
     model,
     displayName,
+    currentResourceStatus: appointment.vehicle.currentResourceStatus,
   };
 }
 
@@ -153,6 +155,7 @@ export function mapAppointmentToCalendarEvent(
     extendedProps: {
       customerId: appointment.customerId,
       customer: getCustomerLabel(appointment),
+      customerResourceStatus: appointment.customer?.currentResourceStatus,
       serviceIds: getServiceOptions(appointment),
       services: getPricedServices(appointment),
       service: services.label,
@@ -161,6 +164,7 @@ export function mapAppointmentToCalendarEvent(
       endsAt: explicitEnd,
       description,
       discountValue: getDiscountValue(appointment),
+      discountInCents: appointment.discountInCents ?? 0,
       notes: description || "Sem observações operacionais.",
       tone: getAppointmentTone(appointment.status),
       status: appointment.status,
@@ -174,6 +178,13 @@ export function mapAppointmentsToCalendarEvents(
   const appointments = response?.appointments ?? [];
 
   return appointments.map(mapAppointmentToCalendarEvent).sort(sortAppointmentsByStart);
+}
+
+export function getAppointmentCalendarAmountInCents(event: AppointmentCalendarEvent) {
+  const servicesAmountInCents =
+    event.extendedProps.services?.reduce((total, service) => total + service.priceInCents, 0) ?? 0;
+
+  return Math.max(servicesAmountInCents - (event.extendedProps.discountInCents ?? 0), 0);
 }
 
 export function getAppointmentsForDate(events: AppointmentCalendarEvent[], date: Date) {

@@ -8,6 +8,7 @@ import { cn } from "@/shared/utils/cn";
 
 import {
   formatCpfCnpj,
+  formatOptionalContact,
   formatPhone,
   formatVehicleName,
   getCustomerVehiclesCount,
@@ -102,8 +103,10 @@ export function CustomerCatalogDetailsPanel({
             <DetailSection label="Contato">
               <div className="min-w-0 space-y-1 text-sm text-foreground">
                 <p className="truncate">{formatPhone(customer.phone)}</p>
-                <HintTooltip label={customer.email}>
-                  <p className="truncate text-muted-foreground">{customer.email}</p>
+                <HintTooltip label={formatOptionalContact(customer.email)}>
+                  <p className="truncate text-muted-foreground">
+                    {formatOptionalContact(customer.email)}
+                  </p>
                 </HintTooltip>
               </div>
             </DetailSection>

@@ -11,11 +11,7 @@ import {
 import { RowIconActions } from "@/shared/components/row-icon-actions";
 import { catalogTableRowClass } from "@/shared/components/catalog-table-row-selection";
 
-import {
-  formatVehicleName,
-  formatVehiclePlate,
-  formatVehicleYear,
-} from "../lib/format-vehicle-catalog";
+import { formatVehiclePlate, formatVehicleYear } from "../lib/format-vehicle-catalog";
 import { isSameVehicleItem } from "../lib/is-same-vehicle-item";
 import type { VehicleDto } from "../types";
 import { VehicleCatalogCustomerCell } from "./vehicle-catalog-customer-cell";
@@ -109,7 +105,7 @@ export function VehicleCatalogTable({
                   />
                 </TableCell>
                 <TableCell>{item.brand?.trim() || "—"}</TableCell>
-                <TableCell>{item.model?.trim() || formatVehicleName(item)}</TableCell>
+                <TableCell>{item.model?.trim() || "—"}</TableCell>
                 <TableCell>{item.color?.trim() || "—"}</TableCell>
                 <TableCell>{formatVehicleYear(item)}</TableCell>
                 <TableCell className="pr-4 text-right" onClick={(event) => event.stopPropagation()}>

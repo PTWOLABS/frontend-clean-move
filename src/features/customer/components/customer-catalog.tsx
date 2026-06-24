@@ -196,38 +196,40 @@ export function CustomerCatalog() {
             }}
           />
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1 space-y-6">
-              {showListSkeleton ? (
-                <CustomerCatalogListSkeleton count={PAGE_SIZE} />
-              ) : items.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-                  Nenhum cliente encontrado para os filtros atuais.
-                </p>
-              ) : (
-                <>
-                  <CustomerCatalogTable
-                    items={items}
-                    selectedCustomer={resolvedSelectedCustomer}
-                    onSelect={setSelectedCustomer}
-                    onEdit={(item) => {
-                      setEditingCustomer(item);
-                      setCustomerSheetOpen(true);
-                    }}
-                    onDelete={(item) => setDeleteTarget(item)}
-                    onShowAllVehicles={setVehiclesDialogCustomer}
-                  />
-                  <CustomerCatalogMobileCards
-                    items={items}
-                    onEdit={(item) => {
-                      setEditingCustomer(item);
-                      setCustomerSheetOpen(true);
-                    }}
-                    onDelete={(item) => setDeleteTarget(item)}
-                    onShowAllVehicles={setVehiclesDialogCustomer}
-                  />
-                </>
-              )}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
+              <div className="space-y-6">
+                {showListSkeleton ? (
+                  <CustomerCatalogListSkeleton count={PAGE_SIZE} />
+                ) : items.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum cliente encontrado para os filtros atuais.
+                  </p>
+                ) : (
+                  <>
+                    <CustomerCatalogTable
+                      items={items}
+                      selectedCustomer={resolvedSelectedCustomer}
+                      onSelect={setSelectedCustomer}
+                      onEdit={(item) => {
+                        setEditingCustomer(item);
+                        setCustomerSheetOpen(true);
+                      }}
+                      onDelete={(item) => setDeleteTarget(item)}
+                      onShowAllVehicles={setVehiclesDialogCustomer}
+                    />
+                    <CustomerCatalogMobileCards
+                      items={items}
+                      onEdit={(item) => {
+                        setEditingCustomer(item);
+                        setCustomerSheetOpen(true);
+                      }}
+                      onDelete={(item) => setDeleteTarget(item)}
+                      onShowAllVehicles={setVehiclesDialogCustomer}
+                    />
+                  </>
+                )}
+              </div>
 
               {!showListSkeleton && total > 0 ? (
                 <CustomerCatalogPagination
@@ -236,6 +238,7 @@ export function CustomerCatalog() {
                   total={total}
                   isFetching={customersQuery.isFetching}
                   onPageChange={setPage}
+                  className="mt-auto shrink-0"
                 />
               ) : null}
             </div>

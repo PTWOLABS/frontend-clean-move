@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   FormProvider,
   useForm,
@@ -27,27 +28,33 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ApiError } from "@/shared/api/httpClient";
 import {
-  CPF_MASK,
   cpfCnpjMaskModify,
   DATE_MASK,
-  PHONE_MASK,
+  getCpfCnpjMask,
+  getPhoneMask,
+  phoneMaskModify,
   ZIP_CODE_MASK,
 } from "@/shared/constants/input-masks";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 
 import { useCreateCustomer } from "../hooks/use-create-customer";
 import { useUpdateCustomer } from "../hooks/use-update-customer";
+import { getCustomerMutationFeedbackError } from "../lib/customer-mutation-feedback";
+import { isCustomerPartialCreationError } from "../lib/customer-partial-creation-error";
+import { mapCustomerApiFieldErrorsToForm } from "../lib/map-api-field-to-form";
 import {
   customerFormDefaultValues,
   customerFormSchema,
   customerToFormDefaults,
   emptyAddressFormValues,
   emptyVehicleFormValues,
+  hasVehicleData,
   type CustomerFormInput,
   type CustomerFormValues,
 } from "../schemas/customer-form-schema";
-import type { CustomerWithPrimaryVehicle } from "../types";
+import type { CustomerVehicleDto, CustomerWithPrimaryVehicle } from "../types";
 
 type CustomerFormSheetProps = {
   open: boolean;
@@ -55,11 +62,35 @@ type CustomerFormSheetProps = {
   editingCustomer: CustomerWithPrimaryVehicle | null;
 };
 
+function applyCustomerApiFieldErrors(
+  error: unknown,
+  mutationType: "create" | "update",
+  setError: ReturnType<
+    typeof useForm<CustomerFormInput, undefined, CustomerFormValues>
+  >["setError"],
+) {
+  if (!(error instanceof ApiError)) return;
+
+  const feedback = getCustomerMutationFeedbackError(error, mutationType);
+  if (!feedback.fieldErrors) return;
+
+  const formErrors = mapCustomerApiFieldErrorsToForm(feedback.fieldErrors);
+  for (const [field, message] of Object.entries(formErrors)) {
+    if (!message) continue;
+    setError(field as keyof CustomerFormInput, { type: "server", message });
+  }
+}
+
 export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: CustomerFormSheetProps) {
+  const router = useRouter();
   const { mutate: createMutate, isPending: isCreatePending } = useCreateCustomer();
   const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateCustomer();
+  const [persistedCustomer, setPersistedCustomer] = useState<CustomerWithPrimaryVehicle | null>(
+    null,
+  );
 
-  const isEditMode = Boolean(editingCustomer?.id);
+  const activeCustomer = editingCustomer ?? persistedCustomer;
+  const isEditMode = Boolean(activeCustomer?.id);
   const isPending = isCreatePending || isUpdatePending;
 
   const methods = useForm<CustomerFormInput, undefined, CustomerFormValues>({
@@ -69,7 +100,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
       CustomerFormValues
     >,
     defaultValues: customerFormDefaultValues,
-    mode: isEditMode ? "onChange" : "onBlur",
+    mode: "onSubmit",
     reValidateMode: "onChange",
   });
 
@@ -87,6 +118,17 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
 
   const includeAddress = useWatch({ control, name: "includeAddress" });
   const includeVehicle = useWatch({ control, name: "includeVehicle" });
+  const cpfCnpjValue = useWatch({ control, name: "cpfCnpj" });
+  const phoneValue = useWatch({ control, name: "phone" });
+  const vehicleId = useWatch({ control, name: "vehicle.id" });
+  const cpfCnpjMask = getCpfCnpjMask(cpfCnpjValue ?? "");
+  const phoneMask = getPhoneMask(phoneValue ?? "");
+  const needsVehicleRecovery = Boolean(persistedCustomer) && includeVehicle && !vehicleId;
+
+  const primaryVehicleFromCustomer =
+    activeCustomer?.vehicles?.[0] ?? activeCustomer?.primaryVehicle ?? null;
+  const hasExistingPrimaryVehicle = isEditMode && Boolean(primaryVehicleFromCustomer?.id);
+  const showVehicleSection = includeVehicle || hasExistingPrimaryVehicle;
 
   const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(
     zipCodeAutofillForm,
@@ -106,19 +148,61 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
     if (!open) return;
 
     if (editingCustomer) {
-      reset(
-        customerToFormDefaults(
-          editingCustomer,
-          editingCustomer.vehicles?.[0] ?? editingCustomer.primaryVehicle,
-        ),
-      );
+      const primaryVehicle =
+        editingCustomer.vehicles?.[0] ?? editingCustomer.primaryVehicle ?? null;
+      const defaults = customerToFormDefaults(editingCustomer, primaryVehicle);
+      reset(defaults);
       return;
     }
 
+    if (persistedCustomer) return;
+
     reset(customerFormDefaultValues);
-  }, [open, editingCustomer, reset]);
+  }, [open, editingCustomer, persistedCustomer, reset]);
+
+  useEffect(() => {
+    if (!open || !hasExistingPrimaryVehicle || !activeCustomer) return;
+
+    if (!includeVehicle) {
+      setValue("includeVehicle", true, { shouldValidate: true, shouldDirty: false });
+    }
+
+    const currentVehicle = getValues("vehicle");
+    if (currentVehicle?.id || hasVehicleFormData(currentVehicle)) return;
+    if (!hasVehicleData(primaryVehicleFromCustomer)) return;
+
+    setValue(
+      "vehicle",
+      customerToFormDefaults(activeCustomer, primaryVehicleFromCustomer).vehicle,
+      { shouldValidate: true, shouldDirty: false },
+    );
+  }, [
+    open,
+    activeCustomer,
+    getValues,
+    hasExistingPrimaryVehicle,
+    includeVehicle,
+    primaryVehicleFromCustomer,
+    setValue,
+  ]);
+
+  const handleSheetOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setPersistedCustomer(null);
+    }
+
+    onOpenChange(nextOpen);
+  };
+
+  const handleNavigateToAddVehicle = () => {
+    if (!activeCustomer?.id) return;
+
+    handleSheetOpenChange(false);
+    router.push(`/vehicles?new=true&customerId=${encodeURIComponent(activeCustomer.id)}`);
+  };
 
   const handleCloseAfterSave = () => {
+    setPersistedCustomer(null);
     reset(customerFormDefaultValues);
     onOpenChange(false);
   };
@@ -131,28 +215,65 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   };
 
   const handleIncludeVehicleChange = (checked: boolean) => {
+    if (hasExistingPrimaryVehicle) return;
+
     setValue("includeVehicle", checked, { shouldDirty: true, shouldValidate: true });
+
     if (!checked) {
-      setValue("vehicle", emptyVehicleFormValues, { shouldDirty: true, shouldValidate: true });
+      if (!isEditMode) {
+        setValue("vehicle", emptyVehicleFormValues, { shouldDirty: true, shouldValidate: true });
+      }
+      return;
     }
+
+    if (!isEditMode) return;
+
+    const currentVehicle = getValues("vehicle");
+    if (currentVehicle?.id || hasVehicleFormData(currentVehicle)) {
+      return;
+    }
+
+    const restoreSource = editingCustomer ?? persistedCustomer;
+    if (!restoreSource) return;
+
+    const primaryVehicle = restoreSource.vehicles?.[0] ?? restoreSource.primaryVehicle ?? null;
+    if (!hasVehicleData(primaryVehicle)) return;
+
+    setValue("vehicle", customerToFormDefaults(restoreSource, primaryVehicle).vehicle, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   };
 
   const onSubmit = (values: CustomerFormValues) => {
     if (isEditMode) {
-      if (!editingCustomer?.id) {
+      if (!activeCustomer?.id) {
         toast.error("Identificador do cliente em falta. Atualize a página.");
         return;
       }
 
-      if (!isDirty) {
-        toast.info("Nenhuma alteração para guardar.");
+      if (!isDirty && !needsVehicleRecovery) {
+        toast.info("Nenhuma alteração para salvar.");
         return;
       }
 
       updateMutate(
-        { customerId: editingCustomer.id, values },
+        { customerId: activeCustomer.id, values },
         {
           onSuccess: handleCloseAfterSave,
+          onError: (error) => {
+            if (error instanceof ApiError && error.statusCode === 409) {
+              if (error.message.includes("Vehicle already registered")) {
+                setError("vehicle.plate", {
+                  type: "server",
+                  message: "Já existe um veículo com essa placa.",
+                });
+              }
+              return;
+            }
+
+            applyCustomerApiFieldErrors(error, "update", setError);
+          },
         },
       );
       return;
@@ -160,11 +281,27 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
 
     createMutate(values, {
       onSuccess: handleCloseAfterSave,
+      onError: (error) => {
+        if (isCustomerPartialCreationError(error)) {
+          const currentVehicle = getValues("vehicle");
+          const defaults = {
+            ...customerToFormDefaults(error.customer, null),
+            includeVehicle: values.includeVehicle,
+            vehicle: currentVehicle,
+          };
+          setPersistedCustomer(error.customer);
+          clearErrors();
+          reset(defaults, { keepDirty: true });
+          return;
+        }
+
+        applyCustomerApiFieldErrors(error, "create", setError);
+      },
     });
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-xl">
         <SheetHeader className="text-left">
           <SheetTitle>{isEditMode ? "Editar cliente" : "Novo cliente"}</SheetTitle>
@@ -175,7 +312,11 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
         </SheetHeader>
 
         <FormProvider {...methods}>
-          <form className="flex flex-1 flex-col gap-6 py-6" onSubmit={handleSubmit(onSubmit)}>
+          <form
+            className="flex flex-1 flex-col gap-6 py-6"
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <div className="space-y-4">
               <InputField
                 control={fieldControl}
@@ -189,16 +330,16 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   control={fieldControl}
                   name="phone"
                   label="Telefone"
-                  required
-                  mask={PHONE_MASK}
+                  mask={phoneMask}
+                  modify={phoneMaskModify}
                   inputMode="tel"
                 />
                 <InputField
                   control={fieldControl}
                   name="email"
                   label="E-mail"
-                  required
-                  type="email"
+                  type="text"
+                  inputMode="email"
                   autoComplete="email"
                 />
               </div>
@@ -207,7 +348,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   control={fieldControl}
                   name="cpfCnpj"
                   label="CPF/CNPJ"
-                  mask={CPF_MASK}
+                  mask={cpfCnpjMask}
                   modify={cpfCnpjMaskModify}
                   inputMode="numeric"
                 />
@@ -328,15 +469,16 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
               >
                 {({ field }) => (
                   <Switch
-                    checked={field.value}
+                    checked={hasExistingPrimaryVehicle ? true : field.value}
                     onCheckedChange={handleIncludeVehicleChange}
+                    disabled={hasExistingPrimaryVehicle || isPending}
                     aria-label="Incluir veículo"
                     className="shrink-0"
                   />
                 )}
               </FormField>
 
-              {includeVehicle ? (
+              {showVehicleSection ? (
                 <div className="space-y-4 rounded-lg border border-border p-4">
                   <h3 className="text-sm font-semibold text-foreground">Veículo principal</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -355,8 +497,18 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <InputField control={fieldControl} name="vehicle.brand" label="Marca" />
-                    <InputField control={fieldControl} name="vehicle.model" label="Modelo" />
+                    <InputField
+                      control={fieldControl}
+                      name="vehicle.brand"
+                      label="Marca"
+                      required
+                    />
+                    <InputField
+                      control={fieldControl}
+                      name="vehicle.model"
+                      label="Modelo"
+                      required
+                    />
                   </div>
                   <InputField control={fieldControl} name="vehicle.color" label="Cor" />
                   <FormField
@@ -376,6 +528,19 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   </FormField>
                 </div>
               ) : null}
+
+              {isEditMode && activeCustomer?.id ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full gap-2 sm:w-auto"
+                  disabled={isPending}
+                  onClick={handleNavigateToAddVehicle}
+                >
+                  <Plus className="size-4" aria-hidden />
+                  Adicionar outro veículo
+                </Button>
+              ) : null}
             </div>
 
             <SheetFooter className="mt-auto flex-col gap-2 border-t border-border p-0 pt-4 sm:flex-row sm:justify-end">
@@ -384,21 +549,34 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                 variant="outline"
                 className="w-full sm:w-auto"
                 disabled={isPending}
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleSheetOpenChange(false)}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={isPending || (isEditMode && !isDirty)}
+                disabled={isPending || (isEditMode && !isDirty && !needsVehicleRecovery)}
               >
-                {isPending ? "A guardar..." : isEditMode ? "Guardar alterações" : "Criar cliente"}
+                {isPending ? "Salvando..." : isEditMode ? "Salvar alterações" : "Criar cliente"}
               </Button>
             </SheetFooter>
           </form>
         </FormProvider>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function hasVehicleFormData(vehicle?: CustomerFormInput["vehicle"] | CustomerVehicleDto | null) {
+  if (!vehicle) return false;
+
+  return Boolean(
+    vehicle.plate?.trim() ||
+    vehicle.brand?.trim() ||
+    vehicle.model?.trim() ||
+    vehicle.color?.trim() ||
+    vehicle.year != null ||
+    vehicle.notes?.trim(),
   );
 }

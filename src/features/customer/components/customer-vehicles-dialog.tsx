@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listVehicles } from "@/features/vehicle/api/list-vehicles";
-import { formatVehicleName } from "@/features/vehicle/lib/format-vehicle-catalog";
+import { formatVehicleName } from "@/features/customer/lib/format-customer-catalog";
 import type { VehicleDto } from "@/features/vehicle/types";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 

@@ -14,6 +14,14 @@ export const SERVICE_MUTATION_ERROR_OVERRIDE: MutationFeedbackErrorOverride = {
     title: "Serviço não encontrado.",
     message: "O serviço pode ter sido removido. Atualize a página.",
   },
+  messages: [
+    {
+      statusCode: 400,
+      match: "A service with this name already exists.",
+      title: "Serviço já cadastrado.",
+      message: "Já existe um serviço com este nome.",
+    },
+  ],
 };
 
 export function getServiceMutationFeedbackError(

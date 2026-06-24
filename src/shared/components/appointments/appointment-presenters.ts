@@ -12,12 +12,14 @@ import {
 import { formatBrlFromCents, formatReaisToBrlInput } from "@/shared/money/format-brl-money";
 import type { AppointmentMobileCardItem } from "./appointment-mobile-cards";
 import type { AppointmentDisplayStatus } from "@/shared/utils/appointments-status";
+import type { ResourceStatus } from "@/features/appointments/types/appointments-dto";
 
 export type AppointmentPresentationService = {
   id: string;
   name: string;
   durationInMinutes: number | null;
   priceInCents: number;
+  currentResourceStatus: ResourceStatus;
 };
 
 export type AppointmentPresentationItem = {
@@ -52,6 +54,7 @@ function mapAppointmentServices(
     name: service.name.trim() || "Serviço não informado",
     durationInMinutes: service.durationInMinutes,
     priceInCents: service.priceInCents,
+    currentResourceStatus: service.currentResourceStatus,
   }));
 }
 

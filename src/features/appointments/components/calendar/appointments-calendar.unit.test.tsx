@@ -2,11 +2,12 @@ import type { DatesSetArg, EventClickArg } from "@fullcalendar/core/index.js";
 import type { DayCellContentArg, EventDropArg } from "@fullcalendar/core/index.js";
 import type { DateClickArg } from "@fullcalendar/interaction/index.js";
 import type FullCalendar from "@fullcalendar/react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode, RefObject } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { renderWithProviders } from "@/test/test-utils";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 const updateAppointmentMutationMock = vi.hoisted(() => ({
@@ -332,7 +333,7 @@ function renderCalendar(props: Partial<React.ComponentProps<typeof AppointmentsC
     onStatusChange: vi.fn(),
   };
 
-  return render(<AppointmentsCalendar {...defaultProps} {...props} />);
+  return renderWithProviders(<AppointmentsCalendar {...defaultProps} {...props} />);
 }
 
 describe("AppointmentsCalendar", () => {

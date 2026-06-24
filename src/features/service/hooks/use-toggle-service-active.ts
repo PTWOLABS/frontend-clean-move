@@ -4,10 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { ApiError } from "@/shared/api/httpClient";
-import { QUERY_KEYS } from "@/shared/constants/query-keys";
 
 import { updateService } from "../api/update-service";
 import { getServiceMutationFeedbackError } from "../lib/service-mutation-feedback";
+import { invalidateServiceQueries } from "../lib/invalidate-service-queries";
 import type { ServiceItem } from "../types";
 
 export function useToggleServiceActive() {
@@ -22,9 +22,7 @@ export function useToggleServiceActive() {
       return updateService(item.id, { isActive: !item.isActive });
     },
     onSuccess: (_data, item) => {
-      void queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.services(),
-      });
+      invalidateServiceQueries(queryClient);
       toast.success(
         item.isActive ? "Serviço desativado com sucesso." : "Serviço ativado com sucesso.",
       );

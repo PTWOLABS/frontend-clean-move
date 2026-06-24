@@ -10,8 +10,9 @@ import { createVehicle } from "@/features/vehicle/api/create-vehicle";
 import { updateVehicle } from "@/features/vehicle/api/update-vehicle";
 
 import { updateCustomer } from "../api/update-customer";
+import { getCustomerMutationFeedbackError } from "../lib/customer-mutation-feedback";
 import {
-  mapCustomerFormToPayload,
+  mapCustomerFormToUpdatePayload,
   mapVehicleFormToPayload,
   type CustomerFormValues,
 } from "../schemas/customer-form-schema";
@@ -26,7 +27,7 @@ export function useUpdateCustomer() {
 
   return useMutation({
     mutationFn: async ({ customerId, values }: UpdateCustomerArgs) => {
-      await updateCustomer(customerId, mapCustomerFormToPayload(values));
+      await updateCustomer(customerId, mapCustomerFormToUpdatePayload(values));
 
       const vehiclePayload = mapVehicleFormToPayload(values);
 
@@ -40,13 +41,20 @@ export function useUpdateCustomer() {
     },
     onSuccess: (_, { customerId }) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customerOptions() });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles(customerId) });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicleOptions() });
       toast.success("Cliente atualizado com sucesso.");
     },
     onError: (error) => {
       if (!(error instanceof ApiError)) return;
 
       if (error.statusCode === 409) {
+        if (error.message.includes("Vehicle already registered")) {
+          toast.error("Já existe um veículo com essa placa.");
+          return;
+        }
+
         toast.error("Já existe cadastro ativo com esses dados.");
         return;
       }
@@ -56,12 +64,12 @@ export function useUpdateCustomer() {
         return;
       }
 
-      if (error.statusCode === 400) {
-        toast.error(error.message || "Verifique os dados informados.");
-        return;
-      }
+      const feedback = getCustomerMutationFeedbackError(error, "update");
 
-      toast.error("Não foi possível atualizar o cliente. Tente novamente mais tarde.");
+      toast.error(feedback.title, {
+        id: feedback.id,
+        description: feedback.description,
+      });
     },
   });
 }

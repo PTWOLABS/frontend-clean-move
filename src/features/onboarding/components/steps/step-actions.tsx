@@ -29,6 +29,7 @@ const customerVehicleStepFieldNames = [
   "customerPhone",
   "customerEmail",
   "vehiclePlate",
+  "vehicleBrand",
   "vehicleModel",
   "vehicleColor",
 ] as const satisfies readonly FieldPath<OnboardingFormValues>[];
@@ -68,6 +69,7 @@ const customerVehicleStepDefaultValues = {
   customerPhone: "",
   customerEmail: "",
   vehiclePlate: "",
+  vehicleBrand: "",
   vehicleModel: "",
   vehicleColor: "",
 } satisfies Partial<OnboardingFormValues>;

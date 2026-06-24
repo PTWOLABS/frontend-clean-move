@@ -65,12 +65,14 @@ export function VehicleCatalog() {
 
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
   const shouldOpenCreateSheet = searchParams.get("new") === "true";
+  const createCustomerIdParam = searchParams.get("customerId")?.trim() ?? "";
 
-  const removeNewSearchParam = useCallback(() => {
-    if (!searchParams.has("new")) return;
+  const removeCreateSearchParams = useCallback(() => {
+    if (!searchParams.has("new") && !searchParams.has("customerId")) return;
 
     const nextSearchParams = new URLSearchParams(searchParams.toString());
     nextSearchParams.delete("new");
+    nextSearchParams.delete("customerId");
     const queryString = nextSearchParams.toString();
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
@@ -120,8 +122,23 @@ export function VehicleCatalog() {
     if (createParamHandledRef.current) return;
 
     createParamHandledRef.current = true;
-    openCreateFormFromHeader();
-  }, [openCreateFormFromHeader, shouldOpenCreateSheet]);
+
+    /* eslint-disable react-hooks/set-state-in-effect -- abre o sheet a partir de ?new=true ou ?customerId= na URL */
+    if (createCustomerIdParam) {
+      openCreateForm(createCustomerIdParam);
+    } else {
+      openCreateFormFromHeader();
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+
+    removeCreateSearchParams();
+  }, [
+    createCustomerIdParam,
+    openCreateForm,
+    openCreateFormFromHeader,
+    removeCreateSearchParams,
+    shouldOpenCreateSheet,
+  ]);
 
   const listFilters = useMemo(
     () =>
@@ -198,7 +215,7 @@ export function VehicleCatalog() {
             setEditingVehicle(null);
             setCreateCustomerId("");
             setShowCustomerPicker(false);
-            removeNewSearchParam();
+            removeCreateSearchParams();
           }
         }}
         customerId={createCustomerId}
@@ -272,50 +289,52 @@ export function VehicleCatalog() {
             }}
           />
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1 space-y-6">
-              {showListSkeleton ? (
-                <VehicleCatalogListSkeleton count={PAGE_SIZE} />
-              ) : items.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-                  Nenhum veículo encontrado para os filtros atuais.
-                </p>
-              ) : (
-                <>
-                  <VehicleCatalogTable
-                    items={items}
-                    selectedVehicle={resolvedSelectedVehicle}
-                    onSelect={setSelectedVehicle}
-                    getCustomerLabel={getCustomerLabel}
-                    customerVehicleCounts={countsByCustomerId}
-                    isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
-                    onShowAllVehicles={handleShowAllVehicles}
-                    onAddVehicle={(item) => openCreateForm(item.customerId)}
-                    onEdit={(item) => {
-                      setVehicleFormSession((current) => current + 1);
-                      setEditingVehicle(item);
-                      setShowCustomerPicker(false);
-                      setVehicleSheetOpen(true);
-                    }}
-                    onDelete={setDeleteTarget}
-                  />
-                  <VehicleCatalogMobileCards
-                    items={items}
-                    getCustomerLabel={getCustomerLabel}
-                    customerVehicleCounts={countsByCustomerId}
-                    isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
-                    onShowAllVehicles={handleShowAllVehicles}
-                    onAddVehicle={(item) => openCreateForm(item.customerId)}
-                    onEdit={(item) => {
-                      setVehicleFormSession((current) => current + 1);
-                      setEditingVehicle(item);
-                      setShowCustomerPicker(false);
-                      setVehicleSheetOpen(true);
-                    }}
-                    onDelete={setDeleteTarget}
-                  />
-                </>
-              )}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
+              <div className="space-y-6">
+                {showListSkeleton ? (
+                  <VehicleCatalogListSkeleton count={PAGE_SIZE} />
+                ) : items.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum veículo encontrado para os filtros atuais.
+                  </p>
+                ) : (
+                  <>
+                    <VehicleCatalogTable
+                      items={items}
+                      selectedVehicle={resolvedSelectedVehicle}
+                      onSelect={setSelectedVehicle}
+                      getCustomerLabel={getCustomerLabel}
+                      customerVehicleCounts={countsByCustomerId}
+                      isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
+                      onShowAllVehicles={handleShowAllVehicles}
+                      onAddVehicle={(item) => openCreateForm(item.customerId)}
+                      onEdit={(item) => {
+                        setVehicleFormSession((current) => current + 1);
+                        setEditingVehicle(item);
+                        setShowCustomerPicker(false);
+                        setVehicleSheetOpen(true);
+                      }}
+                      onDelete={setDeleteTarget}
+                    />
+                    <VehicleCatalogMobileCards
+                      items={items}
+                      getCustomerLabel={getCustomerLabel}
+                      customerVehicleCounts={countsByCustomerId}
+                      isCustomerVehicleCountsLoading={isCustomerVehicleCountsLoading}
+                      onShowAllVehicles={handleShowAllVehicles}
+                      onAddVehicle={(item) => openCreateForm(item.customerId)}
+                      onEdit={(item) => {
+                        setVehicleFormSession((current) => current + 1);
+                        setEditingVehicle(item);
+                        setShowCustomerPicker(false);
+                        setVehicleSheetOpen(true);
+                      }}
+                      onDelete={setDeleteTarget}
+                    />
+                  </>
+                )}
+              </div>
 
               {!showListSkeleton && total > 0 ? (
                 <VehicleCatalogPagination
@@ -324,6 +343,7 @@ export function VehicleCatalog() {
                   total={total}
                   isFetching={vehiclesQuery.isFetching}
                   onPageChange={setPage}
+                  className="mt-auto shrink-0"
                 />
               ) : null}
             </div>

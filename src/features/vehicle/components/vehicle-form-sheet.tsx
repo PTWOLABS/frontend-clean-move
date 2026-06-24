@@ -263,8 +263,8 @@ export function VehicleFormSheet({
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <InputField control={fieldControl} name="brand" label="Marca" />
-                <InputField control={fieldControl} name="model" label="Modelo" />
+                <InputField control={fieldControl} name="brand" label="Marca" required />
+                <InputField control={fieldControl} name="model" label="Modelo" required />
               </div>
               <InputField control={fieldControl} name="color" label="Cor" />
               <FormField
@@ -301,7 +301,7 @@ export function VehicleFormSheet({
                   isPending || (isEditMode && !isDirty) || (!isEditMode && !canSubmitCreate)
                 }
               >
-                {isPending ? "A guardar..." : isEditMode ? "Guardar alterações" : "Criar veículo"}
+                {isPending ? "Salvando..." : isEditMode ? "Salvar alterações" : "Criar veículo"}
               </Button>
             </SheetFooter>
           </form>

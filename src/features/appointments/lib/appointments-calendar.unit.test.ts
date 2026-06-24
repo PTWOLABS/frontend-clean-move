@@ -4,6 +4,7 @@ import type { AppointmentDTO } from "../types/appointments-dto";
 import {
   findNextAppointment,
   formatCalendarRange,
+  getAppointmentCalendarAmountInCents,
   getAppointmentsForDate,
   getStatusLabel,
   getViewLabel,
@@ -18,6 +19,7 @@ const response: AppointmentDTO = {
       customerId: "customer-2",
       customer: {
         fullName: "Marina Oliveira",
+        currentResourceStatus: "UNCHANGED",
       },
       vehicleId: "vehicle-2",
       services: [
@@ -27,6 +29,7 @@ const response: AppointmentDTO = {
           category: { id: "cat-detailing", name: "Detailing Automotivo" },
           durationInMinutes: 120,
           priceInCents: 35000,
+          currentResourceStatus: "UNCHANGED",
         },
       ],
       vehicle: {
@@ -35,6 +38,7 @@ const response: AppointmentDTO = {
         model: "Corolla",
         color: "Preto",
         year: 2024,
+        currentResourceStatus: "UNCHANGED",
       },
       startsAt: "2026-05-19T13:00:00.000Z",
       endsAt: "2026-05-19T15:00:00.000Z",
@@ -52,6 +56,7 @@ const response: AppointmentDTO = {
       customerId: "customer-1",
       customer: {
         fullName: "João Pereira",
+        currentResourceStatus: "UPDATED",
       },
       vehicleId: null,
       services: [
@@ -61,6 +66,7 @@ const response: AppointmentDTO = {
           category: { id: "cat-wash", name: "Lavagem" },
           durationInMinutes: 45,
           priceInCents: 9000,
+          currentResourceStatus: "UPDATED",
         },
         {
           id: "service-3",
@@ -68,6 +74,7 @@ const response: AppointmentDTO = {
           category: { id: "cat-interior", name: "Estofamento" },
           durationInMinutes: 30,
           priceInCents: 12000,
+          currentResourceStatus: "DELETED",
         },
       ],
       vehicle: null,
@@ -94,6 +101,7 @@ const response: AppointmentDTO = {
           category: { id: "cat-detailing", name: "Detailing Automotivo" },
           durationInMinutes: 60,
           priceInCents: 15000,
+          currentResourceStatus: "UNCHANGED",
         },
       ],
       vehicle: null,
@@ -121,6 +129,7 @@ describe("appointments-calendar helpers", () => {
     expect(appointments[1]?.end.getMinutes()).toBe(15);
     expect(appointments[1]?.extendedProps.customer).toBe("João Pereira");
     expect(appointments[1]?.extendedProps.customerId).toBe("customer-1");
+    expect(appointments[1]?.extendedProps.customerResourceStatus).toBe("UPDATED");
     expect(appointments[1]?.extendedProps.serviceIds).toEqual([
       { value: "service-1", label: "Lavagem tecnica" },
       { value: "service-3", label: "Higienizacao" },
@@ -132,6 +141,20 @@ describe("appointments-calendar helpers", () => {
       model: "",
       displayName: "Veículo não informado",
     });
+    expect(appointments[1]?.extendedProps.services).toEqual([
+      {
+        serviceId: "service-1",
+        label: "Lavagem tecnica",
+        priceInCents: 9000,
+        currentResourceStatus: "UPDATED",
+      },
+      {
+        serviceId: "service-3",
+        label: "Higienizacao",
+        priceInCents: 12000,
+        currentResourceStatus: "DELETED",
+      },
+    ]);
     expect(appointments[1]?.extendedProps.endsAt).toBeNull();
     expect(appointments[1]?.extendedProps.description).toBe("");
     expect(appointments[1]?.extendedProps.discountValue).toBe("");
@@ -149,6 +172,7 @@ describe("appointments-calendar helpers", () => {
             model: "Corolla",
             color: "Preto",
             year: 2024,
+            currentResourceStatus: "UNCHANGED",
           },
         },
       ],
@@ -159,7 +183,23 @@ describe("appointments-calendar helpers", () => {
       brand: "Toyota",
       model: "Corolla",
       displayName: "Toyota • Corolla",
+      currentResourceStatus: "UNCHANGED",
     });
+  });
+
+  it("maps the appointment discount and computes the discounted calendar amount", () => {
+    const [appointment] = mapAppointmentsToCalendarEvents({
+      appointments: [
+        {
+          ...response.appointments[1]!,
+          discountInCents: 5000,
+        },
+      ],
+    });
+
+    expect(appointment?.extendedProps.discountValue).toBe("50,00");
+    expect(appointment?.extendedProps.discountInCents).toBe(5000);
+    expect(appointment ? getAppointmentCalendarAmountInCents(appointment) : null).toBe(16000);
   });
 
   it("filters only the appointments of the selected day", () => {

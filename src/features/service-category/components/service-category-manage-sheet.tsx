@@ -24,6 +24,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { InputField } from "@/components/ui/form/input-field";
+import {
+  FormControl,
+  FormField as FormFieldController,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form/form-primitives";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
@@ -75,7 +83,6 @@ export function ServiceCategoryManageSheet({
     mode: "onChange",
   });
 
-  const createFieldControl = createForm.control as unknown as Control<FieldValues>;
   const renameFieldControl = renameForm.control as unknown as Control<FieldValues>;
 
   const categories = useMemo(
@@ -140,29 +147,40 @@ export function ServiceCategoryManageSheet({
 
           <div className="flex flex-1 flex-col gap-6 py-6">
             <FormProvider {...createForm}>
-              <form
-                className="flex flex-col gap-3 sm:flex-row sm:items-end"
-                onSubmit={createForm.handleSubmit(handleCreate)}
-              >
-                <div className="min-w-0 flex-1">
-                  <InputField
-                    control={createFieldControl}
-                    name="name"
-                    label="Nova categoria"
-                    required
-                    placeholder="Ex.: Polimento"
-                    autoComplete="off"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="gap-2 shrink-0"
-                  disabled={createMutation.isPending || !createForm.formState.isValid}
-                >
-                  <Plus aria-hidden className="size-4" />
-                  {createMutation.isPending ? "A adicionar…" : "Adicionar"}
-                </Button>
+              <form onSubmit={createForm.handleSubmit(handleCreate)}>
+                <FormFieldController
+                  control={createForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Nova categoria
+                        <span aria-hidden="true" className="ml-1 text-destructive">
+                          *
+                        </span>
+                      </FormLabel>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <FormControl className="flex-1">
+                          <Input
+                            {...field}
+                            placeholder="Ex.: Polimento"
+                            autoComplete="off"
+                            required
+                          />
+                        </FormControl>
+                        <Button
+                          type="submit"
+                          className="h-10 w-full shrink-0 gap-2 sm:w-auto"
+                          disabled={createMutation.isPending || !createForm.formState.isValid}
+                        >
+                          <Plus aria-hidden className="size-4" />
+                          {createMutation.isPending ? "A adicionar…" : "Adicionar"}
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </form>
             </FormProvider>
 
@@ -234,7 +252,7 @@ export function ServiceCategoryManageSheet({
                   type="submit"
                   disabled={updateMutation.isPending || !renameForm.formState.isValid}
                 >
-                  {updateMutation.isPending ? "A guardar…" : "Guardar"}
+                  {updateMutation.isPending ? "Salvando..." : "Salvar"}
                 </Button>
               </DialogFooter>
             </form>

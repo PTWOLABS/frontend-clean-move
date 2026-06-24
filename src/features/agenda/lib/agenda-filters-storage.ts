@@ -10,7 +10,6 @@ const DEFAULT_AGENDA_PERIOD_MODE: AgendaPeriodMode = "from-today";
 type StoredAgendaFilters = {
   statusFilter?: AgendaStatusFilter;
   searchField?: AgendaSearchField;
-  search?: string;
   periodMode?: AgendaPeriodMode;
   dateRange?: {
     from?: string;
@@ -32,6 +31,16 @@ function getDefaultAgendaDateRange(): DateRange {
   return {
     from: addDays(today, -6),
     to: today,
+  };
+}
+
+export function getDefaultAgendaFiltersState(): AgendaFiltersState {
+  return {
+    statusFilter: "ALL",
+    searchField: "serviceName",
+    search: "",
+    periodMode: DEFAULT_AGENDA_PERIOD_MODE,
+    dateRange: getDefaultAgendaDateRange(),
   };
 }
 
@@ -86,13 +95,7 @@ function readStoredAgendaFilters(): StoredAgendaFilters | undefined {
 }
 
 export function getInitialAgendaFiltersState(): AgendaFiltersState {
-  const defaultFilters: AgendaFiltersState = {
-    statusFilter: "ALL",
-    searchField: "serviceName",
-    search: "",
-    periodMode: DEFAULT_AGENDA_PERIOD_MODE,
-    dateRange: getDefaultAgendaDateRange(),
-  };
+  const defaultFilters = getDefaultAgendaFiltersState();
   const storedFilters = readStoredAgendaFilters();
 
   if (!storedFilters) return defaultFilters;
@@ -106,7 +109,7 @@ export function getInitialAgendaFiltersState(): AgendaFiltersState {
       storedFilters.searchField && isAgendaSearchField(storedFilters.searchField)
         ? storedFilters.searchField
         : defaultFilters.searchField,
-    search: typeof storedFilters.search === "string" ? storedFilters.search : defaultFilters.search,
+    search: defaultFilters.search,
     periodMode:
       storedFilters.periodMode && isAgendaPeriodMode(storedFilters.periodMode)
         ? storedFilters.periodMode
@@ -119,7 +122,6 @@ export function persistAgendaFilters(filters: AgendaFiltersState) {
   const filtersToStore: StoredAgendaFilters = {
     statusFilter: filters.statusFilter,
     searchField: filters.searchField,
-    search: filters.search,
     periodMode: filters.periodMode,
     dateRange: filters.dateRange
       ? {

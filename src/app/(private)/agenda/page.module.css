@@ -1,0 +1,41 @@
+.agendaLayoutContainer {
+  container-type: inline-size;
+}
+
+.agendaLayoutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.agendaPrimaryColumn,
+.agendaSecondaryColumn {
+  min-width: 0;
+}
+
+.agendaSecondaryColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.agendaSummarySection {
+  flex-shrink: 0;
+}
+
+@container (min-width: 70rem) {
+  .agendaLayoutGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(20rem, 1fr);
+  }
+
+  .agendaSecondaryColumn {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .agendaPendingQuotesSection {
+    min-height: 0;
+    flex: 1 1 0%;
+  }
+}

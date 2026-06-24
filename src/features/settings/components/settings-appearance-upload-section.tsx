@@ -116,7 +116,7 @@ export function SettingsAppearanceUploadSection({
 
   const handleSave = () => {
     if (!pendingFile) {
-      toast.info("Nenhuma alteração para guardar.");
+      toast.info("Nenhuma alteração para salvar.");
       return;
     }
 

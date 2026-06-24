@@ -27,18 +27,14 @@ import { Select } from "@/components/ui/select/select";
 
 import { AppointmentsCalendar } from "./calendar/appointments-calendar";
 import { AppointmentsCalendarToolbar } from "./appointments-calendar-toolbar";
-import { AppointmentsDayAgendaCard } from "./appointments-day-agenda-card";
-import { NextAppointment, UpcomingAppointmentsCard } from "./upcoming-appointments-card";
 import { useUpdateAppointmentStatus } from "../hooks/mutations/use-update-appointment-status-mutation";
 import { useListCalendarAppointments } from "../hooks/queries/use-list-calendar-appointments";
 import { findNextAppointment } from "../lib/appointments-calendar";
 import {
-  compactViewOptions,
   compactViewToggleOptions,
   formatSlotKey,
   navigationCalendarClassNames,
   normalizeCalendarDate,
-  viewOptions,
 } from "../lib/appointments-page.helpers";
 import type {
   AppointmentCalendarEvent,
@@ -52,6 +48,8 @@ import { cn } from "@/shared/utils/cn";
 type AppointmentStatusFilter = "ALL" | AppointmentStatus;
 
 const COMPACT_CALENDAR_VIEW_QUERY = "(max-width: 767px)";
+const DEFAULT_APPOINTMENT_STATUS_FILTER = "ALL" satisfies AppointmentStatusFilter;
+const DEFAULT_APPOINTMENT_CALENDAR_VIEW = "dayGridMonth" satisfies AppointmentCalendarView;
 
 const statusFilterOptions: Array<{
   label: string;
@@ -301,13 +299,20 @@ export function AppointmentsPage() {
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectionSource, setSelectionSource] = useState<"auto" | "manual">("auto");
-  const [selectedView, setSelectedView] = useState<AppointmentCalendarView>("dayGridMonth");
-  const [appointmentStatusFilter, setAppointmentStatusFilter] =
-    useState<AppointmentStatusFilter>("ALL");
+  const [selectedView, setSelectedView] = useState<AppointmentCalendarView>(
+    DEFAULT_APPOINTMENT_CALENDAR_VIEW,
+  );
+  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState<AppointmentStatusFilter>(
+    DEFAULT_APPOINTMENT_STATUS_FILTER,
+  );
   const [calendarTitle, setCalendarTitle] = useState(() => {
     const initialRange = getInitialVisibleRange(initialSelectedDate);
 
-    return formatCalendarToolbarTitle(initialRange.start, initialRange.end, "dayGridMonth");
+    return formatCalendarToolbarTitle(
+      initialRange.start,
+      initialRange.end,
+      DEFAULT_APPOINTMENT_CALENDAR_VIEW,
+    );
   });
   const [visibleRange, setVisibleRange] = useState(() =>
     getInitialVisibleRange(initialSelectedDate),
@@ -316,7 +321,6 @@ export function AppointmentsPage() {
   const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
   const [appointmentToEdit, setAppointmentToEdit] = useState<AppointmentCalendarEvent | null>(null);
   const isCompactCalendarNavigation = useCompactCalendarNavigation();
-  const availableViewFilterOptions = isCompactCalendarNavigation ? compactViewOptions : viewOptions;
   const availableViewToggleOptions = isCompactCalendarNavigation
     ? compactViewToggleOptions
     : undefined;
@@ -386,23 +390,23 @@ export function AppointmentsPage() {
     setAppointmentSheetOpen(true);
   }, [shouldOpenCreateSheet]);
 
-  const upcomingEventsSource = initialUpcomingEvents ?? events;
+  // const upcomingEventsSource = initialUpcomingEvents ?? events;
 
-  const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
-    if (upcomingEventsSource.length === 0 || !initialSelectedDate) return [];
+  // const upcommingFiveAppointments: NextAppointment[] = useMemo(() => {
+  //   if (upcomingEventsSource.length === 0 || !initialSelectedDate) return [];
 
-    return upcomingEventsSource
-      .filter((event) => new Date(event.startsAt) > initialSelectedDate)
-      .filter((_event, index) => index < 5)
-      .map((event) => ({
-        id: event.id,
-        startsAt: event.startsAt,
-        serviceName: event.extendedProps.service,
-        vehiclePlate: event.extendedProps.vehicle.plate || "-------",
-        tone: event.extendedProps.tone,
-        customerName: event.extendedProps.customer,
-      }));
-  }, [upcomingEventsSource, initialSelectedDate]);
+  //   return upcomingEventsSource
+  //     .filter((event) => new Date(event.startsAt) > initialSelectedDate)
+  //     .filter((_event, index) => index < 5)
+  //     .map((event) => ({
+  //       id: event.id,
+  //       startsAt: event.startsAt,
+  //       serviceName: event.extendedProps.service,
+  //       vehiclePlate: event.extendedProps.vehicle.plate || "-------",
+  //       tone: event.extendedProps.tone,
+  //       customerName: event.extendedProps.customer,
+  //     }));
+  // }, [upcomingEventsSource, initialSelectedDate]);
 
   const defaultSelectedEvent =
     selectionSource === "auto" ? (findNextAppointment(events) ?? events[0] ?? null) : null;
@@ -581,10 +585,10 @@ export function AppointmentsPage() {
     });
   }
 
-  function handleAgendaItemClick(event: AppointmentCalendarEvent) {
-    handleSelectEvent(event);
-    calendarRef.current?.getApi()?.gotoDate(event.startsAt);
-  }
+  // function handleAgendaItemClick(event: AppointmentCalendarEvent) {
+  //   handleSelectEvent(event);
+  //   calendarRef.current?.getApi()?.gotoDate(event.startsAt);
+  // }
 
   function handleCreateAppointmentSheetOpen(open: boolean) {
     if (open) {
@@ -603,12 +607,12 @@ export function AppointmentsPage() {
     }
   }
 
-  function handleEditAppointment(event: AppointmentCalendarEvent) {
-    handleSelectEvent(event);
-    setAppointmentToEdit(event);
-    setAppointmentSheetOpen(true);
-    handleClearSelectedEvent();
-  }
+  // function handleEditAppointment(event: AppointmentCalendarEvent) {
+  //   handleSelectEvent(event);
+  //   setAppointmentToEdit(event);
+  //   setAppointmentSheetOpen(true);
+  //   handleClearSelectedEvent();
+  // }
 
   function handleEditAppointmentFromPopover(event: AppointmentCalendarEvent) {
     setSelectionSource("manual");
@@ -655,15 +659,8 @@ export function AppointmentsPage() {
           </Button>
         </div>
 
-        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-3 xl:max-w-[58rem]">
+        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(11rem,1fr)_auto] xl:max-w-120">
           <AppointmentsDateFilter value={resolvedSelectedDate} onChange={handleDateFilterSelect} />
-
-          <Select
-            value={selectedView}
-            onChange={handleCalendarViewChange}
-            options={availableViewFilterOptions}
-            className="h-11 rounded-md border-border/80 bg-card/70 shadow-xs"
-          />
 
           <Select
             value={appointmentStatusFilter}
@@ -684,7 +681,7 @@ export function AppointmentsPage() {
         ) : null}
       </header>
 
-      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid min-w-0 items-start gap-4">
         <Card className="min-w-0 overflow-visible rounded-2xl border-border/80 bg-card/80 shadow-xl backdrop-blur-sm sm:rounded-3xl">
           <CardHeader className="border-b border-border/70 px-4 py-3 sm:px-5 sm:py-4">
             <AppointmentsCalendarToolbar
@@ -728,26 +725,6 @@ export function AppointmentsPage() {
             <CalendarStatusLegend />
           </CardContent>
         </Card>
-
-        <div className="flex min-h-0 min-w-0 flex-col gap-4 h-full xl:max-h-[52rem] xl:overflow-hidden">
-          <UpcomingAppointmentsCard
-            appointments={upcommingFiveAppointments}
-            isLoading={isLoadingAppointments}
-          />
-          <AppointmentsDayAgendaCard
-            selectedDate={resolvedSelectedDate}
-            selectedEventId={resolvedSelectedEventId}
-            events={events}
-            isLoading={isLoadingAppointments}
-            isRefreshing={isRefreshingAppointments}
-            isError={!!errorFeedback || hasAppointmentsError}
-            updatingStatusAppointmentId={updatingStatusAppointmentId}
-            onRetry={refetchAppointments}
-            onEditEvent={handleEditAppointment}
-            onSelectEvent={handleAgendaItemClick}
-            onStatusChange={handleAppointmentStatusChange}
-          />
-        </div>
       </div>
       <AppointmentFormSheet
         open={appointmentSheetOpen}
