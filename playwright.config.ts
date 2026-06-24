@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 
-const authenticatedTestIgnore = [/.*\.setup\.ts/, /safari-viewport\.spec\.ts/];
+const mockedTestFiles = [/safari-viewport\.spec\.ts/, /overlay-select-dismiss\.spec\.ts/];
+const authenticatedTestIgnore = [/.*\.setup\.ts/, ...mockedTestFiles];
 const devServerCommand = process.platform === "win32" ? "npm.cmd run dev" : "npm run dev";
 
 export default defineConfig({
@@ -66,6 +67,14 @@ export default defineConfig({
       testMatch: /safari-viewport\.spec\.ts/,
       use: {
         ...devices["Desktop Safari"],
+      },
+    },
+
+    {
+      name: "chromium-mocked",
+      testMatch: /overlay-select-dismiss\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
       },
     },
   ],
