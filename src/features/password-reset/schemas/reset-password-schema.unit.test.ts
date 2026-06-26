@@ -35,8 +35,9 @@ describe("resetPasswordSchema", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      const message = result.error.issues.find((issue) => issue.path[0] === "confirmPassword")
-        ?.message;
+      const message = result.error.issues.find(
+        (issue) => issue.path[0] === "confirmPassword",
+      )?.message;
       expect(message).toBe("As senhas não coincidem.");
     }
   });

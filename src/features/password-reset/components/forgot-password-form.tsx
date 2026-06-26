@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RegisterTextField } from "@/features/register/components/register-text-field";
 import { Form } from "@/shared/forms/form";
 
-import {
-  PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE,
-} from "../lib/constants";
+import { PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE } from "../lib/constants";
 import { useRequestPasswordReset } from "../hooks/use-request-password-reset";
 import {
   type ForgotPasswordFormValues,
@@ -26,10 +24,7 @@ export function ForgotPasswordForm() {
   if (isSuccess) {
     return (
       <div className="relative z-10 w-full max-w-105">
-        <div
-          aria-live="polite"
-          className="mt-9 space-y-6 text-center"
-        >
+        <div aria-live="polite" className="mt-9 space-y-6 text-center">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-[#2563EB]/30 bg-[#2563EB]/10">
             <MailCheck aria-hidden className="size-8 text-[#38BDF8]" />
           </div>

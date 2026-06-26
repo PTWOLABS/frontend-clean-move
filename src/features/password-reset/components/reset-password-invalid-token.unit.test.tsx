@@ -15,7 +15,9 @@ describe("ResetPasswordInvalidToken", () => {
   it("should render the invalid token message and links", () => {
     render(<ResetPasswordInvalidToken />);
 
-    expect(screen.getByRole("heading", { name: /link de recuperação inválido/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /link de recuperação inválido/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /solicitar novo link/i })).toHaveAttribute(
       "href",
       "/forgot-password",

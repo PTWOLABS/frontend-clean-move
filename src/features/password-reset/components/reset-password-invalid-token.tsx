@@ -31,14 +31,14 @@ export function ResetPasswordInvalidToken() {
             <Link href="/forgot-password">Solicitar novo link</Link>
           </Button>
 
-        <p className="text-center text-sm text-[#94A3B8]">
-          <Link
-            href="/login"
-            className="font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
-          >
-            Voltar ao login
-          </Link>
-        </p>
+          <p className="text-center text-sm text-[#94A3B8]">
+            <Link
+              href="/login"
+              className="font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
+            >
+              Voltar ao login
+            </Link>
+          </p>
         </div>
       </div>
     </>

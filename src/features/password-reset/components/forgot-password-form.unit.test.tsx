@@ -39,9 +39,7 @@ describe("ForgotPasswordForm", () => {
     renderWithProviders(<ForgotPasswordForm />);
 
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /enviar link de recuperação/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /enviar link de recuperação/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /voltar ao login/i })).toHaveAttribute(
       "href",
       "/login",
