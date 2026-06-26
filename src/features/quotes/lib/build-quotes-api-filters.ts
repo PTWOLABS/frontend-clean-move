@@ -1,7 +1,6 @@
 import type { DateRange } from "react-day-picker";
 
 import type { QuotesApiFilters } from "../types/api-filters";
-import type { QuoteListItemDto } from "../types/quotes";
 
 export type QuotesSearchField = "customerName" | "vehiclePlate" | "serviceName";
 
@@ -31,6 +30,14 @@ function formatDateFilter(date: Date | undefined): string | undefined {
   return `${year}-${month}-${day}`;
 }
 
+function formatEndOfDayDateFilter(date: Date | undefined): string | undefined {
+  const formattedDate = formatDateFilter(date);
+
+  if (!formattedDate) return undefined;
+
+  return `${formattedDate}T23:59:59.999`;
+}
+
 export function buildQuotesApiFilters(
   filters: QuotesFiltersState,
   pagination?: Pick<QuotesApiFilters, "page" | "size">,
@@ -40,7 +47,7 @@ export function buildQuotesApiFilters(
     ...pagination,
     converted: filters.converted === "all" ? undefined : filters.converted === "converted",
     expiresFrom: formatDateFilter(filters.expiresRange?.from),
-    expiresTo: formatDateFilter(filters.expiresRange?.to),
+    expiresTo: formatEndOfDayDateFilter(filters.expiresRange?.to),
   };
 
   if (search) {
@@ -48,57 +55,4 @@ export function buildQuotesApiFilters(
   }
 
   return apiFilters;
-}
-
-function normalizeText(value: string | null | undefined): string {
-  return value?.trim().toLocaleLowerCase("pt-BR") ?? "";
-}
-
-function matchesSearch(quote: QuoteListItemDto, filters: QuotesFiltersState): boolean {
-  const search = normalizeText(filters.search);
-  if (!search) return true;
-
-  if (filters.searchField === "customerName") {
-    return normalizeText(quote.customerName).includes(search);
-  }
-
-  if (filters.searchField === "vehiclePlate") {
-    return normalizeText(quote.vehiclePlate).includes(search);
-  }
-
-  return normalizeText(quote.vehicleLabel).includes(search);
-}
-
-function matchesConverted(quote: QuoteListItemDto, filter: QuotesConvertedFilter): boolean {
-  if (filter === "all") return true;
-  return filter === "converted" ? quote.status === "APPROVED" : quote.status !== "APPROVED";
-}
-
-function matchesExpirationRange(quote: QuoteListItemDto, range: DateRange | undefined): boolean {
-  if (!range?.from && !range?.to) return true;
-  if (!quote.expiresAt) return false;
-
-  const expiresAt = new Date(quote.expiresAt);
-  if (Number.isNaN(expiresAt.getTime())) return false;
-
-  if (range.from && expiresAt < range.from) return false;
-  if (range.to) {
-    const endOfDay = new Date(range.to);
-    endOfDay.setHours(23, 59, 59, 999);
-    if (expiresAt > endOfDay) return false;
-  }
-
-  return true;
-}
-
-export function filterQuotesMock(
-  quotes: QuoteListItemDto[],
-  filters: QuotesFiltersState,
-): QuoteListItemDto[] {
-  return quotes.filter(
-    (quote) =>
-      matchesSearch(quote, filters) &&
-      matchesConverted(quote, filters.converted) &&
-      matchesExpirationRange(quote, filters.expiresRange),
-  );
 }

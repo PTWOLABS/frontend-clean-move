@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } from "lucide-react";
 
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
-import { MobileDataCard, type MobileDataCardTone } from "@/shared/components/mobile-data-card";
+import {
+  MobileDataCard,
+  MobileDataCardSkeleton,
+  type MobileDataCardTone,
+} from "@/shared/components/mobile-data-card";
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 
-import { quotesPageMock } from "../mocks";
+import { useListQuotes } from "../api/use-list-quotes";
 import {
   DEFAULT_QUOTES_FILTERS,
-  filterQuotesMock,
+  buildQuotesApiFilters,
   type QuotesFiltersState,
 } from "../lib/build-quotes-api-filters";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
@@ -31,7 +35,7 @@ const quoteStatusConfig: Record<
   APPROVED: {
     label: "Aprovado",
     tone: "success",
-    footerLabel: "Expira em",
+    footerLabel: "Aprovado em",
   },
   VALID: {
     label: "Válido",
@@ -92,7 +96,9 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
         label:
           quote.status === "EXPIRES_TODAY"
             ? status.footerLabel
-            : `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`,
+            : quote.status === "APPROVED"
+              ? `${status.footerLabel} ${formatShortDate(quote.approvedAt)}`
+              : `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`,
         tone: quote.status === "EXPIRED" ? "danger" : status.tone,
       }}
       accentTone={status.tone}
@@ -121,10 +127,14 @@ export function QuotesMobileCards() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
-  const quotes = filterQuotesMock(quotesPageMock.quotes, appliedFilters);
-  const totalItems = quotes.length;
+  const apiFilters = useMemo(
+    () => buildQuotesApiFilters(appliedFilters, { page, size: PAGE_SIZE }),
+    [appliedFilters, page],
+  );
+  const { data, isError, isLoading } = useListQuotes(apiFilters);
+  const quotes = data?.quotes ?? [];
+  const totalItems = data?.totalItems ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const visibleQuotes = quotes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function handleApplyFilters(nextFilters: QuotesFiltersState) {
     setAppliedFilters(nextFilters);
@@ -151,13 +161,28 @@ export function QuotesMobileCards() {
       }
       mobileCards={
         <div className="flex flex-col gap-3">
-          {visibleQuotes.map((quote) => (
+          {quotes.map((quote) => (
             <QuoteMobileCard key={quote.id} quote={quote} />
           ))}
         </div>
       }
-      isEmpty={totalItems === 0}
-      emptyMessage="Nenhum orcamento encontrado para os filtros atuais."
+      skeleton={
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: PAGE_SIZE }, (_, index) => (
+            <MobileDataCardSkeleton key={index} />
+          ))}
+        </div>
+      }
+      emptyState={
+        isError ? (
+          <p className="rounded-lg border border-dashed border-danger/40 bg-danger-soft/40 px-4 py-8 text-center text-sm text-danger">
+            Não foi possível carregar os orçamentos. Tente novamente em instantes.
+          </p>
+        ) : undefined
+      }
+      isLoading={isLoading}
+      isEmpty={isError || totalItems === 0}
+      emptyMessage="Nenhum orçamento encontrado para os filtros atuais."
       pagination={
         <CatalogPagination
           page={page}
