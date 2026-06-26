@@ -16,6 +16,8 @@ const AUTH_PATHS_SKIP_REFRESH = new Set([
   "/auth/login",
   "/auth/google",
   "/auth/refresh",
+  "/auth/password-reset/request",
+  "/auth/password-reset/confirm",
   "/register/establishment",
 ]);
 
