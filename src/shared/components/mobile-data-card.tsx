@@ -156,25 +156,31 @@ export function MobileDataCard({
       <CardContent className="space-y-3 p-4 pl-5">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="min-w-0 space-y-2">
-            <h3 className="line-clamp-2 text-lg font-bold leading-snug text-foreground">{title}</h3>
+            <h3 className="line-clamp-2 text-md font-semibold leading-snug text-foreground truncate">
+              {title}
+            </h3>
             {metadata.length > 0 || description ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                {metadata.map((item, index) => (
-                  <span key={index} className="min-w-0">
-                    {renderBadge(item)}
-                  </span>
-                ))}
+              <div className="min-w-0 space-y-1.5">
+                {metadata.length > 0 ? (
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    {metadata.map((item, index) => (
+                      <span key={index} className="min-w-0">
+                        {renderBadge(item)}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 {description ? (
-                  <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
-                    {description}
-                  </span>
+                  <p className="truncate text-sm text-muted-foreground">{description}</p>
                 ) : null}
               </div>
             ) : null}
           </div>
 
           <div className="flex shrink-0 flex-col items-end gap-2 text-right">
-            <p className="text-lg font-bold leading-snug tabular-nums text-foreground">{value}</p>
+            <p className="text-md font-semibold leading-snug tabular-nums text-foreground">
+              {value}
+            </p>
             {status ? renderBadge(status) : null}
           </div>
         </div>
@@ -186,19 +192,19 @@ export function MobileDataCard({
             {footer ? (
               <div
                 className={cn(
-                  "flex min-w-0 items-center gap-2 text-sm font-medium",
+                  "flex min-w-0 items-center gap-2 text-xs font-medium",
                   toneClassNames[footer.tone ?? "neutral"].text,
                 )}
               >
                 <footer.icon className="size-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{footer.label}</span>
+                <span className="text-wrap">{footer.label}</span>
               </div>
             ) : (
               <span aria-hidden="true" />
             )}
 
             {actions.length > 0 && (
-              <div className="flex shrink-0 items-center gap-1.5">
+              <div className="flex shrink-0 items-center gap-1 min-[400px]:gap-1.5">
                 {actions.map(({ label, icon: Icon, onClick, disabled, tone = "neutral" }) => (
                   <Button
                     key={label}

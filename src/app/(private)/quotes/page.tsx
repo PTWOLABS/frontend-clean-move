@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { QuotesMetrics } from "@/features/quotes/components/quotes-metrics";
+import { QuotesMobileCards } from "@/features/quotes/components/quotes-mobile-cards";
 
 export const metadata: Metadata = {
   title: "Orçamentos",
@@ -29,6 +30,7 @@ export default function QuotesPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
         <QuotesMetrics />
+        <QuotesMobileCards />
       </div>
     </section>
   );

@@ -97,7 +97,7 @@ export const quotesPageMock: ListQuotesResponseDto = {
 export const quotesPageKpisMock: KpiCardItem[] = [
   {
     id: "valid",
-    label: "Validos",
+    label: "Válidos",
     value: quotesPageMock.summary.valid,
     icon: CheckCircle2,
     description: "Dentro do prazo",

@@ -30,7 +30,7 @@ const quoteStatusConfig: Record<
     footerLabel: "Expira em",
   },
   VALID: {
-    label: "Valido",
+    label: "Válido",
     tone: "primary",
     footerLabel: "Expira em",
   },
@@ -69,10 +69,12 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItem }) {
       metadata={[
         {
           label: getQuoteVehiclePlate(quote),
+          className: "font-mono",
         },
         {
           label: customerKindLabel[quote.customerKind],
           tone: quote.customerKind === "PROSPECT" ? "primary" : "neutral",
+          className: "font-mono",
         },
       ]}
       description={getQuoteVehicleLabel(quote)}

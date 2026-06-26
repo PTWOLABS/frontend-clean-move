@@ -4,7 +4,7 @@ import { quotesPageKpisMock } from "../mocks";
 export function QuotesMetrics() {
   return (
     <>
-      <KpiCardsGrid items={quotesPageKpisMock}></KpiCardsGrid>
+      <KpiCardsGrid items={quotesPageKpisMock} />
     </>
   );
 }
