@@ -118,7 +118,7 @@ export function LoginForm() {
           </label>
 
           <Link
-            href="/recuperar-senha"
+            href="/forgot-password"
             className="font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
           >
             Esqueci minha senha
