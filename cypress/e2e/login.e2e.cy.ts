@@ -13,7 +13,7 @@ describe("Login flow", () => {
     cy.contains("button", /^entrar$/i).should("be.visible");
     cy.get('[data-testid="google-signin-slot"]').should("be.visible");
 
-    cy.contains("a", /esqueci minha senha/i).should("have.attr", "href", "/recuperar-senha");
+    cy.contains("a", /esqueci minha senha/i).should("have.attr", "href", "/forgot-password");
     cy.contains("a", /cadastrar-se/i).should("have.attr", "href", "/register");
   });
 
@@ -91,6 +91,6 @@ describe("Login flow", () => {
 
   it("should navigate to the forgot password route from the link", () => {
     cy.contains("a", /esqueci minha senha/i).click();
-    cy.url().should("include", "/recuperar-senha");
+    cy.url().should("include", "/forgot-password");
   });
 });
