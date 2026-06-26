@@ -53,14 +53,14 @@ export function CatalogPagination({
             {totalLabel}
             <span className="mx-2 text-border">/</span>
             <span className="tabular-nums">
-              pagina <span className="font-medium text-foreground">{normalizedPage}</span> de{" "}
+              página <span className="font-medium text-foreground">{normalizedPage}</span> de{" "}
               <span className="font-medium text-foreground">{normalizedTotalPages}</span>
             </span>
           </p>
         </div>
 
         <nav
-          aria-label="Navegacao entre paginas"
+          aria-label="Navegação entre páginas"
           aria-busy={navDisabled}
           className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3"
         >
@@ -75,7 +75,7 @@ export function CatalogPagination({
                 "hover:bg-background/80",
                 (!canPrev || navDisabled) && "opacity-40",
               )}
-              aria-label="Ir para a pagina anterior"
+              aria-label="Ir para a página anterior"
               onClick={() => onPageChange(Math.max(1, normalizedPage - 1))}
             >
               <ChevronLeft className="size-4 shrink-0" aria-hidden />
@@ -110,7 +110,7 @@ export function CatalogPagination({
                 "hover:bg-background/80",
                 (!canNext || navDisabled) && "opacity-40",
               )}
-              aria-label="Ir para a pagina seguinte"
+              aria-label="Ir para a página seguinte"
               onClick={() => onPageChange(normalizedPage + 1)}
             >
               <span className="hidden sm:inline">Seguinte</span>
