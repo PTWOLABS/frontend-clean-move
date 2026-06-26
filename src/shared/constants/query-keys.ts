@@ -15,6 +15,8 @@ export const QUERY_KEYS = {
   googleLogin: ["googleLogin"],
   logout: ["logout"],
   registerEstablishment: ["registerEstablishment"],
+  requestPasswordReset: ["requestPasswordReset"],
+  confirmPasswordReset: ["confirmPasswordReset"],
   metricsOverview: ["metrics-overview"],
   metricsAppointment: ["metrics-appointment"],
   popularServices: ["popular-services"],
