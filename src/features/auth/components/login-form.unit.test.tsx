@@ -79,7 +79,7 @@ describe("LoginForm", () => {
     expect(screen.getByTestId("google-signin-slot")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /esqueci minha senha/i })).toHaveAttribute(
       "href",
-      "/recuperar-senha",
+      "/forgot-password",
     );
     expect(screen.getByRole("link", { name: /cadastrar-se/i })).toHaveAttribute(
       "href",
