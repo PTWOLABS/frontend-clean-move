@@ -67,10 +67,7 @@ export function KpiCard({
 
   return (
     <Card className={cn("relative overflow-hidden shadow-sm", className)}>
-      <span
-        className={cn("absolute inset-x-0 top-0 h-1", toneClasses.accent)}
-        aria-hidden="true"
-      />
+      <span className={cn("absolute inset-x-0 top-0 h-1", toneClasses.accent)} aria-hidden="true" />
       <CardContent className="flex min-h-28 flex-col justify-between gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <p className="text-sm font-medium leading-snug text-muted-foreground">{label}</p>
@@ -90,9 +87,7 @@ export function KpiCard({
             {value}
           </p>
           {description ? (
-            <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
-              {description}
-            </p>
+            <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{description}</p>
           ) : null}
         </div>
       </CardContent>

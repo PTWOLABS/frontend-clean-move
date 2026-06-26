@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { DatePickerWithRange } from "@/components/ui/calendar/date-picker-with-range";
 import { Select } from "@/components/ui/select/select";
 import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
-import { FilterToolbarShell, type FilterToolbarBadge } from "@/shared/components/filter-toolbar-shell";
+import {
+  FilterToolbarShell,
+  type FilterToolbarBadge,
+} from "@/shared/components/filter-toolbar-shell";
 import { SearchSelectInput } from "@/shared/components/search-select-input";
 
 import {
@@ -151,9 +154,9 @@ export function QuotesCatalogToolbar({
           onSelectChange={(searchField) => updateFilters({ searchField })}
           options={searchFieldOptions}
           placeholder="Buscar por cliente, placa ou serviço"
-          aria-label="Buscar orcamentos por cliente, placa ou serviço"
+          aria-label="Buscar orçamentos por cliente, placa ou serviço"
           selectAriaLabel="Campo da busca"
-          searchButtonLabel="Buscar orcamentos"
+          searchButtonLabel="Buscar orçamentos"
           className="h-10 rounded-sm"
           buttonClassName="h-8 rounded-sm"
           onSearchClick={handleApplyFilters}

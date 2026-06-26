@@ -49,8 +49,7 @@ export function CatalogPagination({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-center sm:text-left">
           <p className="text-sm text-muted-foreground">
-            <span className="font-semibold tabular-nums text-foreground">{total}</span>{" "}
-            {totalLabel}
+            <span className="font-semibold tabular-nums text-foreground">{total}</span> {totalLabel}
             <span className="mx-2 text-border">/</span>
             <span className="tabular-nums">
               página <span className="font-medium text-foreground">{normalizedPage}</span> de{" "}

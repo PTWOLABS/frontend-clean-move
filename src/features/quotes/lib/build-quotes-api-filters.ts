@@ -38,8 +38,7 @@ export function buildQuotesApiFilters(
   const search = filters.search.trim();
   const apiFilters: QuotesApiFilters = {
     ...pagination,
-    converted:
-      filters.converted === "all" ? undefined : filters.converted === "converted",
+    converted: filters.converted === "all" ? undefined : filters.converted === "converted",
     expiresFrom: formatDateFilter(filters.expiresRange?.from),
     expiresTo: formatDateFilter(filters.expiresRange?.to),
   };
