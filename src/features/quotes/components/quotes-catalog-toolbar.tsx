@@ -37,7 +37,7 @@ const searchFieldOptions: { label: string; value: QuotesSearchField }[] = [
 const convertedFilterOptions: { label: string; value: QuotesConvertedFilter }[] = [
   { label: "Todos", value: "all" },
   { label: "Convertidos", value: "converted" },
-  { label: "Nao convertidos", value: "not-converted" },
+  { label: "Não convertidos", value: "not-converted" },
 ];
 
 function formatDateRangeLabel(dateRange: DateRange | undefined): string {
@@ -170,7 +170,7 @@ export function QuotesCatalogToolbar({
       }
     >
       <label className="grid gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Conversao</span>
+        <span className="text-xs font-medium text-muted-foreground">Conversão</span>
         <Select
           className="h-10 border-border/80 bg-background/60 shadow-xs"
           options={convertedFilterOptions}

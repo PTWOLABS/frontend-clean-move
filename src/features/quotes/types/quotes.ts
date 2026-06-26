@@ -13,6 +13,7 @@ export type QuoteListItemDto = {
   status: QuoteStatus;
   expiresAt: string | null;
   createdAt: string;
+  approvedAt: string | null;
   servicesCount?: number;
 };
 

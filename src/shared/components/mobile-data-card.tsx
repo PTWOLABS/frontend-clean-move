@@ -96,7 +96,7 @@ function renderBadge({ label, tone = "neutral", className }: MobileDataCardBadge
     <Badge
       variant="outline"
       className={cn(
-        "min-h-6 max-w-full rounded-sm px-2 py-0.5 text-[11px] font-semibold uppercase leading-none tracking-normal",
+        "min-h-6 max-w-full rounded-sm px-2 py-0.5 text-[11px] font-semibold uppercase tracking-normal",
         toneClassNames[tone].badge,
         className,
       )}
@@ -178,9 +178,7 @@ export function MobileDataCard({
           </div>
 
           <div className="flex shrink-0 flex-col items-end gap-2 text-right">
-            <p className="text-md font-semibold leading-snug tabular-nums text-foreground">
-              {value}
-            </p>
+            <p className="text-md font-semibold leading-snug  text-foreground">{value}</p>
             {status ? renderBadge(status) : null}
           </div>
         </div>
