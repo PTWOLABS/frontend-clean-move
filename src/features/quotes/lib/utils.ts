@@ -1,4 +1,4 @@
-import { QuoteListItem } from "../components/quotes-mobile-cards";
+import type { QuoteListItemDto } from "../types/quotes";
 
 export function formatShortDate(value: string | null): string {
   if (!value) return "sem data";
@@ -12,10 +12,10 @@ export function formatShortDate(value: string | null): string {
   }).format(date);
 }
 
-export function getQuoteVehicleLabel(quote: QuoteListItem): string {
+export function getQuoteVehicleLabel(quote: QuoteListItemDto): string {
   return quote.vehicleLabel?.trim() || "Veiculo nao informado";
 }
 
-export function getQuoteVehiclePlate(quote: QuoteListItem): string {
+export function getQuoteVehiclePlate(quote: QuoteListItemDto): string {
   return quote.vehiclePlate?.trim() || "Sem placa";
 }
