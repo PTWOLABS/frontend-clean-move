@@ -185,6 +185,7 @@ export function QuotesCatalogToolbar({
           placeholder="Selecione as datas"
           value={dateRangeValue}
           onChange={(expiresRange) => updateFilters({ expiresRange })}
+          numberOfMonths={1}
         />
       </label>
 

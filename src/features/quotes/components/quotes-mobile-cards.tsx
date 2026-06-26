@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, Eye, FileText, MoreVertical } from "lucide-react";
+import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } from "lucide-react";
 
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
@@ -9,15 +9,19 @@ import { MobileDataCard, type MobileDataCardTone } from "@/shared/components/mob
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 
 import { quotesPageMock } from "../mocks";
-import type { ListQuotesResponseDto } from "../types/quotes";
+import {
+  DEFAULT_QUOTES_FILTERS,
+  filterQuotesMock,
+  type QuotesFiltersState,
+} from "../lib/build-quotes-api-filters";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
-
-export type QuoteListItem = ListQuotesResponseDto["quotes"][number];
+import type { QuoteListItemDto } from "../types/quotes";
+import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 
 const PAGE_SIZE = 6;
 
 const quoteStatusConfig: Record<
-  QuoteListItem["status"],
+  QuoteListItemDto["status"],
   {
     label: string;
     tone: MobileDataCardTone;
@@ -46,7 +50,7 @@ const quoteStatusConfig: Record<
   },
 };
 
-const customerKindLabel: Record<QuoteListItem["customerKind"], string> = {
+const customerKindLabel: Record<QuoteListItemDto["customerKind"], string> = {
   CUSTOMER: "Cliente",
   PROSPECT: "Prospect",
 };
@@ -55,7 +59,7 @@ function noop() {
   return undefined;
 }
 
-function QuoteMobileCard({ quote }: { quote: QuoteListItem }) {
+function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
   const status = quoteStatusConfig[quote.status];
 
   return (
@@ -79,7 +83,12 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItem }) {
       ]}
       description={getQuoteVehicleLabel(quote)}
       footer={{
-        icon: CalendarDays,
+        icon:
+          status.tone === "danger"
+            ? CalendarX
+            : status.tone === "warning"
+              ? TriangleAlert
+              : CalendarDays,
         label:
           quote.status === "EXPIRES_TODAY"
             ? status.footerLabel
@@ -110,26 +119,50 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItem }) {
 
 export function QuotesMobileCards() {
   const [page, setPage] = useState(1);
-  const quotes = quotesPageMock.quotes;
-  const totalPages = Math.max(1, Math.ceil(quotesPageMock.totalItems / PAGE_SIZE));
+  const [filters, setFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
+  const quotes = filterQuotesMock(quotesPageMock.quotes, appliedFilters);
+  const totalItems = quotes.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const visibleQuotes = quotes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function handleApplyFilters(nextFilters: QuotesFiltersState) {
+    setAppliedFilters(nextFilters);
+    setPage(1);
+  }
+
+  function handleClearFilters() {
+    setFilters(DEFAULT_QUOTES_FILTERS);
+    setAppliedFilters(DEFAULT_QUOTES_FILTERS);
+    setPage(1);
+  }
 
   return (
     <CatalogContentShell
       className="md:hidden"
+      toolbar={
+        <QuotesCatalogToolbar
+          filters={filters}
+          appliedFilters={appliedFilters}
+          onFiltersChange={setFilters}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
+        />
+      }
       mobileCards={
         <div className="flex flex-col gap-3">
-          {quotes.map((quote) => (
+          {visibleQuotes.map((quote) => (
             <QuoteMobileCard key={quote.id} quote={quote} />
           ))}
         </div>
       }
-      isEmpty={quotes.length === 0}
+      isEmpty={totalItems === 0}
       emptyMessage="Nenhum orcamento encontrado para os filtros atuais."
       pagination={
         <CatalogPagination
           page={page}
           totalPages={totalPages}
-          total={quotesPageMock.totalItems}
+          total={totalItems}
           itemLabel={{ singular: "orçamento", plural: "orçamentos" }}
           onPageChange={setPage}
         />

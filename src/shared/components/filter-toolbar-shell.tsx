@@ -47,7 +47,12 @@ export function FilterToolbarShell({
   const shouldShowClearAll = Boolean(onClearAll) && activeFilters.length > 1;
 
   return (
-    <div className={cn("grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end", className)}>
+    <div
+      className={cn(
+        "grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end",
+        className,
+      )}
+    >
       <div className="grid gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Filtro</span>
         {searchControl}
@@ -66,7 +71,7 @@ export function FilterToolbarShell({
         </PopoverTrigger>
         <PopoverContent
           align="end"
-          className={cn("w-[min(22rem,calc(100vw-2rem))] rounded-2xl p-4", popoverClassName)}
+          className={cn("w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-4", popoverClassName)}
         >
           <div className="space-y-4">
             <div className="space-y-1">
