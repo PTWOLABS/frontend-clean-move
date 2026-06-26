@@ -63,6 +63,24 @@ function noop() {
   return undefined;
 }
 
+function getQuoteFooterLabel(quote: QuoteListItemDto): string {
+  const status = quoteStatusConfig[quote.status];
+
+  if (quote.status === "EXPIRES_TODAY") {
+    return status.footerLabel;
+  }
+
+  if (quote.status === "APPROVED") {
+    return quote.approvedAt
+      ? `${status.footerLabel} ${formatShortDate(quote.approvedAt)}`
+      : "Aprovado";
+  }
+
+  return quote.expiresAt
+    ? `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`
+    : "Nao expira";
+}
+
 function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
   const status = quoteStatusConfig[quote.status];
 
@@ -93,12 +111,7 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
             : status.tone === "warning"
               ? TriangleAlert
               : CalendarDays,
-        label:
-          quote.status === "EXPIRES_TODAY"
-            ? status.footerLabel
-            : quote.status === "APPROVED"
-              ? `${status.footerLabel} ${formatShortDate(quote.approvedAt)}`
-              : `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`,
+        label: getQuoteFooterLabel(quote),
         tone: quote.status === "EXPIRED" ? "danger" : status.tone,
       }}
       accentTone={status.tone}

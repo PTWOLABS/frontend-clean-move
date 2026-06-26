@@ -18,6 +18,7 @@ import {
   type QuotesConvertedFilter,
   type QuotesFiltersState,
   type QuotesSearchField,
+  type QuotesSortFilter,
 } from "../lib/build-quotes-api-filters";
 
 type QuotesCatalogToolbarProps = {
@@ -38,6 +39,11 @@ const convertedFilterOptions: { label: string; value: QuotesConvertedFilter }[] 
   { label: "Todos", value: "all" },
   { label: "Convertidos", value: "converted" },
   { label: "Não convertidos", value: "not-converted" },
+];
+
+const ordenationFilterOptions: { label: string; value: QuotesSortFilter }[] = [
+  { label: "Mais recentes", value: "recent" },
+  { label: "Mais antigos", value: "oldest" },
 ];
 
 function formatDateRangeLabel(dateRange: DateRange | undefined): string {
@@ -61,6 +67,7 @@ function areFiltersEqual(left: QuotesFiltersState, right: QuotesFiltersState): b
     left.search === right.search &&
     left.searchField === right.searchField &&
     left.converted === right.converted &&
+    left.sort === right.sort &&
     areDateRangesEqual(left.expiresRange, right.expiresRange)
   );
 }
@@ -72,6 +79,10 @@ function getSearchFieldLabel(field: QuotesSearchField): string {
 function getConvertedFilterLabel(value: QuotesConvertedFilter): string | undefined {
   if (value === "all") return undefined;
   return convertedFilterOptions.find((option) => option.value === value)?.label;
+}
+
+function getSortFilterLabel(value: QuotesSortFilter): string {
+  return ordenationFilterOptions.find((option) => option.value === value)?.label ?? "Mais recentes";
 }
 
 export function QuotesCatalogToolbar({
@@ -127,6 +138,18 @@ export function QuotesCatalogToolbar({
     });
   }
 
+  if (appliedFilters.sort !== DEFAULT_QUOTES_FILTERS.sort) {
+    activeFilterBadges.push({
+      key: "sort",
+      label: `Ordenação: ${getSortFilterLabel(appliedFilters.sort)}`,
+      onRemove: () =>
+        applyNextFilters({
+          ...appliedFilters,
+          sort: DEFAULT_QUOTES_FILTERS.sort,
+        }),
+    });
+  }
+
   if (appliedFilters.expiresRange?.from || appliedFilters.expiresRange?.to) {
     activeFilterBadges.push({
       key: "expires",
@@ -169,6 +192,16 @@ export function QuotesCatalogToolbar({
         />
       }
     >
+      <label className="grid gap-1.5">
+        <span className="text-xs font-medium text-muted-foreground">Ordenar por</span>
+        <Select
+          className="h-10 border-border/80 bg-background/60 shadow-xs"
+          options={ordenationFilterOptions}
+          value={filters.sort}
+          onChange={(sort) => updateFilters({ sort })}
+        />
+      </label>
+
       <label className="grid gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Conversão</span>
         <Select
