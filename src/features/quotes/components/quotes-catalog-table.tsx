@@ -6,41 +6,16 @@ import {
   DataCatalogStatusBadge,
   DataCatalogTable,
   type DataCatalogTableColumn,
-  type DataCatalogTone,
 } from "@/shared/components/data-catalog-table";
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 
+import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
 
 type QuotesCatalogTableProps = {
   quotes: QuoteListItemDto[];
   className?: string;
-};
-
-const quoteStatusConfig: Record<
-  QuoteListItemDto["status"],
-  {
-    label: string;
-    tone: DataCatalogTone;
-  }
-> = {
-  APPROVED: {
-    label: "Aprovado",
-    tone: "success",
-  },
-  VALID: {
-    label: "Válido",
-    tone: "primary",
-  },
-  EXPIRES_TODAY: {
-    label: "Vence hoje",
-    tone: "warning",
-  },
-  EXPIRED: {
-    label: "Vencido",
-    tone: "danger",
-  },
 };
 
 function noop() {
@@ -73,7 +48,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
     header: "Cliente",
     cell: (quote) => (
       <div className="min-w-0 space-y-1">
-        <p className="truncate font-medium text-foreground max-w-90">{quote.customerName}</p>
+        <p className="max-w-90 truncate font-medium text-foreground">{quote.customerName}</p>
         <p className="text-xs font-medium text-muted-foreground">
           {quote.customerKind === "PROSPECT" ? "Prospect" : "Cliente"}
         </p>
@@ -86,7 +61,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
     header: "Veículo",
     cell: (quote) => (
       <div className="min-w-0 space-y-1">
-        <p className="truncate font-medium text-foreground max-w-90">
+        <p className="max-w-90 truncate font-medium text-foreground">
           {getQuoteVehicleLabel(quote)}
         </p>
         <p className="font-mono text-xs text-muted-foreground">{getQuoteVehiclePlate(quote)}</p>

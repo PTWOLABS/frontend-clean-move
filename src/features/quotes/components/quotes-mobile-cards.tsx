@@ -6,11 +6,7 @@ import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } f
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
 import { DataCatalogTableSkeleton } from "@/shared/components/data-catalog-table";
-import {
-  MobileDataCard,
-  MobileDataCardSkeleton,
-  type MobileDataCardTone,
-} from "@/shared/components/mobile-data-card";
+import { MobileDataCard, MobileDataCardSkeleton } from "@/shared/components/mobile-data-card";
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { cn } from "@/shared/utils/cn";
 
@@ -20,42 +16,13 @@ import {
   buildQuotesApiFilters,
   type QuotesFiltersState,
 } from "../lib/build-quotes-api-filters";
+import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
 
-const PAGE_SIZE = 6;
-
-const quoteStatusConfig: Record<
-  QuoteListItemDto["status"],
-  {
-    label: string;
-    tone: MobileDataCardTone;
-    footerLabel: string;
-  }
-> = {
-  APPROVED: {
-    label: "Aprovado",
-    tone: "success",
-    footerLabel: "Aprovado em",
-  },
-  VALID: {
-    label: "Válido",
-    tone: "primary",
-    footerLabel: "Expira em",
-  },
-  EXPIRES_TODAY: {
-    label: "Vence hoje",
-    tone: "warning",
-    footerLabel: "Expira hoje",
-  },
-  EXPIRED: {
-    label: "Vencido",
-    tone: "danger",
-    footerLabel: "Expirado em",
-  },
-};
+const PAGE_SIZE = 5;
 
 const customerKindLabel: Record<QuoteListItemDto["customerKind"], string> = {
   CUSTOMER: "Cliente",
