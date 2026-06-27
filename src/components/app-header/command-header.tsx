@@ -8,6 +8,7 @@ import {
   CarFront,
   ImageIcon,
   Search,
+  Shield,
   UserRound,
   Wrench,
   type LucideIcon,
@@ -62,6 +63,11 @@ const settingsCommands: CommandAction[] = [
     icon: UserRound,
     label: "Informações do perfil",
     navigateTo: "/settings?tab=profile",
+  },
+  {
+    icon: Shield,
+    label: "Segurança",
+    navigateTo: "/settings?tab=security",
   },
   {
     icon: Building2,

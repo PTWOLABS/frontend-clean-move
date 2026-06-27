@@ -17,6 +17,7 @@ export const QUERY_KEYS = {
   registerEstablishment: ["registerEstablishment"],
   requestPasswordReset: ["requestPasswordReset"],
   confirmPasswordReset: ["confirmPasswordReset"],
+  updateUserPassword: ["updateUserPassword"],
   metricsOverview: ["metrics-overview"],
   metricsAppointment: ["metrics-appointment"],
   popularServices: ["popular-services"],
