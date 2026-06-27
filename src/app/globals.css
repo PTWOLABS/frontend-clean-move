@@ -216,6 +216,23 @@
     --sidebar-active: 221 83% 53%;
     --sidebar-active-foreground: 0 0% 100%;
     --sidebar-border: 213 26.8% 83.9%;
+
+    --success: 142 70.6% 36%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 142 76% 91%;
+    --success-soft-foreground: 143 64% 24%;
+    --warning: 38 92% 43%;
+    --warning-foreground: 222 38% 7%;
+    --warning-soft: 48 96% 88%;
+    --warning-soft-foreground: 32 95% 26%;
+    --danger: 0 74% 48%;
+    --danger-foreground: 0 0% 100%;
+    --danger-soft: 0 86% 94%;
+    --danger-soft-foreground: 0 74% 34%;
+    --info: 196 83% 39%;
+    --info-foreground: 0 0% 100%;
+    --info-soft: 199 89% 92%;
+    --info-soft-foreground: 199 89% 28%;
   }
 
   .dark {
