@@ -5,12 +5,14 @@ import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } f
 
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
+import { DataCatalogTableSkeleton } from "@/shared/components/data-catalog-table";
 import {
   MobileDataCard,
   MobileDataCardSkeleton,
   type MobileDataCardTone,
 } from "@/shared/components/mobile-data-card";
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
+import { cn } from "@/shared/utils/cn";
 
 import { useListQuotes } from "../api/use-list-quotes";
 import {
@@ -21,6 +23,7 @@ import {
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
+import { QuotesCatalogTable } from "./quotes-catalog-table";
 
 const PAGE_SIZE = 6;
 
@@ -78,7 +81,7 @@ function getQuoteFooterLabel(quote: QuoteListItemDto): string {
 
   return quote.expiresAt
     ? `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`
-    : "Nao expira";
+    : "Não expira";
 }
 
 function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
@@ -136,7 +139,17 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
   );
 }
 
-export function QuotesMobileCards() {
+type QuotesCatalogContentProps = {
+  className?: string;
+  tableClassName?: string;
+  mobileCardsClassName?: string;
+};
+
+export function QuotesCatalogContent({
+  className,
+  tableClassName,
+  mobileCardsClassName,
+}: QuotesCatalogContentProps) {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
@@ -162,7 +175,7 @@ export function QuotesMobileCards() {
 
   return (
     <CatalogContentShell
-      className="md:hidden"
+      className={className}
       toolbar={
         <QuotesCatalogToolbar
           filters={filters}
@@ -172,19 +185,23 @@ export function QuotesMobileCards() {
           onClearFilters={handleClearFilters}
         />
       }
+      table={<QuotesCatalogTable quotes={quotes} className={tableClassName} />}
       mobileCards={
-        <div className="flex flex-col gap-3">
+        <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
           {quotes.map((quote) => (
             <QuoteMobileCard key={quote.id} quote={quote} />
           ))}
         </div>
       }
       skeleton={
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: PAGE_SIZE }, (_, index) => (
-            <MobileDataCardSkeleton key={index} />
-          ))}
-        </div>
+        <>
+          <DataCatalogTableSkeleton className={tableClassName} />
+          <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
+            {Array.from({ length: PAGE_SIZE }, (_, index) => (
+              <MobileDataCardSkeleton key={index} />
+            ))}
+          </div>
+        </>
       }
       emptyState={
         isError ? (
@@ -207,4 +224,8 @@ export function QuotesMobileCards() {
       }
     />
   );
+}
+
+export function QuotesMobileCards() {
+  return <QuotesCatalogContent mobileCardsClassName="md:flex" tableClassName="hidden" />;
 }
