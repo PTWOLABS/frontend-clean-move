@@ -56,10 +56,10 @@ describe("parsePasswordUpdateError", () => {
     expect(parsePasswordUpdateError(401, { message: "Unauthorized" })).toEqual({
       kind: "unauthorized",
     });
-    expect(parsePasswordUpdateError(429, { message: "ThrottlerException: Too Many Requests" })).toEqual(
-      {
-        kind: "rate_limit",
-      },
-    );
+    expect(
+      parsePasswordUpdateError(429, { message: "ThrottlerException: Too Many Requests" }),
+    ).toEqual({
+      kind: "rate_limit",
+    });
   });
 });

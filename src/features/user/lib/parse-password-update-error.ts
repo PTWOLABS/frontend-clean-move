@@ -83,8 +83,7 @@ export function parsePasswordUpdateError(status: number, body: unknown): Passwor
       return {
         kind: "wrong_current",
         message:
-          payload.message ??
-          "A senha atual informada está incorreta. Verifique e tente novamente.",
+          payload.message ?? "A senha atual informada está incorreta. Verifique e tente novamente.",
         field: "currentPassword",
       };
     }

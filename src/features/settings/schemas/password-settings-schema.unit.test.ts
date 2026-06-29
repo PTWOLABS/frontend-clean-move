@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  mapPasswordFormToApiPayload,
-  setPasswordSettingsSchema,
-} from "./password-settings-schema";
+import { mapPasswordFormToApiPayload, setPasswordSettingsSchema } from "./password-settings-schema";
 
 describe("mapPasswordFormToApiPayload", () => {
   it("maps set-password form values to API payload", () => {

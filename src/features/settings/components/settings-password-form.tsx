@@ -108,7 +108,10 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
         });
         setConfirmDialogOpen(false);
       },
-      onSettled: (_data: UpdateUserPasswordResponse | undefined, error: ApiError | Error | null) => {
+      onSettled: (
+        _data: UpdateUserPasswordResponse | undefined,
+        error: ApiError | Error | null,
+      ) => {
         if (!error) {
           setConfirmDialogOpen(false);
         }
