@@ -27,7 +27,7 @@ describe("parsePasswordUpdateError", () => {
     });
   });
 
-  it("parses invalid current password errors", () => {
+  it("parses invalid current password errors in portuguese", () => {
     expect(
       parsePasswordUpdateError(400, {
         code: "INVALID_CURRENT_PASSWORD",
@@ -37,18 +37,18 @@ describe("parsePasswordUpdateError", () => {
     ).toEqual({
       kind: "wrong_current",
       field: "currentPassword",
-      message: "The current password you entered is incorrect. Check the password and try again.",
+      message: "A senha atual informada está incorreta. Verifique e tente novamente.",
     });
   });
 
-  it("parses business rule errors", () => {
+  it("parses business rule errors in portuguese", () => {
     expect(
       parsePasswordUpdateError(400, {
         message: "Current password is required to update an existing local password.",
       }),
     ).toEqual({
       kind: "business",
-      message: "Current password is required to update an existing local password.",
+      message: "Informe sua senha atual para alterar a senha.",
     });
   });
 

@@ -56,10 +56,15 @@ describe("ResetPasswordForm", () => {
     await waitFor(() => {
       expect(confirmPasswordResetMock).toHaveBeenCalledTimes(1);
     });
-    expect(confirmPasswordResetMock).toHaveBeenCalledWith({
-      newPassword: "senhaForte",
-      confirmPassword: "senhaForte",
-      token: "valid-token",
-    });
+    expect(confirmPasswordResetMock).toHaveBeenCalledWith(
+      {
+        newPassword: "senhaForte",
+        confirmPassword: "senhaForte",
+        token: "valid-token",
+      },
+      expect.objectContaining({
+        onError: expect.any(Function),
+      }),
+    );
   });
 });
