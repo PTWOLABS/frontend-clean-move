@@ -1,7 +1,8 @@
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { finalizeSessionCleanup } from "@/features/auth/lib/finalize-session-cleanup";
 import { QUERY_KEYS } from "@/shared/constants/query-keys";
 import { ApiError } from "@/shared/api/httpClient";
 
@@ -25,6 +26,7 @@ type ConfirmPasswordResetVariables = ResetPasswordFormValues & {
 
 export function useConfirmPasswordReset() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ token, newPassword }: ConfirmPasswordResetVariables) =>
@@ -32,23 +34,7 @@ export function useConfirmPasswordReset() {
     mutationKey: QUERY_KEYS.confirmPasswordReset,
     onSuccess: () => {
       toast.success("Senha redefinida com sucesso.");
-      router.push("/login");
-    },
-    onError: (error) => {
-      if (error instanceof ApiError) {
-        if (isInvalidPasswordResetTokenError(error)) {
-          return;
-        }
-        if (error.statusCode === 429) {
-          return toast.error("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
-        }
-        if (error.statusCode === 400) {
-          return toast.error(
-            error.message || "Não foi possível redefinir a senha. Verifique os dados informados.",
-          );
-        }
-        toast.error("Não foi possível redefinir a senha. Tente novamente mais tarde.");
-      }
+      finalizeSessionCleanup({ queryClient, router });
     },
   });
 }
