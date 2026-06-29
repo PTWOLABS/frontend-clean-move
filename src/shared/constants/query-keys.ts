@@ -8,6 +8,7 @@ import type {
 import type { DashboardTopCustomersFilters } from "@/features/dashboard/types/dashboard-sections";
 import type { OptionsQuery } from "@/shared/types/options-query";
 import type { AppointmentsQueryKeyParams } from "../types/appointments";
+import type { QuotesQueryKeyParams } from "../types/quotes";
 
 export const QUERY_KEYS = {
   authSession: ["auth", "session"] as const,
@@ -36,6 +37,29 @@ export const QUERY_KEYS = {
 
     if (appointmentId) {
       return [...root, "detail", appointmentId] as const;
+    }
+
+    if (filters) {
+      return [...root, "list", filters] as const;
+    }
+
+    return root;
+  },
+  quotes: (params?: QuotesQueryKeyParams) => {
+    const root = ["quotes"] as const;
+
+    if (!params) {
+      return root;
+    }
+
+    const { quoteId, filters } = params;
+
+    if (quoteId && filters) {
+      return [...root, "detail", quoteId, "filters", filters] as const;
+    }
+
+    if (quoteId) {
+      return [...root, "detail", quoteId] as const;
     }
 
     if (filters) {

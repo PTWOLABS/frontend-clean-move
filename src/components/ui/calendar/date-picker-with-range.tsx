@@ -19,6 +19,7 @@ type DatePickerWithRangeProps = {
   align?: "start" | "center" | "end";
   side?: "bottom" | "top" | "left" | "right";
   disabled?: boolean;
+  numberOfMonths?: number;
 };
 
 function getDefaultDateRange(): DateRange {
@@ -50,6 +51,7 @@ export function DatePickerWithRange({
   align = "end",
   side = "bottom",
   disabled = false,
+  numberOfMonths = 2,
 }: DatePickerWithRangeProps) {
   const [internalValue, setInternalValue] = React.useState<DateRange | undefined>(
     getDefaultDateRange,
@@ -96,7 +98,7 @@ export function DatePickerWithRange({
       <PopoverContent
         align={align}
         side={side}
-        className="w-auto rounded-xl border-border/80 p-0"
+        className="max-h-[min(30rem,calc(100dvh-2rem))] w-auto overflow-auto rounded-xl border-border/80 p-0"
         onOpenAutoFocus={(event) => {
           if (disabled) {
             event.preventDefault();
@@ -109,7 +111,7 @@ export function DatePickerWithRange({
           defaultMonth={selectedRange?.from}
           selected={selectedRange}
           onSelect={handleSelect}
-          numberOfMonths={2}
+          numberOfMonths={numberOfMonths}
           dir=""
         />
       </PopoverContent>

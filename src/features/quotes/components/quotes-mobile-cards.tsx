@@ -1,0 +1,210 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } from "lucide-react";
+
+import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
+import { CatalogPagination } from "@/shared/components/catalog-pagination";
+import {
+  MobileDataCard,
+  MobileDataCardSkeleton,
+  type MobileDataCardTone,
+} from "@/shared/components/mobile-data-card";
+import { formatBrlFromCents } from "@/shared/money/format-brl-money";
+
+import { useListQuotes } from "../api/use-list-quotes";
+import {
+  DEFAULT_QUOTES_FILTERS,
+  buildQuotesApiFilters,
+  type QuotesFiltersState,
+} from "../lib/build-quotes-api-filters";
+import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
+import type { QuoteListItemDto } from "../types/quotes";
+import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
+
+const PAGE_SIZE = 6;
+
+const quoteStatusConfig: Record<
+  QuoteListItemDto["status"],
+  {
+    label: string;
+    tone: MobileDataCardTone;
+    footerLabel: string;
+  }
+> = {
+  APPROVED: {
+    label: "Aprovado",
+    tone: "success",
+    footerLabel: "Aprovado em",
+  },
+  VALID: {
+    label: "Válido",
+    tone: "primary",
+    footerLabel: "Expira em",
+  },
+  EXPIRES_TODAY: {
+    label: "Vence hoje",
+    tone: "warning",
+    footerLabel: "Expira hoje",
+  },
+  EXPIRED: {
+    label: "Vencido",
+    tone: "danger",
+    footerLabel: "Expirado em",
+  },
+};
+
+const customerKindLabel: Record<QuoteListItemDto["customerKind"], string> = {
+  CUSTOMER: "Cliente",
+  PROSPECT: "Prospect",
+};
+
+function noop() {
+  return undefined;
+}
+
+function getQuoteFooterLabel(quote: QuoteListItemDto): string {
+  const status = quoteStatusConfig[quote.status];
+
+  if (quote.status === "EXPIRES_TODAY") {
+    return status.footerLabel;
+  }
+
+  if (quote.status === "APPROVED") {
+    return quote.approvedAt
+      ? `${status.footerLabel} ${formatShortDate(quote.approvedAt)}`
+      : "Aprovado";
+  }
+
+  return quote.expiresAt
+    ? `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`
+    : "Nao expira";
+}
+
+function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
+  const status = quoteStatusConfig[quote.status];
+
+  return (
+    <MobileDataCard
+      title={quote.customerName}
+      value={formatBrlFromCents(quote.totalInCents)}
+      status={{
+        label: status.label,
+        tone: status.tone,
+      }}
+      metadata={[
+        {
+          label: getQuoteVehiclePlate(quote),
+          className: "font-mono",
+        },
+        {
+          label: customerKindLabel[quote.customerKind],
+          tone: quote.customerKind === "PROSPECT" ? "primary" : "neutral",
+          className: "font-mono",
+        },
+      ]}
+      description={getQuoteVehicleLabel(quote)}
+      footer={{
+        icon:
+          status.tone === "danger"
+            ? CalendarX
+            : status.tone === "warning"
+              ? TriangleAlert
+              : CalendarDays,
+        label: getQuoteFooterLabel(quote),
+        tone: quote.status === "EXPIRED" ? "danger" : status.tone,
+      }}
+      accentTone={status.tone}
+      actions={[
+        {
+          label: "Visualizar orçamento",
+          icon: Eye,
+          onClick: noop,
+        },
+        {
+          label: "Gerar PDF",
+          icon: FileText,
+          onClick: noop,
+        },
+        {
+          label: "Mais opções",
+          icon: MoreVertical,
+          onClick: noop,
+        },
+      ]}
+    />
+  );
+}
+
+export function QuotesMobileCards() {
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
+  const apiFilters = useMemo(
+    () => buildQuotesApiFilters(appliedFilters, { page, size: PAGE_SIZE }),
+    [appliedFilters, page],
+  );
+  const { data, isError, isLoading } = useListQuotes(apiFilters);
+  const quotes = data?.quotes ?? [];
+  const totalItems = data?.totalItems ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  function handleApplyFilters(nextFilters: QuotesFiltersState) {
+    setAppliedFilters(nextFilters);
+    setPage(1);
+  }
+
+  function handleClearFilters() {
+    setFilters(DEFAULT_QUOTES_FILTERS);
+    setAppliedFilters(DEFAULT_QUOTES_FILTERS);
+    setPage(1);
+  }
+
+  return (
+    <CatalogContentShell
+      className="md:hidden"
+      toolbar={
+        <QuotesCatalogToolbar
+          filters={filters}
+          appliedFilters={appliedFilters}
+          onFiltersChange={setFilters}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
+        />
+      }
+      mobileCards={
+        <div className="flex flex-col gap-3">
+          {quotes.map((quote) => (
+            <QuoteMobileCard key={quote.id} quote={quote} />
+          ))}
+        </div>
+      }
+      skeleton={
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: PAGE_SIZE }, (_, index) => (
+            <MobileDataCardSkeleton key={index} />
+          ))}
+        </div>
+      }
+      emptyState={
+        isError ? (
+          <p className="rounded-lg border border-dashed border-danger/40 bg-danger-soft/40 px-4 py-8 text-center text-sm text-danger">
+            Não foi possível carregar os orçamentos. Tente novamente em instantes.
+          </p>
+        ) : undefined
+      }
+      isLoading={isLoading}
+      isEmpty={isError || totalItems === 0}
+      emptyMessage="Nenhum orçamento encontrado para os filtros atuais."
+      pagination={
+        <CatalogPagination
+          page={page}
+          totalPages={totalPages}
+          total={totalItems}
+          itemLabel={{ singular: "orçamento", plural: "orçamentos" }}
+          onPageChange={setPage}
+        />
+      }
+    />
+  );
+}

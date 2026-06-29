@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { AppointmentsFilters } from "@/features/appointments/types/api-filters";
+import type { QuotesApiFilters } from "@/features/quotes/types/api-filters";
 
 import { QUERY_KEYS } from "./query-keys";
 
@@ -23,6 +24,30 @@ describe("QUERY_KEYS appointments", () => {
       "appointments",
       "detail",
       "appointment-1",
+      "filters",
+      filters,
+    ]);
+  });
+});
+
+describe("QUERY_KEYS quotes", () => {
+  it("builds quote keys from named parameters", () => {
+    const filters: QuotesApiFilters = {
+      page: 1,
+      size: 10,
+      customerName: "Marcos",
+      converted: true,
+      expiresFrom: "2026-06-01",
+      expiresTo: "2026-06-30",
+    };
+
+    expect(QUERY_KEYS.quotes()).toEqual(["quotes"]);
+    expect(QUERY_KEYS.quotes({ filters })).toEqual(["quotes", "list", filters]);
+    expect(QUERY_KEYS.quotes({ quoteId: "quote-1" })).toEqual(["quotes", "detail", "quote-1"]);
+    expect(QUERY_KEYS.quotes({ quoteId: "quote-1", filters })).toEqual([
+      "quotes",
+      "detail",
+      "quote-1",
       "filters",
       filters,
     ]);
