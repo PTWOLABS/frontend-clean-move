@@ -101,10 +101,10 @@ describe("appointment form request helpers", () => {
     );
   });
 
-  it("maps an empty discount form value to zero cents", () => {
+  it("maps an empty discount form value to null", () => {
     expect(buildAppointmentRequestBody({ ...formValues, discountValue: "" })).toEqual(
       expect.objectContaining({
-        discountInCents: 0,
+        discountInCents: null,
       }),
     );
   });

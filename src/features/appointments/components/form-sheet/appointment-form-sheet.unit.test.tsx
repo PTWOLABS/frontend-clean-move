@@ -986,7 +986,7 @@ describe("AppointmentFormSheet", () => {
       expect(mutate).toHaveBeenCalledWith(
         expect.objectContaining({
           customerId: "customer-1",
-          discountInCents: 0,
+          discountInCents: null,
           services: [{ serviceId: "service-1", priceInCents: 9000 }],
           vehicleId: "vehicle-1",
         }),
