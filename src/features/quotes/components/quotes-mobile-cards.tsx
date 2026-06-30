@@ -140,11 +140,11 @@ export function QuotesCatalogContent({
     () => buildQuotesApiFilters(appliedFilters, { page, size: PAGE_SIZE }),
     [appliedFilters, page],
   );
-  const { data, isError, isFetching, isLoading } = useListQuotes(apiFilters);
+  const { data, isError, isPending, isPlaceholderData } = useListQuotes(apiFilters);
   const quotes = data?.quotes ?? [];
   const totalItems = data?.totalItems ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const isCatalogLoading = isLoading || isFetching;
+  const isFetchingPage = isPending || isPlaceholderData;
 
   function handleApplyFilters(nextFilters: QuotesFiltersState) {
     setAppliedFilters(nextFilters);
@@ -194,9 +194,9 @@ export function QuotesCatalogContent({
           </p>
         ) : undefined
       }
-      isLoading={isLoading}
-      isFetching={isFetching}
-      isEmpty={!isCatalogLoading && (isError || totalItems === 0)}
+      isLoading={isPending}
+      isFetching={isPlaceholderData}
+      isEmpty={!isFetchingPage && (isError || totalItems === 0)}
       emptyMessage="Nenhum orçamento encontrado para os filtros atuais."
       pagination={
         <CatalogPagination
@@ -204,7 +204,7 @@ export function QuotesCatalogContent({
           totalPages={totalPages}
           total={totalItems}
           itemLabel={{ singular: "orçamento", plural: "orçamentos" }}
-          isFetching={isFetching}
+          isFetching={isFetchingPage}
           onPageChange={setPage}
         />
       }

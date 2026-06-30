@@ -50,7 +50,7 @@ export function CatalogContentShell({
 }: CatalogContentShellProps) {
   const hasDetailsPanel = Boolean(detailsPanel);
   const isContentLoading = isLoading || isFetching;
-  const shouldShowPagination = !isContentLoading && !isEmpty && Boolean(pagination);
+  const shouldShowPagination = !isEmpty && Boolean(pagination);
 
   return (
     <Card className={className} aria-busy={isContentLoading}>

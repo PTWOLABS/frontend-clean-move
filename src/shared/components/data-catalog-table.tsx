@@ -217,7 +217,7 @@ export function DataCatalogTable<TItem>({
 }
 
 export function DataCatalogTableSkeleton({
-  rows = 6,
+  rows = 5,
   columns = 6,
   className,
 }: DataCatalogTableSkeletonProps) {
