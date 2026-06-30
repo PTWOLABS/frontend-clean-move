@@ -32,7 +32,8 @@ describe("Forgot password flow", () => {
       email: "user@example.com",
     });
 
-    cy.contains("h2", /verifique seu e-mail/i).should("be.visible");
+    cy.contains("h1", /verifique seu e-mail/i).should("be.visible");
+    cy.contains("h1", /esqueceu sua senha/i).should("not.exist");
     cy.contains(/se existir uma conta com este e-mail/i).should("be.visible");
     cy.contains("a", /voltar ao login/i).should("be.visible");
   });

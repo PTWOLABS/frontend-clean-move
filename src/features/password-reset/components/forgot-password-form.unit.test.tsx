@@ -3,20 +3,28 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "@/test/test-utils";
-import { PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE } from "../lib/constants";
 
-const requestPasswordResetMock = vi.fn();
+import { ForgotPasswordForm } from "./forgot-password-form";
+
+const mutateMock = vi.fn();
 const resetMock = vi.fn();
-let isSuccess = false;
 
-vi.mock("../hooks/use-request-password-reset", () => ({
-  useRequestPasswordReset: () => ({
-    mutate: requestPasswordResetMock,
-    isPending: false,
-    isSuccess,
-    reset: resetMock,
-  }),
-}));
+function renderForgotPasswordForm({
+  isPending = false,
+  isSuccess = false,
+}: {
+  isPending?: boolean;
+  isSuccess?: boolean;
+} = {}) {
+  return renderWithProviders(
+    <ForgotPasswordForm
+      mutate={mutateMock}
+      isPending={isPending}
+      isSuccess={isSuccess}
+      reset={resetMock}
+    />,
+  );
+}
 
 vi.mock("next/image", () => ({
   __esModule: true,
@@ -26,17 +34,14 @@ vi.mock("next/image", () => ({
   },
 }));
 
-import { ForgotPasswordForm } from "./forgot-password-form";
-
 describe("ForgotPasswordForm", () => {
   beforeEach(() => {
-    requestPasswordResetMock.mockReset();
+    mutateMock.mockReset();
     resetMock.mockReset();
-    isSuccess = false;
   });
 
   it("should render the email field and submit button", () => {
-    renderWithProviders(<ForgotPasswordForm />);
+    renderForgotPasswordForm();
 
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /enviar link de recuperação/i })).toBeInTheDocument();
@@ -48,36 +53,35 @@ describe("ForgotPasswordForm", () => {
 
   it("should display a validation error when submitting with an invalid email", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<ForgotPasswordForm />);
+    renderForgotPasswordForm();
 
     await user.click(screen.getByRole("button", { name: /enviar link de recuperação/i }));
 
     expect(await screen.findByText(/informe um e-mail válido/i)).toBeInTheDocument();
-    expect(requestPasswordResetMock).not.toHaveBeenCalled();
+    expect(mutateMock).not.toHaveBeenCalled();
   });
 
   it("should call the request mutation with the form data when valid", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<ForgotPasswordForm />);
+    renderForgotPasswordForm();
 
     await user.type(screen.getByLabelText("E-mail"), "user@example.com");
     await user.click(screen.getByRole("button", { name: /enviar link de recuperação/i }));
 
     await waitFor(() => {
-      expect(requestPasswordResetMock).toHaveBeenCalledTimes(1);
+      expect(mutateMock).toHaveBeenCalledTimes(1);
     });
-    expect(requestPasswordResetMock).toHaveBeenCalledWith({
+    expect(mutateMock).toHaveBeenCalledWith({
       email: "user@example.com",
     });
   });
 
-  it("should render the success state when the request succeeds", () => {
-    isSuccess = true;
+  it("should render the success actions without a duplicate heading", () => {
+    renderForgotPasswordForm({ isSuccess: true });
 
-    renderWithProviders(<ForgotPasswordForm />);
-
-    expect(screen.getByRole("heading", { name: /verifique seu e-mail/i })).toBeInTheDocument();
-    expect(screen.getByText(PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /verifique seu e-mail/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /voltar ao login/i })).toHaveAttribute(
       "href",
       "/login",

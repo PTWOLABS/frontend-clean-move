@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
-import { ForgotPasswordForm } from "@/features/password-reset/components/forgot-password-form";
-import { ForgotPasswordHeader } from "@/features/password-reset/components/forgot-password-header";
+import { ForgotPasswordScreen } from "@/features/password-reset/components/forgot-password-screen";
 
 export const metadata: Metadata = {
   title: "Esqueci minha senha",
@@ -9,10 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ForgotPasswordPage() {
-  return (
-    <>
-      <ForgotPasswordHeader />
-      <ForgotPasswordForm />
-    </>
-  );
+  return <ForgotPasswordScreen />;
 }

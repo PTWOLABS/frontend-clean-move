@@ -2,21 +2,30 @@
 
 import Link from "next/link";
 import { LoaderCircle, Mail, MailCheck } from "lucide-react";
+import type { UseMutateFunction } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { RegisterTextField } from "@/features/register/components/register-text-field";
 import { Form } from "@/shared/forms/form";
 
-import { PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE } from "../lib/constants";
-import { useRequestPasswordReset } from "../hooks/use-request-password-reset";
 import {
   type ForgotPasswordFormValues,
   forgotPasswordSchema,
 } from "../schemas/forgot-password-schema";
 
-export function ForgotPasswordForm() {
-  const { mutate, isPending, isSuccess, reset } = useRequestPasswordReset();
+type ForgotPasswordFormProps = {
+  mutate: UseMutateFunction<unknown, Error, ForgotPasswordFormValues, unknown>;
+  isPending: boolean;
+  isSuccess: boolean;
+  reset: () => void;
+};
 
+export function ForgotPasswordForm({
+  mutate,
+  isPending,
+  isSuccess,
+  reset,
+}: ForgotPasswordFormProps) {
   const onSubmit = (data: ForgotPasswordFormValues) => {
     mutate(data);
   };
@@ -27,15 +36,6 @@ export function ForgotPasswordForm() {
         <div aria-live="polite" className="mt-9 space-y-6 text-center">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-[#2563EB]/30 bg-[#2563EB]/10">
             <MailCheck aria-hidden className="size-8 text-[#38BDF8]" />
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-[#F8FAFC]">
-              Verifique seu e-mail
-            </h2>
-            <p className="text-sm leading-7 text-[#94A3B8]">
-              {PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE}
-            </p>
           </div>
 
           <Button
