@@ -23,10 +23,6 @@ function noop() {
 }
 
 function formatQuoteExpiration(quote: QuoteListItemDto): string {
-  if (quote.status === "APPROVED" && quote.approvedAt) {
-    return formatShortDate(quote.approvedAt);
-  }
-
   if (!quote.expiresAt) {
     return "Não expira";
   }
@@ -54,7 +50,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
         </p>
       </div>
     ),
-    className: "w-[24%]",
+    className: "w-[22%]",
   },
   {
     id: "vehicle",
@@ -67,7 +63,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
         <p className="font-mono text-xs text-muted-foreground">{getQuoteVehiclePlate(quote)}</p>
       </div>
     ),
-    className: "w-[18%]",
+    className: "w-[16%]",
   },
   {
     id: "services",
@@ -75,7 +71,15 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
     cell: (quote) => (
       <span className="text-muted-foreground">{formatServicesCount(quote.servicesCount)}</span>
     ),
-    className: "w-[16%]",
+    className: "w-[13%]",
+  },
+  {
+    id: "createdAt",
+    header: "Criação",
+    cell: (quote) => (
+      <span className="tabular-nums text-muted-foreground">{formatShortDate(quote.createdAt)}</span>
+    ),
+    className: "w-[11%]",
   },
   {
     id: "total",
@@ -85,7 +89,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
         {formatBrlFromCents(quote.totalInCents)}
       </span>
     ),
-    className: "w-[14%]",
+    className: "w-[13%]",
   },
   {
     id: "validity",
@@ -93,7 +97,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
     cell: (quote) => (
       <span className="tabular-nums text-muted-foreground">{formatQuoteExpiration(quote)}</span>
     ),
-    className: "w-[12%]",
+    className: "w-[10%]",
   },
   {
     id: "status",
@@ -103,7 +107,7 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
 
       return <DataCatalogStatusBadge tone={status.tone}>{status.label}</DataCatalogStatusBadge>;
     },
-    className: "w-[12%]",
+    className: "w-[11%]",
   },
 ];
 

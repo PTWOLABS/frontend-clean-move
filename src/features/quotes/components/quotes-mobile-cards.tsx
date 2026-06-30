@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } from "lucide-react";
+import {
+  Calendar,
+  CalendarDays,
+  CalendarX,
+  Eye,
+  FileText,
+  MoreVertical,
+  TriangleAlert,
+} from "lucide-react";
 
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
@@ -73,7 +81,15 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
           className: "font-mono",
         },
       ]}
-      description={getQuoteVehicleLabel(quote)}
+      description={
+        <>
+          <p className="truncate">{getQuoteVehicleLabel(quote)}</p>
+          <p className="text-xs mt-2 flex gap-1">
+            <Calendar size={14} />
+            Criado {formatShortDate(quote.createdAt)}
+          </p>
+        </>
+      }
       footer={{
         icon:
           status.tone === "danger"
@@ -162,7 +178,7 @@ export function QuotesCatalogContent({
       }
       skeleton={
         <>
-          <DataCatalogTableSkeleton className={tableClassName} />
+          <DataCatalogTableSkeleton className={tableClassName} columns={7} />
           <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
             {Array.from({ length: PAGE_SIZE }, (_, index) => (
               <MobileDataCardSkeleton key={index} />
