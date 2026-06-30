@@ -1,15 +1,20 @@
 import type { QuoteListItemDto } from "../types/quotes";
 
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 export function formatShortDate(value: string | null): string {
   if (!value) return "sem data";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "data inválida";
 
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  }).format(date);
+  if (Number.isNaN(date.getTime())) {
+    return "data inválida";
+  }
+
+  return format(date, "dd/MM", {
+    locale: ptBR,
+  });
 }
 
 export function getQuoteVehicleLabel(quote: QuoteListItemDto): string {
