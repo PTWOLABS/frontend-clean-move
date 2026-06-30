@@ -2,65 +2,50 @@ import { toast } from "sonner";
 import type { UseFormSetError } from "react-hook-form";
 
 import { ApiError } from "@/shared/api/httpClient";
-import { parseApiValidationIssues } from "@/features/user/lib/parse-api-validation-issues";
 
+import { isInvalidPasswordResetTokenError } from "../hooks/use-confirm-password-reset";
 import type { ResetPasswordFormValues } from "../schemas/reset-password-schema";
+import { getPasswordResetConfirmFeedbackError } from "./password-reset-mutation-feedback";
 
 const RESET_PASSWORD_FORM_FIELDS = new Set(["newPassword", "confirmPassword"]);
 
-function applyResetValidationIssues(
-  issues: ReturnType<typeof parseApiValidationIssues>,
+function applyResetFieldErrors(
+  fieldErrors: Record<string, string>,
   setError: UseFormSetError<ResetPasswordFormValues>,
 ) {
-  if (!issues) {
-    return 0;
-  }
-
-  let appliedCount = 0;
-
-  for (const issue of issues) {
-    if (!RESET_PASSWORD_FORM_FIELDS.has(issue.path)) {
+  for (const [field, message] of Object.entries(fieldErrors)) {
+    if (!RESET_PASSWORD_FORM_FIELDS.has(field)) {
       continue;
     }
 
-    setError(issue.path as keyof ResetPasswordFormValues, {
+    setError(field as keyof ResetPasswordFormValues, {
       type: "server",
-      message: issue.message,
+      message,
     });
-    appliedCount += 1;
   }
-
-  return appliedCount;
 }
 
 export function handlePasswordResetConfirmError(
   error: unknown,
   setError: UseFormSetError<ResetPasswordFormValues>,
 ) {
-  if (!(error instanceof ApiError)) {
-    toast.error("Não foi possível redefinir a senha. Tente novamente mais tarde.");
+  if (isInvalidPasswordResetTokenError(error)) {
     return;
   }
 
-  if (error.statusCode === 429) {
+  if (error instanceof ApiError && error.statusCode === 429) {
     toast.error("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
     return;
   }
 
-  if (error.statusCode === 400) {
-    const issues = parseApiValidationIssues(error.payload);
-    const appliedCount = applyResetValidationIssues(issues, setError);
+  const feedback = getPasswordResetConfirmFeedbackError(error);
 
-    if (appliedCount > 0) {
-      toast.error("Verifique os dados informados.");
-      return;
-    }
-
-    toast.error(
-      error.message || "Não foi possível redefinir a senha. Verifique os dados informados.",
-    );
-    return;
+  if (feedback.fieldErrors) {
+    applyResetFieldErrors(feedback.fieldErrors, setError);
   }
 
-  toast.error("Não foi possível redefinir a senha. Tente novamente mais tarde.");
+  toast.error(feedback.title, {
+    id: feedback.id,
+    description: feedback.description,
+  });
 }
