@@ -24,22 +24,22 @@ export const DEFAULT_QUOTES_FILTERS: QuotesFiltersState = {
   expiresRange: undefined,
 };
 
-function formatDateFilter(date: Date | undefined): string | undefined {
+function formatDateFilter(date: Date | undefined, time: string): string | undefined {
   if (!date) return undefined;
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
+  return `${year}-${month}-${day}T${time}Z`;
+}
+
+function formatStartOfDayDateFilter(date: Date | undefined): string | undefined {
+  return formatDateFilter(date, "00:00:00.000");
 }
 
 function formatEndOfDayDateFilter(date: Date | undefined): string | undefined {
-  const formattedDate = formatDateFilter(date);
-
-  if (!formattedDate) return undefined;
-
-  return `${formattedDate}T23:59:59.999`;
+  return formatDateFilter(date, "23:59:59.999");
 }
 
 export function buildQuotesApiFilters(
@@ -51,7 +51,7 @@ export function buildQuotesApiFilters(
     ...pagination,
     sort: filters.sort,
     converted: filters.converted === "all" ? undefined : filters.converted === "converted",
-    expiresFrom: formatDateFilter(filters.expiresRange?.from),
+    expiresFrom: formatStartOfDayDateFilter(filters.expiresRange?.from),
     expiresTo: formatEndOfDayDateFilter(filters.expiresRange?.to),
   };
 

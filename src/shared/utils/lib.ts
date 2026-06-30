@@ -84,8 +84,31 @@ type QueryParamValue =
   | readonly (QueryParamPrimitive | null | undefined)[];
 type NormalizedQueryParamValue = string | string[];
 
+const API_LOCAL_DATE_TIME_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
+
 function isValidDate(value: unknown): value is Date {
   return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
+export function parseApiDateTimeAsLocalDate(value: string) {
+  const match = API_LOCAL_DATE_TIME_PATTERN.exec(value);
+
+  if (!match) {
+    return new Date(value);
+  }
+
+  const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = match;
+
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+    Number(millisecond.slice(0, 3).padEnd(3, "0")),
+  );
 }
 
 export function formatLocalDateTimeAsUtcISOString(value: Date) {

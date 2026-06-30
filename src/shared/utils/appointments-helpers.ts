@@ -1,33 +1,15 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppointmentDTO } from "@/features/appointments/types/appointments-dto";
+import { parseApiDateTimeAsLocalDate } from "@/shared/utils/lib";
 
 export type AppointmentListItem = AppointmentDTO["appointments"][number];
 
 const fallbackVehicleLabel = "Veículo não informado";
 const fallbackPlateLabel = "Sem placa";
 
-export const API_DATE_TIME_PATTERN =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
-
 export function parseAppointmentDateTime(value: string) {
-  const match = API_DATE_TIME_PATTERN.exec(value);
-
-  if (!match) {
-    return new Date(value);
-  }
-
-  const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = match;
-
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-    Number(millisecond.slice(0, 3).padEnd(3, "0")),
-  );
+  return parseApiDateTimeAsLocalDate(value);
 }
 
 export function getAppointmentDateTimeLabels(startsAt: string) {

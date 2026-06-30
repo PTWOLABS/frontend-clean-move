@@ -1,12 +1,12 @@
-import type { QuoteListItemDto } from "../types/quotes";
-
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseApiDateTimeAsLocalDate } from "@/shared/utils/lib";
+import type { QuoteListItemDto } from "../types/quotes";
 
 export function formatShortDate(value: string | null): string {
   if (!value) return "sem data";
 
-  const date = new Date(value);
+  const date = parseApiDateTimeAsLocalDate(value);
 
   if (Number.isNaN(date.getTime())) {
     return "data inválida";

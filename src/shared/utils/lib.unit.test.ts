@@ -6,6 +6,7 @@ import {
   getOnlyNumbers,
   handleNumericInputChange,
   normalizeQueryParamsFilters,
+  parseApiDateTimeAsLocalDate,
 } from "./lib";
 
 describe("query params filters", () => {
@@ -71,5 +72,17 @@ describe("numeric input helpers", () => {
     });
 
     expect(onChange).toHaveBeenCalledWith("5,00");
+  });
+});
+
+describe("parseApiDateTimeAsLocalDate", () => {
+  it("preserves API date and time parts from UTC-shaped strings", () => {
+    const date = parseApiDateTimeAsLocalDate("2026-07-01T00:00:00.000Z");
+
+    expect(date.getFullYear()).toBe(2026);
+    expect(date.getMonth()).toBe(6);
+    expect(date.getDate()).toBe(1);
+    expect(date.getHours()).toBe(0);
+    expect(date.getMinutes()).toBe(0);
   });
 });
