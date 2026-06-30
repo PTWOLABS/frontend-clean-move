@@ -2,32 +2,36 @@
 
 import Link from "next/link";
 import { LoaderCircle, Mail, MailCheck } from "lucide-react";
-import type { UseMutateFunction } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { RegisterTextField } from "@/features/register/components/register-text-field";
 import { Form } from "@/shared/forms/form";
 
+import { PASSWORD_RESET_RESEND_REMINDER_MESSAGE } from "../lib/constants";
 import {
   type ForgotPasswordFormValues,
   forgotPasswordSchema,
 } from "../schemas/forgot-password-schema";
 
 type ForgotPasswordFormProps = {
-  mutate: UseMutateFunction<unknown, Error, ForgotPasswordFormValues, unknown>;
+  onSubmit: (data: ForgotPasswordFormValues) => void;
   isPending: boolean;
   isSuccess: boolean;
-  reset: () => void;
+  onResendClick: () => void;
+  showResendReminder?: boolean;
+  defaultEmail?: string | null;
 };
 
 export function ForgotPasswordForm({
-  mutate,
+  onSubmit,
   isPending,
   isSuccess,
-  reset,
+  onResendClick,
+  showResendReminder = false,
+  defaultEmail = null,
 }: ForgotPasswordFormProps) {
-  const onSubmit = (data: ForgotPasswordFormValues) => {
-    mutate(data);
+  const handleFormSubmit = (data: ForgotPasswordFormValues) => {
+    onSubmit(data);
   };
 
   if (isSuccess) {
@@ -47,7 +51,7 @@ export function ForgotPasswordForm({
 
           <button
             type="button"
-            onClick={() => reset()}
+            onClick={onResendClick}
             className="text-sm font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
           >
             Não recebeu? Enviar novamente
@@ -57,9 +61,30 @@ export function ForgotPasswordForm({
     );
   }
 
+  const formKey = showResendReminder && defaultEmail ? `resend-${defaultEmail}` : "initial";
+
   return (
     <div className="relative z-10 w-full max-w-105">
-      <Form className="mt-9 space-y-6" onSubmit={onSubmit} schema={forgotPasswordSchema}>
+      <Form
+        key={formKey}
+        className="mt-9 space-y-6"
+        onSubmit={handleFormSubmit}
+        schema={forgotPasswordSchema}
+        options={{
+          defaultValues: {
+            email: showResendReminder && defaultEmail ? defaultEmail : "",
+          },
+        }}
+      >
+        {showResendReminder && defaultEmail ? (
+          <div
+            role="alert"
+            className="rounded-[12px] border border-[#2563EB]/30 bg-[#2563EB]/10 px-4 py-3 text-sm leading-6 text-[#94A3B8]"
+          >
+            {PASSWORD_RESET_RESEND_REMINDER_MESSAGE}
+          </div>
+        ) : null}
+
         <RegisterTextField
           id="forgot-password-email"
           name="email"
