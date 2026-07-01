@@ -18,7 +18,7 @@ import { MobileDataCard, MobileDataCardSkeleton } from "@/shared/components/mobi
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { cn } from "@/shared/utils/cn";
 
-import { useListQuotes } from "../api/use-list-quotes";
+import { useListQuotes } from "../hooks/use-list-quotes";
 import {
   DEFAULT_QUOTES_FILTERS,
   buildQuotesApiFilters,
