@@ -41,6 +41,36 @@ describe("parsePasswordUpdateError", () => {
     });
   });
 
+  it("parses same as current password errors in portuguese", () => {
+    expect(
+      parsePasswordUpdateError(400, {
+        code: "SAME_AS_CURRENT_PASSWORD",
+        field: "newPassword",
+        message: "The new password must be different from your current password.",
+      }),
+    ).toEqual({
+      kind: "same_as_current",
+      field: "newPassword",
+      message: "A nova senha deve ser diferente da sua senha atual.",
+    });
+  });
+
+  it("parses invalid confirmation code errors in portuguese", () => {
+    expect(
+      parsePasswordUpdateError(400, {
+        code: "INVALID_PASSWORD_CONFIRMATION_CODE",
+        field: "confirmationCode",
+        message:
+          "The confirmation code is invalid or has expired. Request a new code and try again.",
+      }),
+    ).toEqual({
+      kind: "invalid_confirmation_code",
+      field: "confirmationCode",
+      message:
+        "O código de confirmação é inválido ou expirou. Solicite um novo código e tente novamente.",
+    });
+  });
+
   it("parses business rule errors in portuguese", () => {
     expect(
       parsePasswordUpdateError(400, {

@@ -64,60 +64,86 @@ describe("Settings security tab", () => {
     cy.get('input[name="confirmPassword"]').should("be.visible");
   });
 
-  it("should send only newPassword when defining the first local password", () => {
-    loginAndVisitSecurityTab();
-    stubSecuritySettingsUser(false);
-
-    cy.intercept("POST", "**/user/me/password", {
-      statusCode: 200,
-      body: { message: "Password updated successfully." },
-    }).as("updatePassword");
-
-    cy.reload();
-    cy.get('input[name="newPassword"]').type("novaSenha123");
-    cy.get('input[name="confirmPassword"]').type("novaSenha123");
-    cy.contains("button", /definir senha/i).click();
-    cy.contains("button", /definir senha/i)
-      .last()
-      .click();
-
-    cy.wait("@updatePassword").its("request.body").should("deep.equal", {
-      newPassword: "novaSenha123",
-    });
-    cy.url().should("include", "/login");
-  });
-
-  it("should send currentPassword and newPassword when changing an existing password", () => {
+  it("should complete the two-step password change flow", () => {
     loginAndVisitSecurityTab();
     stubSecuritySettingsUser(true);
 
+    cy.intercept("POST", "**/user/me/password/confirmation-code", {
+      statusCode: 200,
+      body: { message: "We sent a confirmation code to your email." },
+    }).as("requestPasswordChangeCode");
+
     cy.intercept("POST", "**/user/me/password", {
       statusCode: 200,
       body: { message: "Password updated successfully." },
-    }).as("updatePassword");
+    }).as("confirmPasswordChange");
 
     cy.reload();
-    cy.contains(/alterar senha/i).should("be.visible");
     cy.get('input[name="currentPassword"]').type("senhaAtual123");
     cy.get('input[name="newPassword"]').type("novaSenha123");
     cy.get('input[name="confirmPassword"]').type("novaSenha123");
-    cy.contains("button", /^alterar senha$/i).click();
-    cy.contains("button", /^alterar senha$/i)
+    cy.contains("button", /enviar código/i).click();
+    cy.contains("button", /enviar código/i)
       .last()
       .click();
 
-    cy.wait("@updatePassword").its("request.body").should("deep.equal", {
+    cy.wait("@requestPasswordChangeCode").its("request.body").should("deep.equal", {
+      currentPassword: "senhaAtual123",
+      newPassword: "novaSenha123",
+    });
+
+    cy.get('input[name="confirmationCode"]').type("123456");
+    cy.contains("button", /confirmar alteração/i).click();
+
+    cy.wait("@confirmPasswordChange").its("request.body").should("deep.equal", {
+      confirmationCode: "123456",
       currentPassword: "senhaAtual123",
       newPassword: "novaSenha123",
     });
     cy.url().should("include", "/login");
   });
 
-  it("should show current password field error for INVALID_CURRENT_PASSWORD", () => {
+  it("should send only newPassword when defining the first local password", () => {
+    loginAndVisitSecurityTab();
+    stubSecuritySettingsUser(false);
+
+    cy.intercept("POST", "**/user/me/password/confirmation-code", {
+      statusCode: 200,
+      body: { message: "We sent a confirmation code to your email." },
+    }).as("requestPasswordChangeCode");
+
+    cy.intercept("POST", "**/user/me/password", {
+      statusCode: 200,
+      body: { message: "Password updated successfully." },
+    }).as("confirmPasswordChange");
+
+    cy.reload();
+    cy.get('input[name="newPassword"]').type("novaSenha123");
+    cy.get('input[name="confirmPassword"]').type("novaSenha123");
+    cy.contains("button", /enviar código/i).click();
+    cy.contains("button", /enviar código/i)
+      .last()
+      .click();
+
+    cy.wait("@requestPasswordChangeCode").its("request.body").should("deep.equal", {
+      newPassword: "novaSenha123",
+    });
+
+    cy.get('input[name="confirmationCode"]').type("123456");
+    cy.contains("button", /confirmar definição/i).click();
+
+    cy.wait("@confirmPasswordChange").its("request.body").should("deep.equal", {
+      confirmationCode: "123456",
+      newPassword: "novaSenha123",
+    });
+    cy.url().should("include", "/login");
+  });
+
+  it("should show current password field error for INVALID_CURRENT_PASSWORD on step 1", () => {
     loginAndVisitSecurityTab();
     stubSecuritySettingsUser(true);
 
-    cy.intercept("POST", "**/user/me/password", {
+    cy.intercept("POST", "**/user/me/password/confirmation-code", {
       statusCode: 400,
       body: {
         statusCode: 400,
@@ -126,18 +152,56 @@ describe("Settings security tab", () => {
         code: "INVALID_CURRENT_PASSWORD",
         field: "currentPassword",
       },
-    }).as("updatePassword");
+    }).as("requestPasswordChangeCode");
 
     cy.reload();
     cy.get('input[name="currentPassword"]').type("senhaErrada");
     cy.get('input[name="newPassword"]').type("novaSenha123");
     cy.get('input[name="confirmPassword"]').type("novaSenha123");
-    cy.contains("button", /^alterar senha$/i).click();
-    cy.contains("button", /^alterar senha$/i)
+    cy.contains("button", /enviar código/i).click();
+    cy.contains("button", /enviar código/i)
       .last()
       .click();
 
-    cy.wait("@updatePassword");
+    cy.wait("@requestPasswordChangeCode");
     cy.contains(/senha atual informada está incorreta/i).should("be.visible");
+  });
+
+  it("should show confirmation code field error for INVALID_PASSWORD_CONFIRMATION_CODE on step 2", () => {
+    loginAndVisitSecurityTab();
+    stubSecuritySettingsUser(true);
+
+    cy.intercept("POST", "**/user/me/password/confirmation-code", {
+      statusCode: 200,
+      body: { message: "We sent a confirmation code to your email." },
+    }).as("requestPasswordChangeCode");
+
+    cy.intercept("POST", "**/user/me/password", {
+      statusCode: 400,
+      body: {
+        statusCode: 400,
+        error: "Bad Request",
+        message:
+          "The confirmation code is invalid or has expired. Request a new code and try again.",
+        code: "INVALID_PASSWORD_CONFIRMATION_CODE",
+        field: "confirmationCode",
+      },
+    }).as("confirmPasswordChange");
+
+    cy.reload();
+    cy.get('input[name="currentPassword"]').type("senhaAtual123");
+    cy.get('input[name="newPassword"]').type("novaSenha123");
+    cy.get('input[name="confirmPassword"]').type("novaSenha123");
+    cy.contains("button", /enviar código/i).click();
+    cy.contains("button", /enviar código/i)
+      .last()
+      .click();
+
+    cy.wait("@requestPasswordChangeCode");
+    cy.get('input[name="confirmationCode"]').type("000000");
+    cy.contains("button", /confirmar alteração/i).click();
+
+    cy.wait("@confirmPasswordChange");
+    cy.contains(/código de confirmação é inválido ou expirou/i).should("be.visible");
   });
 });

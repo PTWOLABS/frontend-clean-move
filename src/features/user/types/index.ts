@@ -60,10 +60,21 @@ export type UploadMediaResponse = {
   url: string;
 };
 
-export type UpdateUserPasswordPayload =
+export type RequestPasswordChangeCodePayload =
   | { newPassword: string }
   | { currentPassword: string; newPassword: string };
 
-export type UpdateUserPasswordResponse = {
+export type ConfirmPasswordChangePayload = {
+  confirmationCode: string;
+  newPassword: string;
+  currentPassword?: string;
+};
+
+export type MessageResponse = {
   message: string;
 };
+
+/** @deprecated Use ConfirmPasswordChangePayload */
+export type UpdateUserPasswordPayload = ConfirmPasswordChangePayload;
+
+export type UpdateUserPasswordResponse = MessageResponse;

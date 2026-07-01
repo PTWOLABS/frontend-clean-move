@@ -44,6 +44,14 @@ export function translatePasswordFieldValidationIssue(issue: {
     if (path === "currentPassword") {
       return "Informe sua senha atual.";
     }
+
+    if (path === "confirmationCode") {
+      return "Informe o código de confirmação.";
+    }
+  }
+
+  if (path === "confirmationCode") {
+    return issue.message ?? "Informe o código de 6 dígitos.";
   }
 
   return issue.message ?? "Valor inválido.";

@@ -1,9 +1,10 @@
 import { httpClient } from "@/shared/api/httpClient";
 
 import type {
+  ConfirmPasswordChangePayload,
   GetCurrentUserResponse,
-  UpdateUserPasswordPayload,
-  UpdateUserPasswordResponse,
+  MessageResponse,
+  RequestPasswordChangeCodePayload,
   UpdateUserProfilePayload,
   User,
 } from "../types";
@@ -21,8 +22,15 @@ export async function updateUserProfile(payload: UpdateUserProfilePayload): Prom
   return res.user;
 }
 
-export async function updateUserPassword(payload: UpdateUserPasswordPayload) {
-  return httpClient<UpdateUserPasswordResponse>("/user/me/password", {
+export async function requestPasswordChangeCode(payload: RequestPasswordChangeCodePayload) {
+  return httpClient<MessageResponse>("/user/me/password/confirmation-code", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateUserPassword(payload: ConfirmPasswordChangePayload) {
+  return httpClient<MessageResponse>("/user/me/password", {
     method: "POST",
     body: payload,
   });

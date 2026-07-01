@@ -25,20 +25,26 @@ import {
 } from "@/components/ui/card";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { handlePasswordUpdateError } from "@/features/user/lib/handle-password-update-error";
+import { useRequestPasswordChangeCode } from "@/features/user/hooks/use-request-password-change-code";
 import { useUpdateUserPassword } from "@/features/user/hooks/use-update-user-password";
-import type { User, UpdateUserPasswordResponse } from "@/features/user/types";
+import type { RequestPasswordChangeCodePayload, User } from "@/features/user/types";
 import { ApiError } from "@/shared/api/httpClient";
 
 import {
+  buildConfirmPasswordChangePayload,
   createPasswordSettingsSchema,
   getPasswordSettingsDefaultValues,
-  mapPasswordFormToApiPayload,
+  mapPasswordFormToCodeRequestPayload,
+  type PasswordConfirmationCodeFormValues,
   type PasswordSettingsFormValues,
 } from "../schemas/password-settings-schema";
+import { SettingsPasswordConfirmationStep } from "./settings-password-confirmation-step";
 
 type SettingsPasswordFormProps = {
   user: User;
 };
+
+type PasswordChangeStep = "credentials" | "confirmation";
 
 type PasswordFieldToggleProps = {
   visible: boolean;
@@ -61,12 +67,24 @@ function PasswordFieldToggle({ visible, onToggle }: PasswordFieldToggleProps) {
 export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
   const hasPassword = Boolean(user.hasPassword);
   const { socialAccounts } = user;
-  const { mutate, isPending, finalizeSessionCleanup } = useUpdateUserPassword();
 
+  const [step, setStep] = useState<PasswordChangeStep>("credentials");
+  const [pendingPayload, setPendingPayload] = useState<RequestPasswordChangeCodePayload | null>(
+    null,
+  );
+  const [confirmationFormKey, setConfirmationFormKey] = useState(0);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  const { mutate: requestPasswordChangeCode, isPending: isRequestPasswordChangeCodePending } =
+    useRequestPasswordChangeCode();
+  const {
+    mutate: confirmPasswordChange,
+    isPending: isConfirmPasswordPending,
+    finalizeSessionCleanup,
+  } = useUpdateUserPassword();
 
   const validationSchema = useMemo(() => createPasswordSettingsSchema(hasPassword), [hasPassword]);
 
@@ -87,11 +105,28 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
       ? "Crie uma senha local para entrar com e-mail e senha. Você também pode continuar entrando com Google."
       : "Crie uma senha para entrar com e-mail e senha.";
 
-  const onSubmit = () => {
-    setConfirmDialogOpen(true);
+  const handlePasswordFieldError = (error: unknown) => {
+    if (!(error instanceof ApiError)) {
+      return;
+    }
+
+    setStep("credentials");
+    setConfirmDialogOpen(false);
+
+    handlePasswordUpdateError(error, {
+      setError,
+      onUnauthorized: finalizeSessionCleanup,
+    });
   };
 
-  const handleConfirmPasswordUpdate = () => {
+  const handleRequestCodeSuccess = (payload: RequestPasswordChangeCodePayload) => {
+    setPendingPayload(payload);
+    setStep("confirmation");
+    setConfirmationFormKey((current) => current + 1);
+    setConfirmDialogOpen(false);
+  };
+
+  const handleConfirmSendCode = () => {
     const parsed = validationSchema.safeParse(getValues());
 
     if (!parsed.success) {
@@ -100,7 +135,10 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
       return;
     }
 
-    mutate(mapPasswordFormToApiPayload(parsed.data, hasPassword), {
+    const payload = mapPasswordFormToCodeRequestPayload(parsed.data, hasPassword);
+
+    requestPasswordChangeCode(payload, {
+      onSuccess: () => handleRequestCodeSuccess(payload),
       onError: (error: ApiError | Error) => {
         handlePasswordUpdateError(error, {
           setError,
@@ -108,28 +146,90 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
         });
         setConfirmDialogOpen(false);
       },
-      onSettled: (
-        _data: UpdateUserPasswordResponse | undefined,
-        error: ApiError | Error | null,
-      ) => {
-        if (!error) {
-          setConfirmDialogOpen(false);
-        }
+    });
+  };
+
+  const handleConfirmPasswordChange = (
+    values: PasswordConfirmationCodeFormValues,
+    setConfirmationError: ReturnType<
+      typeof useForm<PasswordConfirmationCodeFormValues>
+    >["setError"],
+  ) => {
+    if (!pendingPayload) {
+      toast.error("Solicite um novo código antes de confirmar.");
+      setStep("credentials");
+      return;
+    }
+
+    confirmPasswordChange(
+      buildConfirmPasswordChangePayload(pendingPayload, values.confirmationCode),
+      {
+        onError: (error: ApiError | Error) => {
+          handlePasswordUpdateError(error, {
+            setConfirmationError,
+            onUnauthorized: finalizeSessionCleanup,
+            onPasswordFieldError: () => handlePasswordFieldError(error),
+          });
+        },
+      },
+    );
+  };
+
+  const handleResendCode = (
+    setConfirmationError: ReturnType<
+      typeof useForm<PasswordConfirmationCodeFormValues>
+    >["setError"],
+    resetConfirmationForm: ReturnType<typeof useForm<PasswordConfirmationCodeFormValues>>["reset"],
+  ) => {
+    if (!pendingPayload) {
+      setStep("credentials");
+      return;
+    }
+
+    requestPasswordChangeCode(pendingPayload, {
+      onSuccess: () => {
+        resetConfirmationForm({ confirmationCode: "" });
+      },
+      onError: (error: ApiError | Error) => {
+        handlePasswordUpdateError(error, {
+          setConfirmationError,
+          onUnauthorized: finalizeSessionCleanup,
+          onPasswordFieldError: () => handlePasswordFieldError(error),
+        });
       },
     });
   };
 
-  const handleCancelPasswordUpdate = () => {
-    setConfirmDialogOpen(false);
+  const handleBackToCredentials = () => {
+    setStep("credentials");
+  };
+
+  const onSubmit = () => {
+    setConfirmDialogOpen(true);
   };
 
   const handleConfirmDialogOpenChange = (open: boolean) => {
-    if (isPending) {
+    if (isRequestPasswordChangeCodePending) {
       return;
     }
 
     setConfirmDialogOpen(open);
   };
+
+  if (step === "confirmation" && pendingPayload) {
+    return (
+      <SettingsPasswordConfirmationStep
+        key={confirmationFormKey}
+        email={user.email}
+        hasPassword={hasPassword}
+        isConfirmPending={isConfirmPasswordPending}
+        isResendPending={isRequestPasswordChangeCodePending}
+        onBack={handleBackToCredentials}
+        onConfirm={(values, helpers) => handleConfirmPasswordChange(values, helpers.setError)}
+        onResendCode={(helpers) => handleResendCode(helpers.setError, helpers.reset)}
+      />
+    );
+  }
 
   return (
     <>
@@ -196,13 +296,17 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
               />
 
               <p className="text-sm text-muted-foreground">
-                Após salvar, você será deslogado e precisará entrar novamente.
+                Após confirmar, você será deslogado e precisará entrar novamente.
               </p>
             </CardContent>
 
             <CardFooter>
-              <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-                {isPending ? "Salvando..." : hasPassword ? "Alterar senha" : "Definir senha"}
+              <Button
+                type="submit"
+                disabled={isRequestPasswordChangeCodePending}
+                className="w-full sm:w-auto"
+              >
+                {isRequestPasswordChangeCodePending ? "Enviando código..." : "Enviar código"}
               </Button>
             </CardFooter>
           </form>
@@ -212,12 +316,17 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
       <AlertDialog
         open={confirmDialogOpen}
         onOpenChange={handleConfirmDialogOpenChange}
-        title={hasPassword ? "Confirmar alteração de senha?" : "Confirmar definição de senha?"}
-        descriptionContent="Você será deslogado após esta ação e precisará entrar novamente com sua nova senha ou com Google, se aplicável."
-        actionMessage={hasPassword ? "Alterar senha" : "Definir senha"}
-        isLoading={isPending}
-        onConfirm={handleConfirmPasswordUpdate}
-        onCancel={handleCancelPasswordUpdate}
+        title="Enviar código de confirmação?"
+        descriptionContent={
+          <>
+            Enviaremos um código de confirmação para{" "}
+            <span className="font-medium text-foreground">{user.email}</span>. Deseja continuar?
+          </>
+        }
+        actionMessage="Enviar código"
+        isLoading={isRequestPasswordChangeCodePending}
+        onConfirm={handleConfirmSendCode}
+        onCancel={() => setConfirmDialogOpen(false)}
       />
     </>
   );

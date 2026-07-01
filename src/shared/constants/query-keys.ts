@@ -18,6 +18,7 @@ export const QUERY_KEYS = {
   requestPasswordReset: ["requestPasswordReset"],
   confirmPasswordReset: ["confirmPasswordReset"],
   updateUserPassword: ["updateUserPassword"],
+  requestPasswordChangeCode: ["requestPasswordChangeCode"],
   metricsOverview: ["metrics-overview"],
   metricsAppointment: ["metrics-appointment"],
   popularServices: ["popular-services"],
