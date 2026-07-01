@@ -106,6 +106,7 @@ async function mockCleanMoveApi(page: Page) {
             phone: null,
             address: null,
             socialAccounts: [],
+            hasPassword: true,
             profileComplete: true,
             createdAt: mockedNow,
             updatedAt: mockedNow,

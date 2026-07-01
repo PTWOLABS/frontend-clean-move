@@ -63,6 +63,7 @@ export function SettingsPageSkeleton() {
         <div className="inline-flex max-w-full gap-2 overflow-x-auto rounded-lg bg-muted p-1">
           <Skeleton className="h-8 w-20 rounded-md" />
           <Skeleton className="h-8 w-24 rounded-md" />
+          <Skeleton className="h-8 w-24 rounded-md" />
           <Skeleton className="h-8 w-28 rounded-md" />
         </div>
 

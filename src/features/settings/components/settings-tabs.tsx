@@ -15,6 +15,7 @@ import {
 import { SettingsAppearanceTab } from "./settings-appearance-tab";
 import { SettingsBusinessTab } from "./settings-business-tab";
 import { SettingsProfileTab } from "./settings-profile-tab";
+import { SettingsSecurityTab } from "./settings-security-tab";
 
 type SettingsTabsProps = {
   user: User;
@@ -51,6 +52,10 @@ export function SettingsTabs({ user }: SettingsTabsProps) {
 
       <TabsContent value={"profile" satisfies SettingsTabId} className="mt-0">
         <SettingsProfileTab user={user} />
+      </TabsContent>
+
+      <TabsContent value={"security" satisfies SettingsTabId} className="mt-0">
+        <SettingsSecurityTab user={user} />
       </TabsContent>
 
       {showBusinessTab ? (

@@ -1,4 +1,4 @@
-export const SETTINGS_TAB_IDS = ["profile", "company", "appearance"] as const;
+export const SETTINGS_TAB_IDS = ["profile", "security", "company", "appearance"] as const;
 
 export type SettingsTabId = (typeof SETTINGS_TAB_IDS)[number];
 
@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS_TAB: SettingsTabId = "profile";
 
 export const SETTINGS_TAB_LABELS: Record<SettingsTabId, string> = {
   profile: "Perfil",
+  security: "Segurança",
   company: "Negócio",
   appearance: "Aparência",
 };

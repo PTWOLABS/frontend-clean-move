@@ -32,9 +32,38 @@ describe("Forgot password flow", () => {
       email: "user@example.com",
     });
 
-    cy.contains("h2", /verifique seu e-mail/i).should("be.visible");
+    cy.contains("h1", /verifique seu e-mail/i).should("be.visible");
+    cy.contains("h1", /esqueceu sua senha/i).should("not.exist");
     cy.contains(/se existir uma conta com este e-mail/i).should("be.visible");
     cy.contains("a", /voltar ao login/i).should("be.visible");
+  });
+
+  it("should keep the email and show a reminder when resending without making another request", () => {
+    cy.intercept("POST", "**/auth/password-reset/request", {
+      statusCode: 200,
+      body: {
+        message: "If an account exists for this email, we will send a password reset link.",
+      },
+    }).as("passwordResetRequest");
+
+    cy.get('input[name="email"]').type("user@example.com");
+    cy.contains("button", /enviar link de recuperação/i).click();
+
+    cy.wait("@passwordResetRequest");
+    cy.get("@passwordResetRequest.all").should("have.length", 1);
+
+    cy.contains("button", /não recebeu/i).click();
+
+    cy.contains("h1", /esqueceu sua senha/i).should("be.visible");
+    cy.get('input[name="email"]').should("have.value", "user@example.com");
+    cy.contains(/antes de solicitar um novo envio, verifique sua caixa de entrada/i).should(
+      "be.visible",
+    );
+    cy.get("@passwordResetRequest.all").should("have.length", 1);
+
+    cy.contains("button", /enviar link de recuperação/i).click();
+    cy.wait("@passwordResetRequest");
+    cy.get("@passwordResetRequest.all").should("have.length", 2);
   });
 });
 

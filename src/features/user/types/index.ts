@@ -29,6 +29,7 @@ export type User = {
   phone: string | null;
   address: UserAddress | null;
   socialAccounts: UserSocialAccount[];
+  hasPassword: boolean;
   profileComplete: boolean;
   createdAt: string | null;
   updatedAt: string | null;
@@ -58,3 +59,22 @@ export type UpdateUserProfilePayload = {
 export type UploadMediaResponse = {
   url: string;
 };
+
+export type RequestPasswordChangeCodePayload =
+  | { newPassword: string }
+  | { currentPassword: string; newPassword: string };
+
+export type ConfirmPasswordChangePayload = {
+  confirmationCode: string;
+  newPassword: string;
+  currentPassword?: string;
+};
+
+export type MessageResponse = {
+  message: string;
+};
+
+/** @deprecated Use ConfirmPasswordChangePayload */
+export type UpdateUserPasswordPayload = ConfirmPasswordChangePayload;
+
+export type UpdateUserPasswordResponse = MessageResponse;

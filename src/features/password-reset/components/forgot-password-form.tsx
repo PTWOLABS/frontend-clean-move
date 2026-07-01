@@ -7,18 +7,31 @@ import { Button } from "@/components/ui/button";
 import { RegisterTextField } from "@/features/register/components/register-text-field";
 import { Form } from "@/shared/forms/form";
 
-import { PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE } from "../lib/constants";
-import { useRequestPasswordReset } from "../hooks/use-request-password-reset";
+import { PASSWORD_RESET_RESEND_REMINDER_MESSAGE } from "../lib/constants";
 import {
   type ForgotPasswordFormValues,
   forgotPasswordSchema,
 } from "../schemas/forgot-password-schema";
 
-export function ForgotPasswordForm() {
-  const { mutate, isPending, isSuccess, reset } = useRequestPasswordReset();
+type ForgotPasswordFormProps = {
+  onSubmit: (data: ForgotPasswordFormValues) => void;
+  isPending: boolean;
+  isSuccess: boolean;
+  onResendClick: () => void;
+  showResendReminder?: boolean;
+  defaultEmail?: string | null;
+};
 
-  const onSubmit = (data: ForgotPasswordFormValues) => {
-    mutate(data);
+export function ForgotPasswordForm({
+  onSubmit,
+  isPending,
+  isSuccess,
+  onResendClick,
+  showResendReminder = false,
+  defaultEmail = null,
+}: ForgotPasswordFormProps) {
+  const handleFormSubmit = (data: ForgotPasswordFormValues) => {
+    onSubmit(data);
   };
 
   if (isSuccess) {
@@ -27,15 +40,6 @@ export function ForgotPasswordForm() {
         <div aria-live="polite" className="mt-9 space-y-6 text-center">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-[#2563EB]/30 bg-[#2563EB]/10">
             <MailCheck aria-hidden className="size-8 text-[#38BDF8]" />
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-[#F8FAFC]">
-              Verifique seu e-mail
-            </h2>
-            <p className="text-sm leading-7 text-[#94A3B8]">
-              {PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE}
-            </p>
           </div>
 
           <Button
@@ -47,7 +51,7 @@ export function ForgotPasswordForm() {
 
           <button
             type="button"
-            onClick={() => reset()}
+            onClick={onResendClick}
             className="text-sm font-medium text-[#3B82F6] transition-colors hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
           >
             Não recebeu? Enviar novamente
@@ -57,9 +61,30 @@ export function ForgotPasswordForm() {
     );
   }
 
+  const formKey = showResendReminder && defaultEmail ? `resend-${defaultEmail}` : "initial";
+
   return (
     <div className="relative z-10 w-full max-w-105">
-      <Form className="mt-9 space-y-6" onSubmit={onSubmit} schema={forgotPasswordSchema}>
+      <Form
+        key={formKey}
+        className="mt-9 space-y-6"
+        onSubmit={handleFormSubmit}
+        schema={forgotPasswordSchema}
+        options={{
+          defaultValues: {
+            email: showResendReminder && defaultEmail ? defaultEmail : "",
+          },
+        }}
+      >
+        {showResendReminder && defaultEmail ? (
+          <div
+            role="alert"
+            className="rounded-[12px] border border-[#2563EB]/30 bg-[#2563EB]/10 px-4 py-3 text-sm leading-6 text-[#94A3B8]"
+          >
+            {PASSWORD_RESET_RESEND_REMINDER_MESSAGE}
+          </div>
+        ) : null}
+
         <RegisterTextField
           id="forgot-password-email"
           name="email"
