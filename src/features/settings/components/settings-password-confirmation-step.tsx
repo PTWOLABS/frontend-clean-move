@@ -74,7 +74,7 @@ export function SettingsPasswordConfirmationStep({
         </CardTitle>
         <CardDescription>
           Enviamos um código de 6 dígitos para{" "}
-          <span className="font-medium text-foreground">{email}</span>. O código é válido por 15
+          <span className="font-medium text-foreground">{email}</span>. O código é válido por 5
           minutos.
         </CardDescription>
       </CardHeader>
