@@ -46,7 +46,7 @@ export function buildAppointmentRequestBody(
     startsAt: values.startsAt,
     endsAt: values.endsAt,
     description: values.description,
-    discountInCents,
+    discountInCents: discountInCents > 0 ? discountInCents : null,
     services: values.services.map((service) => ({
       serviceId: service.serviceId,
       priceInCents: Math.round(parseBrlMoneyToReais(service.price) * 100),

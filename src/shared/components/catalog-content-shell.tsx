@@ -13,6 +13,7 @@ type CatalogContentShellProps = {
   emptyState?: ReactNode;
   emptyMessage?: ReactNode;
   isLoading?: boolean;
+  isFetching?: boolean;
   isEmpty?: boolean;
   className?: string;
   contentClassName?: string;
@@ -39,6 +40,7 @@ export function CatalogContentShell({
   emptyState,
   emptyMessage = "Nenhum item encontrado para os filtros atuais.",
   isLoading = false,
+  isFetching = false,
   isEmpty = false,
   className,
   contentClassName,
@@ -47,10 +49,11 @@ export function CatalogContentShell({
   listClassName,
 }: CatalogContentShellProps) {
   const hasDetailsPanel = Boolean(detailsPanel);
-  const shouldShowPagination = !isLoading && !isEmpty && Boolean(pagination);
+  const isContentLoading = isLoading || isFetching;
+  const shouldShowPagination = !isEmpty && Boolean(pagination);
 
   return (
-    <Card className={className}>
+    <Card className={className} aria-busy={isContentLoading}>
       <CardContent className={cn("space-y-6 rounded-lg bg-card/80 p-4 sm:p-6", contentClassName)}>
         {toolbar}
 
@@ -63,7 +66,7 @@ export function CatalogContentShell({
         >
           <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col gap-6", mainClassName)}>
             <div className={cn("space-y-6", listClassName)}>
-              {isLoading ? (
+              {isContentLoading ? (
                 skeleton
               ) : isEmpty ? (
                 (emptyState ?? <DefaultEmptyState>{emptyMessage}</DefaultEmptyState>)

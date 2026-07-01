@@ -5,6 +5,7 @@ import { BadgeCheck, CheckCircle2, Clock3, CircleX } from "lucide-react";
 import { KpiCardsGrid, KpiCardsSkeleton, type KpiCardItem } from "@/shared/components/kpi-card";
 
 import { useListQuotes } from "../api/use-list-quotes";
+import { quoteStatusConfig } from "../lib/quote-status-config";
 import type { QuotesApiFilters } from "../types/api-filters";
 import type { QuoteSummary } from "../types/quotes";
 
@@ -13,12 +14,20 @@ const SUMMARY_QUERY = { page: 1, size: 1 } satisfies QuotesApiFilters;
 function buildQuoteKpis(summary: QuoteSummary): KpiCardItem[] {
   return [
     {
+      id: "approved",
+      label: "Aprovados",
+      value: summary.approved,
+      icon: BadgeCheck,
+      description: "Convertidos",
+      tone: quoteStatusConfig.APPROVED.tone,
+    },
+    {
       id: "valid",
       label: "Válidos",
       value: summary.valid,
       icon: CheckCircle2,
       description: "Dentro do prazo",
-      tone: "success",
+      tone: quoteStatusConfig.VALID.tone,
     },
     {
       id: "expires-today",
@@ -26,7 +35,7 @@ function buildQuoteKpis(summary: QuoteSummary): KpiCardItem[] {
       value: summary.expiresToday,
       icon: Clock3,
       description: "Prioridade do dia",
-      tone: "warning",
+      tone: quoteStatusConfig.EXPIRES_TODAY.tone,
     },
     {
       id: "expired",
@@ -34,15 +43,7 @@ function buildQuoteKpis(summary: QuoteSummary): KpiCardItem[] {
       value: summary.expired,
       icon: CircleX,
       description: "Fora do prazo",
-      tone: "danger",
-    },
-    {
-      id: "approved",
-      label: "Aprovados",
-      value: summary.approved,
-      icon: BadgeCheck,
-      description: "Convertidos",
-      tone: "info",
+      tone: quoteStatusConfig.EXPIRED.tone,
     },
   ];
 }

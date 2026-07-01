@@ -1,0 +1,36 @@
+.quotesLayoutContainer {
+  container-type: inline-size;
+}
+
+.quotesLayoutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.quotesMetricsSection,
+.quotesCatalogSection {
+  min-width: 0;
+}
+
+.quotesCardsOnly {
+  display: flex;
+}
+
+.quotesTableOnly {
+  display: none;
+}
+
+@container (min-width: 58rem) {
+  .quotesLayoutGrid {
+    gap: 1.25rem;
+  }
+
+  .quotesCardsOnly {
+    display: none;
+  }
+
+  .quotesTableOnly {
+    display: block;
+  }
+}

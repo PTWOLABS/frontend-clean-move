@@ -3,8 +3,10 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { QuotesCatalogContent } from "@/features/quotes/components/quotes-mobile-cards";
 import { QuotesMetrics } from "@/features/quotes/components/quotes-metrics";
-import { QuotesMobileCards } from "@/features/quotes/components/quotes-mobile-cards";
+
+import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "Orçamentos",
@@ -28,9 +30,18 @@ export default function QuotesPage() {
         </Button>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
-        <QuotesMetrics />
-        <QuotesMobileCards />
+      <div className={styles.quotesLayoutContainer}>
+        <div className={styles.quotesLayoutGrid}>
+          <div className={styles.quotesMetricsSection}>
+            <QuotesMetrics />
+          </div>
+
+          <QuotesCatalogContent
+            className={styles.quotesCatalogSection}
+            tableClassName={styles.quotesTableOnly}
+            mobileCardsClassName={styles.quotesCardsOnly}
+          />
+        </div>
       </div>
     </section>
   );

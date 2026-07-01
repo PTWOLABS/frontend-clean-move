@@ -1,16 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, CalendarX, Eye, FileText, MoreVertical, TriangleAlert } from "lucide-react";
+import {
+  Calendar,
+  CalendarDays,
+  CalendarX,
+  Eye,
+  FileText,
+  MoreVertical,
+  TriangleAlert,
+} from "lucide-react";
 
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
-import {
-  MobileDataCard,
-  MobileDataCardSkeleton,
-  type MobileDataCardTone,
-} from "@/shared/components/mobile-data-card";
+import { DataCatalogTableSkeleton } from "@/shared/components/data-catalog-table";
+import { MobileDataCard, MobileDataCardSkeleton } from "@/shared/components/mobile-data-card";
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
+import { cn } from "@/shared/utils/cn";
 
 import { useListQuotes } from "../api/use-list-quotes";
 import {
@@ -18,41 +24,13 @@ import {
   buildQuotesApiFilters,
   type QuotesFiltersState,
 } from "../lib/build-quotes-api-filters";
+import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
+import { QuotesCatalogTable } from "./quotes-catalog-table";
 
-const PAGE_SIZE = 6;
-
-const quoteStatusConfig: Record<
-  QuoteListItemDto["status"],
-  {
-    label: string;
-    tone: MobileDataCardTone;
-    footerLabel: string;
-  }
-> = {
-  APPROVED: {
-    label: "Aprovado",
-    tone: "success",
-    footerLabel: "Aprovado em",
-  },
-  VALID: {
-    label: "Válido",
-    tone: "primary",
-    footerLabel: "Expira em",
-  },
-  EXPIRES_TODAY: {
-    label: "Vence hoje",
-    tone: "warning",
-    footerLabel: "Expira hoje",
-  },
-  EXPIRED: {
-    label: "Vencido",
-    tone: "danger",
-    footerLabel: "Expirado em",
-  },
-};
+const PAGE_SIZE = 5;
 
 const customerKindLabel: Record<QuoteListItemDto["customerKind"], string> = {
   CUSTOMER: "Cliente",
@@ -78,7 +56,7 @@ function getQuoteFooterLabel(quote: QuoteListItemDto): string {
 
   return quote.expiresAt
     ? `${status.footerLabel} ${formatShortDate(quote.expiresAt)}`
-    : "Nao expira";
+    : "Não expira";
 }
 
 function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
@@ -103,7 +81,15 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
           className: "font-mono",
         },
       ]}
-      description={getQuoteVehicleLabel(quote)}
+      description={
+        <>
+          <p className="truncate">{getQuoteVehicleLabel(quote)}</p>
+          <p className="text-xs mt-2 flex gap-1">
+            <Calendar size={14} />
+            Criado {formatShortDate(quote.createdAt)}
+          </p>
+        </>
+      }
       footer={{
         icon:
           status.tone === "danger"
@@ -136,7 +122,17 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
   );
 }
 
-export function QuotesMobileCards() {
+type QuotesCatalogContentProps = {
+  className?: string;
+  tableClassName?: string;
+  mobileCardsClassName?: string;
+};
+
+export function QuotesCatalogContent({
+  className,
+  tableClassName,
+  mobileCardsClassName,
+}: QuotesCatalogContentProps) {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
@@ -144,10 +140,11 @@ export function QuotesMobileCards() {
     () => buildQuotesApiFilters(appliedFilters, { page, size: PAGE_SIZE }),
     [appliedFilters, page],
   );
-  const { data, isError, isLoading } = useListQuotes(apiFilters);
+  const { data, isError, isPending, isPlaceholderData } = useListQuotes(apiFilters);
   const quotes = data?.quotes ?? [];
   const totalItems = data?.totalItems ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const isFetchingPage = isPending || isPlaceholderData;
 
   function handleApplyFilters(nextFilters: QuotesFiltersState) {
     setAppliedFilters(nextFilters);
@@ -162,7 +159,7 @@ export function QuotesMobileCards() {
 
   return (
     <CatalogContentShell
-      className="md:hidden"
+      className={className}
       toolbar={
         <QuotesCatalogToolbar
           filters={filters}
@@ -172,19 +169,23 @@ export function QuotesMobileCards() {
           onClearFilters={handleClearFilters}
         />
       }
+      table={<QuotesCatalogTable quotes={quotes} className={tableClassName} />}
       mobileCards={
-        <div className="flex flex-col gap-3">
+        <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
           {quotes.map((quote) => (
             <QuoteMobileCard key={quote.id} quote={quote} />
           ))}
         </div>
       }
       skeleton={
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: PAGE_SIZE }, (_, index) => (
-            <MobileDataCardSkeleton key={index} />
-          ))}
-        </div>
+        <>
+          <DataCatalogTableSkeleton className={tableClassName} columns={7} />
+          <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
+            {Array.from({ length: PAGE_SIZE }, (_, index) => (
+              <MobileDataCardSkeleton key={index} />
+            ))}
+          </div>
+        </>
       }
       emptyState={
         isError ? (
@@ -193,8 +194,9 @@ export function QuotesMobileCards() {
           </p>
         ) : undefined
       }
-      isLoading={isLoading}
-      isEmpty={isError || totalItems === 0}
+      isLoading={isPending}
+      isFetching={isPlaceholderData}
+      isEmpty={!isFetchingPage && (isError || totalItems === 0)}
       emptyMessage="Nenhum orçamento encontrado para os filtros atuais."
       pagination={
         <CatalogPagination
@@ -202,9 +204,14 @@ export function QuotesMobileCards() {
           totalPages={totalPages}
           total={totalItems}
           itemLabel={{ singular: "orçamento", plural: "orçamentos" }}
+          isFetching={isFetchingPage}
           onPageChange={setPage}
         />
       }
     />
   );
+}
+
+export function QuotesMobileCards() {
+  return <QuotesCatalogContent mobileCardsClassName="md:flex" tableClassName="hidden" />;
 }

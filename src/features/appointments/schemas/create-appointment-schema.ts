@@ -218,7 +218,7 @@ export type CreateAppointmentRequestBody = Omit<
   CreateAppointmentFormValues,
   "discountValue" | "serviceIds" | "services"
 > & {
-  discountInCents: number;
+  discountInCents: number | null;
   services: Array<{
     serviceId: string;
     priceInCents: number;
@@ -233,5 +233,5 @@ export const createAppointmentDefaultValues: CreateAppointmentFormInput = {
   startsAt: null,
   endsAt: null,
   description: "",
-  discountValue: "",
+  discountValue: null,
 };

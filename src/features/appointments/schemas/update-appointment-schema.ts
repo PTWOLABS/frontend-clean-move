@@ -34,7 +34,7 @@ export type UpdateAppointmentRequestBody = Omit<
   UpdateAppointmentFormValues,
   "discountValue" | "serviceIds" | "services"
 > & {
-  discountInCents?: number;
+  discountInCents?: number | null;
   services?: Array<{
     serviceId: string;
     priceInCents: number;
