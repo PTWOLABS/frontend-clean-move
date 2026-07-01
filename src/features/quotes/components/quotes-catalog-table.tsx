@@ -12,6 +12,7 @@ import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
+import { useGenerateQuotePdf } from "../hooks/use-gerenate-quote-pdf";
 
 type QuotesCatalogTableProps = {
   quotes: QuoteListItemDto[];
@@ -112,6 +113,8 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
 ];
 
 export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProps) {
+  const generateQuotePdf = useGenerateQuotePdf();
+
   return (
     <DataCatalogTable
       className={className}
@@ -129,7 +132,8 @@ export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProp
         {
           label: "Gerar PDF",
           icon: FileText,
-          onClick: noop,
+          onClick: (item) => generateQuotePdf.mutate(item.id),
+          disabled: () => generateQuotePdf.isPending,
           tone: "neutral",
         },
         {
