@@ -1,0 +1,152 @@
+"use client";
+
+import { CarFront, FileText, IdCard, Mail, Palette, Phone, UserRound } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { StandartInputField } from "@/components/ui/form/standart-input-field";
+import { WizardStepHeader } from "@/shared/components/wizard-step-header";
+import { cn } from "@/shared/utils/cn";
+
+type QuoteCustomerVehicleStepProps = {
+  title: string;
+  description: string;
+  className?: string;
+};
+
+export function QuoteCustomerVehicleStep({
+  title,
+  description,
+  className,
+}: QuoteCustomerVehicleStepProps) {
+  return (
+    <Card className={cn("border-border/70 bg-card/60 shadow-sm backdrop-blur-xl", className)}>
+      <WizardStepHeader title={title} description={description} icon={UserRound} />
+
+      <CardContent className="space-y-6">
+        <section className="space-y-5">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">Cliente</h3>
+            <p className="text-xs text-muted-foreground">
+              Informe os dados principais para identificar o cliente no orçamento.
+            </p>
+          </div>
+
+          <StandartInputField
+            id="quote-customer-name"
+            name="stepOne.customer.name"
+            label="Nome do cliente"
+            placeholder="Ex.: João da Silva"
+            autoComplete="name"
+            icon={UserRound}
+            className="shadow-xs"
+            required
+          />
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <StandartInputField
+              id="quote-customer-phone"
+              name="stepOne.customer.phone"
+              label="Telefone"
+              placeholder="(11) 99999-9999"
+              mask="(__) _____-____"
+              inputMode="tel"
+              autoComplete="tel"
+              icon={Phone}
+              className="shadow-xs"
+            />
+
+            <StandartInputField
+              id="quote-customer-email"
+              name="stepOne.customer.email"
+              label="E-mail"
+              type="email"
+              placeholder="cliente@email.com"
+              autoComplete="email"
+              icon={Mail}
+              className="shadow-xs"
+            />
+          </div>
+
+          <StandartInputField
+            id="quote-customer-document"
+            name="stepOne.customer.cpfCnpj"
+            label="CPF/CNPJ"
+            placeholder="CPF ou CNPJ do cliente"
+            inputMode="numeric"
+            autoComplete="off"
+            icon={IdCard}
+            className="shadow-xs"
+          />
+        </section>
+
+        <div className="h-px bg-border" />
+
+        <section className="space-y-5">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">Veículo</h3>
+            <p className="text-xs text-muted-foreground">
+              Adicione os dados do veículo que receberá os serviços orçados.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <StandartInputField
+              id="quote-vehicle-plate"
+              name="stepOne.vehicle.plate"
+              label="Placa"
+              maxLength={7}
+              placeholder="Ex.: ABC1D23"
+              autoComplete="off"
+              icon={CarFront}
+              className="uppercase shadow-xs"
+            />
+
+            <StandartInputField
+              id="quote-vehicle-color"
+              name="stepOne.vehicle.color"
+              label="Cor"
+              placeholder="Ex.: Preto"
+              autoComplete="off"
+              icon={Palette}
+              className="shadow-xs"
+            />
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            <StandartInputField
+              id="quote-vehicle-brand"
+              name="stepOne.vehicle.brand"
+              label="Marca"
+              placeholder="Ex.: Honda"
+              autoComplete="off"
+              icon={CarFront}
+              className="shadow-xs"
+            />
+
+            <StandartInputField
+              id="quote-vehicle-model"
+              name="stepOne.vehicle.model"
+              label="Modelo"
+              placeholder="Ex.: Civic"
+              autoComplete="off"
+              icon={CarFront}
+              className="shadow-xs"
+            />
+
+            <StandartInputField
+              id="quote-vehicle-year"
+              name="stepOne.vehicle.year"
+              label="Ano"
+              maxLength={4}
+              placeholder="Ex.: 2024"
+              inputMode="numeric"
+              autoComplete="off"
+              icon={FileText}
+              className="shadow-xs"
+            />
+          </div>
+        </section>
+      </CardContent>
+    </Card>
+  );
+}
