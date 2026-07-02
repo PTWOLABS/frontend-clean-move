@@ -7,14 +7,12 @@ import {
   Wrench,
 } from "lucide-react";
 
+import {
+  getWizardSummaryValue,
+  WizardSummaryList,
+  type WizardSummaryItem,
+} from "@/shared/components/wizard-summary-list";
 import { cn } from "@/shared/utils/cn";
-
-type OnboardingMobileSummaryItem = {
-  label: string;
-  value: string;
-  completed: boolean;
-  icon: typeof UserRound;
-};
 
 type OnboardingMobileSummaryProps = {
   currentStep: number;
@@ -29,16 +27,6 @@ type OnboardingMobileSummaryProps = {
   hasPeriod?: boolean;
   className?: string;
 };
-
-function getResourceLabel(label: string) {
-  const emptyLabel = "não informado";
-
-  if (label.toLocaleLowerCase("pt-BR").includes(emptyLabel)) {
-    return emptyLabel;
-  }
-
-  return label;
-}
 
 export function OnboardingMobileSummary({
   currentStep,
@@ -57,28 +45,28 @@ export function OnboardingMobileSummary({
   const completedItemsCount = [hasCustomer, hasService, hasVehicle, hasPeriod].filter(
     Boolean,
   ).length;
-  const summaryItems: OnboardingMobileSummaryItem[] = [
+  const summaryItems: WizardSummaryItem[] = [
     {
       label: "Cliente",
-      value: getResourceLabel(customerName),
+      value: getWizardSummaryValue(customerName),
       completed: hasCustomer,
       icon: UserRound,
     },
     {
       label: "Serviço",
-      value: getResourceLabel(serviceName),
+      value: getWizardSummaryValue(serviceName),
       completed: hasService,
       icon: Wrench,
     },
     {
       label: "Veículo",
-      value: getResourceLabel(vehicleName),
+      value: getWizardSummaryValue(vehicleName),
       completed: hasVehicle,
       icon: CarFront,
     },
     {
       label: "Período",
-      value: getResourceLabel(periodLabel),
+      value: getWizardSummaryValue(periodLabel),
       completed: hasPeriod,
       icon: CalendarDays,
     },
@@ -125,38 +113,8 @@ export function OnboardingMobileSummary({
           />
         </summary>
 
-        <dl className="mt-3 divide-y divide-border/60 rounded-lg border border-border/70 bg-background/40">
-          {summaryItems.map((item) => (
-            <SummaryRow key={item.label} item={item} />
-          ))}
-        </dl>
+        <WizardSummaryList items={summaryItems} compact className="mt-3 rounded-lg" />
       </details>
     </section>
-  );
-}
-
-function SummaryRow({ item }: { item: OnboardingMobileSummaryItem }) {
-  const Icon = item.icon;
-
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5">
-      <dt className="flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground">
-        <Icon aria-hidden className="size-3.5 shrink-0" />
-        <span className="truncate">{item.label}</span>
-      </dt>
-
-      <dd className="flex min-w-0 items-center gap-2 text-right text-xs font-medium text-foreground">
-        <span className="max-w-28 truncate">{item.value}</span>
-        <span
-          aria-hidden
-          className={cn(
-            "size-2 shrink-0 rounded-full ring-2",
-            item.completed
-              ? "bg-primary ring-primary/25"
-              : "bg-transparent ring-muted-foreground/35",
-          )}
-        />
-      </dd>
-    </div>
   );
 }
