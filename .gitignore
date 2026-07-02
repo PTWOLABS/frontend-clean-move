@@ -69,6 +69,7 @@ Thumbs.db
 # .vscode/
 # *.code-workspace
 # .cursor/
+.superpowers/
 
 # Certificados locais
 *.pem
