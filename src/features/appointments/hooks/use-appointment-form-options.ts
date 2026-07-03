@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
+import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
 import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
 
 import {
@@ -41,19 +42,19 @@ export function useAppointmentFormOptions({
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: 1000,
+    limit: DEFAULT_OPTIONS_LIMIT,
     search: customerSearch || undefined,
   });
 
   const { data: vehicleOptions, isPending: isLoadingCustomerVehicleOptions } =
     useListCustomerVehicleOptions({
       customerId: selectedCustomerId ?? undefined,
-      limit: 1000,
+      limit: DEFAULT_OPTIONS_LIMIT,
       search: vehicleSearch || undefined,
     });
 
   const { data: serviceOptions, isPending: isLoadingServiceOptions } = useListServiceOptions({
-    limit: 1000,
+    limit: DEFAULT_OPTIONS_LIMIT,
     search: serviceSearch || undefined,
   });
 
