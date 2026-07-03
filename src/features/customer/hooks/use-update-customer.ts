@@ -41,6 +41,7 @@ export function useUpdateCustomer() {
     },
     onSuccess: (_, { customerId }) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customers() });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customer(customerId) });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.customerOptions() });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles(customerId) });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicleOptions() });

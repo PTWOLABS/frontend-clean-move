@@ -74,6 +74,10 @@ export const QUERY_KEYS = {
     filters ? (["services", "list", filters] as const) : (["services", "list"] as const),
   customers: (filters?: ListCustomersQuery) =>
     filters ? (["customers", filters] as const) : (["customers"] as const),
+  customer: (customerId?: string) =>
+    customerId
+      ? (["customers", "detail", customerId] as const)
+      : (["customers", "detail"] as const),
   topCustomers: (filters?: DashboardTopCustomersFilters) =>
     filters
       ? (["dashboard", "top-customers", filters] as const)
