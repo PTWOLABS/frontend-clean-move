@@ -74,6 +74,7 @@ function QuoteCreateWizardContent({
   hasCompletedStep,
   onClearStep,
 }: QuoteCreateWizardContentProps) {
+  const [stepVersion, setStepVersion] = useState(0);
   const {
     control,
     reset,
@@ -88,6 +89,7 @@ function QuoteCreateWizardContent({
       keepDirty: false,
       keepTouched: false,
     });
+    setStepVersion((currentVersion) => currentVersion + 1);
     onClearStep();
   }
 
@@ -104,7 +106,7 @@ function QuoteCreateWizardContent({
         />
 
         <div className="space-y-6">
-          <QuoteCustomerVehicleStep {...customerVehicleStepHeader} />
+          <QuoteCustomerVehicleStep key={stepVersion} {...customerVehicleStepHeader} />
 
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <Button
@@ -326,12 +328,15 @@ function useQuoteSummaryItems(stepOne: CreateQuoteFormInput["stepOne"] | undefin
     const phone = asDisplayText(stepOne?.customer.phone);
     const email = asDisplayText(stepOne?.customer.email);
     const document = asDisplayText(stepOne?.customer.cpfCnpj);
+    const selectedVehicleLabel = asDisplayText(stepOne?.vehicleLabel);
     const plate = asDisplayText(stepOne?.vehicle.plate).toLocaleUpperCase("pt-BR");
-    const vehicleName = getVehicleDisplayLabel({
-      brand: stepOne?.vehicle.brand,
-      model: stepOne?.vehicle.model,
-      plate,
-    });
+    const vehicleName =
+      selectedVehicleLabel ||
+      getVehicleDisplayLabel({
+        brand: stepOne?.vehicle.brand,
+        model: stepOne?.vehicle.model,
+        plate,
+      });
     const contactLabel = phone || email || "Contato não informado";
 
     return [
