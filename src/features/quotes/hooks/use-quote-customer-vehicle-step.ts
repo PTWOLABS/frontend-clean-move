@@ -7,6 +7,7 @@ import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { useListCustomerOptions } from "@/features/appointments/hooks/queries/use-list-customer-options";
 import { useListCustomerVehicleOptions } from "@/features/appointments/hooks/queries/use-list-customer-vehicle-options";
 import { useCustomer } from "@/features/customer/hooks/use-customer";
+import { useVehicle } from "@/features/vehicle/hooks/use-vehicle";
 import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
 
 import type { CreateQuoteFormInput } from "../types/create-quote";
@@ -39,6 +40,12 @@ export function useQuoteCustomerVehicleStep() {
       limit: DEFAULT_OPTIONS_LIMIT,
       search: vehicleSearch || undefined,
     });
+
+  const { data: selectedVehicle, isFetching: isFetchingSelectedVehicle } = useVehicle({
+    customerId: selectedCustomerId,
+    vehicleId: selectedVehicleId,
+    enabled: hasSelectedCustomer && hasSelectedVehicle,
+  });
 
   const customerOptionsItems = useMemo(
     () =>
@@ -136,6 +143,22 @@ export function useQuoteCustomerVehicleStep() {
     clearErrors("stepOne.customer.name");
   }, [clearErrors, selectedCustomer, selectedCustomerId, setValue]);
 
+  useEffect(() => {
+    if (
+      !selectedVehicle ||
+      selectedVehicle.id !== selectedVehicleId ||
+      selectedVehicle.customerId !== selectedCustomerId
+    ) {
+      return;
+    }
+
+    setValue("stepOne.vehicle.plate", selectedVehicle.plate ?? null, { shouldDirty: true });
+    setValue("stepOne.vehicle.brand", selectedVehicle.brand ?? null, { shouldDirty: true });
+    setValue("stepOne.vehicle.model", selectedVehicle.model ?? null, { shouldDirty: true });
+    setValue("stepOne.vehicle.color", selectedVehicle.color ?? null, { shouldDirty: true });
+    setValue("stepOne.vehicle.year", selectedVehicle.year ?? null, { shouldDirty: true });
+  }, [selectedCustomerId, selectedVehicle, selectedVehicleId, setValue]);
+
   const customerEmptyMessage = isLoadingCustomerOptions
     ? "Buscando clientes..."
     : "Nenhum cliente encontrado.";
@@ -155,6 +178,7 @@ export function useQuoteCustomerVehicleStep() {
     hasSelectedCustomer,
     hasSelectedVehicle,
     isFetchingSelectedCustomer,
+    isFetchingSelectedVehicle,
     selectedCustomerId,
     setCustomerLabel,
     setCustomerSearch,

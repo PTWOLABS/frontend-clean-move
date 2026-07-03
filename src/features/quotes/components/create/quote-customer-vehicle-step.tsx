@@ -33,6 +33,7 @@ export function QuoteCustomerVehicleStep({
     hasSelectedCustomer,
     hasSelectedVehicle,
     isFetchingSelectedCustomer,
+    isFetchingSelectedVehicle,
     selectedCustomerId,
     setCustomerLabel,
     setCustomerSearch,
@@ -106,7 +107,6 @@ export function QuoteCustomerVehicleStep({
             icon={UserRound}
             className="shadow-xs"
             disabled={hasSelectedCustomer}
-            required
           />
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -186,7 +186,11 @@ export function QuoteCustomerVehicleStep({
                   />
                 </FormControl>
                 <FormDescription>
-                  Selecione um cliente existente para buscar veículos vinculados.
+                  {isFetchingSelectedVehicle
+                    ? "Carregando dados do veículo selecionado..."
+                    : selectedCustomerId
+                      ? "Ao selecionar um veículo cadastrado, os dados abaixo são preenchidos e bloqueados."
+                      : "Selecione um cliente existente para buscar veículos vinculados."}
                 </FormDescription>
               </div>
             )}

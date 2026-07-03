@@ -33,13 +33,31 @@ export const quoteCustomerVehicleStepSchema = z
     }),
   })
   .superRefine((values, context) => {
-    if (values.customerId || values.customer.name.trim()) return;
+    if (!values.customerId && !values.customer.name.trim()) {
+      context.addIssue({
+        code: "custom",
+        path: ["customer", "name"],
+        message: "Informe o cliente ou selecione um cadastro existente.",
+      });
+    }
 
-    context.addIssue({
-      code: "custom",
-      path: ["customer", "name"],
-      message: "Informe o cliente ou selecione um cadastro existente.",
-    });
+    if (values.vehicleId) return;
+
+    if (!values.vehicle.brand?.trim()) {
+      context.addIssue({
+        code: "custom",
+        path: ["vehicle", "brand"],
+        message: "Informe a marca do veículo.",
+      });
+    }
+
+    if (!values.vehicle.model?.trim()) {
+      context.addIssue({
+        code: "custom",
+        path: ["vehicle", "model"],
+        message: "Informe o modelo do veículo.",
+      });
+    }
   });
 
 export const createQuoteFormSchema = z.object({
