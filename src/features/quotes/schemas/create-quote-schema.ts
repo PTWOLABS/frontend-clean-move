@@ -23,6 +23,7 @@ export const quoteCustomerVehicleStepSchema = z
       email: optionalNullableTrimmedString,
     }),
     vehicleId: z.string().trim().optional().nullable(),
+    vehicleLabel: optionalNullableTrimmedString,
     vehicle: z.object({
       plate: optionalNullableTrimmedString,
       brand: optionalNullableTrimmedString,
@@ -55,6 +56,7 @@ export const createQuoteFormDefaultValues = {
       email: null,
     },
     vehicleId: null,
+    vehicleLabel: null,
     vehicle: {
       plate: null,
       brand: null,

@@ -10,3 +10,10 @@ export type QuoteCustomerVehicleStepValues = z.output<typeof quoteCustomerVehicl
 
 export type CreateQuoteFormInput = z.input<typeof createQuoteFormSchema>;
 export type CreateQuoteFormValues = z.output<typeof createQuoteFormSchema>;
+
+export type QuoteCustomerVehicleStepPayload = {
+  customerId?: string;
+  customer?: QuoteCustomerVehicleStepValues["customer"];
+  vehicleId?: string;
+  vehicle?: QuoteCustomerVehicleStepValues["vehicle"];
+};
