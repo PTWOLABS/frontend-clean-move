@@ -86,6 +86,19 @@ export const QUERY_KEYS = {
     filters ? (["customers", "options", filters] as const) : (["customers", "options"] as const),
   vehicles: (customerId: string, filters?: ListVehiclesQuery) =>
     filters ? (["vehicles", customerId, filters] as const) : (["vehicles", customerId] as const),
+  vehicle: (customerId?: string, vehicleId?: string) => {
+    const root = ["vehicles"] as const;
+
+    if (customerId && vehicleId) {
+      return [...root, customerId, "detail", vehicleId] as const;
+    }
+
+    if (customerId) {
+      return [...root, customerId, "detail"] as const;
+    }
+
+    return [...root, "detail"] as const;
+  },
   vehiclesAll: (filters?: ListEstablishmentVehiclesQuery) =>
     filters ? (["vehicles", filters] as const) : (["vehicles"] as const),
   vehicleOptions: (filters?: VehicleOptionsQuery) =>
