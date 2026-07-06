@@ -1,4 +1,5 @@
 export const TOTAL_STEPS = 3;
+export const QUOTE_CREATE_FORM_ID = "quote-create-form";
 
 export const customerVehicleStepHeader = {
   title: "Cliente e veículo",

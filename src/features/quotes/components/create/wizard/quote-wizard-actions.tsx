@@ -4,28 +4,27 @@ import { Button } from "@/components/ui/button";
 
 type QuoteWizardActionsProps = {
   currentStep: number;
-  hasCompletedStep: boolean;
   isClearStepDisabled: boolean;
   isLastStep: boolean;
   isSubmitting: boolean;
   onBack: () => void;
   onClearStep: () => void;
   onNextStep: () => void;
+  onReviewQuote: () => void;
 };
 
 export function QuoteWizardActions({
   currentStep,
-  hasCompletedStep,
   isClearStepDisabled,
   isLastStep,
   isSubmitting,
   onBack,
   onClearStep,
   onNextStep,
+  onReviewQuote,
 }: QuoteWizardActionsProps) {
   const actionLabel = getActionLabel({
     currentStep,
-    hasCompletedStep,
     isLastStep,
   });
 
@@ -52,8 +51,8 @@ export function QuoteWizardActions({
       </div>
 
       <Button
-        type={isLastStep ? "submit" : "button"}
-        onClick={isLastStep ? undefined : onNextStep}
+        type="button"
+        onClick={isLastStep ? onReviewQuote : onNextStep}
         disabled={isSubmitting}
         className="sm:min-w-44"
       >
@@ -64,16 +63,8 @@ export function QuoteWizardActions({
   );
 }
 
-function getActionLabel({
-  currentStep,
-  hasCompletedStep,
-  isLastStep,
-}: {
-  currentStep: number;
-  hasCompletedStep: boolean;
-  isLastStep: boolean;
-}) {
-  if (isLastStep) return hasCompletedStep ? "Etapa salva" : "Salvar pagamento";
+function getActionLabel({ currentStep, isLastStep }: { currentStep: number; isLastStep: boolean }) {
+  if (isLastStep) return "Revisar orçamento";
   if (currentStep === 1) return "Continuar para serviços";
 
   return "Continuar para pagamento";

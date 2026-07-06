@@ -10,7 +10,7 @@ import {
 } from "../../../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
 import { QuoteCreateWizardContent } from "./quote-create-wizard-content";
-import { TOTAL_STEPS } from "../../../constants/quote-wizard";
+import { QUOTE_CREATE_FORM_ID, TOTAL_STEPS } from "../../../constants/quote-wizard";
 
 export function QuoteCreateWizard() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -29,6 +29,7 @@ export function QuoteCreateWizard() {
 
   return (
     <Form<CreateQuoteFormInput>
+      id={QUOTE_CREATE_FORM_ID}
       schema={createQuoteFormSchema}
       options={{
         defaultValues: createQuoteFormDefaultValues,
