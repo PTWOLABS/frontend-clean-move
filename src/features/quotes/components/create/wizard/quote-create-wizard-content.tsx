@@ -20,6 +20,7 @@ import {
 } from "../../../constants/quote-wizard";
 import { QuoteMobileSummary } from "./quote-mobile-summary";
 import { useQuoteSummaryItems } from "../../../hooks/use-quote-summary-items";
+import { QuoteCreateSummaryDialog } from "./quote-create-summary-dialog";
 import { QuoteSummaryPanel } from "./quote-summary-panel";
 import { QuoteWizardActions } from "./quote-wizard-actions";
 
@@ -39,6 +40,7 @@ export function QuoteCreateWizardContent({
   const [stepTwoVersion, setStepTwoVersion] = useState(0);
   const [stepThreeVersion, setStepThreeVersion] = useState(0);
   const [openConfirmClearStepDialog, setOpenConfirmClearStepDialog] = useState(false);
+  const [openSummaryDialog, setOpenSummaryDialog] = useState(false);
   const {
     control,
     resetField,
@@ -114,6 +116,17 @@ export function QuoteCreateWizardContent({
     setCurrentStep((step) => Math.min(TOTAL_STEPS, step + 1));
   }
 
+  async function handleReviewQuote() {
+    const isValid = await trigger(undefined, {
+      shouldFocus: true,
+    });
+
+    if (!isValid) return;
+
+    onStepComplete(TOTAL_STEPS);
+    setOpenSummaryDialog(true);
+  }
+
   return (
     <>
       <div className="space-y-8">
@@ -137,13 +150,13 @@ export function QuoteCreateWizardContent({
 
           <QuoteWizardActions
             currentStep={currentStep}
-            hasCompletedStep={hasCompletedStep}
             isClearStepDisabled={!hasCurrentStepChanges}
             isLastStep={isLastStep}
             isSubmitting={isSubmitting}
             onBack={handleBack}
             onClearStep={handleClearStepClick}
             onNextStep={handleNextStep}
+            onReviewQuote={handleReviewQuote}
           />
         </div>
       </div>
@@ -154,6 +167,15 @@ export function QuoteCreateWizardContent({
         items={summaryItems}
         hasCompletedStep={hasCompletedStep}
         className="hidden xl:sticky xl:top-6 xl:block xl:self-start"
+      />
+
+      <QuoteCreateSummaryDialog
+        open={openSummaryDialog}
+        isSubmitting={isSubmitting}
+        stepOne={stepOne}
+        stepTwo={stepTwo}
+        stepThree={stepThree}
+        onOpenChange={setOpenSummaryDialog}
       />
 
       <AlertDialog
