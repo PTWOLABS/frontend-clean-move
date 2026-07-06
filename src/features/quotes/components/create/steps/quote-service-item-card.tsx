@@ -5,11 +5,16 @@ import { Gift, Trash2, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form/field";
-import { FormControl } from "@/components/ui/form/form-primitives";
+import { FormControl, FormDescription } from "@/components/ui/form/form-primitives";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { Switch } from "@/components/ui/switch";
 import { BrlMoneyInput } from "@/shared/money/brl-money-input";
 import { formatCentsToBrlInput, parseBrlMoneyToCents } from "@/shared/money/format-brl-money";
+import {
+  formatServicePriceMetadataDescription,
+  isFixedServicePrice,
+  type ServicePriceMetadata,
+} from "@/shared/services/service-price-metadata";
 
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
 
@@ -18,6 +23,9 @@ type QuoteServiceItemCardProps = {
   index: number;
   isCourtesy: boolean;
   isExistingService: boolean;
+  maxPriceInCents?: number;
+  minPriceInCents?: number;
+  priceType?: ServicePriceMetadata["priceType"];
   serviceLabel?: string;
   onCourtesyChange: (index: number, checked: boolean) => void;
   onRemove: (index: number) => void;
@@ -28,10 +36,23 @@ export function QuoteServiceItemCard({
   index,
   isCourtesy,
   isExistingService,
+  maxPriceInCents,
+  minPriceInCents,
+  priceType,
   serviceLabel,
   onCourtesyChange,
   onRemove,
 }: QuoteServiceItemCardProps) {
+  const priceMetadata =
+    priceType && typeof minPriceInCents === "number"
+      ? {
+          priceType,
+          minPriceInCents,
+          maxPriceInCents,
+        }
+      : null;
+  const isPriceReadOnly = isCourtesy || isFixedServicePrice(priceMetadata);
+
   return (
     <article className="rounded-xl border border-border/70 bg-background/55 p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
@@ -71,7 +92,6 @@ export function QuoteServiceItemCard({
             autoComplete="off"
             icon={Wrench}
             className="shadow-xs"
-            required
           />
         )}
 
@@ -80,20 +100,26 @@ export function QuoteServiceItemCard({
           name={`stepTwo.services.${index}.priceInCents`}
           label="Preço"
           renderControl={false}
-          required={!isExistingService}
         >
           {({ field }) => (
-            <FormControl>
-              <BrlMoneyInput
-                ref={field.ref}
-                name={field.name}
-                value={formatCentsToBrlInput(field.value)}
-                onChange={(value) => field.onChange(parseBrlMoneyToCents(value))}
-                onBlur={field.onBlur}
-                disabled={isCourtesy}
-                className="shadow-xs"
-              />
-            </FormControl>
+            <div className="space-y-1.5">
+              <FormControl>
+                <BrlMoneyInput
+                  ref={field.ref}
+                  name={field.name}
+                  value={formatCentsToBrlInput(field.value)}
+                  onChange={(value) => field.onChange(parseBrlMoneyToCents(value))}
+                  onBlur={field.onBlur}
+                  disabled={isPriceReadOnly}
+                  className="shadow-xs"
+                />
+              </FormControl>
+              {priceMetadata ? (
+                <FormDescription>
+                  {formatServicePriceMetadataDescription(priceMetadata)}
+                </FormDescription>
+              ) : null}
+            </div>
           )}
         </FormField>
 
