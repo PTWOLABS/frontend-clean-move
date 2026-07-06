@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { quotePaymentStepSchema, quoteServicesStepSchema } from "./create-quote-schema";
+import {
+  createQuoteFormSchema,
+  quotePaymentStepSchema,
+  quoteServicesStepSchema,
+} from "./create-quote-schema";
 
 const serviceId = "00000000-0000-4000-8000-000000000001";
 
@@ -186,3 +190,112 @@ describe("quotePaymentStepSchema", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("createQuoteFormSchema", () => {
+  it("rejects amount discounts greater than the services total", () => {
+    const result = createQuoteFormSchema.safeParse(
+      makeCreateQuoteFormInput({
+        discountType: "AMOUNT",
+        discountValue: 10001,
+      }),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote form validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "O desconto não pode ser maior que o total dos serviços.",
+          path: ["stepThree", "paymentOptions", 0, "discountValue"],
+        }),
+      ]),
+    );
+  });
+
+  it("accepts amount discounts equal to the services total", () => {
+    const result = createQuoteFormSchema.safeParse(
+      makeCreateQuoteFormInput({
+        discountType: "AMOUNT",
+        discountValue: 10000,
+      }),
+    );
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects percentage discounts greater than 100", () => {
+    const result = createQuoteFormSchema.safeParse(
+      makeCreateQuoteFormInput({
+        discountType: "PERCENTAGE",
+        discountValue: 101,
+      }),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote form validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "O desconto percentual não pode ultrapassar 100%.",
+          path: ["stepThree", "paymentOptions", 0, "discountValue"],
+        }),
+      ]),
+    );
+  });
+});
+
+function makeCreateQuoteFormInput({
+  discountType,
+  discountValue,
+}: {
+  discountType: "PERCENTAGE" | "AMOUNT";
+  discountValue: number;
+}) {
+  return {
+    stepOne: {
+      customerId: null,
+      customer: {
+        name: "Cliente teste",
+        cpfCnpj: null,
+        phone: null,
+        email: null,
+      },
+      vehicleId: null,
+      vehicleLabel: null,
+      vehicle: {
+        plate: null,
+        brand: "Honda",
+        model: "Civic",
+        color: null,
+        year: null,
+      },
+    },
+    stepTwo: {
+      services: [
+        {
+          serviceName: "Lavagem completa",
+          priceInCents: 10000,
+          isCourtesy: false,
+        },
+      ],
+    },
+    stepThree: {
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix com desconto",
+          installments: null,
+          interestFree: null,
+          discountType,
+          discountValue,
+        },
+      ],
+    },
+  };
+}

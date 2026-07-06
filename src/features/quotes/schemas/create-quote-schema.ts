@@ -171,11 +171,56 @@ export const quotePaymentStepSchema = z.object({
     .min(1, "Adicione pelo menos uma forma de pagamento."),
 });
 
-export const createQuoteFormSchema = z.object({
-  stepOne: quoteCustomerVehicleStepSchema,
-  stepTwo: quoteServicesStepSchema,
-  stepThree: quotePaymentStepSchema,
-});
+export const createQuoteFormSchema = z
+  .object({
+    stepOne: quoteCustomerVehicleStepSchema,
+    stepTwo: quoteServicesStepSchema,
+    stepThree: quotePaymentStepSchema,
+  })
+  .superRefine((values, context) => {
+    const servicesTotalInCents = getQuoteServicesTotalInCents(values.stepTwo.services);
+
+    values.stepThree.paymentOptions.forEach((paymentOption, index) => {
+      if (
+        !paymentOption.discountType ||
+        typeof paymentOption.discountValue !== "number" ||
+        !Number.isFinite(paymentOption.discountValue)
+      ) {
+        return;
+      }
+
+      if (paymentOption.discountType === "PERCENTAGE" && paymentOption.discountValue > 100) {
+        context.addIssue({
+          code: "custom",
+          message: "O desconto percentual não pode ultrapassar 100%.",
+          path: ["stepThree", "paymentOptions", index, "discountValue"],
+        });
+      }
+
+      if (
+        paymentOption.discountType === "AMOUNT" &&
+        paymentOption.discountValue > servicesTotalInCents
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "O desconto não pode ser maior que o total dos serviços.",
+          path: ["stepThree", "paymentOptions", index, "discountValue"],
+        });
+      }
+    });
+  });
+
+function getQuoteServicesTotalInCents(services: Array<z.output<typeof quoteServiceItemSchema>>) {
+  return services.reduce((total, service) => {
+    if (service.isCourtesy) return total;
+    const priceInCents =
+      typeof service.priceInCents === "number" && Number.isFinite(service.priceInCents)
+        ? service.priceInCents
+        : 0;
+
+    return total + priceInCents;
+  }, 0);
+}
 
 export const createQuoteFormDefaultValues = {
   stepOne: {
