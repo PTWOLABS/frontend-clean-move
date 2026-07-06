@@ -20,6 +20,18 @@ const optionalPriceInCents = z.preprocess((value) => {
   return value;
 }, z.number().int("Informe um valor válido.").nonnegative("Informe um valor válido.").optional());
 
+const optionalNullablePositiveInteger = z.preprocess((value) => {
+  if (value === "" || value == null) return null;
+  if (typeof value === "string") return Number(value);
+  return value;
+}, z.number().int("Informe um valor válido.").positive("Informe um valor válido.").optional().nullable());
+
+const optionalNullableNonnegativeInteger = z.preprocess((value) => {
+  if (value === "" || value == null) return null;
+  if (typeof value === "string") return Number(value);
+  return value;
+}, z.number().int("Informe um valor válido.").nonnegative("Informe um valor válido.").optional().nullable());
+
 export const quoteCustomerVehicleStepSchema = z
   .object({
     customerId: z.string().trim().optional().nullable(),
@@ -144,9 +156,25 @@ export const quoteServicesStepSchema = z.object({
   services: z.array(quoteServiceItemSchema).min(1, "Adicione pelo menos um serviço."),
 });
 
+export const quotePaymentOptionSchema = z.object({
+  method: z.enum(["CASH", "PIX", "CARD", "OTHER"]),
+  label: z.string().trim().min(1, "Informe a descrição da forma de pagamento."),
+  installments: optionalNullablePositiveInteger,
+  interestFree: z.boolean().optional().nullable(),
+  discountType: z.enum(["PERCENTAGE", "AMOUNT"]).optional().nullable(),
+  discountValue: optionalNullableNonnegativeInteger,
+});
+
+export const quotePaymentStepSchema = z.object({
+  paymentOptions: z
+    .array(quotePaymentOptionSchema)
+    .min(1, "Adicione pelo menos uma forma de pagamento."),
+});
+
 export const createQuoteFormSchema = z.object({
   stepOne: quoteCustomerVehicleStepSchema,
   stepTwo: quoteServicesStepSchema,
+  stepThree: quotePaymentStepSchema,
 });
 
 export const createQuoteFormDefaultValues = {
@@ -170,5 +198,8 @@ export const createQuoteFormDefaultValues = {
   },
   stepTwo: {
     services: [],
+  },
+  stepThree: {
+    paymentOptions: [],
   },
 } satisfies z.input<typeof createQuoteFormSchema>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { quoteServicesStepSchema } from "./create-quote-schema";
+import { quotePaymentStepSchema, quoteServicesStepSchema } from "./create-quote-schema";
 
 const serviceId = "00000000-0000-4000-8000-000000000001";
 
@@ -97,5 +97,92 @@ describe("quoteServicesStepSchema", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+});
+
+describe("quotePaymentStepSchema", () => {
+  it("accepts a backend-compatible card payment option", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "CARD",
+          label: "Cartão em até 3x",
+          installments: 3,
+          interestFree: true,
+          discountType: "PERCENTAGE",
+          discountValue: 5,
+        },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("normalizes empty optional payment fields to null", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+          installments: "",
+          interestFree: null,
+          discountType: null,
+          discountValue: "",
+        },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error("Expected quote payment validation to pass.");
+    }
+
+    expect(result.data.paymentOptions[0]).toEqual({
+      method: "PIX",
+      label: "Pix",
+      installments: null,
+      interestFree: null,
+      discountType: null,
+      discountValue: null,
+    });
+  });
+
+  it("rejects a payment option without label", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "CASH",
+          label: "",
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote payment validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe a descrição da forma de pagamento.",
+          path: ["paymentOptions", 0, "label"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects zero installments", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "CARD",
+          label: "Cartão",
+          installments: 0,
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
   });
 });

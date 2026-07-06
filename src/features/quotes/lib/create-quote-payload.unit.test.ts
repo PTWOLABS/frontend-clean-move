@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import type {
   QuoteCustomerVehicleStepValues,
+  QuotePaymentStepValues,
   QuoteServicesStepValues,
 } from "../types/create-quote";
 import {
   mapQuoteCustomerVehicleStepToPayload,
+  mapQuotePaymentStepToPayload,
   mapQuoteServicesStepToPayload,
 } from "./create-quote-payload";
 
@@ -111,6 +113,64 @@ describe("mapQuoteServicesStepToPayload", () => {
           serviceName: "Polimento tecnico",
           priceInCents: 15000,
           isCourtesy: true,
+        },
+      ],
+    });
+  });
+});
+
+describe("mapQuotePaymentStepToPayload", () => {
+  it("keeps payment option fields expected by the API", () => {
+    const values: QuotePaymentStepValues = {
+      paymentOptions: [
+        {
+          method: "CARD",
+          label: "Cartão em até 3x",
+          installments: 3,
+          interestFree: true,
+          discountType: "PERCENTAGE",
+          discountValue: 5,
+        },
+      ],
+    };
+
+    expect(mapQuotePaymentStepToPayload(values)).toEqual({
+      paymentOptions: [
+        {
+          method: "CARD",
+          label: "Cartão em até 3x",
+          installments: 3,
+          interestFree: true,
+          discountType: "PERCENTAGE",
+          discountValue: 5,
+        },
+      ],
+    });
+  });
+
+  it("keeps nullable optional fields for backend-compatible payment options", () => {
+    const values: QuotePaymentStepValues = {
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+          installments: null,
+          interestFree: null,
+          discountType: null,
+          discountValue: null,
+        },
+      ],
+    };
+
+    expect(mapQuotePaymentStepToPayload(values)).toEqual({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+          installments: null,
+          interestFree: null,
+          discountType: null,
+          discountValue: null,
         },
       ],
     });
