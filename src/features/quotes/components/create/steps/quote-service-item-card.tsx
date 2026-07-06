@@ -77,11 +77,13 @@ export function QuoteServiceItemCard({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(10rem,0.7fr)_auto] lg:items-start">
         {isExistingService ? (
-          <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2.5">
-            <p className="text-xs text-muted-foreground">Origem</p>
-            <p className="mt-1 truncate text-sm font-medium text-foreground">
-              Serviço selecionado do catálogo
-            </p>
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium leading-none text-foreground">Origem</p>
+            <div className="flex min-h-10 items-center rounded-lg border border-border/70 bg-card/55 px-3 py-2.5">
+              <p className="truncate text-sm font-medium text-foreground">
+                Serviço selecionado do catálogo
+              </p>
+            </div>
           </div>
         ) : (
           <StandartInputField
