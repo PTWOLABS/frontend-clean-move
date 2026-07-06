@@ -45,6 +45,13 @@ export function formatReaisToBrlDecimal(reais: number): string {
 /** Alias explícito para campos de texto monetário. */
 export const formatReaisToBrlInput = formatReaisToBrlDecimal;
 
+export function formatCentsToBrlInput(cents: unknown): string {
+  const amount = typeof cents === "number" ? cents : Number(cents);
+  if (!Number.isFinite(amount)) return "";
+
+  return formatReaisToBrlInput(Math.max(amount, 0) / 100);
+}
+
 /**
  * Converte texto em formato monetário brasileiro (ex.: `1.234,56` ou `30`) para valor em **reais**.
  * Vírgula = separador decimal; ponto = milhares (opcional).
@@ -68,4 +75,11 @@ export function parseBrlMoneyToReais(value: string): number {
   const normalized = fracPart.length > 0 ? `${intPart}.${fracPart}` : intPart;
   const n = Number(normalized);
   return Number.isFinite(n) ? n : Number.NaN;
+}
+
+export function parseBrlMoneyToCents(value: string): number | undefined {
+  const reais = parseBrlMoneyToReais(value);
+  if (!Number.isFinite(reais)) return undefined;
+
+  return Math.max(0, Math.round(reais * 100));
 }
