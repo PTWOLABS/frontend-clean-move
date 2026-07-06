@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
+
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
   z.string().trim().nullable(),
@@ -72,8 +74,48 @@ export const quoteServiceItemSchema = z
     serviceName: z.string().trim().min(1, "Informe o nome do serviço.").optional(),
     priceInCents: optionalPriceInCents,
     isCourtesy: z.boolean().optional(),
+    priceType: z.enum(["FIXED", "STARTING_AT", "RANGE"]).optional(),
+    minPriceInCents: z.number().int().nonnegative().optional(),
+    maxPriceInCents: z.number().int().nonnegative().optional(),
   })
   .superRefine((value, context) => {
+    function validatePrice() {
+      if (value.priceInCents === undefined) {
+        context.addIssue({
+          code: "custom",
+          message: "Informe o preço do serviço.",
+          path: ["priceInCents"],
+        });
+        return;
+      }
+
+      if (!value.priceType || typeof value.minPriceInCents !== "number" || value.isCourtesy) {
+        return;
+      }
+
+      const priceIssue = getServicePriceValidationIssue(value.priceInCents, {
+        priceType: value.priceType,
+        minPriceInCents: value.minPriceInCents,
+        maxPriceInCents: value.maxPriceInCents,
+      });
+
+      if (priceIssue === "BELOW_MIN") {
+        context.addIssue({
+          code: "custom",
+          message: "O valor não pode ser menor que o mínimo do serviço.",
+          path: ["priceInCents"],
+        });
+      }
+
+      if (priceIssue === "ABOVE_MAX") {
+        context.addIssue({
+          code: "custom",
+          message: "O valor não pode ultrapassar o máximo do serviço.",
+          path: ["priceInCents"],
+        });
+      }
+    }
+
     if (value.serviceId) {
       if (value.serviceName !== undefined) {
         context.addIssue({
@@ -83,6 +125,7 @@ export const quoteServiceItemSchema = z
         });
       }
 
+      validatePrice();
       return;
     }
 
@@ -94,13 +137,7 @@ export const quoteServiceItemSchema = z
       });
     }
 
-    if (value.priceInCents === undefined) {
-      context.addIssue({
-        code: "custom",
-        message: "Informe o preço do serviço.",
-        path: ["priceInCents"],
-      });
-    }
+    validatePrice();
   });
 
 export const quoteServicesStepSchema = z.object({
