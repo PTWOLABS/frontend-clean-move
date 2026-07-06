@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 type QuoteWizardActionsProps = {
   currentStep: number;
   hasCompletedStep: boolean;
+  isClearStepDisabled: boolean;
   isLastStep: boolean;
   isSubmitting: boolean;
   onBack: () => void;
@@ -15,6 +16,7 @@ type QuoteWizardActionsProps = {
 export function QuoteWizardActions({
   currentStep,
   hasCompletedStep,
+  isClearStepDisabled,
   isLastStep,
   isSubmitting,
   onBack,
@@ -28,7 +30,7 @@ export function QuoteWizardActions({
           type="button"
           variant="outline"
           onClick={onClearStep}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isClearStepDisabled}
           className="border-destructive/20 text-destructive/90 hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 aria-hidden className="size-4" />

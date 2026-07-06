@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 import { WizardProgress } from "@/shared/components/wizard-progress";
+import { hasFormStepChanges } from "@/shared/forms/has-form-step-changes";
 
 import { createQuoteFormDefaultValues } from "../../../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
@@ -33,17 +35,30 @@ export function QuoteCreateWizardContent({
   const [currentStep, setCurrentStep] = useState(1);
   const [stepOneVersion, setStepOneVersion] = useState(0);
   const [stepTwoVersion, setStepTwoVersion] = useState(0);
+  const [openConfirmClearStepDialog, setOpenConfirmClearStepDialog] = useState(false);
   const {
     control,
     resetField,
     formState: { isSubmitting },
     trigger,
   } = useFormContext<CreateQuoteFormInput>();
-  const stepOne = useWatch({ control, name: "stepOne" });
-  const stepTwo = useWatch({ control, name: "stepTwo" });
+  const stepOne = useWatch({
+    control,
+    name: "stepOne",
+    defaultValue: createQuoteFormDefaultValues.stepOne,
+  });
+  const stepTwo = useWatch({
+    control,
+    name: "stepTwo",
+    defaultValue: createQuoteFormDefaultValues.stepTwo,
+  });
   const summaryItems = useQuoteSummaryItems(stepOne, stepTwo);
   const hasCompletedStep = completedSteps.includes(currentStep);
   const isLastStep = currentStep === TOTAL_STEPS;
+  const hasCurrentStepChanges =
+    currentStep === 1
+      ? hasFormStepChanges(stepOne, createQuoteFormDefaultValues.stepOne)
+      : hasFormStepChanges(stepTwo, createQuoteFormDefaultValues.stepTwo);
 
   function handleBack() {
     setCurrentStep((step) => Math.max(1, step - 1));
@@ -63,6 +78,13 @@ export function QuoteCreateWizardContent({
     }
 
     onClearStep(currentStep);
+    setOpenConfirmClearStepDialog(false);
+  }
+
+  function handleClearStepClick() {
+    if (!hasCurrentStepChanges) return;
+
+    setOpenConfirmClearStepDialog(true);
   }
 
   async function handleNextStep() {
@@ -98,10 +120,11 @@ export function QuoteCreateWizardContent({
           <QuoteWizardActions
             currentStep={currentStep}
             hasCompletedStep={hasCompletedStep}
+            isClearStepDisabled={!hasCurrentStepChanges}
             isLastStep={isLastStep}
             isSubmitting={isSubmitting}
             onBack={handleBack}
-            onClearStep={handleClearStep}
+            onClearStep={handleClearStepClick}
             onNextStep={handleNextStep}
           />
         </div>
@@ -113,6 +136,18 @@ export function QuoteCreateWizardContent({
         items={summaryItems}
         hasCompletedStep={hasCompletedStep}
         className="hidden xl:sticky xl:top-6 xl:block xl:self-start"
+      />
+
+      <AlertDialog
+        open={openConfirmClearStepDialog}
+        onOpenChange={setOpenConfirmClearStepDialog}
+        title="Limpar dados desta etapa?"
+        descriptionContent={
+          "Os campos preenchidos nesta etapa serão apagados. As outras etapas não serão alteradas."
+        }
+        actionMessage="Limpar etapa"
+        onConfirm={handleClearStep}
+        onCancel={() => setOpenConfirmClearStepDialog(false)}
       />
     </>
   );
