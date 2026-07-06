@@ -76,6 +76,8 @@ describe("mapQuoteServicesStepToPayload", () => {
           serviceId: "service-1",
           serviceLabel: "Lavagem completa",
           priceInCents: 9000,
+          priceType: "FIXED",
+          minPriceInCents: 9000,
           isCourtesy: false,
         },
       ],
