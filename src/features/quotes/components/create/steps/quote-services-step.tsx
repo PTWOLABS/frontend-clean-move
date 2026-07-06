@@ -78,7 +78,7 @@ export function QuoteServicesStep({ title, description, className }: QuoteServic
 
             <Button
               type="button"
-              className="lg:mb-1.5"
+              className={cn(hasSelectedServiceInList ? "lg:mb-5.5" : "lg:mb-1.5")}
               onClick={addSelectedService}
               disabled={!canAddSelectedService}
             >

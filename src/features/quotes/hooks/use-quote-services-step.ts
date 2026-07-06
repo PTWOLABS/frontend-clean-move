@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
@@ -14,10 +14,11 @@ import {
 import type { CreateQuoteFormInput } from "../types/create-quote";
 
 export function useQuoteServicesStep() {
-  const { clearErrors, control, setValue } = useFormContext<CreateQuoteFormInput>();
+  const { clearErrors, control, getValues, setValue } = useFormContext<CreateQuoteFormInput>();
   const [serviceSearch, setServiceSearch] = useState("");
   const [serviceLabel, setServiceLabel] = useState("");
   const [selectedService, setSelectedService] = useState<ComboboxItemOption | null>(null);
+  const priceBeforeCourtesyByFieldIdRef = useRef(new Map<string, number | undefined>());
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -90,6 +91,13 @@ export function useQuoteServicesStep() {
 
   const handleCourtesyChange = useCallback(
     (index: number, checked: boolean) => {
+      const fieldId = fields[index]?.id ?? String(index);
+      const currentPrice = getValues(`stepTwo.services.${index}.priceInCents`);
+      const priceBeforeChange =
+        typeof currentPrice === "number" && Number.isFinite(currentPrice)
+          ? currentPrice
+          : undefined;
+
       setValue(`stepTwo.services.${index}.isCourtesy`, checked, {
         shouldDirty: true,
         shouldTouch: true,
@@ -97,14 +105,42 @@ export function useQuoteServicesStep() {
       });
 
       if (checked) {
+        priceBeforeCourtesyByFieldIdRef.current.set(fieldId, priceBeforeChange);
         setValue(`stepTwo.services.${index}.priceInCents`, 0, {
           shouldDirty: true,
           shouldTouch: true,
           shouldValidate: true,
         });
+        return;
       }
+
+      const service = getValues(`stepTwo.services.${index}`);
+      const fallbackPrice =
+        typeof service?.minPriceInCents === "number" ? service.minPriceInCents : undefined;
+      const restoredPrice = priceBeforeCourtesyByFieldIdRef.current.has(fieldId)
+        ? priceBeforeCourtesyByFieldIdRef.current.get(fieldId)
+        : fallbackPrice;
+
+      setValue(`stepTwo.services.${index}.priceInCents`, restoredPrice, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
     },
-    [setValue],
+    [fields, getValues, setValue],
+  );
+
+  const removeService = useCallback(
+    (index: number) => {
+      const fieldId = fields[index]?.id;
+
+      if (fieldId) {
+        priceBeforeCourtesyByFieldIdRef.current.delete(fieldId);
+      }
+
+      remove(index);
+    },
+    [fields, remove],
   );
 
   const totalInCents = services.reduce((total, service) => {
@@ -135,7 +171,7 @@ export function useQuoteServicesStep() {
     handleCourtesyChange,
     handleServiceSelectedItemChange,
     hasSelectedServiceInList,
-    removeService: remove,
+    removeService,
     serviceEmptyMessage,
     serviceLabel,
     serviceOptionsItems,
