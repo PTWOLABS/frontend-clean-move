@@ -14,6 +14,8 @@ export type VehicleDto = {
   updatedAt: string;
 };
 
+export type CustomerVehicleDto = VehicleDto;
+
 export type ListVehiclesQuery = {
   page?: number;
   size?: number;

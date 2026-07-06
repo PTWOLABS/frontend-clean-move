@@ -74,6 +74,10 @@ export const QUERY_KEYS = {
     filters ? (["services", "list", filters] as const) : (["services", "list"] as const),
   customers: (filters?: ListCustomersQuery) =>
     filters ? (["customers", filters] as const) : (["customers"] as const),
+  customer: (customerId?: string) =>
+    customerId
+      ? (["customers", "detail", customerId] as const)
+      : (["customers", "detail"] as const),
   topCustomers: (filters?: DashboardTopCustomersFilters) =>
     filters
       ? (["dashboard", "top-customers", filters] as const)
@@ -82,6 +86,19 @@ export const QUERY_KEYS = {
     filters ? (["customers", "options", filters] as const) : (["customers", "options"] as const),
   vehicles: (customerId: string, filters?: ListVehiclesQuery) =>
     filters ? (["vehicles", customerId, filters] as const) : (["vehicles", customerId] as const),
+  vehicle: (customerId?: string, vehicleId?: string) => {
+    const root = ["vehicles"] as const;
+
+    if (customerId && vehicleId) {
+      return [...root, customerId, "detail", vehicleId] as const;
+    }
+
+    if (customerId) {
+      return [...root, customerId, "detail"] as const;
+    }
+
+    return [...root, "detail"] as const;
+  },
   vehiclesAll: (filters?: ListEstablishmentVehiclesQuery) =>
     filters ? (["vehicles", filters] as const) : (["vehicles"] as const),
   vehicleOptions: (filters?: VehicleOptionsQuery) =>

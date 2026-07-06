@@ -18,7 +18,7 @@ import { MobileDataCard, MobileDataCardSkeleton } from "@/shared/components/mobi
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { cn } from "@/shared/utils/cn";
 
-import { useListQuotes } from "../api/use-list-quotes";
+import { useListQuotes } from "../hooks/use-list-quotes";
 import {
   DEFAULT_QUOTES_FILTERS,
   buildQuotesApiFilters,
@@ -29,6 +29,7 @@ import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
+import { useGenerateQuotePdf } from "../hooks/use-gerenate-quote-pdf";
 
 const PAGE_SIZE = 5;
 
@@ -60,6 +61,7 @@ function getQuoteFooterLabel(quote: QuoteListItemDto): string {
 }
 
 function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
+  const generateQuotePdf = useGenerateQuotePdf();
   const status = quoteStatusConfig[quote.status];
 
   return (
@@ -110,7 +112,8 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
         {
           label: "Gerar PDF",
           icon: FileText,
-          onClick: noop,
+          onClick: () => generateQuotePdf.mutate(quote.id),
+          disabled: generateQuotePdf.isPending,
         },
         {
           label: "Mais opções",

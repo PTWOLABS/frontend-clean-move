@@ -1,4 +1,4 @@
-import { formatReaisToBrlInput } from "@/shared/money/format-brl-money";
+import { formatCentsToBrlInput } from "@/shared/money/format-brl-money";
 
 import type {
   CreateAppointmentFormInput,
@@ -46,9 +46,7 @@ export function resolveServicePriceMetadata(
   };
 }
 
-export function formatCentsToBrlInput(cents: number) {
-  return formatReaisToBrlInput(Math.max(cents, 0) / 100);
-}
+export { formatCentsToBrlInput };
 
 export function hasResourceChanged(status?: ResourceStatus) {
   return status === "UPDATED" || status === "DELETED";

@@ -4,7 +4,7 @@ import { BadgeCheck, CheckCircle2, Clock3, CircleX } from "lucide-react";
 
 import { KpiCardsGrid, KpiCardsSkeleton, type KpiCardItem } from "@/shared/components/kpi-card";
 
-import { useListQuotes } from "../api/use-list-quotes";
+import { useListQuotes } from "../hooks/use-list-quotes";
 import { quoteStatusConfig } from "../lib/quote-status-config";
 import type { QuotesApiFilters } from "../types/api-filters";
 import type { QuoteSummary } from "../types/quotes";

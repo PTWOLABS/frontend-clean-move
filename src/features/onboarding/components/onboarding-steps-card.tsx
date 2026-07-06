@@ -9,14 +9,13 @@ import {
   CarFront,
 } from "lucide-react";
 
+import {
+  getWizardSummaryValue,
+  WizardProgressBadge,
+  WizardSummaryList,
+  type WizardSummaryItem,
+} from "@/shared/components/wizard-summary-list";
 import { cn } from "@/shared/utils/cn";
-
-type OnboardingSummaryItem = {
-  label: string;
-  value: string;
-  completed: boolean;
-  icon: typeof UserRound;
-};
 
 type OnboardingValueItem = {
   title: string;
@@ -56,16 +55,6 @@ const valueItems: OnboardingValueItem[] = [
   },
 ];
 
-function getResourceLabel(label: string) {
-  const emptyLabel = "não informado";
-
-  if (label.toLocaleLowerCase("pt-BR").includes(emptyLabel)) {
-    return emptyLabel;
-  }
-
-  return label;
-}
-
 export function OnboardingStepsCard({
   currentStep,
   totalSteps,
@@ -80,28 +69,28 @@ export function OnboardingStepsCard({
   className,
 }: OnboardingStepsCardProps) {
   const progress = Math.round((currentStep / totalSteps) * 100);
-  const summaryItems: OnboardingSummaryItem[] = [
+  const summaryItems: WizardSummaryItem[] = [
     {
       label: "Cliente",
-      value: getResourceLabel(customerName),
+      value: getWizardSummaryValue(customerName),
       completed: hasCustomer,
       icon: UserRound,
     },
     {
       label: "Serviço",
-      value: getResourceLabel(serviceName),
+      value: getWizardSummaryValue(serviceName),
       completed: hasService,
       icon: Wrench,
     },
     {
       label: "Veículo",
-      value: getResourceLabel(vehicleName),
+      value: getWizardSummaryValue(vehicleName),
       completed: hasVehicle,
       icon: CarFront,
     },
     {
       label: "Período",
-      value: getResourceLabel(periodLabel),
+      value: getWizardSummaryValue(periodLabel),
       completed: hasPeriod,
       icon: CalendarDays,
     },
@@ -137,11 +126,7 @@ export function OnboardingStepsCard({
         </span>
       </div>
 
-      <dl className="mt-6 divide-y divide-border/60 rounded-xl border border-border/70 bg-background/40">
-        {summaryItems.map((item) => (
-          <SummaryRow key={item.label} item={item} />
-        ))}
-      </dl>
+      <WizardSummaryList items={summaryItems} className="mt-6" />
 
       <section className="mt-6" aria-labelledby="onboarding-value-title">
         <h3 id="onboarding-value-title" className="text-sm font-semibold text-foreground">
@@ -169,35 +154,9 @@ export function OnboardingStepsCard({
           </div>
         </div>
 
-        <ProgressBadge progress={progress} />
+        <WizardProgressBadge progress={progress} />
       </div>
     </aside>
-  );
-}
-
-function SummaryRow({ item }: { item: OnboardingSummaryItem }) {
-  const Icon = item.icon;
-
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
-      <dt className="flex min-w-0 items-center gap-3 text-sm font-medium text-muted-foreground">
-        <Icon aria-hidden className="size-4 shrink-0" />
-        <span className="truncate">{item.label}</span>
-      </dt>
-
-      <dd className="flex min-w-0 items-center gap-2 text-right text-sm font-medium text-foreground">
-        <span className="max-w-32 truncate">{item.value}</span>
-        <span
-          aria-hidden
-          className={cn(
-            "size-2.5 shrink-0 rounded-full ring-2",
-            item.completed
-              ? "bg-primary ring-primary/25"
-              : "bg-transparent ring-muted-foreground/35",
-          )}
-        />
-      </dd>
-    </div>
   );
 }
 
@@ -214,44 +173,6 @@ function ValueRow({ item }: { item: OnboardingValueItem }) {
         <h4 className="text-sm font-semibold leading-snug text-foreground">{item.title}</h4>
         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{item.description}</p>
       </div>
-    </div>
-  );
-}
-
-function ProgressBadge({ progress }: { progress: number }) {
-  const radius = 17;
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (progress / 100) * circumference;
-
-  return (
-    <div
-      className="relative flex size-14 shrink-0 items-center justify-center"
-      aria-label={`${progress}% concluído`}
-    >
-      <svg aria-hidden className="absolute inset-0 size-14 -rotate-90" viewBox="0 0 44 44">
-        <circle
-          cx="22"
-          cy="22"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="4"
-          className="text-muted"
-        />
-        <circle
-          cx="22"
-          cy="22"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="4"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          className="text-primary"
-        />
-      </svg>
-      <span className="text-xs font-bold tabular-nums text-foreground">{progress}%</span>
     </div>
   );
 }

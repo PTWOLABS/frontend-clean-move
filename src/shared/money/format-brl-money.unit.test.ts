@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 import {
   formatBrlCurrencyFromReais,
   formatBrlFromCents,
+  formatCentsToBrlInput,
   formatReaisToBrlDecimal,
+  parseBrlMoneyToCents,
   parseBrlMoneyToReais,
 } from "./format-brl-money";
 
@@ -54,5 +56,30 @@ describe("formatReaisToBrlDecimal", () => {
   it("formats with two decimal places without R$", () => {
     expect(formatReaisToBrlDecimal(30)).toBe("30,00");
     expect(formatReaisToBrlDecimal(1234.5)).toBe("1.234,50");
+  });
+});
+
+describe("formatCentsToBrlInput", () => {
+  it("formats cents without currency symbol", () => {
+    expect(formatCentsToBrlInput(12345)).toBe("123,45");
+    expect(formatCentsToBrlInput(0)).toBe("0,00");
+  });
+
+  it("returns empty string for invalid input values", () => {
+    expect(formatCentsToBrlInput(undefined)).toBe("");
+    expect(formatCentsToBrlInput("abc")).toBe("");
+  });
+});
+
+describe("parseBrlMoneyToCents", () => {
+  it("parses BRL input text to cents", () => {
+    expect(parseBrlMoneyToCents("123,45")).toBe(12345);
+    expect(parseBrlMoneyToCents("1.234,56")).toBe(123456);
+    expect(parseBrlMoneyToCents("30")).toBe(3000);
+  });
+
+  it("returns undefined for empty or invalid input", () => {
+    expect(parseBrlMoneyToCents("")).toBeUndefined();
+    expect(parseBrlMoneyToCents("abc")).toBeUndefined();
   });
 });

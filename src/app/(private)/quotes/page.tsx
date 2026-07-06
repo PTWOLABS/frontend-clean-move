@@ -23,7 +23,7 @@ export default function QuotesPage() {
         </div>
 
         <Button asChild className="h-10 w-full sm:w-auto sm:min-w-50">
-          <Link href="/appointments?new=true">
+          <Link href="/quotes/new">
             <Plus className="size-4" aria-hidden />
             Novo Orçamento
           </Link>

@@ -1,83 +1,30 @@
-import {
-  CalendarDays,
-  CarFront,
-  ChevronDown,
-  ClipboardList,
-  UserRound,
-  Wrench,
-} from "lucide-react";
+import { ChevronDown, ClipboardList } from "lucide-react";
 
-import {
-  getWizardSummaryValue,
-  WizardSummaryList,
-  type WizardSummaryItem,
-} from "@/shared/components/wizard-summary-list";
+import { WizardSummaryList, type WizardSummaryItem } from "@/shared/components/wizard-summary-list";
 import { cn } from "@/shared/utils/cn";
 
-type OnboardingMobileSummaryProps = {
+type QuoteMobileSummaryProps = {
   currentStep: number;
   totalSteps: number;
-  customerName: string;
-  serviceName: string;
-  vehicleName: string;
-  periodLabel?: string;
-  hasCustomer: boolean;
-  hasService: boolean;
-  hasVehicle: boolean;
-  hasPeriod?: boolean;
+  items: WizardSummaryItem[];
   className?: string;
 };
 
-export function OnboardingMobileSummary({
+export function QuoteMobileSummary({
   currentStep,
   totalSteps,
-  customerName,
-  serviceName,
-  vehicleName,
-  periodLabel = "definir datas",
-  hasCustomer,
-  hasService,
-  hasVehicle,
-  hasPeriod = false,
+  items,
   className,
-}: OnboardingMobileSummaryProps) {
+}: QuoteMobileSummaryProps) {
   const progress = Math.round((currentStep / totalSteps) * 100);
-  const completedItemsCount = [hasCustomer, hasService, hasVehicle, hasPeriod].filter(
-    Boolean,
-  ).length;
-  const summaryItems: WizardSummaryItem[] = [
-    {
-      label: "Cliente",
-      value: getWizardSummaryValue(customerName),
-      completed: hasCustomer,
-      icon: UserRound,
-    },
-    {
-      label: "Serviço",
-      value: getWizardSummaryValue(serviceName),
-      completed: hasService,
-      icon: Wrench,
-    },
-    {
-      label: "Veículo",
-      value: getWizardSummaryValue(vehicleName),
-      completed: hasVehicle,
-      icon: CarFront,
-    },
-    {
-      label: "Período",
-      value: getWizardSummaryValue(periodLabel),
-      completed: hasPeriod,
-      icon: CalendarDays,
-    },
-  ];
+  const completedItemsCount = items.filter((item) => item.completed).length;
 
   return (
     <section
-      aria-label="Resumo do onboarding"
+      aria-label="Resumo do orçamento"
       className={cn(
         "rounded-xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur",
-        "supports-[backdrop-filter]:bg-card/60 xl:hidden",
+        "supports-[backdrop-filter]:bg-card/60",
         className,
       )}
     >
@@ -90,7 +37,7 @@ export function OnboardingMobileSummary({
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-foreground">Resumo rápido</h2>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {completedItemsCount} de 4 detalhes preenchidos.
+              {completedItemsCount} de {items.length} detalhes preenchidos.
             </p>
           </div>
         </div>
@@ -113,7 +60,7 @@ export function OnboardingMobileSummary({
           />
         </summary>
 
-        <WizardSummaryList items={summaryItems} compact className="mt-3 rounded-lg" />
+        <WizardSummaryList items={items} compact className="mt-3 rounded-lg" />
       </details>
     </section>
   );

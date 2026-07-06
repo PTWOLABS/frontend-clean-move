@@ -28,6 +28,7 @@ type RequestOptions<TFilters extends object = Record<string, never>> = {
   headers?: HeadersInit;
   body?: unknown;
   signal?: AbortSignal;
+  responseType?: AxiosRequestConfig["responseType"];
   _retry?: boolean;
   filters?: TFilters;
 };
@@ -133,8 +134,14 @@ function normalizeParsedBody(data: unknown): unknown {
   return data;
 }
 
-function parseErrorPayload(data: unknown): unknown {
+async function parseErrorPayload(data: unknown): Promise<unknown> {
   if (data == null || data === "") return null;
+
+  if (typeof Blob !== "undefined" && data instanceof Blob) {
+    const text = await data.text();
+    return parseErrorPayload(text);
+  }
+
   if (typeof data === "object") return data;
   if (typeof data === "string") {
     try {
@@ -148,7 +155,15 @@ function parseErrorPayload(data: unknown): unknown {
 
 export async function httpClient<TResponse, TFilters extends object = Record<string, never>>(
   path: string,
-  { method = "GET", headers, body, signal, _retry, filters }: RequestOptions<TFilters> = {},
+  {
+    method = "GET",
+    headers,
+    body,
+    signal,
+    responseType,
+    _retry,
+    filters,
+  }: RequestOptions<TFilters> = {},
 ): Promise<TResponse> {
   const requestHeaders = headersInitToRecord(headers);
 
@@ -177,6 +192,7 @@ export async function httpClient<TResponse, TFilters extends object = Record<str
     headers: requestHeaders,
     data: body !== undefined && body !== null ? body : undefined,
     signal,
+    responseType,
   };
 
   try {
@@ -196,6 +212,7 @@ export async function httpClient<TResponse, TFilters extends object = Record<str
           headers,
           body,
           signal,
+          responseType,
           _retry: true,
           filters,
         });
@@ -204,7 +221,7 @@ export async function httpClient<TResponse, TFilters extends object = Record<str
 
     if (axios.isAxiosError(error) && error.response) {
       const { status, statusText, data } = error.response;
-      const errorBody = parseErrorPayload(data);
+      const errorBody = await parseErrorPayload(data);
       const message =
         (errorBody as { message?: string })?.message ??
         `Erro na requisição: ${status} ${statusText}`;
