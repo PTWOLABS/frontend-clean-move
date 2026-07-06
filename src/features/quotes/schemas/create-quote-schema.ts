@@ -13,6 +13,11 @@ const optionalYear = z.preprocess((value) => {
   return value;
 }, z.number().int("Informe um ano valido.").optional().nullable());
 
+const optionalPriceInCents = z.preprocess((value) => {
+  if (value === "" || value == null) return undefined;
+  return value;
+}, z.number().int("Informe um valor válido.").nonnegative("Informe um valor válido.").optional());
+
 export const quoteCustomerVehicleStepSchema = z
   .object({
     customerId: z.string().trim().optional().nullable(),
@@ -60,8 +65,51 @@ export const quoteCustomerVehicleStepSchema = z
     }
   });
 
+export const quoteServiceItemSchema = z
+  .object({
+    serviceId: z.uuid().optional().nullable(),
+    serviceLabel: z.string().trim().optional(),
+    serviceName: z.string().trim().min(1, "Informe o nome do serviço.").optional(),
+    priceInCents: optionalPriceInCents,
+    isCourtesy: z.boolean().optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.serviceId) {
+      if (value.serviceName !== undefined) {
+        context.addIssue({
+          code: "custom",
+          message: "O nome do serviço não deve ser informado com um serviço existente.",
+          path: ["serviceName"],
+        });
+      }
+
+      return;
+    }
+
+    if (!value.serviceName) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe o nome do serviço.",
+        path: ["serviceName"],
+      });
+    }
+
+    if (value.priceInCents === undefined) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe o preço do serviço.",
+        path: ["priceInCents"],
+      });
+    }
+  });
+
+export const quoteServicesStepSchema = z.object({
+  services: z.array(quoteServiceItemSchema).min(1, "Adicione pelo menos um serviço."),
+});
+
 export const createQuoteFormSchema = z.object({
   stepOne: quoteCustomerVehicleStepSchema,
+  stepTwo: quoteServicesStepSchema,
 });
 
 export const createQuoteFormDefaultValues = {
@@ -82,5 +130,8 @@ export const createQuoteFormDefaultValues = {
       color: null,
       year: null,
     },
+  },
+  stepTwo: {
+    services: [],
   },
 } satisfies z.input<typeof createQuoteFormSchema>;
