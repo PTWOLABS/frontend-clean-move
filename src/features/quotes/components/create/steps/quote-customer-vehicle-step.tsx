@@ -72,14 +72,16 @@ export function QuoteCustomerVehicleStep({
                     name={field.name}
                     value={customerLabel}
                     onValueChange={setCustomerLabel}
-                    onDebouncedValueChange={setCustomerSearch}
+                    onDebouncedValueChange={hasSelectedCustomer ? undefined : setCustomerSearch}
                     onSelectedItemChange={handleCustomerSelectedItemChange}
                     onBlur={field.onBlur}
                     items={customerOptionsItems}
                     placeholder="Digite o nome do cliente"
                     emptyMessage={customerEmptyMessage}
                     autoComplete="name"
-                    className="w-full shadow-xs"
+                    readOnly={hasSelectedCustomer}
+                    showTrigger={!hasSelectedCustomer}
+                    className={cn("w-full shadow-xs", hasSelectedCustomer && "bg-muted/50")}
                   />
                 </FormControl>
                 <FormDescription>
@@ -176,7 +178,7 @@ export function QuoteCustomerVehicleStep({
                     name={field.name}
                     value={vehicleLabel}
                     onValueChange={setVehicleLabel}
-                    onDebouncedValueChange={setVehicleSearch}
+                    onDebouncedValueChange={hasSelectedVehicle ? undefined : setVehicleSearch}
                     onSelectedItemChange={handleVehicleSelectedItemChange}
                     onBlur={field.onBlur}
                     items={vehicleOptionsItems}
@@ -184,7 +186,9 @@ export function QuoteCustomerVehicleStep({
                     emptyMessage={vehicleEmptyMessage}
                     autoComplete="off"
                     disabled={!selectedCustomerId}
-                    className="w-full shadow-xs"
+                    readOnly={hasSelectedVehicle}
+                    showTrigger={!hasSelectedVehicle}
+                    className={cn("w-full shadow-xs", hasSelectedVehicle && "bg-muted/50")}
                   />
                 </FormControl>
                 <FormDescription>

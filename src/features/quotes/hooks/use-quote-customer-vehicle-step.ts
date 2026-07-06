@@ -10,12 +10,15 @@ import { useCustomer } from "@/features/customer/hooks/use-customer";
 import { useVehicle } from "@/features/vehicle/hooks/use-vehicle";
 import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
 
+import { createQuoteFormDefaultValues } from "../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../types/create-quote";
 
 export function useQuoteCustomerVehicleStep() {
-  const { control, clearErrors, setValue } = useFormContext<CreateQuoteFormInput>();
+  const { control, clearErrors, resetField, setValue } = useFormContext<CreateQuoteFormInput>();
   const selectedCustomerId = useWatch({ control, name: "stepOne.customerId" });
+  const selectedCustomerName = useWatch({ control, name: "stepOne.customer.name" });
   const selectedVehicleId = useWatch({ control, name: "stepOne.vehicleId" });
+  const selectedVehicleLabel = useWatch({ control, name: "stepOne.vehicleLabel" });
   const [customerSearch, setCustomerSearch] = useState("");
   const [vehicleSearch, setVehicleSearch] = useState("");
   const [customerLabel, setCustomerLabel] = useState("");
@@ -23,6 +26,11 @@ export function useQuoteCustomerVehicleStep() {
 
   const hasSelectedCustomer = Boolean(selectedCustomerId);
   const hasSelectedVehicle = Boolean(selectedVehicleId);
+  const selectedCustomerDisplayLabel = selectedCustomerName?.trim() ?? "";
+  const selectedVehicleDisplayLabel =
+    typeof selectedVehicleLabel === "string" ? selectedVehicleLabel.trim() : "";
+  const customerComboboxValue = hasSelectedCustomer ? selectedCustomerDisplayLabel : customerLabel;
+  const vehicleComboboxValue = hasSelectedVehicle ? selectedVehicleDisplayLabel : vehicleLabel;
 
   const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
     limit: DEFAULT_OPTIONS_LIMIT,
@@ -77,12 +85,21 @@ export function useQuoteCustomerVehicleStep() {
     setVehicleSearch("");
   }, [setValue]);
 
+  const clearCustomerSelection = useCallback(() => {
+    resetField("stepOne", {
+      defaultValue: createQuoteFormDefaultValues.stepOne,
+    });
+    setCustomerLabel("");
+    setCustomerSearch("");
+    setVehicleLabel("");
+    setVehicleSearch("");
+  }, [resetField]);
+
   const handleCustomerSelectedItemChange = useCallback(
     (option: ComboboxItemOption | null) => {
       if (!option) {
         if (selectedCustomerId) {
-          setValue("stepOne.customerId", null, { shouldDirty: true, shouldValidate: true });
-          clearVehicleSelection();
+          clearCustomerSelection();
         }
         return;
       }
@@ -103,7 +120,7 @@ export function useQuoteCustomerVehicleStep() {
       clearVehicleSelection();
       clearErrors("stepOne.customer.name");
     },
-    [clearErrors, clearVehicleSelection, selectedCustomerId, setValue],
+    [clearCustomerSelection, clearErrors, clearVehicleSelection, selectedCustomerId, setValue],
   );
 
   const handleVehicleSelectedItemChange = useCallback(
@@ -171,7 +188,7 @@ export function useQuoteCustomerVehicleStep() {
   return {
     control,
     customerEmptyMessage,
-    customerLabel,
+    customerLabel: customerComboboxValue,
     customerOptionsItems,
     handleCustomerSelectedItemChange,
     handleVehicleSelectedItemChange,
@@ -185,7 +202,7 @@ export function useQuoteCustomerVehicleStep() {
     setVehicleLabel,
     setVehicleSearch,
     vehicleEmptyMessage,
-    vehicleLabel,
+    vehicleLabel: vehicleComboboxValue,
     vehicleOptionsItems,
   };
 }
