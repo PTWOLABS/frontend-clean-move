@@ -10,9 +10,11 @@ import { hasFormStepChanges } from "@/shared/forms/has-form-step-changes";
 import { createQuoteFormDefaultValues } from "../../../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
 import { QuoteCustomerVehicleStep } from "../steps/quote-customer-vehicle-step";
+import { QuotePaymentStep } from "../steps/quote-payment-step";
 import { QuoteServicesStep } from "../steps/quote-services-step";
 import {
   customerVehicleStepHeader,
+  paymentStepHeader,
   servicesStepHeader,
   TOTAL_STEPS,
 } from "../../../constants/quote-wizard";
@@ -35,6 +37,7 @@ export function QuoteCreateWizardContent({
   const [currentStep, setCurrentStep] = useState(1);
   const [stepOneVersion, setStepOneVersion] = useState(0);
   const [stepTwoVersion, setStepTwoVersion] = useState(0);
+  const [stepThreeVersion, setStepThreeVersion] = useState(0);
   const [openConfirmClearStepDialog, setOpenConfirmClearStepDialog] = useState(false);
   const {
     control,
@@ -52,13 +55,20 @@ export function QuoteCreateWizardContent({
     name: "stepTwo",
     defaultValue: createQuoteFormDefaultValues.stepTwo,
   });
-  const summaryItems = useQuoteSummaryItems(stepOne, stepTwo);
+  const stepThree = useWatch({
+    control,
+    name: "stepThree",
+    defaultValue: createQuoteFormDefaultValues.stepThree,
+  });
+  const summaryItems = useQuoteSummaryItems(stepOne, stepTwo, stepThree);
   const hasCompletedStep = completedSteps.includes(currentStep);
   const isLastStep = currentStep === TOTAL_STEPS;
   const hasCurrentStepChanges =
     currentStep === 1
       ? hasFormStepChanges(stepOne, createQuoteFormDefaultValues.stepOne)
-      : hasFormStepChanges(stepTwo, createQuoteFormDefaultValues.stepTwo);
+      : currentStep === 2
+        ? hasFormStepChanges(stepTwo, createQuoteFormDefaultValues.stepTwo)
+        : hasFormStepChanges(stepThree, createQuoteFormDefaultValues.stepThree);
 
   function handleBack() {
     setCurrentStep((step) => Math.max(1, step - 1));
@@ -70,11 +80,16 @@ export function QuoteCreateWizardContent({
         defaultValue: createQuoteFormDefaultValues.stepOne,
       });
       setStepOneVersion((currentVersion) => currentVersion + 1);
-    } else {
+    } else if (currentStep === 2) {
       resetField("stepTwo", {
         defaultValue: createQuoteFormDefaultValues.stepTwo,
       });
       setStepTwoVersion((currentVersion) => currentVersion + 1);
+    } else {
+      resetField("stepThree", {
+        defaultValue: createQuoteFormDefaultValues.stepThree,
+      });
+      setStepThreeVersion((currentVersion) => currentVersion + 1);
     }
 
     onClearStep(currentStep);
@@ -88,14 +103,15 @@ export function QuoteCreateWizardContent({
   }
 
   async function handleNextStep() {
-    const isValid = await trigger("stepOne", {
+    const stepName = getStepName(currentStep);
+    const isValid = await trigger(stepName, {
       shouldFocus: true,
     });
 
     if (!isValid) return;
 
-    onStepComplete(1);
-    setCurrentStep(2);
+    onStepComplete(currentStep);
+    setCurrentStep((step) => Math.min(TOTAL_STEPS, step + 1));
   }
 
   return (
@@ -111,11 +127,13 @@ export function QuoteCreateWizardContent({
         />
 
         <div className="space-y-6">
-          {currentStep === 1 ? (
+          {currentStep === 1 && (
             <QuoteCustomerVehicleStep key={stepOneVersion} {...customerVehicleStepHeader} />
-          ) : (
-            <QuoteServicesStep key={stepTwoVersion} {...servicesStepHeader} />
           )}
+
+          {currentStep === 2 && <QuoteServicesStep key={stepTwoVersion} {...servicesStepHeader} />}
+
+          {currentStep === 3 && <QuotePaymentStep key={stepThreeVersion} {...paymentStepHeader} />}
 
           <QuoteWizardActions
             currentStep={currentStep}
@@ -151,4 +169,11 @@ export function QuoteCreateWizardContent({
       />
     </>
   );
+}
+
+function getStepName(currentStep: number): "stepOne" | "stepTwo" | "stepThree" {
+  if (currentStep === 1) return "stepOne";
+  if (currentStep === 2) return "stepTwo";
+
+  return "stepThree";
 }

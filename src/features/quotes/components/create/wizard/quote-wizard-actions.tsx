@@ -23,6 +23,12 @@ export function QuoteWizardActions({
   onClearStep,
   onNextStep,
 }: QuoteWizardActionsProps) {
+  const actionLabel = getActionLabel({
+    currentStep,
+    hasCompletedStep,
+    isLastStep,
+  });
+
   return (
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
@@ -51,13 +57,24 @@ export function QuoteWizardActions({
         disabled={isSubmitting}
         className="sm:min-w-44"
       >
-        {isLastStep
-          ? hasCompletedStep
-            ? "Etapa salva"
-            : "Salvar serviços"
-          : "Continuar para serviços"}
+        {actionLabel}
         <CheckCircle2 aria-hidden className="size-4" />
       </Button>
     </div>
   );
+}
+
+function getActionLabel({
+  currentStep,
+  hasCompletedStep,
+  isLastStep,
+}: {
+  currentStep: number;
+  hasCompletedStep: boolean;
+  isLastStep: boolean;
+}) {
+  if (isLastStep) return hasCompletedStep ? "Etapa salva" : "Salvar pagamento";
+  if (currentStep === 1) return "Continuar para serviços";
+
+  return "Continuar para pagamento";
 }
