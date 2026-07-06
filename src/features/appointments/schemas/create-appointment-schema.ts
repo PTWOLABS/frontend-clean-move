@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
+import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
 import { formatLocalDateTimeAsUtcISOString } from "@/shared/utils/lib";
 
 const dateInput = z.union([z.date(), z.string(), z.number(), z.null(), z.undefined()]);
@@ -123,8 +124,9 @@ export function validateAppointmentServicePrices(
     }
 
     const amountInCents = Math.round(parseBrlMoneyToReais(service.price) * 100);
+    const priceIssue = getServicePriceValidationIssue(amountInCents, service);
 
-    if (amountInCents < service.minPriceInCents) {
+    if (priceIssue === "BELOW_MIN") {
       context.addIssue({
         code: "custom",
         message: "O valor não pode ser menor que o mínimo do serviço.",
@@ -132,11 +134,7 @@ export function validateAppointmentServicePrices(
       });
     }
 
-    if (
-      service.priceType === "RANGE" &&
-      typeof service.maxPriceInCents === "number" &&
-      amountInCents > service.maxPriceInCents
-    ) {
+    if (priceIssue === "ABOVE_MAX") {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: "O valor não pode ultrapassar o máximo do serviço.",

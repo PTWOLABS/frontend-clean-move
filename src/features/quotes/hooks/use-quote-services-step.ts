@@ -5,8 +5,11 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { useListServiceOptions } from "@/features/appointments/hooks/queries/use-list-service-options";
-import { resolveServicePriceMetadata } from "@/features/appointments/lib/appointment-form-values";
 import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
+import {
+  resolveServicePriceMetadata,
+  type ServicePriceMetadata,
+} from "@/shared/services/service-price-metadata";
 
 import type { CreateQuoteFormInput } from "../types/create-quote";
 
@@ -36,15 +39,15 @@ export function useQuoteServicesStep() {
     [serviceOptions],
   );
 
-  const servicePriceById = useMemo(() => {
-    const priceById = new Map<string, number>();
+  const servicePriceMetadataById = useMemo(() => {
+    const priceMetadataById = new Map<string, ServicePriceMetadata>();
 
     serviceOptions?.services?.forEach((option) => {
       const metadata = resolveServicePriceMetadata(option);
-      priceById.set(option.id, metadata.minPriceInCents);
+      priceMetadataById.set(option.id, metadata);
     });
 
-    return priceById;
+    return priceMetadataById;
   }, [serviceOptions]);
 
   const hasSelectedServiceInList = services.some(
@@ -54,10 +57,15 @@ export function useQuoteServicesStep() {
   const addSelectedService = useCallback(() => {
     if (!selectedService || hasSelectedServiceInList) return;
 
+    const priceMetadata = servicePriceMetadataById.get(selectedService.value);
+
     append({
       serviceId: selectedService.value,
       serviceLabel: selectedService.label,
-      priceInCents: servicePriceById.get(selectedService.value) ?? 0,
+      priceInCents: priceMetadata?.minPriceInCents ?? 0,
+      priceType: priceMetadata?.priceType,
+      minPriceInCents: priceMetadata?.minPriceInCents,
+      maxPriceInCents: priceMetadata?.maxPriceInCents,
       isCourtesy: false,
     });
 
@@ -65,7 +73,7 @@ export function useQuoteServicesStep() {
     setServiceLabel("");
     setServiceSearch("");
     clearErrors("stepTwo.services");
-  }, [append, clearErrors, hasSelectedServiceInList, selectedService, servicePriceById]);
+  }, [append, clearErrors, hasSelectedServiceInList, selectedService, servicePriceMetadataById]);
 
   const addManualService = useCallback(() => {
     append({
