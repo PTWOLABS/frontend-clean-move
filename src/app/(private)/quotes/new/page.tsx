@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { FileText } from "lucide-react";
 
-import { QuoteCreateWizard } from "@/features/quotes/components/create/quote-create-wizard";
+import { QuoteCreateWizard } from "@/features/quotes/components/create/wizard/quote-create-wizard";
 import { BackButton } from "@/shared/components/back-button";
 
 export const metadata: Metadata = {

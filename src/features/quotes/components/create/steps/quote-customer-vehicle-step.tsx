@@ -10,7 +10,7 @@ import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { WizardStepHeader } from "@/shared/components/wizard-step-header";
 import { cn } from "@/shared/utils/cn";
 
-import { useQuoteCustomerVehicleStep } from "../../hooks/use-quote-customer-vehicle-step";
+import { useQuoteCustomerVehicleStep } from "../../../hooks/use-quote-customer-vehicle-step";
 
 type QuoteCustomerVehicleStepProps = {
   title: string;
