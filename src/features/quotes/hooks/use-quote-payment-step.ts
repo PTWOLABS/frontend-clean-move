@@ -49,25 +49,17 @@ export function useQuotePaymentStep() {
   const handlePaymentMethodChange = useCallback(
     (index: number, method: QuotePaymentMethod) => {
       const currentPaymentOption = getValues(`stepThree.paymentOptions.${index}`);
-      const previousDefaultLabel = currentPaymentOption?.method
-        ? paymentMethodLabels[currentPaymentOption.method]
-        : "";
-      const currentLabel = currentPaymentOption?.label?.trim() ?? "";
-      const shouldUseDefaultLabel = !currentLabel || currentLabel === previousDefaultLabel;
 
       setValue(`stepThree.paymentOptions.${index}.method`, method, {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
       });
-
-      if (shouldUseDefaultLabel) {
-        setValue(`stepThree.paymentOptions.${index}.label`, paymentMethodLabels[method], {
-          shouldDirty: true,
-          shouldTouch: true,
-          shouldValidate: true,
-        });
-      }
+      setValue(`stepThree.paymentOptions.${index}.label`, "", {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
 
       if (method === "CARD") {
         const installments = currentPaymentOption?.installments;
@@ -163,7 +155,7 @@ export function useQuotePaymentStep() {
 function createPaymentOption(method: QuotePaymentMethod): QuotePaymentOptionInput {
   return {
     method,
-    label: paymentMethodLabels[method],
+    label: "",
     installments: method === "CARD" ? 1 : null,
     interestFree: method === "CARD" ? true : null,
     discountType: null,
