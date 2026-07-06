@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { QuoteCustomerVehicleStepValues } from "../types/create-quote";
-import { mapQuoteCustomerVehicleStepToPayload } from "./create-quote-payload";
+import type {
+  QuoteCustomerVehicleStepValues,
+  QuoteServicesStepValues,
+} from "../types/create-quote";
+import {
+  mapQuoteCustomerVehicleStepToPayload,
+  mapQuoteServicesStepToPayload,
+} from "./create-quote-payload";
 
 describe("mapQuoteCustomerVehicleStepToPayload", () => {
   it("uses only customerId when an existing customer is selected", () => {
@@ -59,6 +65,53 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
       vehicleId: "vehicle-1",
     });
     expect(mapQuoteCustomerVehicleStepToPayload(values)).not.toHaveProperty("vehicle");
+  });
+});
+
+describe("mapQuoteServicesStepToPayload", () => {
+  it("omits serviceLabel from existing service payload", () => {
+    const values: QuoteServicesStepValues = {
+      services: [
+        {
+          serviceId: "service-1",
+          serviceLabel: "Lavagem completa",
+          priceInCents: 9000,
+          isCourtesy: false,
+        },
+      ],
+    };
+
+    expect(mapQuoteServicesStepToPayload(values)).toEqual({
+      services: [
+        {
+          serviceId: "service-1",
+          priceInCents: 9000,
+          isCourtesy: false,
+        },
+      ],
+    });
+  });
+
+  it("keeps manual service name and price", () => {
+    const values: QuoteServicesStepValues = {
+      services: [
+        {
+          serviceName: "Polimento tecnico",
+          priceInCents: 15000,
+          isCourtesy: true,
+        },
+      ],
+    };
+
+    expect(mapQuoteServicesStepToPayload(values)).toEqual({
+      services: [
+        {
+          serviceName: "Polimento tecnico",
+          priceInCents: 15000,
+          isCourtesy: true,
+        },
+      ],
+    });
   });
 });
 
