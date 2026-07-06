@@ -98,16 +98,30 @@ export function QuoteCustomerVehicleStep({
             )}
           </FormField>
 
-          <StandartInputField
-            id="quote-customer-name"
-            name="stepOne.customer.name"
-            label="Nome do cliente"
-            placeholder="Ex.: João da Silva"
-            autoComplete="name"
-            icon={UserRound}
-            className="shadow-xs"
-            disabled={hasSelectedCustomer}
-          />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <StandartInputField
+              id="quote-customer-name"
+              name="stepOne.customer.name"
+              label="Nome do cliente"
+              placeholder="Ex.: João da Silva"
+              autoComplete="name"
+              icon={UserRound}
+              className="shadow-xs"
+              disabled={hasSelectedCustomer}
+            />
+
+            <StandartInputField
+              id="quote-customer-document"
+              name="stepOne.customer.cpfCnpj"
+              label="CPF/CNPJ"
+              placeholder="CPF ou CNPJ do cliente"
+              inputMode="numeric"
+              autoComplete="off"
+              icon={IdCard}
+              className="shadow-xs"
+              disabled={hasSelectedCustomer}
+            />
+          </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             <StandartInputField
@@ -135,18 +149,6 @@ export function QuoteCustomerVehicleStep({
               disabled={hasSelectedCustomer}
             />
           </div>
-
-          <StandartInputField
-            id="quote-customer-document"
-            name="stepOne.customer.cpfCnpj"
-            label="CPF/CNPJ"
-            placeholder="CPF ou CNPJ do cliente"
-            inputMode="numeric"
-            autoComplete="off"
-            icon={IdCard}
-            className="shadow-xs"
-            disabled={hasSelectedCustomer}
-          />
         </section>
 
         <div className="h-px bg-border" />
