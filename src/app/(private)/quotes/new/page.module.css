@@ -1,0 +1,47 @@
+.quoteNewLayoutContainer {
+  container-type: inline-size;
+}
+
+.quoteNewWizardForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.quoteNewPrimaryColumn,
+.quoteNewSummaryPanel {
+  min-width: 0;
+}
+
+.quoteNewMobileSummary {
+  display: block;
+}
+
+.quoteNewSummaryPanel {
+  display: none;
+}
+
+@container (min-width: 70rem) {
+  .quoteNewWizardForm {
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 25rem);
+    align-items: start;
+    gap: 2.5rem;
+  }
+
+  .quoteNewMobileSummary {
+    display: none;
+  }
+
+  .quoteNewSummaryPanel {
+    position: sticky;
+    top: 1.5rem;
+    display: block;
+    align-self: start;
+  }
+}
+
+@container (min-width: 88rem) {
+  .quoteNewWizardForm {
+    grid-template-columns: minmax(0, 1fr) 27rem;
+  }
+}

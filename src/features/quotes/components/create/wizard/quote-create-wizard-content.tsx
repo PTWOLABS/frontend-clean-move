@@ -6,6 +6,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 import { WizardProgress } from "@/shared/components/wizard-progress";
 import { hasFormStepChanges } from "@/shared/forms/has-form-step-changes";
+import { cn } from "@/shared/utils/cn";
 
 import { createQuoteFormDefaultValues } from "../../../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
@@ -26,14 +27,20 @@ import { QuoteWizardActions } from "./quote-wizard-actions";
 
 type QuoteCreateWizardContentProps = {
   completedSteps: number[];
+  contentClassName?: string;
+  mobileSummaryClassName?: string;
   onClearStep: (step: number) => void;
   onStepComplete: (step: number) => void;
+  summaryPanelClassName?: string;
 };
 
 export function QuoteCreateWizardContent({
   completedSteps,
+  contentClassName,
+  mobileSummaryClassName = "xl:hidden",
   onClearStep,
   onStepComplete,
+  summaryPanelClassName = "hidden xl:sticky xl:top-6 xl:block xl:self-start",
 }: QuoteCreateWizardContentProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [stepOneVersion, setStepOneVersion] = useState(0);
@@ -129,14 +136,14 @@ export function QuoteCreateWizardContent({
 
   return (
     <>
-      <div className="space-y-8">
+      <div className={cn("space-y-8", contentClassName)}>
         <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
         <QuoteMobileSummary
           currentStep={currentStep}
           totalSteps={TOTAL_STEPS}
           items={summaryItems}
-          className="xl:hidden"
+          className={mobileSummaryClassName}
         />
 
         <div className="space-y-6">
@@ -166,7 +173,7 @@ export function QuoteCreateWizardContent({
         totalSteps={TOTAL_STEPS}
         items={summaryItems}
         hasCompletedStep={hasCompletedStep}
-        className="hidden xl:sticky xl:top-6 xl:block xl:self-start"
+        className={summaryPanelClassName}
       />
 
       <QuoteCreateSummaryDialog

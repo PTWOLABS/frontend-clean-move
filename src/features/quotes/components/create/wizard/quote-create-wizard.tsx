@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Form } from "@/shared/forms/form";
+import { cn } from "@/shared/utils/cn";
 
 import {
   createQuoteFormDefaultValues,
@@ -12,8 +13,23 @@ import type { CreateQuoteFormInput } from "../../../types/create-quote";
 import { QuoteCreateWizardContent } from "./quote-create-wizard-content";
 import { QUOTE_CREATE_FORM_ID, TOTAL_STEPS } from "../../../constants/quote-wizard";
 
-export function QuoteCreateWizard() {
+type QuoteCreateWizardProps = {
+  className?: string;
+  contentClassName?: string;
+  mobileSummaryClassName?: string;
+  summaryPanelClassName?: string;
+};
+
+export function QuoteCreateWizard({
+  className,
+  contentClassName,
+  mobileSummaryClassName,
+  summaryPanelClassName,
+}: QuoteCreateWizardProps) {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const formLayoutClassName =
+    className ??
+    "xl:grid-cols-[minmax(0,1fr)_minmax(21rem,25rem)] xl:items-start xl:gap-10 2xl:grid-cols-[minmax(0,1fr)_27rem]";
 
   function handleSubmit() {
     setCompletedSteps((steps) => (steps.includes(TOTAL_STEPS) ? steps : [...steps, TOTAL_STEPS]));
@@ -37,12 +53,15 @@ export function QuoteCreateWizard() {
         reValidateMode: "onChange",
       }}
       onSubmit={handleSubmit}
-      className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(21rem,25rem)] xl:items-start xl:gap-10 2xl:grid-cols-[minmax(0,1fr)_27rem]"
+      className={cn("grid gap-8", formLayoutClassName)}
     >
       <QuoteCreateWizardContent
         completedSteps={completedSteps}
+        contentClassName={contentClassName}
+        mobileSummaryClassName={mobileSummaryClassName}
         onClearStep={handleStepClear}
         onStepComplete={handleStepComplete}
+        summaryPanelClassName={summaryPanelClassName}
       />
     </Form>
   );
