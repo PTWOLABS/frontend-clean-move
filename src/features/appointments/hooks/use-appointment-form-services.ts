@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import type { UseFormGetValues, UseFormSetValue } from "react-hook-form";
 
 import type { Option } from "@/components/ui/multiple-selector";
+import { formatServicePriceMetadataDescription } from "@/shared/services/service-price-metadata";
 
 import { formatCentsToBrlInput, type ServiceOptionWithPrice } from "../lib/appointment-form-values";
 import type { CreateAppointmentFormInput } from "../schemas/create-appointment-schema";
@@ -64,17 +65,7 @@ export function useAppointmentFormServices({
       return `Valor registrado: ${service.price}`;
     }
 
-    if (service.priceType === "FIXED") {
-      return `Valor fixo: ${formatCentsToBrlInput(service.minPriceInCents)}`;
-    }
-
-    if (service.priceType === "RANGE" && typeof service.maxPriceInCents === "number") {
-      return `Permitido: ${formatCentsToBrlInput(service.minPriceInCents)} a ${formatCentsToBrlInput(
-        service.maxPriceInCents,
-      )}`;
-    }
-
-    return `Mínimo permitido: ${formatCentsToBrlInput(service.minPriceInCents)}`;
+    return formatServicePriceMetadataDescription(service);
   }, []);
 
   const handleServiceOptionsChange = useCallback(

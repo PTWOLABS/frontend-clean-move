@@ -16,6 +16,7 @@ type BaseFormProps<TValues extends FieldValues> = {
   children: ReactNode;
   onSubmit: SubmitHandler<TValues>;
   className?: string;
+  id?: string;
 };
 
 type WithSchema<TValues extends FieldValues> = BaseFormProps<TValues> & {
@@ -32,6 +33,7 @@ type FormProps<TValues extends FieldValues> = WithSchema<TValues> | WithoutSchem
 
 export function Form<TValues extends FieldValues>({
   children,
+  id,
   onSubmit,
   schema,
   options,
@@ -46,7 +48,7 @@ export function Form<TValues extends FieldValues>({
 
   return (
     <FormProvider {...methods}>
-      <form className={className} onSubmit={methods.handleSubmit(onSubmit)}>
+      <form id={id} className={className} onSubmit={methods.handleSubmit(onSubmit)}>
         {children}
       </form>
     </FormProvider>

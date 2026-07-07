@@ -3,47 +3,81 @@
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 import { WizardProgress } from "@/shared/components/wizard-progress";
+import { hasFormStepChanges } from "@/shared/forms/has-form-step-changes";
+import { cn } from "@/shared/utils/cn";
 
 import { createQuoteFormDefaultValues } from "../../../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
 import { QuoteCustomerVehicleStep } from "../steps/quote-customer-vehicle-step";
+import { QuotePaymentStep } from "../steps/quote-payment-step";
 import { QuoteServicesStep } from "../steps/quote-services-step";
 import {
   customerVehicleStepHeader,
+  paymentStepHeader,
   servicesStepHeader,
   TOTAL_STEPS,
 } from "../../../constants/quote-wizard";
 import { QuoteMobileSummary } from "./quote-mobile-summary";
 import { useQuoteSummaryItems } from "../../../hooks/use-quote-summary-items";
+import { QuoteCreateSummaryDialog } from "./quote-create-summary-dialog";
 import { QuoteSummaryPanel } from "./quote-summary-panel";
 import { QuoteWizardActions } from "./quote-wizard-actions";
 
 type QuoteCreateWizardContentProps = {
   completedSteps: number[];
+  contentClassName?: string;
+  mobileSummaryClassName?: string;
   onClearStep: (step: number) => void;
   onStepComplete: (step: number) => void;
+  summaryPanelClassName?: string;
 };
 
 export function QuoteCreateWizardContent({
   completedSteps,
+  contentClassName,
+  mobileSummaryClassName = "xl:hidden",
   onClearStep,
   onStepComplete,
+  summaryPanelClassName = "hidden xl:sticky xl:top-6 xl:block xl:self-start",
 }: QuoteCreateWizardContentProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [stepOneVersion, setStepOneVersion] = useState(0);
   const [stepTwoVersion, setStepTwoVersion] = useState(0);
+  const [stepThreeVersion, setStepThreeVersion] = useState(0);
+  const [openConfirmClearStepDialog, setOpenConfirmClearStepDialog] = useState(false);
+  const [openSummaryDialog, setOpenSummaryDialog] = useState(false);
   const {
     control,
     resetField,
     formState: { isSubmitting },
     trigger,
   } = useFormContext<CreateQuoteFormInput>();
-  const stepOne = useWatch({ control, name: "stepOne" });
-  const stepTwo = useWatch({ control, name: "stepTwo" });
-  const summaryItems = useQuoteSummaryItems(stepOne, stepTwo);
+  const stepOne = useWatch({
+    control,
+    name: "stepOne",
+    defaultValue: createQuoteFormDefaultValues.stepOne,
+  });
+  const stepTwo = useWatch({
+    control,
+    name: "stepTwo",
+    defaultValue: createQuoteFormDefaultValues.stepTwo,
+  });
+  const stepThree = useWatch({
+    control,
+    name: "stepThree",
+    defaultValue: createQuoteFormDefaultValues.stepThree,
+  });
+  const summaryItems = useQuoteSummaryItems(stepOne, stepTwo, stepThree);
   const hasCompletedStep = completedSteps.includes(currentStep);
   const isLastStep = currentStep === TOTAL_STEPS;
+  const hasCurrentStepChanges =
+    currentStep === 1
+      ? hasFormStepChanges(stepOne, createQuoteFormDefaultValues.stepOne)
+      : currentStep === 2
+        ? hasFormStepChanges(stepTwo, createQuoteFormDefaultValues.stepTwo)
+        : hasFormStepChanges(stepThree, createQuoteFormDefaultValues.stepThree);
 
   function handleBack() {
     setCurrentStep((step) => Math.max(1, step - 1));
@@ -55,54 +89,81 @@ export function QuoteCreateWizardContent({
         defaultValue: createQuoteFormDefaultValues.stepOne,
       });
       setStepOneVersion((currentVersion) => currentVersion + 1);
-    } else {
+    } else if (currentStep === 2) {
       resetField("stepTwo", {
         defaultValue: createQuoteFormDefaultValues.stepTwo,
       });
       setStepTwoVersion((currentVersion) => currentVersion + 1);
+    } else {
+      resetField("stepThree", {
+        defaultValue: createQuoteFormDefaultValues.stepThree,
+      });
+      setStepThreeVersion((currentVersion) => currentVersion + 1);
     }
 
     onClearStep(currentStep);
+    setOpenConfirmClearStepDialog(false);
+  }
+
+  function handleClearStepClick() {
+    if (!hasCurrentStepChanges) return;
+
+    setOpenConfirmClearStepDialog(true);
   }
 
   async function handleNextStep() {
-    const isValid = await trigger("stepOne", {
+    const stepName = getStepName(currentStep);
+    const isValid = await trigger(stepName, {
       shouldFocus: true,
     });
 
     if (!isValid) return;
 
-    onStepComplete(1);
-    setCurrentStep(2);
+    onStepComplete(currentStep);
+    setCurrentStep((step) => Math.min(TOTAL_STEPS, step + 1));
+  }
+
+  async function handleReviewQuote() {
+    const isValid = await trigger(undefined, {
+      shouldFocus: true,
+    });
+
+    if (!isValid) return;
+
+    onStepComplete(TOTAL_STEPS);
+    setOpenSummaryDialog(true);
   }
 
   return (
     <>
-      <div className="space-y-8">
+      <div className={cn("space-y-8", contentClassName)}>
         <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
         <QuoteMobileSummary
           currentStep={currentStep}
           totalSteps={TOTAL_STEPS}
           items={summaryItems}
-          className="xl:hidden"
+          className={mobileSummaryClassName}
         />
 
         <div className="space-y-6">
-          {currentStep === 1 ? (
+          {currentStep === 1 && (
             <QuoteCustomerVehicleStep key={stepOneVersion} {...customerVehicleStepHeader} />
-          ) : (
-            <QuoteServicesStep key={stepTwoVersion} {...servicesStepHeader} />
           )}
+
+          {currentStep === 2 && <QuoteServicesStep key={stepTwoVersion} {...servicesStepHeader} />}
+
+          {currentStep === 3 && <QuotePaymentStep key={stepThreeVersion} {...paymentStepHeader} />}
 
           <QuoteWizardActions
             currentStep={currentStep}
-            hasCompletedStep={hasCompletedStep}
+            isClearStepDisabled={!hasCurrentStepChanges}
             isLastStep={isLastStep}
             isSubmitting={isSubmitting}
             onBack={handleBack}
-            onClearStep={handleClearStep}
+            onClearStep={handleClearStepClick}
             onNextStep={handleNextStep}
+            onReviewQuote={handleReviewQuote}
           />
         </div>
       </div>
@@ -112,8 +173,36 @@ export function QuoteCreateWizardContent({
         totalSteps={TOTAL_STEPS}
         items={summaryItems}
         hasCompletedStep={hasCompletedStep}
-        className="hidden xl:sticky xl:top-6 xl:block xl:self-start"
+        className={summaryPanelClassName}
+      />
+
+      <QuoteCreateSummaryDialog
+        open={openSummaryDialog}
+        isSubmitting={isSubmitting}
+        stepOne={stepOne}
+        stepTwo={stepTwo}
+        stepThree={stepThree}
+        onOpenChange={setOpenSummaryDialog}
+      />
+
+      <AlertDialog
+        open={openConfirmClearStepDialog}
+        onOpenChange={setOpenConfirmClearStepDialog}
+        title="Limpar dados desta etapa?"
+        descriptionContent={
+          "Os campos preenchidos nesta etapa serão apagados. As outras etapas não serão alteradas."
+        }
+        actionMessage="Limpar etapa"
+        onConfirm={handleClearStep}
+        onCancel={() => setOpenConfirmClearStepDialog(false)}
       />
     </>
   );
+}
+
+function getStepName(currentStep: number): "stepOne" | "stepTwo" | "stepThree" {
+  if (currentStep === 1) return "stepOne";
+  if (currentStep === 2) return "stepTwo";
+
+  return "stepThree";
 }

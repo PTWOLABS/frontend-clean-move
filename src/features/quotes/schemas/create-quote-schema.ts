@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
+
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
   z.string().trim().nullable(),
@@ -17,6 +19,18 @@ const optionalPriceInCents = z.preprocess((value) => {
   if (value === "" || value == null) return undefined;
   return value;
 }, z.number().int("Informe um valor válido.").nonnegative("Informe um valor válido.").optional());
+
+const optionalNullablePositiveInteger = z.preprocess((value) => {
+  if (value === "" || value == null) return null;
+  if (typeof value === "string") return Number(value);
+  return value;
+}, z.number().int("Informe um valor válido.").positive("Informe um valor válido.").optional().nullable());
+
+const optionalNullableNonnegativeInteger = z.preprocess((value) => {
+  if (value === "" || value == null) return null;
+  if (typeof value === "string") return Number(value);
+  return value;
+}, z.number().int("Informe um valor válido.").nonnegative("Informe um valor válido.").optional().nullable());
 
 export const quoteCustomerVehicleStepSchema = z
   .object({
@@ -72,8 +86,48 @@ export const quoteServiceItemSchema = z
     serviceName: z.string().trim().min(1, "Informe o nome do serviço.").optional(),
     priceInCents: optionalPriceInCents,
     isCourtesy: z.boolean().optional(),
+    priceType: z.enum(["FIXED", "STARTING_AT", "RANGE"]).optional(),
+    minPriceInCents: z.number().int().nonnegative().optional(),
+    maxPriceInCents: z.number().int().nonnegative().optional(),
   })
   .superRefine((value, context) => {
+    function validatePrice() {
+      if (value.priceInCents === undefined) {
+        context.addIssue({
+          code: "custom",
+          message: "Informe o preço do serviço.",
+          path: ["priceInCents"],
+        });
+        return;
+      }
+
+      if (!value.priceType || typeof value.minPriceInCents !== "number" || value.isCourtesy) {
+        return;
+      }
+
+      const priceIssue = getServicePriceValidationIssue(value.priceInCents, {
+        priceType: value.priceType,
+        minPriceInCents: value.minPriceInCents,
+        maxPriceInCents: value.maxPriceInCents,
+      });
+
+      if (priceIssue === "BELOW_MIN") {
+        context.addIssue({
+          code: "custom",
+          message: "O valor não pode ser menor que o mínimo do serviço.",
+          path: ["priceInCents"],
+        });
+      }
+
+      if (priceIssue === "ABOVE_MAX") {
+        context.addIssue({
+          code: "custom",
+          message: "O valor não pode ultrapassar o máximo do serviço.",
+          path: ["priceInCents"],
+        });
+      }
+    }
+
     if (value.serviceId) {
       if (value.serviceName !== undefined) {
         context.addIssue({
@@ -83,6 +137,7 @@ export const quoteServiceItemSchema = z
         });
       }
 
+      validatePrice();
       return;
     }
 
@@ -94,23 +149,78 @@ export const quoteServiceItemSchema = z
       });
     }
 
-    if (value.priceInCents === undefined) {
-      context.addIssue({
-        code: "custom",
-        message: "Informe o preço do serviço.",
-        path: ["priceInCents"],
-      });
-    }
+    validatePrice();
   });
 
 export const quoteServicesStepSchema = z.object({
   services: z.array(quoteServiceItemSchema).min(1, "Adicione pelo menos um serviço."),
 });
 
-export const createQuoteFormSchema = z.object({
-  stepOne: quoteCustomerVehicleStepSchema,
-  stepTwo: quoteServicesStepSchema,
+export const quotePaymentOptionSchema = z.object({
+  method: z.enum(["CASH", "PIX", "CARD", "OTHER"]),
+  label: z.string().trim().min(1, "Informe a descrição da forma de pagamento."),
+  installments: optionalNullablePositiveInteger,
+  interestFree: z.boolean().optional().nullable(),
+  discountType: z.enum(["PERCENTAGE", "AMOUNT"]).optional().nullable(),
+  discountValue: optionalNullableNonnegativeInteger,
 });
+
+export const quotePaymentStepSchema = z.object({
+  paymentOptions: z
+    .array(quotePaymentOptionSchema)
+    .min(1, "Adicione pelo menos uma forma de pagamento."),
+});
+
+export const createQuoteFormSchema = z
+  .object({
+    stepOne: quoteCustomerVehicleStepSchema,
+    stepTwo: quoteServicesStepSchema,
+    stepThree: quotePaymentStepSchema,
+  })
+  .superRefine((values, context) => {
+    const servicesTotalInCents = getQuoteServicesTotalInCents(values.stepTwo.services);
+
+    values.stepThree.paymentOptions.forEach((paymentOption, index) => {
+      if (
+        !paymentOption.discountType ||
+        typeof paymentOption.discountValue !== "number" ||
+        !Number.isFinite(paymentOption.discountValue)
+      ) {
+        return;
+      }
+
+      if (paymentOption.discountType === "PERCENTAGE" && paymentOption.discountValue > 100) {
+        context.addIssue({
+          code: "custom",
+          message: "O desconto percentual não pode ultrapassar 100%.",
+          path: ["stepThree", "paymentOptions", index, "discountValue"],
+        });
+      }
+
+      if (
+        paymentOption.discountType === "AMOUNT" &&
+        paymentOption.discountValue > servicesTotalInCents
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "O desconto não pode ser maior que o total dos serviços.",
+          path: ["stepThree", "paymentOptions", index, "discountValue"],
+        });
+      }
+    });
+  });
+
+function getQuoteServicesTotalInCents(services: Array<z.output<typeof quoteServiceItemSchema>>) {
+  return services.reduce((total, service) => {
+    if (service.isCourtesy) return total;
+    const priceInCents =
+      typeof service.priceInCents === "number" && Number.isFinite(service.priceInCents)
+        ? service.priceInCents
+        : 0;
+
+    return total + priceInCents;
+  }, 0);
+}
 
 export const createQuoteFormDefaultValues = {
   stepOne: {
@@ -133,5 +243,8 @@ export const createQuoteFormDefaultValues = {
   },
   stepTwo: {
     services: [],
+  },
+  stepThree: {
+    paymentOptions: [],
   },
 } satisfies z.input<typeof createQuoteFormSchema>;

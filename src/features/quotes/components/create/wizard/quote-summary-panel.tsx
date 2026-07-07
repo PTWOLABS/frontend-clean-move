@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { CheckCircle2, ClipboardList, FileText } from "lucide-react";
+import { CheckCircle2, ClipboardList, CreditCard, FileText } from "lucide-react";
 
 import {
   WizardProgressBadge,
@@ -45,7 +45,7 @@ export function QuoteSummaryPanel({
               Resumo do orçamento
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              Confira os dados iniciais antes de avançar para os serviços.
+              Acompanhe os dados preenchidos em cada etapa do orçamento.
             </p>
           </div>
         </div>
@@ -66,12 +66,17 @@ export function QuoteSummaryPanel({
           <QuoteValueRow
             icon={FileText}
             title="Adicionar serviços"
-            description="Depois desta etapa, o orçamento receberá itens, valores e observações."
+            description="Inclua os itens, valores e cortesias combinadas com o cliente."
+          />
+          <QuoteValueRow
+            icon={CreditCard}
+            title="Definir pagamento"
+            description="Informe formas aceitas, parcelas e descontos quando houver."
           />
           <QuoteValueRow
             icon={CheckCircle2}
             title="Conferir antes de enviar"
-            description="Os dados do cliente e veículo ajudam a manter o orçamento claro."
+            description="O resumo final reunirá cliente, veículo, serviços e pagamento."
           />
         </div>
       </section>
@@ -84,12 +89,12 @@ export function QuoteSummaryPanel({
 
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
-              {hasCompletedStep ? "Etapa salva" : "Primeira etapa"}
+              {hasCompletedStep ? "Etapa salva" : "Etapa em andamento"}
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               {hasCompletedStep
                 ? "Dados validados para continuar."
-                : "Preencha os dados para iniciar o orçamento."}
+                : "Preencha e valide esta etapa para avançar."}
             </p>
           </div>
         </div>

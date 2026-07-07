@@ -76,7 +76,12 @@ export function QuoteServicesStep({ title, description, className }: QuoteServic
               )}
             </div>
 
-            <Button type="button" onClick={addSelectedService} disabled={!canAddSelectedService}>
+            <Button
+              type="button"
+              className={cn(hasSelectedServiceInList ? "lg:mb-5.5" : "lg:mb-1.5")}
+              onClick={addSelectedService}
+              disabled={!canAddSelectedService}
+            >
               <Search aria-hidden className="size-4" />
               Adicionar existente
             </Button>
@@ -113,9 +118,9 @@ export function QuoteServicesStep({ title, description, className }: QuoteServic
             <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-background/55 px-3 py-2 text-sm">
               <BadgeDollarSign aria-hidden className="size-4 text-primary" />
               <span className="text-muted-foreground">Total</span>
-              <strong className="font-semibold text-foreground">
+              <p className="font-semibold text-foreground truncate">
                 {formatBrlFromCents(totalInCents)}
-              </strong>
+              </p>
             </div>
           </div>
 
@@ -140,6 +145,9 @@ export function QuoteServicesStep({ title, description, className }: QuoteServic
                   index={index}
                   isCourtesy={Boolean(service?.isCourtesy)}
                   isExistingService={Boolean(service?.serviceId)}
+                  maxPriceInCents={service?.maxPriceInCents}
+                  minPriceInCents={service?.minPriceInCents}
+                  priceType={service?.priceType}
                   serviceLabel={service?.serviceLabel}
                   onCourtesyChange={handleCourtesyChange}
                   onRemove={removeService}

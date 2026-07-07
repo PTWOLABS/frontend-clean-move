@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { BadgeDollarSign, CarFront, IdCard, Phone, UserRound, Wrench } from "lucide-react";
+import {
+  BadgeDollarSign,
+  CarFront,
+  CreditCard,
+  IdCard,
+  Phone,
+  UserRound,
+  Wrench,
+} from "lucide-react";
 
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import type { WizardSummaryItem } from "@/shared/components/wizard-summary-list";
@@ -11,6 +19,7 @@ import type { CreateQuoteFormInput } from "../types/create-quote";
 export function useQuoteSummaryItems(
   stepOne: CreateQuoteFormInput["stepOne"] | undefined,
   stepTwo: CreateQuoteFormInput["stepTwo"] | undefined,
+  stepThree: CreateQuoteFormInput["stepThree"] | undefined,
 ) {
   return useMemo<WizardSummaryItem[]>(() => {
     const customerName = asDisplayText(stepOne?.customer.name);
@@ -28,7 +37,9 @@ export function useQuoteSummaryItems(
       });
     const contactLabel = phone || email || "Contato não informado";
     const services = stepTwo?.services ?? [];
+    const paymentOptions = stepThree?.paymentOptions ?? [];
     const servicesCount = services.length;
+    const paymentOptionsCount = paymentOptions.length;
     const servicesTotal = services.reduce((total, service) => {
       if (service.isCourtesy) return total;
       const priceInCents =
@@ -79,8 +90,14 @@ export function useQuoteSummaryItems(
         completed: servicesCount > 0,
         icon: BadgeDollarSign,
       },
+      {
+        label: "Pagamento",
+        value: getPaymentOptionsLabel(paymentOptions),
+        completed: paymentOptionsCount > 0,
+        icon: CreditCard,
+      },
     ];
-  }, [stepOne, stepTwo]);
+  }, [stepOne, stepTwo, stepThree]);
 }
 
 function asDisplayText(value: unknown) {
@@ -104,4 +121,15 @@ function getVehicleDisplayLabel({
   if (vehiclePlate) return vehiclePlate;
 
   return "Veículo não informado";
+}
+
+function getPaymentOptionsLabel(
+  paymentOptions: CreateQuoteFormInput["stepThree"]["paymentOptions"],
+) {
+  if (paymentOptions.length === 0) return "Nenhum";
+  if (paymentOptions.length === 1) {
+    return asDisplayText(paymentOptions[0]?.label) || "1 forma";
+  }
+
+  return `${paymentOptions.length} formas`;
 }

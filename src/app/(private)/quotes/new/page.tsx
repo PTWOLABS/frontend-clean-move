@@ -4,6 +4,8 @@ import { FileText } from "lucide-react";
 import { QuoteCreateWizard } from "@/features/quotes/components/create/wizard/quote-create-wizard";
 import { BackButton } from "@/shared/components/back-button";
 
+import styles from "./page.module.css";
+
 export const metadata: Metadata = {
   title: "Novo orçamento",
   description: "Crie um novo orçamento no Clean Move.",
@@ -29,7 +31,14 @@ export default function NewQuotePage() {
         <BackButton href="/quotes" className="h-10 w-full sm:w-auto" />
       </header>
 
-      <QuoteCreateWizard />
+      <div className={styles.quoteNewLayoutContainer}>
+        <QuoteCreateWizard
+          className={styles.quoteNewWizardForm}
+          contentClassName={styles.quoteNewPrimaryColumn}
+          mobileSummaryClassName={styles.quoteNewMobileSummary}
+          summaryPanelClassName={styles.quoteNewSummaryPanel}
+        />
+      </div>
     </section>
   );
 }
