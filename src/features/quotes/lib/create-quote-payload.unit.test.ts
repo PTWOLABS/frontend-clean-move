@@ -1,15 +1,92 @@
 import { describe, expect, it } from "vitest";
 
 import type {
+  CreateQuoteFormValues,
   QuoteCustomerVehicleStepValues,
   QuotePaymentStepValues,
   QuoteServicesStepValues,
 } from "../types/create-quote";
 import {
+  buildCreateQuoteBody,
   mapQuoteCustomerVehicleStepToPayload,
   mapQuotePaymentStepToPayload,
   mapQuoteServicesStepToPayload,
 } from "./create-quote-payload";
+
+describe("buildCreateQuoteBody", () => {
+  it("maps wizard values to the backend create quote body", () => {
+    const values: CreateQuoteFormValues = {
+      stepOne: makeStepValues({
+        customer: {
+          name: "Maria Silva",
+          phone: "11999999999",
+          email: "maria@example.com",
+          cpfCnpj: "52998224725",
+        },
+        vehicle: {
+          plate: "ABC1D23",
+          brand: "Honda",
+          model: "Civic",
+          color: "Preto",
+          year: 2024,
+        },
+      }),
+      stepTwo: {
+        services: [
+          {
+            serviceName: "Polimento tecnico",
+            priceInCents: 15000,
+            isCourtesy: false,
+          },
+        ],
+      },
+      stepThree: {
+        paymentOptions: [
+          {
+            method: "PIX",
+            label: "Pix",
+            installments: null,
+            interestFree: null,
+            discountType: null,
+            discountValue: null,
+          },
+        ],
+      },
+    };
+
+    expect(buildCreateQuoteBody(values)).toEqual({
+      customer: {
+        name: "Maria Silva",
+        phone: "11999999999",
+        cpfCnpj: "52998224725",
+      },
+      vehicle: {
+        plate: "ABC1D23",
+        brand: "Honda",
+        model: "Civic",
+        color: "Preto",
+        year: 2024,
+      },
+      serviceItems: [
+        {
+          serviceName: "Polimento tecnico",
+          priceInCents: 15000,
+          isCourtesy: false,
+        },
+      ],
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+          installments: null,
+          interestFree: null,
+          discountType: null,
+          discountValue: null,
+        },
+      ],
+    });
+  });
+});
 
 describe("mapQuoteCustomerVehicleStepToPayload", () => {
   it("uses only customerId when an existing customer is selected", () => {
@@ -44,11 +121,11 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
       customer: {
         name: "Maria Silva",
         phone: "11999999999",
-        email: "maria@example.com",
         cpfCnpj: "52998224725",
       },
     });
     expect(mapQuoteCustomerVehicleStepToPayload(values)).not.toHaveProperty("customerId");
+    expect(mapQuoteCustomerVehicleStepToPayload(values).customer).not.toHaveProperty("email");
   });
 
   it("uses only vehicleId when an existing vehicle is selected", () => {
@@ -86,7 +163,7 @@ describe("mapQuoteServicesStepToPayload", () => {
     };
 
     expect(mapQuoteServicesStepToPayload(values)).toEqual({
-      services: [
+      serviceItems: [
         {
           serviceId: "service-1",
           priceInCents: 9000,
@@ -108,7 +185,7 @@ describe("mapQuoteServicesStepToPayload", () => {
     };
 
     expect(mapQuoteServicesStepToPayload(values)).toEqual({
-      services: [
+      serviceItems: [
         {
           serviceName: "Polimento tecnico",
           priceInCents: 15000,
