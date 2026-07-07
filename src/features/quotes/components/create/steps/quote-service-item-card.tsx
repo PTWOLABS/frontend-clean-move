@@ -91,7 +91,7 @@ export function QuoteServiceItemCard({
             <div className="space-y-1.5">
               <p className="text-sm font-medium leading-none text-foreground">Origem</p>
               <div className="flex min-h-10 items-center rounded-lg border border-border/70 bg-card/55 px-3 py-2.5">
-                <p className="truncate text-sm font-medium text-foreground">
+                <p className="truncate text-sm font-medium text-foreground text-wrap">
                   Serviço selecionado do catálogo
                 </p>
               </div>

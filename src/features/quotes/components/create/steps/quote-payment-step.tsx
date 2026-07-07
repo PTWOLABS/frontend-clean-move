@@ -79,7 +79,7 @@ export function QuotePaymentStep({ title, description, className }: QuotePayment
             <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-background/55 px-3 py-2 text-sm">
               <WalletCards aria-hidden className="size-4 text-primary" />
               <span className="text-muted-foreground">Opções</span>
-              <strong className="font-semibold text-foreground">{paymentOptionRows.length}</strong>
+              <p className="font-semibold text-foreground">{paymentOptionRows.length}</p>
             </div>
           </div>
 
