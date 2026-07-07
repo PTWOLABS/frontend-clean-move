@@ -126,7 +126,7 @@ function getVehicleDisplayLabel({
 function getPaymentOptionsLabel(
   paymentOptions: CreateQuoteFormInput["stepThree"]["paymentOptions"],
 ) {
-  if (paymentOptions.length === 0) return "Nenhuma forma";
+  if (paymentOptions.length === 0) return "Nenhum";
   if (paymentOptions.length === 1) {
     return asDisplayText(paymentOptions[0]?.label) || "1 forma";
   }
