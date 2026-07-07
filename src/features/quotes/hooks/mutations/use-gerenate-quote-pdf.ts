@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { ApiError } from "@/shared/api/httpClient";
 
-import { generateQuotePdf } from "../api/generate-quote-pdf";
+import { generateQuotePdf } from "../../api/generate-quote-pdf";
 
 function downloadQuotePdf(pdfBlob: Blob, quoteId: string) {
   const url = URL.createObjectURL(pdfBlob);
