@@ -21,7 +21,7 @@ describe("buildCreateQuoteBody", () => {
           name: "Maria Silva",
           phone: "(11) 99999-9999",
           email: "maria@example.com",
-          cpfCnpj: "52998224725",
+          cpfCnpj: "529.982.247-25",
         },
         vehicle: {
           plate: "ABC1D23",
@@ -113,7 +113,7 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
         name: "Maria Silva",
         phone: "(11) 99999-9999",
         email: "maria@example.com",
-        cpfCnpj: "52998224725",
+        cpfCnpj: "529.982.247-25",
       },
     });
 

@@ -29,7 +29,7 @@ export function mapQuoteCustomerVehicleStepToPayload(
           customer: {
             name: values.customer.name,
             phone: normalizeOptionalPhone(values.customer.phone),
-            cpfCnpj: values.customer.cpfCnpj,
+            cpfCnpj: normalizeOptionalCpfCnpj(values.customer.cpfCnpj),
           },
         }),
     ...(values.vehicleId
@@ -54,6 +54,12 @@ export function mapQuoteServicesStepToPayload(
 }
 
 function normalizeOptionalPhone(value: string | null | undefined) {
+  const digits = onlyDigits(value ?? "");
+
+  return digits.length > 0 ? digits : null;
+}
+
+function normalizeOptionalCpfCnpj(value: string | null | undefined) {
   const digits = onlyDigits(value ?? "");
 
   return digits.length > 0 ? digits : null;
