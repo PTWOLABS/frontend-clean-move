@@ -51,6 +51,8 @@ describe("buildCreateQuoteBody", () => {
             discountValue: null,
           },
         ],
+        expiresAt: "2026-08-15",
+        termsAndConditions: "Valido enquanto houver agenda disponivel.",
       },
     };
 
@@ -84,6 +86,8 @@ describe("buildCreateQuoteBody", () => {
           discountValue: null,
         },
       ],
+      expiresAt: "2026-08-15",
+      termsAndConditions: "Valido enquanto houver agenda disponivel.",
     });
   });
 });
@@ -229,9 +233,12 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: 5,
         },
       ],
+      expiresAt: "2026-08-15",
+      termsAndConditions: "Valido enquanto houver agenda disponivel.",
     };
 
     expect(mapQuotePaymentStepToPayload(values)).toEqual({
+      expiresAt: "2026-08-15",
       paymentOptions: [
         {
           method: "CARD",
@@ -242,6 +249,7 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: 5,
         },
       ],
+      termsAndConditions: "Valido enquanto houver agenda disponivel.",
     });
   });
 
@@ -257,9 +265,12 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: null,
         },
       ],
+      expiresAt: null,
+      termsAndConditions: null,
     };
 
     expect(mapQuotePaymentStepToPayload(values)).toEqual({
+      expiresAt: null,
       paymentOptions: [
         {
           method: "PIX",
@@ -270,6 +281,7 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: null,
         },
       ],
+      termsAndConditions: null,
     });
   });
 });

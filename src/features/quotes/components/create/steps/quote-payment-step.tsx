@@ -1,11 +1,15 @@
 "use client";
 
-import { Banknote, CreditCard, QrCode, WalletCards } from "lucide-react";
+import { Banknote, CalendarDays, CreditCard, QrCode, ScrollText, WalletCards } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form/field";
+import { FormControl, FormDescription } from "@/components/ui/form/form-primitives";
+import { StandartInputField } from "@/components/ui/form/standart-input-field";
+import { Textarea } from "@/components/ui/textarea";
 import { WizardStepHeader } from "@/shared/components/wizard-step-header";
+import { DATE_MASK } from "@/shared/constants/input-masks";
 import { cn } from "@/shared/utils/cn";
 
 import { useQuotePaymentStep } from "../../../hooks/use-quote-payment-step";
@@ -112,6 +116,64 @@ export function QuotePaymentStep({ title, description, className }: QuotePayment
               ))}
             </div>
           )}
+        </section>
+
+        <section className="space-y-4" aria-label="Validade e termos do orçamento">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">Validade e termos</h3>
+            <p className="text-xs text-muted-foreground">
+              Defina até quando o orçamento será válido e registre condições comerciais.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <StandartInputField
+              id="quote-expires-at"
+              name="stepThree.expiresAt"
+              label="Validade"
+              placeholder="dd/mm/aaaa"
+              inputMode="numeric"
+              autoComplete="off"
+              mask={DATE_MASK}
+              icon={CalendarDays}
+              className="shadow-xs"
+            />
+
+            <div className="flex min-h-16 items-center gap-3 rounded-lg border border-border/70 bg-card/55 px-3 py-2.5">
+              <ScrollText aria-hidden className="size-4 shrink-0 text-primary" />
+              <p className="text-sm leading-5 text-muted-foreground">
+                Deixe em branco quando o orçamento não tiver prazo definido.
+              </p>
+            </div>
+
+            <FormField
+              control={control}
+              name="stepThree.termsAndConditions"
+              label="Termos e condições"
+              renderControl={false}
+              className="lg:col-span-2"
+            >
+              {({ field }) => (
+                <div className="space-y-1.5">
+                  <FormControl>
+                    <Textarea
+                      ref={field.ref}
+                      id={field.name}
+                      name={field.name}
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      placeholder="Ex.: Valores sujeitos à disponibilidade de agenda e aprovação prévia."
+                      className="min-h-28 resize-y shadow-xs"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Inclua informações que devem acompanhar a proposta enviada ao cliente.
+                  </FormDescription>
+                </div>
+              )}
+            </FormField>
+          </div>
         </section>
       </CardContent>
     </Card>

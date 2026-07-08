@@ -41,8 +41,6 @@ export type CreateQuoteBody = QuoteCustomerVehicleStepPayload &
   QuoteServicesStepPayload &
   QuotePaymentStepPayload & {
     description?: string | null;
-    termsAndConditions?: string | null;
-    expiresAt?: Date | string | null;
   };
 
 export type QuotePaymentStepPayload = {
@@ -54,4 +52,6 @@ export type QuotePaymentStepPayload = {
     discountType?: QuotePaymentStepValues["paymentOptions"][number]["discountType"];
     discountValue?: number | null;
   }>;
+  termsAndConditions?: string | null;
+  expiresAt?: string | null;
 };

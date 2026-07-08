@@ -69,6 +69,7 @@ export function mapQuotePaymentStepToPayload(
   values: QuotePaymentStepValues,
 ): QuotePaymentStepPayload {
   return {
+    expiresAt: values.expiresAt ?? null,
     paymentOptions: values.paymentOptions.map((paymentOption) => ({
       method: paymentOption.method,
       label: paymentOption.label,
@@ -85,5 +86,6 @@ export function mapQuotePaymentStepToPayload(
         ? { discountValue: paymentOption.discountValue }
         : {}),
     })),
+    termsAndConditions: values.termsAndConditions ?? null,
   };
 }

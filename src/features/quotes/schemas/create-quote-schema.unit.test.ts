@@ -290,6 +290,54 @@ describe("quotePaymentStepSchema", () => {
     });
   });
 
+  it("normalizes quote validity and terms fields", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+        },
+      ],
+      expiresAt: "15/08/2026",
+      termsAndConditions: "  Valido enquanto houver agenda disponivel.  ",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error("Expected quote payment metadata validation to pass.");
+    }
+
+    expect(result.data.expiresAt).toBe("2026-08-15");
+    expect(result.data.termsAndConditions).toBe("Valido enquanto houver agenda disponivel.");
+  });
+
+  it("rejects an invalid quote validity date", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+        },
+      ],
+      expiresAt: "31/02/2026",
+      termsAndConditions: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote validity validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe uma data valida.",
+          path: ["expiresAt"],
+        }),
+      ]),
+    );
+  });
+
   it("rejects a payment option without label", () => {
     const result = quotePaymentStepSchema.safeParse({
       paymentOptions: [

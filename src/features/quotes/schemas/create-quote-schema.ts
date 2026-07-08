@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
+import { parseBrDateToIso } from "@/shared/lib/br-date-input";
 import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
 import { onlyDigits } from "@/shared/utils/lib";
+import { format, isAfter } from "date-fns";
 
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
@@ -10,6 +12,24 @@ const nullableTrimmedString = z.preprocess(
 );
 
 const optionalNullableTrimmedString = nullableTrimmedString.optional();
+
+const optionalBrDate = z
+  .string()
+  .trim()
+  .nullable()
+  .optional()
+  .transform((value) => (value?.trim() ? value.trim() : null))
+  .refine((value) => !value || parseBrDateToIso(value) !== null, {
+    message: "Informe uma data valida.",
+  })
+  .transform((value) => (value ? parseBrDateToIso(value) : null));
+
+const optionalTermsAndConditions = z
+  .string()
+  .trim()
+  .nullable()
+  .optional()
+  .transform((value) => (value?.trim() ? value.trim() : null));
 
 const optionalYear = z
   .preprocess((value) => {
@@ -296,6 +316,8 @@ export const quotePaymentStepSchema = z.object({
   paymentOptions: z
     .array(quotePaymentOptionSchema)
     .min(1, "Adicione pelo menos uma forma de pagamento."),
+  expiresAt: optionalBrDate,
+  termsAndConditions: optionalTermsAndConditions,
 });
 
 export const createQuoteFormSchema = z
@@ -373,5 +395,7 @@ export const createQuoteFormDefaultValues = {
   },
   stepThree: {
     paymentOptions: [],
+    expiresAt: null,
+    termsAndConditions: null,
   },
 } satisfies z.input<typeof createQuoteFormSchema>;
