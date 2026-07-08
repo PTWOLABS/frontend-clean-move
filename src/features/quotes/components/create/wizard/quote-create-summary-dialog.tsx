@@ -156,8 +156,14 @@ export function QuoteCreateSummaryDialog({
                         </p>
                       </div>
 
-                      <p className="max-w-full shrink-0 truncate text-sm font-semibold text-foreground">
-                        {formatBrlFromCents(service.isCourtesy ? 0 : service.priceInCents)}
+                      <p
+                        className={cn(
+                          "max-w-full shrink-0 truncate text-sm font-semibold text-foreground",
+                          service.isCourtesy &&
+                            "text-muted-foreground line-through decoration-2",
+                        )}
+                      >
+                        {formatBrlFromCents(service.priceInCents)}
                       </p>
                     </div>
                   ))}

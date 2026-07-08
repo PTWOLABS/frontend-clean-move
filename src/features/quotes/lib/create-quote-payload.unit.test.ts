@@ -19,7 +19,7 @@ describe("buildCreateQuoteBody", () => {
       stepOne: makeStepValues({
         customer: {
           name: "Maria Silva",
-          phone: "11999999999",
+          phone: "(11) 99999-9999",
           email: "maria@example.com",
           cpfCnpj: "52998224725",
         },
@@ -111,7 +111,7 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
       customerId: null,
       customer: {
         name: "Maria Silva",
-        phone: "11999999999",
+        phone: "(11) 99999-9999",
         email: "maria@example.com",
         cpfCnpj: "52998224725",
       },
@@ -126,6 +126,26 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
     });
     expect(mapQuoteCustomerVehicleStepToPayload(values)).not.toHaveProperty("customerId");
     expect(mapQuoteCustomerVehicleStepToPayload(values).customer).not.toHaveProperty("email");
+  });
+
+  it("maps an empty masked phone to null", () => {
+    const values = makeStepValues({
+      customerId: null,
+      customer: {
+        name: "Maria Silva",
+        phone: "(  )      -    ",
+        email: null,
+        cpfCnpj: null,
+      },
+    });
+
+    expect(mapQuoteCustomerVehicleStepToPayload(values)).toMatchObject({
+      customer: {
+        name: "Maria Silva",
+        phone: null,
+        cpfCnpj: null,
+      },
+    });
   });
 
   it("uses only vehicleId when an existing vehicle is selected", () => {

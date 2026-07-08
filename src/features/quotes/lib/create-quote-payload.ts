@@ -1,3 +1,5 @@
+import { onlyDigits } from "@/shared/utils/lib";
+
 import type {
   CreateQuoteBody,
   CreateQuoteFormValues,
@@ -26,7 +28,7 @@ export function mapQuoteCustomerVehicleStepToPayload(
       : {
           customer: {
             name: values.customer.name,
-            phone: values.customer.phone,
+            phone: normalizeOptionalPhone(values.customer.phone),
             cpfCnpj: values.customer.cpfCnpj,
           },
         }),
@@ -49,6 +51,12 @@ export function mapQuoteServicesStepToPayload(
       ...(service.isCourtesy !== undefined ? { isCourtesy: service.isCourtesy } : {}),
     })),
   };
+}
+
+function normalizeOptionalPhone(value: string | null | undefined) {
+  const digits = onlyDigits(value ?? "");
+
+  return digits.length > 0 ? digits : null;
 }
 
 export function mapQuotePaymentStepToPayload(
