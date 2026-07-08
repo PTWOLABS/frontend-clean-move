@@ -85,11 +85,11 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
       ]}
       description={
         <>
-          <p className="truncate">{getQuoteVehicleLabel(quote)}</p>
-          <p className="text-xs mt-2 flex gap-1">
+          <span className="block truncate">{getQuoteVehicleLabel(quote)}</span>
+          <span className="mt-2 flex gap-1 text-xs">
             <Calendar size={14} />
             Criado {formatShortDate(quote.createdAt)}
-          </p>
+          </span>
         </>
       }
       footer={{

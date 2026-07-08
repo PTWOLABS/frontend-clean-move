@@ -328,6 +328,60 @@ describe("quotePaymentStepSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("rejects an enabled discount without value", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix com desconto",
+          discountType: "PERCENTAGE",
+          discountValue: null,
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote payment validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe o valor do desconto.",
+          path: ["paymentOptions", 0, "discountValue"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects an enabled discount with zero value", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix com desconto",
+          discountType: "AMOUNT",
+          discountValue: 0,
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote payment validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "O desconto deve ser maior que zero.",
+          path: ["paymentOptions", 0, "discountValue"],
+        }),
+      ]),
+    );
+  });
 });
 
 describe("createQuoteFormSchema", () => {

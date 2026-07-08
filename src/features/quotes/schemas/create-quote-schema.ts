@@ -258,14 +258,38 @@ export const quoteServicesStepSchema = z.object({
   services: z.array(quoteServiceItemSchema).min(1, "Adicione pelo menos um serviço."),
 });
 
-export const quotePaymentOptionSchema = z.object({
-  method: z.enum(["CASH", "PIX", "CARD", "OTHER"]),
-  label: z.string().trim().min(1, "Informe a descrição da forma de pagamento."),
-  installments: optionalNullablePositiveInteger,
-  interestFree: z.boolean().optional().nullable(),
-  discountType: z.enum(["PERCENTAGE", "AMOUNT"]).optional().nullable(),
-  discountValue: optionalNullableNonnegativeInteger,
-});
+export const quotePaymentOptionSchema = z
+  .object({
+    method: z.enum(["CASH", "PIX", "CARD", "OTHER"]),
+    label: z.string().trim().min(1, "Informe a descrição da forma de pagamento."),
+    installments: optionalNullablePositiveInteger,
+    interestFree: z.boolean().optional().nullable(),
+    discountType: z.enum(["PERCENTAGE", "AMOUNT"]).optional().nullable(),
+    discountValue: optionalNullableNonnegativeInteger,
+  })
+  .superRefine((paymentOption, context) => {
+    if (!paymentOption.discountType) return;
+
+    if (
+      typeof paymentOption.discountValue !== "number" ||
+      !Number.isFinite(paymentOption.discountValue)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["discountValue"],
+        message: "Informe o valor do desconto.",
+      });
+      return;
+    }
+
+    if (paymentOption.discountValue <= 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["discountValue"],
+        message: "O desconto deve ser maior que zero.",
+      });
+    }
+  });
 
 export const quotePaymentStepSchema = z.object({
   paymentOptions: z

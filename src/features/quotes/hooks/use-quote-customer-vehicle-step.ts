@@ -7,6 +7,7 @@ import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { useListCustomerOptions } from "@/features/appointments/hooks/queries/use-list-customer-options";
 import { useListCustomerVehicleOptions } from "@/features/appointments/hooks/queries/use-list-customer-vehicle-options";
 import { useCustomer } from "@/features/customer/hooks/use-customer";
+import { formatCpfCnpj, formatPhone } from "@/features/customer/lib/format-customer-catalog";
 import { useVehicle } from "@/features/vehicle/hooks/use-vehicle";
 import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
 
@@ -163,18 +164,26 @@ export function useQuoteCustomerVehicleStep() {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue("stepOne.customer.phone", selectedCustomer.phone ?? null, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    setValue(
+      "stepOne.customer.phone",
+      selectedCustomer.phone ? formatPhone(selectedCustomer.phone) : null,
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
     setValue("stepOne.customer.email", selectedCustomer.email ?? null, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue("stepOne.customer.cpfCnpj", selectedCustomer.cpfCnpj ?? null, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    setValue(
+      "stepOne.customer.cpfCnpj",
+      selectedCustomer.cpfCnpj ? formatCpfCnpj(selectedCustomer.cpfCnpj) : null,
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
     void trigger("stepOne.customer");
   }, [selectedCustomer, selectedCustomerId, setValue, trigger]);
 
