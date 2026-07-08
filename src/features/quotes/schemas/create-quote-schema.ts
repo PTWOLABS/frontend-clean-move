@@ -11,12 +11,13 @@ const nullableTrimmedString = z.preprocess(
 
 const optionalNullableTrimmedString = nullableTrimmedString.optional();
 
-const optionalYear = z.preprocess((value) => {
-  if (value === "" || value == null) return null;
-  if (typeof value === "number") return String(value);
-  if (typeof value === "string") return value.trim();
-  return value;
-}, z.string().nullable())
+const optionalYear = z
+  .preprocess((value) => {
+    if (value === "" || value == null) return null;
+    if (typeof value === "number") return String(value);
+    if (typeof value === "string") return value.trim();
+    return value;
+  }, z.string().nullable())
   .superRefine((value, context) => {
     if (value === null) return;
 

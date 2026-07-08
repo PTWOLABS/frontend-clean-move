@@ -124,7 +124,8 @@ export function QuoteCreateWizardContent({
   }
 
   async function handleReviewQuote() {
-    const isValid = await trigger(undefined, {
+    const stepName = getStepName(currentStep);
+    const isValid = await trigger(stepName, {
       shouldFocus: true,
     });
 
