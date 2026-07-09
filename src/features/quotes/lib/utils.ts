@@ -18,7 +18,7 @@ export function formatShortDate(value: string | null): string {
 }
 
 export function getQuoteVehicleLabel(quote: QuoteListItemDto): string {
-  return quote.vehicleLabel?.trim() || "Veiculo não informado";
+  return quote.vehicleLabel?.trim() || "Veículo não informado";
 }
 
 export function getQuoteVehiclePlate(quote: QuoteListItemDto): string {

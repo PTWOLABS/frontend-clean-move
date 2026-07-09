@@ -12,7 +12,7 @@ function downloadQuotePdf(pdfBlob: Blob, quoteId: string) {
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `orcamento-${quoteId}.pdf`;
+  link.download = `orçamento-${quoteId}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();

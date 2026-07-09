@@ -123,8 +123,8 @@ export function useQuoteServicesStep() {
   }));
 
   const serviceEmptyMessage = isLoadingServiceOptions
-    ? "Buscando servicos..."
-    : "Nenhum servico encontrado.";
+    ? "Buscando serviços..."
+    : "Nenhum serviço encontrado.";
 
   return {
     addManualService,

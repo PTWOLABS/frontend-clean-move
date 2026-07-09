@@ -57,7 +57,7 @@ describe("quoteCustomerVehicleStepSchema", () => {
     expect(result.error.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message: "CPF invalido.",
+          message: "CPF inválido.",
           path: ["customer", "cpfCnpj"],
         }),
       ]),
@@ -84,7 +84,7 @@ describe("quoteCustomerVehicleStepSchema", () => {
     expect(result.error.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message: "Informe um telefone valido com 10 ou 11 digitos.",
+          message: "Informe um telefone válido com 10 ou 11 dígitos.",
           path: ["customer", "phone"],
         }),
       ]),
@@ -111,7 +111,7 @@ describe("quoteCustomerVehicleStepSchema", () => {
     expect(result.error.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message: "Informe um e-mail valido.",
+          message: "Informe um e-mail válido.",
           path: ["customer", "email"],
         }),
       ]),
@@ -298,8 +298,8 @@ describe("quotePaymentStepSchema", () => {
           label: "Pix",
         },
       ],
-      expiresAt: "15/08/2026",
-      termsAndConditions: "  Valido enquanto houver agenda disponivel.  ",
+      expiresAt: "15/08/2999",
+      termsAndConditions: "  Válido enquanto houver agenda disponível.  ",
     });
 
     expect(result.success).toBe(true);
@@ -307,8 +307,8 @@ describe("quotePaymentStepSchema", () => {
       throw new Error("Expected quote payment metadata validation to pass.");
     }
 
-    expect(result.data.expiresAt).toBe("2026-08-15");
-    expect(result.data.termsAndConditions).toBe("Valido enquanto houver agenda disponivel.");
+    expect(result.data.expiresAt).toBe("2999-08-15T23:59:59.999Z");
+    expect(result.data.termsAndConditions).toBe("Válido enquanto houver agenda disponível.");
   });
 
   it("rejects an invalid quote validity date", () => {
@@ -331,7 +331,34 @@ describe("quotePaymentStepSchema", () => {
     expect(result.error.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message: "Informe uma data valida.",
+          message: "Informe uma data válida.",
+          path: ["expiresAt"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects a past quote validity date", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+        },
+      ],
+      expiresAt: "01/01/2000",
+      termsAndConditions: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected past quote validity validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "A validade deve ser hoje ou uma data futura.",
           path: ["expiresAt"],
         }),
       ]),

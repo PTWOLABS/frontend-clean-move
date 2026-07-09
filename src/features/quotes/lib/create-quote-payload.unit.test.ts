@@ -34,7 +34,7 @@ describe("buildCreateQuoteBody", () => {
       stepTwo: {
         services: [
           {
-            serviceName: "Polimento tecnico",
+            serviceName: "Polimento técnico",
             priceInCents: 15000,
             isCourtesy: false,
           },
@@ -51,8 +51,8 @@ describe("buildCreateQuoteBody", () => {
             discountValue: null,
           },
         ],
-        expiresAt: "2026-08-15",
-        termsAndConditions: "Valido enquanto houver agenda disponivel.",
+        expiresAt: "2999-08-15T23:59:59.999Z",
+        termsAndConditions: "Válido enquanto houver agenda disponível.",
       },
     };
 
@@ -71,7 +71,7 @@ describe("buildCreateQuoteBody", () => {
       },
       serviceItems: [
         {
-          serviceName: "Polimento tecnico",
+          serviceName: "Polimento técnico",
           priceInCents: 15000,
           isCourtesy: false,
         },
@@ -86,8 +86,8 @@ describe("buildCreateQuoteBody", () => {
           discountValue: null,
         },
       ],
-      expiresAt: "2026-08-15",
-      termsAndConditions: "Valido enquanto houver agenda disponivel.",
+      expiresAt: "2999-08-15T23:59:59.999Z",
+      termsAndConditions: "Válido enquanto houver agenda disponível.",
     });
   });
 });
@@ -201,7 +201,7 @@ describe("mapQuoteServicesStepToPayload", () => {
     const values: QuoteServicesStepValues = {
       services: [
         {
-          serviceName: "Polimento tecnico",
+          serviceName: "Polimento técnico",
           priceInCents: 15000,
           isCourtesy: true,
         },
@@ -211,7 +211,7 @@ describe("mapQuoteServicesStepToPayload", () => {
     expect(mapQuoteServicesStepToPayload(values)).toEqual({
       serviceItems: [
         {
-          serviceName: "Polimento tecnico",
+          serviceName: "Polimento técnico",
           priceInCents: 15000,
           isCourtesy: true,
         },
@@ -233,12 +233,12 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: 5,
         },
       ],
-      expiresAt: "2026-08-15",
-      termsAndConditions: "Valido enquanto houver agenda disponivel.",
+      expiresAt: "2999-08-15T23:59:59.999Z",
+      termsAndConditions: "Válido enquanto houver agenda disponível.",
     };
 
     expect(mapQuotePaymentStepToPayload(values)).toEqual({
-      expiresAt: "2026-08-15",
+      expiresAt: "2999-08-15T23:59:59.999Z",
       paymentOptions: [
         {
           method: "CARD",
@@ -249,7 +249,7 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: 5,
         },
       ],
-      termsAndConditions: "Valido enquanto houver agenda disponivel.",
+      termsAndConditions: "Válido enquanto houver agenda disponível.",
     });
   });
 
