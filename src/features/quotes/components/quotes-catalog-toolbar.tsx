@@ -12,6 +12,7 @@ import {
   type FilterToolbarBadge,
 } from "@/shared/components/filter-toolbar-shell";
 import { SearchSelectInput } from "@/shared/components/search-select-input";
+import { formatDateBR } from "@/shared/lib/date-time";
 
 import {
   DEFAULT_QUOTES_FILTERS,
@@ -49,10 +50,9 @@ const ordenationFilterOptions: { label: string; value: QuotesSortFilter }[] = [
 function formatDateRangeLabel(dateRange: DateRange | undefined): string {
   if (!dateRange?.from) return "Vencimento personalizado";
 
-  const formatter = new Intl.DateTimeFormat("pt-BR");
-  if (!dateRange.to) return formatter.format(dateRange.from);
+  if (!dateRange.to) return formatDateBR(dateRange.from);
 
-  return `${formatter.format(dateRange.from)} - ${formatter.format(dateRange.to)}`;
+  return `${formatDateBR(dateRange.from)} - ${formatDateBR(dateRange.to)}`;
 }
 
 function areDateRangesEqual(left: DateRange | undefined, right: DateRange | undefined): boolean {

@@ -12,7 +12,7 @@ import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
-import { useGenerateQuotePdf } from "../hooks/use-gerenate-quote-pdf";
+import { useGenerateQuotePdf } from "../hooks/mutations/use-gerenate-quote-pdf";
 
 type QuotesCatalogTableProps = {
   quotes: QuoteListItemDto[];

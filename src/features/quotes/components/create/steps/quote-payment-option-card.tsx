@@ -14,6 +14,7 @@ import { Select } from "@/components/ui/select/select";
 import { Switch } from "@/components/ui/switch";
 import { BrlMoneyInput } from "@/shared/money/brl-money-input";
 import { formatCentsToBrlInput, parseBrlMoneyToCents } from "@/shared/money/format-brl-money";
+import { onlyDigits } from "@/shared/utils/lib";
 
 import {
   discountTypeOptions,
@@ -127,14 +128,10 @@ export function QuotePaymentOptionCard({
                     ref={field.ref}
                     id={field.name}
                     name={field.name}
-                    type="number"
-                    min={1}
-                    step={1}
+                    type="text"
                     inputMode="numeric"
                     value={formatNullableNumberInputValue(field.value)}
-                    onChange={(event) =>
-                      field.onChange(event.target.value === "" ? null : Number(event.target.value))
-                    }
+                    onChange={(event) => field.onChange(parseOptionalInteger(event.target.value))}
                     onBlur={field.onBlur}
                     className="shadow-xs"
                   />
@@ -221,15 +218,12 @@ export function QuotePaymentOptionCard({
                         ref={field.ref}
                         id={field.name}
                         name={field.name}
-                        type="number"
-                        min={0}
-                        step={1}
+                        type="text"
                         inputMode="numeric"
+                        maxLength={3}
                         value={formatNullableNumberInputValue(field.value)}
                         onChange={(event) =>
-                          field.onChange(
-                            event.target.value === "" ? null : Number(event.target.value),
-                          )
+                          field.onChange(parseOptionalInteger(event.target.value))
                         }
                         onBlur={field.onBlur}
                         className="shadow-xs"
@@ -268,4 +262,10 @@ export function QuotePaymentOptionCard({
 
 function formatNullableNumberInputValue(value: unknown) {
   return typeof value === "number" || typeof value === "string" ? value : "";
+}
+
+function parseOptionalInteger(value: string) {
+  const digits = onlyDigits(value);
+
+  return digits ? Number(digits) : null;
 }

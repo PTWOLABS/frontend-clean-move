@@ -14,5 +14,6 @@ export const servicesStepHeader = {
 
 export const paymentStepHeader = {
   title: "Pagamento",
-  description: "Configure as formas, parcelas e descontos que serão oferecidos ao cliente.",
+  description:
+    "Configure formas, parcelas, descontos, validade e termos que serão oferecidos ao cliente.",
 };

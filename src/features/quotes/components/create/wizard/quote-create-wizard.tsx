@@ -9,7 +9,8 @@ import {
   createQuoteFormDefaultValues,
   createQuoteFormSchema,
 } from "../../../schemas/create-quote-schema";
-import type { CreateQuoteFormInput } from "../../../types/create-quote";
+import type { CreateQuoteFormValues } from "../../../types/create-quote";
+import { useCreateQuote } from "../../../hooks/mutations/use-create-quote";
 import { QuoteCreateWizardContent } from "./quote-create-wizard-content";
 import { QUOTE_CREATE_FORM_ID, TOTAL_STEPS } from "../../../constants/quote-wizard";
 
@@ -27,11 +28,14 @@ export function QuoteCreateWizard({
   summaryPanelClassName,
 }: QuoteCreateWizardProps) {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const createQuoteMutation = useCreateQuote();
   const formLayoutClassName =
     className ??
     "xl:grid-cols-[minmax(0,1fr)_minmax(21rem,25rem)] xl:items-start xl:gap-10 2xl:grid-cols-[minmax(0,1fr)_27rem]";
 
-  function handleSubmit() {
+  async function handleSubmit(values: CreateQuoteFormValues) {
+    await createQuoteMutation.mutateAsync(values);
+
     setCompletedSteps((steps) => (steps.includes(TOTAL_STEPS) ? steps : [...steps, TOTAL_STEPS]));
   }
 
@@ -44,7 +48,7 @@ export function QuoteCreateWizard({
   }
 
   return (
-    <Form<CreateQuoteFormInput>
+    <Form<CreateQuoteFormValues>
       id={QUOTE_CREATE_FORM_ID}
       schema={createQuoteFormSchema}
       options={{

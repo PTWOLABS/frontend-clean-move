@@ -1,6 +1,13 @@
 import { z } from "zod";
 
+import {
+  dateInputValueToEndOfDayPayload,
+  getDateKeyInSaoPaulo,
+  parseBrDateToIso,
+} from "@/shared/lib/date-time";
+import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
 import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
+import { onlyDigits } from "@/shared/utils/lib";
 
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
@@ -9,11 +16,154 @@ const nullableTrimmedString = z.preprocess(
 
 const optionalNullableTrimmedString = nullableTrimmedString.optional();
 
-const optionalYear = z.preprocess((value) => {
-  if (value === "" || value == null) return null;
-  if (typeof value === "string") return Number(value);
-  return value;
-}, z.number().int("Informe um ano valido.").optional().nullable());
+const optionalBrDate = z
+  .string()
+  .trim()
+  .nullable()
+  .optional()
+  .transform((value) => (value?.trim() ? value.trim() : null))
+  .superRefine((value, context) => {
+    if (!value) return;
+
+    const isoDate = parseBrDateToIso(value);
+
+    if (!isoDate) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe uma data válida.",
+      });
+      return;
+    }
+
+    if (isoDate < getDateKeyInSaoPaulo(new Date())) {
+      context.addIssue({
+        code: "custom",
+        message: "A validade deve ser hoje ou uma data futura.",
+      });
+    }
+  })
+  .transform((value) => {
+    if (!value) return null;
+
+    const isoDate = parseBrDateToIso(value);
+
+    return isoDate ? dateInputValueToEndOfDayPayload(isoDate) : null;
+  });
+
+const optionalTermsAndConditions = z
+  .string()
+  .trim()
+  .max(250, "Máximo 250 caracteres.")
+  .nullable()
+  .optional()
+  .transform((value) => (value?.trim() ? value.trim() : null));
+
+const optionalYear = z
+  .preprocess((value) => {
+    if (value === "" || value == null) return null;
+    if (typeof value === "number") return String(value);
+    if (typeof value === "string") return value.trim();
+    return value;
+  }, z.string().nullable())
+  .superRefine((value, context) => {
+    if (value === null) return;
+
+    if (!/^\d+$/.test(value)) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe apenas números no ano do veículo.",
+      });
+      return;
+    }
+
+    if (value.length > 4) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe no máximo 4 dígitos no ano do veículo.",
+      });
+      return;
+    }
+
+    const year = Number(value);
+
+    if (!Number.isInteger(year) || year < 1900) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe um ano válido.",
+      });
+    }
+  })
+  .transform((value) => (value === null ? null : Number(value)));
+
+const optionalNullablePhone = optionalNullableTrimmedString.superRefine((value, context) => {
+  if (!value) return;
+
+  const phoneLength = onlyDigits(value).length;
+
+  if (phoneLength !== 10 && phoneLength !== 11) {
+    context.addIssue({
+      code: "custom",
+      message: "Informe um telefone válido com 10 ou 11 dígitos.",
+    });
+  }
+});
+
+const optionalNullableCpfCnpj = optionalNullableTrimmedString.superRefine((value, context) => {
+  const digits = onlyDigits(value ?? "");
+  if (!digits) return;
+
+  if (digits.length < 11) {
+    context.addIssue({
+      code: "custom",
+      message: "CPF ou CNPJ incompleto.",
+    });
+    return;
+  }
+
+  if (digits.length > 11 && digits.length < 14) {
+    context.addIssue({
+      code: "custom",
+      message: "CNPJ incompleto.",
+    });
+    return;
+  }
+
+  if (digits.length === 11 && !isValidCpf(digits)) {
+    context.addIssue({
+      code: "custom",
+      message: "CPF inválido.",
+    });
+    return;
+  }
+
+  if (digits.length === 14 && !isValidCnpj(digits)) {
+    context.addIssue({
+      code: "custom",
+      message: "CNPJ inválido.",
+    });
+    return;
+  }
+
+  if (digits.length !== 11 && digits.length !== 14) {
+    context.addIssue({
+      code: "custom",
+      message: "Informe um CPF ou CNPJ válido.",
+    });
+  }
+});
+
+const optionalNullableEmail = optionalNullableTrimmedString.superRefine((value, context) => {
+  if (!value) return;
+
+  const emailResult = z.email("Informe um e-mail válido.").safeParse(value);
+
+  if (!emailResult.success) {
+    context.addIssue({
+      code: "custom",
+      message: emailResult.error.issues[0]?.message ?? "Informe um e-mail válido.",
+    });
+  }
+});
 
 const optionalPriceInCents = z.preprocess((value) => {
   if (value === "" || value == null) return undefined;
@@ -37,9 +187,9 @@ export const quoteCustomerVehicleStepSchema = z
     customerId: z.string().trim().optional().nullable(),
     customer: z.object({
       name: z.string().trim(),
-      cpfCnpj: optionalNullableTrimmedString,
-      phone: optionalNullableTrimmedString,
-      email: optionalNullableTrimmedString,
+      cpfCnpj: optionalNullableCpfCnpj,
+      phone: optionalNullablePhone,
+      email: optionalNullableEmail,
     }),
     vehicleId: z.string().trim().optional().nullable(),
     vehicleLabel: optionalNullableTrimmedString,
@@ -156,19 +306,45 @@ export const quoteServicesStepSchema = z.object({
   services: z.array(quoteServiceItemSchema).min(1, "Adicione pelo menos um serviço."),
 });
 
-export const quotePaymentOptionSchema = z.object({
-  method: z.enum(["CASH", "PIX", "CARD", "OTHER"]),
-  label: z.string().trim().min(1, "Informe a descrição da forma de pagamento."),
-  installments: optionalNullablePositiveInteger,
-  interestFree: z.boolean().optional().nullable(),
-  discountType: z.enum(["PERCENTAGE", "AMOUNT"]).optional().nullable(),
-  discountValue: optionalNullableNonnegativeInteger,
-});
+export const quotePaymentOptionSchema = z
+  .object({
+    method: z.enum(["CASH", "PIX", "CARD", "OTHER"]),
+    label: z.string().trim().min(1, "Informe a descrição da forma de pagamento."),
+    installments: optionalNullablePositiveInteger,
+    interestFree: z.boolean().optional().nullable(),
+    discountType: z.enum(["PERCENTAGE", "AMOUNT"]).optional().nullable(),
+    discountValue: optionalNullableNonnegativeInteger,
+  })
+  .superRefine((paymentOption, context) => {
+    if (!paymentOption.discountType) return;
+
+    if (
+      typeof paymentOption.discountValue !== "number" ||
+      !Number.isFinite(paymentOption.discountValue)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["discountValue"],
+        message: "Informe o valor do desconto.",
+      });
+      return;
+    }
+
+    if (paymentOption.discountValue <= 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["discountValue"],
+        message: "O desconto deve ser maior que zero.",
+      });
+    }
+  });
 
 export const quotePaymentStepSchema = z.object({
   paymentOptions: z
     .array(quotePaymentOptionSchema)
     .min(1, "Adicione pelo menos uma forma de pagamento."),
+  expiresAt: optionalBrDate,
+  termsAndConditions: optionalTermsAndConditions,
 });
 
 export const createQuoteFormSchema = z
@@ -246,5 +422,7 @@ export const createQuoteFormDefaultValues = {
   },
   stepThree: {
     paymentOptions: [],
+    expiresAt: null,
+    termsAndConditions: null,
   },
 } satisfies z.input<typeof createQuoteFormSchema>;

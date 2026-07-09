@@ -1,5 +1,6 @@
 "use client";
 
+import { useWatch } from "react-hook-form";
 import { CarFront, FileText, IdCard, Info, Mail, Palette, Phone, UserRound } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,12 @@ import { FormField } from "@/components/ui/form/field";
 import { FormControl, FormDescription } from "@/components/ui/form/form-primitives";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { WizardStepHeader } from "@/shared/components/wizard-step-header";
+import {
+  cpfCnpjMaskModify,
+  getCpfCnpjMask,
+  getPhoneMask,
+  phoneMaskModify,
+} from "@/shared/constants/input-masks";
 import { cn } from "@/shared/utils/cn";
 
 import { useQuoteCustomerVehicleStep } from "../../../hooks/use-quote-customer-vehicle-step";
@@ -43,6 +50,10 @@ export function QuoteCustomerVehicleStep({
     vehicleLabel,
     vehicleOptionsItems,
   } = useQuoteCustomerVehicleStep();
+  const customerCpfCnpj = useWatch({ control, name: "stepOne.customer.cpfCnpj" });
+  const customerPhone = useWatch({ control, name: "stepOne.customer.phone" });
+  const customerCpfCnpjValue = typeof customerCpfCnpj === "string" ? customerCpfCnpj : "";
+  const customerPhoneValue = typeof customerPhone === "string" ? customerPhone : "";
 
   return (
     <Card className={cn("border-border/70 bg-card/60 shadow-sm backdrop-blur-xl", className)}>
@@ -117,6 +128,8 @@ export function QuoteCustomerVehicleStep({
               name="stepOne.customer.cpfCnpj"
               label="CPF/CNPJ"
               placeholder="CPF ou CNPJ do cliente"
+              mask={getCpfCnpjMask(customerCpfCnpjValue)}
+              modify={cpfCnpjMaskModify}
               inputMode="numeric"
               autoComplete="off"
               icon={IdCard}
@@ -131,7 +144,8 @@ export function QuoteCustomerVehicleStep({
               name="stepOne.customer.phone"
               label="Telefone"
               placeholder="(11) 99999-9999"
-              mask="(__) _____-____"
+              mask={getPhoneMask(customerPhoneValue)}
+              modify={phoneMaskModify}
               inputMode="tel"
               autoComplete="tel"
               icon={Phone}
@@ -254,6 +268,7 @@ export function QuoteCustomerVehicleStep({
               id="quote-vehicle-year"
               name="stepOne.vehicle.year"
               label="Ano"
+              mask="____"
               maxLength={4}
               placeholder="Ex.: 2024"
               inputMode="numeric"

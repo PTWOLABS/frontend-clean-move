@@ -3,10 +3,12 @@
 import { useMemo } from "react";
 import {
   BadgeDollarSign,
+  CalendarDays,
   CarFront,
   CreditCard,
   IdCard,
   Phone,
+  ScrollText,
   UserRound,
   Wrench,
 } from "lucide-react";
@@ -38,6 +40,8 @@ export function useQuoteSummaryItems(
     const contactLabel = phone || email || "Contato não informado";
     const services = stepTwo?.services ?? [];
     const paymentOptions = stepThree?.paymentOptions ?? [];
+    const expiresAt = asDisplayText(stepThree?.expiresAt);
+    const termsAndConditions = asDisplayText(stepThree?.termsAndConditions);
     const servicesCount = services.length;
     const paymentOptionsCount = paymentOptions.length;
     const servicesTotal = services.reduce((total, service) => {
@@ -96,6 +100,26 @@ export function useQuoteSummaryItems(
         completed: paymentOptionsCount > 0,
         icon: CreditCard,
       },
+      ...(expiresAt
+        ? [
+            {
+              label: "Validade",
+              value: expiresAt,
+              completed: true,
+              icon: CalendarDays,
+            },
+          ]
+        : []),
+      ...(termsAndConditions
+        ? [
+            {
+              label: "Termos",
+              value: "Informados",
+              completed: true,
+              icon: ScrollText,
+            },
+          ]
+        : []),
     ];
   }, [stepOne, stepTwo, stepThree]);
 }

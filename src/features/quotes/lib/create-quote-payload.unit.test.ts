@@ -1,15 +1,96 @@
 import { describe, expect, it } from "vitest";
 
 import type {
+  CreateQuoteFormValues,
   QuoteCustomerVehicleStepValues,
   QuotePaymentStepValues,
   QuoteServicesStepValues,
 } from "../types/create-quote";
 import {
+  buildCreateQuoteBody,
   mapQuoteCustomerVehicleStepToPayload,
   mapQuotePaymentStepToPayload,
   mapQuoteServicesStepToPayload,
 } from "./create-quote-payload";
+
+describe("buildCreateQuoteBody", () => {
+  it("maps wizard values to the backend create quote body", () => {
+    const values: CreateQuoteFormValues = {
+      stepOne: makeStepValues({
+        customer: {
+          name: "Maria Silva",
+          phone: "(11) 99999-9999",
+          email: "maria@example.com",
+          cpfCnpj: "529.982.247-25",
+        },
+        vehicle: {
+          plate: "ABC1D23",
+          brand: "Honda",
+          model: "Civic",
+          color: "Preto",
+          year: 2024,
+        },
+      }),
+      stepTwo: {
+        services: [
+          {
+            serviceName: "Polimento técnico",
+            priceInCents: 15000,
+            isCourtesy: false,
+          },
+        ],
+      },
+      stepThree: {
+        paymentOptions: [
+          {
+            method: "PIX",
+            label: "Pix",
+            installments: null,
+            interestFree: null,
+            discountType: null,
+            discountValue: null,
+          },
+        ],
+        expiresAt: "2999-08-15T23:59:59.999Z",
+        termsAndConditions: "Válido enquanto houver agenda disponível.",
+      },
+    };
+
+    expect(buildCreateQuoteBody(values)).toEqual({
+      customer: {
+        name: "Maria Silva",
+        phone: "11999999999",
+        cpfCnpj: "52998224725",
+      },
+      vehicle: {
+        plate: "ABC1D23",
+        brand: "Honda",
+        model: "Civic",
+        color: "Preto",
+        year: 2024,
+      },
+      serviceItems: [
+        {
+          serviceName: "Polimento técnico",
+          priceInCents: 15000,
+          isCourtesy: false,
+        },
+      ],
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+          installments: null,
+          interestFree: null,
+          discountType: null,
+          discountValue: null,
+        },
+      ],
+      expiresAt: "2999-08-15T23:59:59.999Z",
+      termsAndConditions: "Válido enquanto houver agenda disponível.",
+    });
+  });
+});
 
 describe("mapQuoteCustomerVehicleStepToPayload", () => {
   it("uses only customerId when an existing customer is selected", () => {
@@ -34,9 +115,9 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
       customerId: null,
       customer: {
         name: "Maria Silva",
-        phone: "11999999999",
+        phone: "(11) 99999-9999",
         email: "maria@example.com",
-        cpfCnpj: "52998224725",
+        cpfCnpj: "529.982.247-25",
       },
     });
 
@@ -44,11 +125,31 @@ describe("mapQuoteCustomerVehicleStepToPayload", () => {
       customer: {
         name: "Maria Silva",
         phone: "11999999999",
-        email: "maria@example.com",
         cpfCnpj: "52998224725",
       },
     });
     expect(mapQuoteCustomerVehicleStepToPayload(values)).not.toHaveProperty("customerId");
+    expect(mapQuoteCustomerVehicleStepToPayload(values).customer).not.toHaveProperty("email");
+  });
+
+  it("maps an empty masked phone to null", () => {
+    const values = makeStepValues({
+      customerId: null,
+      customer: {
+        name: "Maria Silva",
+        phone: "(  )      -    ",
+        email: null,
+        cpfCnpj: null,
+      },
+    });
+
+    expect(mapQuoteCustomerVehicleStepToPayload(values)).toMatchObject({
+      customer: {
+        name: "Maria Silva",
+        phone: null,
+        cpfCnpj: null,
+      },
+    });
   });
 
   it("uses only vehicleId when an existing vehicle is selected", () => {
@@ -86,7 +187,7 @@ describe("mapQuoteServicesStepToPayload", () => {
     };
 
     expect(mapQuoteServicesStepToPayload(values)).toEqual({
-      services: [
+      serviceItems: [
         {
           serviceId: "service-1",
           priceInCents: 9000,
@@ -100,7 +201,7 @@ describe("mapQuoteServicesStepToPayload", () => {
     const values: QuoteServicesStepValues = {
       services: [
         {
-          serviceName: "Polimento tecnico",
+          serviceName: "Polimento técnico",
           priceInCents: 15000,
           isCourtesy: true,
         },
@@ -108,9 +209,9 @@ describe("mapQuoteServicesStepToPayload", () => {
     };
 
     expect(mapQuoteServicesStepToPayload(values)).toEqual({
-      services: [
+      serviceItems: [
         {
-          serviceName: "Polimento tecnico",
+          serviceName: "Polimento técnico",
           priceInCents: 15000,
           isCourtesy: true,
         },
@@ -132,9 +233,12 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: 5,
         },
       ],
+      expiresAt: "2999-08-15T23:59:59.999Z",
+      termsAndConditions: "Válido enquanto houver agenda disponível.",
     };
 
     expect(mapQuotePaymentStepToPayload(values)).toEqual({
+      expiresAt: "2999-08-15T23:59:59.999Z",
       paymentOptions: [
         {
           method: "CARD",
@@ -145,6 +249,7 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: 5,
         },
       ],
+      termsAndConditions: "Válido enquanto houver agenda disponível.",
     });
   });
 
@@ -160,9 +265,12 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: null,
         },
       ],
+      expiresAt: null,
+      termsAndConditions: null,
     };
 
     expect(mapQuotePaymentStepToPayload(values)).toEqual({
+      expiresAt: null,
       paymentOptions: [
         {
           method: "PIX",
@@ -173,6 +281,7 @@ describe("mapQuotePaymentStepToPayload", () => {
           discountValue: null,
         },
       ],
+      termsAndConditions: null,
     });
   });
 });

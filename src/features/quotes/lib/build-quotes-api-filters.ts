@@ -1,5 +1,11 @@
 import type { DateRange } from "react-day-picker";
 
+import {
+  dateInputValueToEndOfDayPayload,
+  dateInputValueToStartOfDayPayload,
+  dateToInputValue,
+} from "@/shared/lib/date-time";
+
 import type { QuotesApiFilters } from "../types/api-filters";
 
 export type QuotesSearchField = "customerName" | "vehiclePlate" | "serviceName";
@@ -24,22 +30,18 @@ export const DEFAULT_QUOTES_FILTERS: QuotesFiltersState = {
   expiresRange: undefined,
 };
 
-function formatDateFilter(date: Date | undefined, time: string): string | undefined {
-  if (!date) return undefined;
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${time}Z`;
-}
-
 function formatStartOfDayDateFilter(date: Date | undefined): string | undefined {
-  return formatDateFilter(date, "00:00:00.000");
+  const dateInputValue = dateToInputValue(date);
+  return dateInputValue
+    ? (dateInputValueToStartOfDayPayload(dateInputValue) ?? undefined)
+    : undefined;
 }
 
 function formatEndOfDayDateFilter(date: Date | undefined): string | undefined {
-  return formatDateFilter(date, "23:59:59.999");
+  const dateInputValue = dateToInputValue(date);
+  return dateInputValue
+    ? (dateInputValueToEndOfDayPayload(dateInputValue) ?? undefined)
+    : undefined;
 }
 
 export function buildQuotesApiFilters(

@@ -5,14 +5,14 @@ import { toast } from "sonner";
 
 import { ApiError } from "@/shared/api/httpClient";
 
-import { generateQuotePdf } from "../api/generate-quote-pdf";
+import { generateQuotePdf } from "../../api/generate-quote-pdf";
 
 function downloadQuotePdf(pdfBlob: Blob, quoteId: string) {
   const url = URL.createObjectURL(pdfBlob);
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `orcamento-${quoteId}.pdf`;
+  link.download = `orçamento-${quoteId}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();

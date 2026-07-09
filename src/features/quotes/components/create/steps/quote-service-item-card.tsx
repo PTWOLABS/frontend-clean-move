@@ -17,6 +17,7 @@ import {
   isFixedServicePrice,
   type ServicePriceMetadata,
 } from "@/shared/services/service-price-metadata";
+import { cn } from "@/shared/utils/cn";
 
 import type { CreateQuoteFormInput } from "../../../types/create-quote";
 
@@ -124,7 +125,10 @@ export function QuoteServiceItemCard({
                     onChange={(value) => field.onChange(parseBrlMoneyToCents(value))}
                     onBlur={field.onBlur}
                     disabled={isPriceReadOnly}
-                    className="shadow-xs"
+                    className={cn(
+                      "shadow-xs",
+                      isCourtesy && "text-muted-foreground line-through decoration-2",
+                    )}
                   />
                 </FormControl>
                 {priceMetadata ? (
@@ -158,7 +162,9 @@ export function QuoteServiceItemCard({
                     <Gift aria-hidden className="size-4 text-primary" />
                     Cortesia
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Zera o valor no total.</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Mantém o valor como referência e remove do total.
+                  </p>
                 </div>
               </div>
             )}

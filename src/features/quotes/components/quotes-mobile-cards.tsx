@@ -18,7 +18,7 @@ import { MobileDataCard, MobileDataCardSkeleton } from "@/shared/components/mobi
 import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { cn } from "@/shared/utils/cn";
 
-import { useListQuotes } from "../hooks/use-list-quotes";
+import { useListQuotes } from "../hooks/queries/use-list-quotes";
 import {
   DEFAULT_QUOTES_FILTERS,
   buildQuotesApiFilters,
@@ -29,7 +29,7 @@ import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
-import { useGenerateQuotePdf } from "../hooks/use-gerenate-quote-pdf";
+import { useGenerateQuotePdf } from "../hooks/mutations/use-gerenate-quote-pdf";
 
 const PAGE_SIZE = 5;
 
@@ -85,11 +85,11 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
       ]}
       description={
         <>
-          <p className="truncate">{getQuoteVehicleLabel(quote)}</p>
-          <p className="text-xs mt-2 flex gap-1">
+          <span className="block truncate">{getQuoteVehicleLabel(quote)}</span>
+          <span className="mt-2 flex gap-1 text-xs">
             <Calendar size={14} />
             Criado {formatShortDate(quote.createdAt)}
-          </p>
+          </span>
         </>
       }
       footer={{

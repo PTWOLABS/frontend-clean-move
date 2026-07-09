@@ -7,6 +7,7 @@ import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { useListCustomerOptions } from "@/features/appointments/hooks/queries/use-list-customer-options";
 import { useListCustomerVehicleOptions } from "@/features/appointments/hooks/queries/use-list-customer-vehicle-options";
 import { useCustomer } from "@/features/customer/hooks/use-customer";
+import { formatCpfCnpj, formatPhone } from "@/features/customer/lib/format-customer-catalog";
 import { useVehicle } from "@/features/vehicle/hooks/use-vehicle";
 import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
 
@@ -14,7 +15,8 @@ import { createQuoteFormDefaultValues } from "../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../types/create-quote";
 
 export function useQuoteCustomerVehicleStep() {
-  const { control, clearErrors, resetField, setValue } = useFormContext<CreateQuoteFormInput>();
+  const { control, clearErrors, resetField, setValue, trigger } =
+    useFormContext<CreateQuoteFormInput>();
   const selectedCustomerId = useWatch({ control, name: "stepOne.customerId" });
   const selectedCustomerName = useWatch({ control, name: "stepOne.customer.name" });
   const selectedVehicleId = useWatch({ control, name: "stepOne.vehicleId" });
@@ -118,9 +120,17 @@ export function useQuoteCustomerVehicleStep() {
       setValue("stepOne.customer.email", null, { shouldDirty: true });
       setValue("stepOne.customer.cpfCnpj", null, { shouldDirty: true });
       clearVehicleSelection();
-      clearErrors("stepOne.customer.name");
+      clearErrors("stepOne.customer");
+      void trigger("stepOne.customer");
     },
-    [clearCustomerSelection, clearErrors, clearVehicleSelection, selectedCustomerId, setValue],
+    [
+      clearCustomerSelection,
+      clearErrors,
+      clearVehicleSelection,
+      selectedCustomerId,
+      setValue,
+      trigger,
+    ],
   );
 
   const handleVehicleSelectedItemChange = useCallback(
@@ -141,8 +151,10 @@ export function useQuoteCustomerVehicleStep() {
         shouldDirty: true,
         shouldTouch: true,
       });
+      clearErrors("stepOne.vehicle");
+      void trigger("stepOne");
     },
-    [clearVehicleSelection, selectedVehicleId, setValue],
+    [clearErrors, clearVehicleSelection, selectedVehicleId, setValue, trigger],
   );
 
   useEffect(() => {
@@ -152,13 +164,28 @@ export function useQuoteCustomerVehicleStep() {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue("stepOne.customer.phone", selectedCustomer.phone ?? null, { shouldDirty: true });
-    setValue("stepOne.customer.email", selectedCustomer.email ?? null, { shouldDirty: true });
-    setValue("stepOne.customer.cpfCnpj", selectedCustomer.cpfCnpj ?? null, {
+    setValue(
+      "stepOne.customer.phone",
+      selectedCustomer.phone ? formatPhone(selectedCustomer.phone) : null,
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
+    setValue("stepOne.customer.email", selectedCustomer.email ?? null, {
       shouldDirty: true,
+      shouldValidate: true,
     });
-    clearErrors("stepOne.customer.name");
-  }, [clearErrors, selectedCustomer, selectedCustomerId, setValue]);
+    setValue(
+      "stepOne.customer.cpfCnpj",
+      selectedCustomer.cpfCnpj ? formatCpfCnpj(selectedCustomer.cpfCnpj) : null,
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
+    void trigger("stepOne.customer");
+  }, [selectedCustomer, selectedCustomerId, setValue, trigger]);
 
   useEffect(() => {
     if (
@@ -169,12 +196,29 @@ export function useQuoteCustomerVehicleStep() {
       return;
     }
 
-    setValue("stepOne.vehicle.plate", selectedVehicle.plate ?? null, { shouldDirty: true });
-    setValue("stepOne.vehicle.brand", selectedVehicle.brand ?? null, { shouldDirty: true });
-    setValue("stepOne.vehicle.model", selectedVehicle.model ?? null, { shouldDirty: true });
-    setValue("stepOne.vehicle.color", selectedVehicle.color ?? null, { shouldDirty: true });
-    setValue("stepOne.vehicle.year", selectedVehicle.year ?? null, { shouldDirty: true });
-  }, [selectedCustomerId, selectedVehicle, selectedVehicleId, setValue]);
+    setValue("stepOne.vehicle.plate", selectedVehicle.plate ?? null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue("stepOne.vehicle.brand", selectedVehicle.brand ?? null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue("stepOne.vehicle.model", selectedVehicle.model ?? null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue("stepOne.vehicle.color", selectedVehicle.color ?? null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue("stepOne.vehicle.year", selectedVehicle.year ?? null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    clearErrors("stepOne.vehicle");
+    void trigger("stepOne");
+  }, [clearErrors, selectedCustomerId, selectedVehicle, selectedVehicleId, setValue, trigger]);
 
   const customerEmptyMessage = isLoadingCustomerOptions
     ? "Buscando clientes..."

@@ -1,4 +1,8 @@
+import { onlyDigits } from "@/shared/utils/lib";
+
 import type {
+  CreateQuoteBody,
+  CreateQuoteFormValues,
   QuoteCustomerVehicleStepPayload,
   QuoteCustomerVehicleStepValues,
   QuotePaymentStepPayload,
@@ -7,6 +11,14 @@ import type {
   QuoteServicesStepValues,
 } from "../types/create-quote";
 
+export function buildCreateQuoteBody(values: CreateQuoteFormValues): CreateQuoteBody {
+  return {
+    ...mapQuoteCustomerVehicleStepToPayload(values.stepOne),
+    ...mapQuoteServicesStepToPayload(values.stepTwo),
+    ...mapQuotePaymentStepToPayload(values.stepThree),
+  };
+}
+
 export function mapQuoteCustomerVehicleStepToPayload(
   values: QuoteCustomerVehicleStepValues,
 ): QuoteCustomerVehicleStepPayload {
@@ -14,7 +26,11 @@ export function mapQuoteCustomerVehicleStepToPayload(
     ...(values.customerId
       ? { customerId: values.customerId }
       : {
-          customer: values.customer,
+          customer: {
+            name: values.customer.name,
+            phone: normalizeOptionalPhone(values.customer.phone),
+            cpfCnpj: normalizeOptionalCpfCnpj(values.customer.cpfCnpj),
+          },
         }),
     ...(values.vehicleId
       ? { vehicleId: values.vehicleId }
@@ -28,7 +44,7 @@ export function mapQuoteServicesStepToPayload(
   values: QuoteServicesStepValues,
 ): QuoteServicesStepPayload {
   return {
-    services: values.services.map((service) => ({
+    serviceItems: values.services.map((service) => ({
       ...(service.serviceId ? { serviceId: service.serviceId } : {}),
       ...(service.serviceName ? { serviceName: service.serviceName } : {}),
       ...(service.priceInCents !== undefined ? { priceInCents: service.priceInCents } : {}),
@@ -37,10 +53,23 @@ export function mapQuoteServicesStepToPayload(
   };
 }
 
+function normalizeOptionalPhone(value: string | null | undefined) {
+  const digits = onlyDigits(value ?? "");
+
+  return digits.length > 0 ? digits : null;
+}
+
+function normalizeOptionalCpfCnpj(value: string | null | undefined) {
+  const digits = onlyDigits(value ?? "");
+
+  return digits.length > 0 ? digits : null;
+}
+
 export function mapQuotePaymentStepToPayload(
   values: QuotePaymentStepValues,
 ): QuotePaymentStepPayload {
   return {
+    expiresAt: values.expiresAt ?? null,
     paymentOptions: values.paymentOptions.map((paymentOption) => ({
       method: paymentOption.method,
       label: paymentOption.label,
@@ -57,5 +86,6 @@ export function mapQuotePaymentStepToPayload(
         ? { discountValue: paymentOption.discountValue }
         : {}),
     })),
+    termsAndConditions: values.termsAndConditions ?? null,
   };
 }

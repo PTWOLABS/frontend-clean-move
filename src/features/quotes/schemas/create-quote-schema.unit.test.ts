@@ -2,11 +2,150 @@ import { describe, expect, it } from "vitest";
 
 import {
   createQuoteFormSchema,
+  quoteCustomerVehicleStepSchema,
   quotePaymentStepSchema,
   quoteServicesStepSchema,
 } from "./create-quote-schema";
 
 const serviceId = "00000000-0000-4000-8000-000000000001";
+
+describe("quoteCustomerVehicleStepSchema", () => {
+  it("accepts formatted customer contact fields and a four-digit vehicle year", () => {
+    const result = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        customer: {
+          name: "Cliente teste",
+          cpfCnpj: "529.982.247-25",
+          phone: "(11) 99999-1234",
+          email: "cliente@email.com",
+        },
+        vehicle: {
+          plate: null,
+          brand: "Honda",
+          model: "Civic",
+          color: null,
+          year: "2024",
+        },
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error("Expected customer and vehicle validation to pass.");
+    }
+
+    expect(result.data.vehicle.year).toBe(2024);
+  });
+
+  it("rejects an invalid CPF or CNPJ", () => {
+    const result = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        customer: {
+          name: "Cliente teste",
+          cpfCnpj: "111.111.111-11",
+          phone: null,
+          email: null,
+        },
+      }),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected customer document validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "CPF inválido.",
+          path: ["customer", "cpfCnpj"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects incomplete phone numbers", () => {
+    const result = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        customer: {
+          name: "Cliente teste",
+          cpfCnpj: null,
+          phone: "1",
+          email: null,
+        },
+      }),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected phone validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe um telefone válido com 10 ou 11 dígitos.",
+          path: ["customer", "phone"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects invalid email values", () => {
+    const result = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        customer: {
+          name: "Cliente teste",
+          cpfCnpj: null,
+          phone: null,
+          email: "cliente@",
+        },
+      }),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected email validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe um e-mail válido.",
+          path: ["customer", "email"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects vehicle years with non-digits or more than four digits", () => {
+    const nonDigitResult = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        vehicle: {
+          plate: null,
+          brand: "Honda",
+          model: "Civic",
+          color: null,
+          year: "20e4",
+        },
+      }),
+    );
+    const longYearResult = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        vehicle: {
+          plate: null,
+          brand: "Honda",
+          model: "Civic",
+          color: null,
+          year: "20244",
+        },
+      }),
+    );
+
+    expect(nonDigitResult.success).toBe(false);
+    expect(longYearResult.success).toBe(false);
+  });
+});
 
 describe("quoteServicesStepSchema", () => {
   it("accepts an existing fixed-price service", () => {
@@ -151,6 +290,81 @@ describe("quotePaymentStepSchema", () => {
     });
   });
 
+  it("normalizes quote validity and terms fields", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+        },
+      ],
+      expiresAt: "15/08/2999",
+      termsAndConditions: "  Válido enquanto houver agenda disponível.  ",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error("Expected quote payment metadata validation to pass.");
+    }
+
+    expect(result.data.expiresAt).toBe("2999-08-16T02:59:59.999Z");
+    expect(result.data.termsAndConditions).toBe("Válido enquanto houver agenda disponível.");
+  });
+
+  it("rejects an invalid quote validity date", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+        },
+      ],
+      expiresAt: "31/02/2026",
+      termsAndConditions: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote validity validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe uma data válida.",
+          path: ["expiresAt"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects a past quote validity date", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix",
+        },
+      ],
+      expiresAt: "01/01/2000",
+      termsAndConditions: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected past quote validity validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "A validade deve ser hoje ou uma data futura.",
+          path: ["expiresAt"],
+        }),
+      ]),
+    );
+  });
+
   it("rejects a payment option without label", () => {
     const result = quotePaymentStepSchema.safeParse({
       paymentOptions: [
@@ -188,6 +402,60 @@ describe("quotePaymentStepSchema", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("rejects an enabled discount without value", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix com desconto",
+          discountType: "PERCENTAGE",
+          discountValue: null,
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote payment validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Informe o valor do desconto.",
+          path: ["paymentOptions", 0, "discountValue"],
+        }),
+      ]),
+    );
+  });
+
+  it("rejects an enabled discount with zero value", () => {
+    const result = quotePaymentStepSchema.safeParse({
+      paymentOptions: [
+        {
+          method: "PIX",
+          label: "Pix com desconto",
+          discountType: "AMOUNT",
+          discountValue: 0,
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected quote payment validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "O desconto deve ser maior que zero.",
+          path: ["paymentOptions", 0, "discountValue"],
+        }),
+      ]),
+    );
   });
 });
 
@@ -297,5 +565,29 @@ function makeCreateQuoteFormInput({
         },
       ],
     },
+  };
+}
+
+function makeCustomerVehicleStepInput(
+  overrides: Partial<Parameters<typeof quoteCustomerVehicleStepSchema.safeParse>[0]> = {},
+) {
+  return {
+    customerId: null,
+    customer: {
+      name: "Cliente teste",
+      cpfCnpj: null,
+      phone: null,
+      email: null,
+    },
+    vehicleId: null,
+    vehicleLabel: null,
+    vehicle: {
+      plate: null,
+      brand: "Honda",
+      model: "Civic",
+      color: null,
+      year: null,
+    },
+    ...overrides,
   };
 }

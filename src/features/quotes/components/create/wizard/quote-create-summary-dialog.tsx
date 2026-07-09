@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ClipboardList,
   CreditCard,
+  ScrollText,
   UserRound,
   Wrench,
   type LucideIcon,
@@ -156,8 +157,13 @@ export function QuoteCreateSummaryDialog({
                         </p>
                       </div>
 
-                      <p className="max-w-full shrink-0 truncate text-sm font-semibold text-foreground">
-                        {formatBrlFromCents(service.isCourtesy ? 0 : service.priceInCents)}
+                      <p
+                        className={cn(
+                          "max-w-full shrink-0 truncate text-sm font-semibold text-foreground",
+                          service.isCourtesy && "text-muted-foreground line-through decoration-2",
+                        )}
+                      >
+                        {formatBrlFromCents(service.priceInCents)}
                       </p>
                     </div>
                   ))}
@@ -227,6 +233,27 @@ export function QuoteCreateSummaryDialog({
                     );
                   })}
                 </div>
+              </SummarySection>
+
+              <SummarySection
+                icon={ScrollText}
+                title="Validade e termos"
+                description="Condições comerciais informadas para a proposta."
+              >
+                <SummaryGrid>
+                  <SummaryField
+                    label="Validade"
+                    value={stepThree.expiresAt ? String(stepThree.expiresAt) : "Sem validade"}
+                  />
+                  <SummaryField
+                    label="Termos"
+                    value={getDisplayValue(stepThree.termsAndConditions)}
+                  />
+                  <SummaryField
+                    label="Status"
+                    value={stepThree.termsAndConditions ? "Termos informados" : "Sem termos"}
+                  />
+                </SummaryGrid>
               </SummarySection>
             </div>
           </div>

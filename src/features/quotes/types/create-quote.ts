@@ -18,20 +18,30 @@ export type CreateQuoteFormInput = z.input<typeof createQuoteFormSchema>;
 export type CreateQuoteFormValues = z.output<typeof createQuoteFormSchema>;
 
 export type QuoteCustomerVehicleStepPayload = {
-  customerId?: string;
-  customer?: QuoteCustomerVehicleStepValues["customer"];
-  vehicleId?: string;
-  vehicle?: QuoteCustomerVehicleStepValues["vehicle"];
+  customerId?: string | null;
+  customer?: {
+    name: string;
+    phone?: string | null;
+    cpfCnpj?: string | null;
+  };
+  vehicleId?: string | null;
+  vehicle?: QuoteCustomerVehicleStepValues["vehicle"] | null;
 };
 
 export type QuoteServicesStepPayload = {
-  services: Array<{
+  serviceItems: Array<{
     serviceId?: string | null;
     serviceName?: string;
     priceInCents?: number;
     isCourtesy?: boolean;
   }>;
 };
+
+export type CreateQuoteBody = QuoteCustomerVehicleStepPayload &
+  QuoteServicesStepPayload &
+  QuotePaymentStepPayload & {
+    description?: string | null;
+  };
 
 export type QuotePaymentStepPayload = {
   paymentOptions: Array<{
@@ -42,4 +52,6 @@ export type QuotePaymentStepPayload = {
     discountType?: QuotePaymentStepValues["paymentOptions"][number]["discountType"];
     discountValue?: number | null;
   }>;
+  termsAndConditions?: string | null;
+  expiresAt?: string | null;
 };
