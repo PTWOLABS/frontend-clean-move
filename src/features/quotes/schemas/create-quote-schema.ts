@@ -1,12 +1,13 @@
-import { endOfDay, format, isBefore, parseISO, startOfToday } from "date-fns";
 import { z } from "zod";
 
+import {
+  dateInputValueToEndOfDayPayload,
+  getDateKeyInSaoPaulo,
+  parseBrDateToIso,
+} from "@/shared/lib/date-time";
 import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
-import { parseBrDateToIso } from "@/shared/lib/br-date-input";
 import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
 import { onlyDigits } from "@/shared/utils/lib";
-
-const QUOTE_EXPIRES_AT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
@@ -34,7 +35,7 @@ const optionalBrDate = z
       return;
     }
 
-    if (isBefore(parseISO(isoDate), startOfToday())) {
+    if (isoDate < getDateKeyInSaoPaulo(new Date())) {
       context.addIssue({
         code: "custom",
         message: "A validade deve ser hoje ou uma data futura.",
@@ -46,7 +47,7 @@ const optionalBrDate = z
 
     const isoDate = parseBrDateToIso(value);
 
-    return isoDate ? formatQuoteExpiresAtIsoString(isoDate) : null;
+    return isoDate ? dateInputValueToEndOfDayPayload(isoDate) : null;
   });
 
 const optionalTermsAndConditions = z
@@ -395,10 +396,6 @@ function getQuoteServicesTotalInCents(services: Array<z.output<typeof quoteServi
 
     return total + priceInCents;
   }, 0);
-}
-
-function formatQuoteExpiresAtIsoString(isoDate: string) {
-  return format(endOfDay(parseISO(isoDate)), QUOTE_EXPIRES_AT_FORMAT);
 }
 
 export const createQuoteFormDefaultValues = {

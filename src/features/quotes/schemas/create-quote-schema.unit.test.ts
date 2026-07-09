@@ -307,7 +307,7 @@ describe("quotePaymentStepSchema", () => {
       throw new Error("Expected quote payment metadata validation to pass.");
     }
 
-    expect(result.data.expiresAt).toBe("2999-08-15T23:59:59.999Z");
+    expect(result.data.expiresAt).toBe("2999-08-16T02:59:59.999Z");
     expect(result.data.termsAndConditions).toBe("Válido enquanto houver agenda disponível.");
   });
 
