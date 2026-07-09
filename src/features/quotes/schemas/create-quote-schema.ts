@@ -1,10 +1,12 @@
+import { endOfDay, format, isBefore, parseISO, startOfToday } from "date-fns";
 import { z } from "zod";
 
 import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
 import { parseBrDateToIso } from "@/shared/lib/br-date-input";
 import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
 import { onlyDigits } from "@/shared/utils/lib";
-import { format, isAfter } from "date-fns";
+
+const QUOTE_EXPIRES_AT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
@@ -19,14 +21,38 @@ const optionalBrDate = z
   .nullable()
   .optional()
   .transform((value) => (value?.trim() ? value.trim() : null))
-  .refine((value) => !value || parseBrDateToIso(value) !== null, {
-    message: "Informe uma data valida.",
+  .superRefine((value, context) => {
+    if (!value) return;
+
+    const isoDate = parseBrDateToIso(value);
+
+    if (!isoDate) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe uma data válida.",
+      });
+      return;
+    }
+
+    if (isBefore(parseISO(isoDate), startOfToday())) {
+      context.addIssue({
+        code: "custom",
+        message: "A validade deve ser hoje ou uma data futura.",
+      });
+    }
   })
-  .transform((value) => (value ? parseBrDateToIso(value) : null));
+  .transform((value) => {
+    if (!value) return null;
+
+    const isoDate = parseBrDateToIso(value);
+
+    return isoDate ? formatQuoteExpiresAtIsoString(isoDate) : null;
+  });
 
 const optionalTermsAndConditions = z
   .string()
   .trim()
+  .max(250, "Máximo 250 caracteres.")
   .nullable()
   .optional()
   .transform((value) => (value?.trim() ? value.trim() : null));
@@ -44,7 +70,7 @@ const optionalYear = z
     if (!/^\d+$/.test(value)) {
       context.addIssue({
         code: "custom",
-        message: "Informe apenas numeros no ano do veiculo.",
+        message: "Informe apenas números no ano do veículo.",
       });
       return;
     }
@@ -52,7 +78,7 @@ const optionalYear = z
     if (value.length > 4) {
       context.addIssue({
         code: "custom",
-        message: "Informe no maximo 4 digitos no ano do veiculo.",
+        message: "Informe no máximo 4 dígitos no ano do veículo.",
       });
       return;
     }
@@ -62,7 +88,7 @@ const optionalYear = z
     if (!Number.isInteger(year) || year < 1900) {
       context.addIssue({
         code: "custom",
-        message: "Informe um ano valido.",
+        message: "Informe um ano válido.",
       });
     }
   })
@@ -76,7 +102,7 @@ const optionalNullablePhone = optionalNullableTrimmedString.superRefine((value, 
   if (phoneLength !== 10 && phoneLength !== 11) {
     context.addIssue({
       code: "custom",
-      message: "Informe um telefone valido com 10 ou 11 digitos.",
+      message: "Informe um telefone válido com 10 ou 11 dígitos.",
     });
   }
 });
@@ -104,7 +130,7 @@ const optionalNullableCpfCnpj = optionalNullableTrimmedString.superRefine((value
   if (digits.length === 11 && !isValidCpf(digits)) {
     context.addIssue({
       code: "custom",
-      message: "CPF invalido.",
+      message: "CPF inválido.",
     });
     return;
   }
@@ -112,7 +138,7 @@ const optionalNullableCpfCnpj = optionalNullableTrimmedString.superRefine((value
   if (digits.length === 14 && !isValidCnpj(digits)) {
     context.addIssue({
       code: "custom",
-      message: "CNPJ invalido.",
+      message: "CNPJ inválido.",
     });
     return;
   }
@@ -120,7 +146,7 @@ const optionalNullableCpfCnpj = optionalNullableTrimmedString.superRefine((value
   if (digits.length !== 11 && digits.length !== 14) {
     context.addIssue({
       code: "custom",
-      message: "Informe um CPF ou CNPJ valido.",
+      message: "Informe um CPF ou CNPJ válido.",
     });
   }
 });
@@ -128,12 +154,12 @@ const optionalNullableCpfCnpj = optionalNullableTrimmedString.superRefine((value
 const optionalNullableEmail = optionalNullableTrimmedString.superRefine((value, context) => {
   if (!value) return;
 
-  const emailResult = z.email("Informe um e-mail valido.").safeParse(value);
+  const emailResult = z.email("Informe um e-mail válido.").safeParse(value);
 
   if (!emailResult.success) {
     context.addIssue({
       code: "custom",
-      message: emailResult.error.issues[0]?.message ?? "Informe um e-mail valido.",
+      message: emailResult.error.issues[0]?.message ?? "Informe um e-mail válido.",
     });
   }
 });
@@ -369,6 +395,10 @@ function getQuoteServicesTotalInCents(services: Array<z.output<typeof quoteServi
 
     return total + priceInCents;
   }, 0);
+}
+
+function formatQuoteExpiresAtIsoString(isoDate: string) {
+  return format(endOfDay(parseISO(isoDate)), QUOTE_EXPIRES_AT_FORMAT);
 }
 
 export const createQuoteFormDefaultValues = {
