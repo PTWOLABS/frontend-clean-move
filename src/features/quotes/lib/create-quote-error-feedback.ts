@@ -18,7 +18,7 @@ export type CreateQuoteErrorCode =
 export const CREATE_QUOTE_ERROR_FEEDBACK = {
   VALIDATION_ERROR: {
     title: "Revise os dados do orçamento.",
-    description: "Corrija os campos destacados antes de continuar.",
+    description: "Revise os dados informados antes de continuar.",
   },
   QUOTE_SERVICE_INACTIVE: {
     title: "Serviço indisponível.",
@@ -67,11 +67,48 @@ const CREATE_QUOTE_FALLBACK: ApiErrorFeedback = {
   description: "Tente novamente em alguns instantes.",
 };
 
+function getCreateQuoteValidationDescription(field?: string) {
+  if (!field) return CREATE_QUOTE_ERROR_FEEDBACK.VALIDATION_ERROR.description;
+
+  if (field === "customerId" || field === "customer" || field.startsWith("customer.")) {
+    return "Revise os dados do cliente antes de continuar.";
+  }
+
+  if (field === "vehicleId" || field === "vehicle" || field.startsWith("vehicle.")) {
+    return "Revise os dados do veículo antes de continuar.";
+  }
+
+  if (field === "serviceItems" || field.startsWith("serviceItems.")) {
+    return "Revise os serviços do orçamento antes de continuar.";
+  }
+
+  if (field === "paymentOptions" || field.startsWith("paymentOptions.")) {
+    return "Revise as condições de pagamento antes de continuar.";
+  }
+
+  if (field === "expiresAt" || field === "termsAndConditions") {
+    return "Revise a validade e os termos do orçamento antes de continuar.";
+  }
+
+  if (field === "description") {
+    return "Revise a descrição do orçamento antes de continuar.";
+  }
+
+  return CREATE_QUOTE_ERROR_FEEDBACK.VALIDATION_ERROR.description;
+}
+
 export function resolveCreateQuoteErrorFeedback(error: unknown) {
-  return resolveApiErrorFeedback<CreateQuoteErrorCode>({
+  const feedback = resolveApiErrorFeedback<CreateQuoteErrorCode>({
     error,
     idPrefix: "create-quote",
     fallback: CREATE_QUOTE_FALLBACK,
     feedbackByCode: CREATE_QUOTE_ERROR_FEEDBACK,
   });
+
+  if (feedback.code !== "VALIDATION_ERROR") return feedback;
+
+  return {
+    ...feedback,
+    description: getCreateQuoteValidationDescription(feedback.validationErrors?.[0]?.field),
+  };
 }

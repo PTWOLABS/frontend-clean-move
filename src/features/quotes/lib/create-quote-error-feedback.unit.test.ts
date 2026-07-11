@@ -38,7 +38,7 @@ const expectedFeedbackByCode: Record<CreateQuoteErrorCode, { title: string; desc
   {
     VALIDATION_ERROR: {
       title: "Revise os dados do orçamento.",
-      description: "Corrija os campos destacados antes de continuar.",
+      description: "Revise os dados informados antes de continuar.",
     },
     QUOTE_SERVICE_INACTIVE: {
       title: "Serviço indisponível.",
@@ -103,7 +103,15 @@ describe("create quote error feedback", () => {
     });
   });
 
-  it("preserves normalized validation errors and derives field feedback", () => {
+  it.each([
+    ["customer.name", "Revise os dados do cliente antes de continuar."],
+    ["vehicle.brand", "Revise os dados do veículo antes de continuar."],
+    ["serviceItems.0.priceInCents", "Revise os serviços do orçamento antes de continuar."],
+    ["paymentOptions.0.method", "Revise as condições de pagamento antes de continuar."],
+    ["expiresAt", "Revise a validade e os termos do orçamento antes de continuar."],
+    ["description", "Revise a descrição do orçamento antes de continuar."],
+    ["unknownField", "Revise os dados informados antes de continuar."],
+  ])("describes the affected validation area for %s", (field, description) => {
     const error = new ApiError({
       statusCode: 400,
       message: "Validation failed",
@@ -111,24 +119,32 @@ describe("create quote error feedback", () => {
         statusCode: 400,
         code: "VALIDATION_ERROR",
         message: "Validation failed",
-        errors: [
-          { field: "customerId", code: "INVALID_FORMAT" },
-          { field: "serviceItems", code: "MIN_ITEMS" },
-        ],
+        errors: [{ field, code: "INVALID_FORMAT" }],
       },
     });
 
     expect(resolveCreateQuoteErrorFeedback(error)).toMatchObject({
       code: "VALIDATION_ERROR",
-      validationErrors: [
-        { field: "customerId", code: "INVALID_FORMAT" },
-        { field: "serviceItems", code: "MIN_ITEMS" },
-      ],
-      fieldErrors: {
-        customerId: "Formato inválido.",
-        serviceItems: "Informe pelo menos um item.",
+      description,
+      validationErrors: [{ field, code: "INVALID_FORMAT" }],
+    });
+  });
+
+  it("uses only the first validation area when multiple fields fail", () => {
+    const error = new ApiError({
+      statusCode: 400,
+      payload: {
+        code: "VALIDATION_ERROR",
+        errors: [
+          { field: "paymentOptions.0.method", code: "INVALID_FORMAT" },
+          { field: "customer.name", code: "REQUIRED" },
+        ],
       },
     });
+
+    expect(resolveCreateQuoteErrorFeedback(error).description).toBe(
+      "Revise as condições de pagamento antes de continuar.",
+    );
   });
 
   it("uses the operation fallback for an undocumented code", () => {
