@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LockKeyhole } from "lucide-react";
@@ -30,6 +30,12 @@ import { useUpdateUserPassword } from "@/features/user/hooks/use-update-user-pas
 import type { RequestPasswordChangeCodePayload, User } from "@/features/user/types";
 import { ApiError } from "@/shared/api/httpClient";
 
+import { useRegisterSettingsUnsavedChanges } from "../context/settings-unsaved-changes-context";
+import {
+  hasSecurityUnsavedChanges,
+  resolveSecurityTabSaveAction,
+  SECURITY_CONFIRMATION_TAB_LEAVE_TOAST,
+} from "../lib/settings-security-tab-guard";
 import {
   buildConfirmPasswordChangePayload,
   createPasswordSettingsSchema,
@@ -95,7 +101,14 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
     reValidateMode: "onChange",
   });
 
-  const { control, getValues, handleSubmit, setError } = methods;
+  const {
+    control,
+    getValues,
+    handleSubmit,
+    setError,
+    reset,
+    formState: { isDirty },
+  } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   const title = hasPassword ? "Alterar senha" : "Definir senha";
@@ -215,6 +228,44 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
 
     setConfirmDialogOpen(open);
   };
+
+  const discardPasswordChanges = useCallback(() => {
+    reset(getPasswordSettingsDefaultValues(hasPassword));
+    setPendingPayload(null);
+    setStep("credentials");
+    setConfirmDialogOpen(false);
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  }, [hasPassword, reset]);
+
+  const savePasswordFromTabGuard = useCallback(async () => {
+    if (resolveSecurityTabSaveAction(step) === "block_on_confirmation") {
+      toast.info(SECURITY_CONFIRMATION_TAB_LEAVE_TOAST);
+      return false;
+    }
+
+    return new Promise<boolean>((resolve) => {
+      void handleSubmit(
+        () => {
+          setConfirmDialogOpen(true);
+          resolve(false);
+        },
+        () => resolve(false),
+      )();
+    });
+  }, [handleSubmit, step]);
+
+  useRegisterSettingsUnsavedChanges("security", {
+    hasUnsavedChanges: hasSecurityUnsavedChanges({
+      isDirty,
+      step,
+      confirmDialogOpen,
+    }),
+    isSaving: isRequestPasswordChangeCodePending || isConfirmPasswordPending,
+    save: savePasswordFromTabGuard,
+    discard: discardPasswordChanges,
+  });
 
   if (step === "confirmation" && pendingPayload) {
     return (

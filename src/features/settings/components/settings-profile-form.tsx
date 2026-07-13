@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, Hash, LoaderCircle, Mail, MapPin, Navigation, Phone, User } from "lucide-react";
@@ -28,6 +28,7 @@ import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use
 import { useUpdateUserProfile } from "@/features/user/hooks/use-update-user-profile";
 import type { User as UserProfile } from "@/features/user/types";
 
+import { useRegisterSettingsUnsavedChanges } from "../context/settings-unsaved-changes-context";
 import {
   canSaveProfileSettings,
   createProfileSettingsSchema,
@@ -100,19 +101,52 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     reset(mapUserToProfileFormDefaults(user));
   }, [user, reset]);
 
+  const persistProfile = useCallback(
+    (values: ProfileSettingsFormValues) => {
+      const payload = mapProfileFormToPatchPayload(values);
+
+      if (!hasProfileChanges(payload, initialPayload)) {
+        return Promise.resolve(true);
+      }
+
+      return new Promise<boolean>((resolve) => {
+        mutate(getProfileChangedPayload(payload, initialPayload), {
+          onSuccess: (updatedUser) => {
+            reset(mapUserToProfileFormDefaults(updatedUser));
+            resolve(true);
+          },
+          onError: () => resolve(false),
+        });
+      });
+    },
+    [initialPayload, mutate, reset],
+  );
+
   const onSubmit = (values: ProfileSettingsFormValues) => {
-    const payload = mapProfileFormToPatchPayload(values);
-
-    if (!hasProfileChanges(payload, initialPayload)) {
-      return;
-    }
-
-    mutate(getProfileChangedPayload(payload, initialPayload), {
-      onSuccess: (updatedUser) => {
-        reset(mapUserToProfileFormDefaults(updatedUser));
-      },
-    });
+    void persistProfile(values);
   };
+
+  const saveFromTabGuard = useCallback(() => {
+    return new Promise<boolean>((resolve) => {
+      void handleSubmit(
+        async (values) => {
+          resolve(await persistProfile(values));
+        },
+        () => resolve(false),
+      )();
+    });
+  }, [handleSubmit, persistProfile]);
+
+  const discardFromTabGuard = useCallback(() => {
+    reset(mapUserToProfileFormDefaults(user));
+  }, [reset, user]);
+
+  useRegisterSettingsUnsavedChanges("profile", {
+    hasUnsavedChanges: canSave,
+    isSaving: isPending,
+    save: saveFromTabGuard,
+    discard: discardFromTabGuard,
+  });
 
   return (
     <Card>

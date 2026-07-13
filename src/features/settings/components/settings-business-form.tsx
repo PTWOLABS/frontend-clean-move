@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, CreditCard } from "lucide-react";
@@ -27,6 +27,7 @@ import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useUpdateEstablishment } from "@/features/establishment/hooks/use-update-establishment";
 import type { Establishment } from "@/features/establishment/types";
 
+import { useRegisterSettingsUnsavedChanges } from "../context/settings-unsaved-changes-context";
 import {
   businessSettingsDefaultValues,
   businessSettingsSchema,
@@ -76,25 +77,58 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
     reset(mapEstablishmentToBusinessFormDefaults(establishment));
   }, [establishment, reset]);
 
+  const persistBusiness = useCallback(
+    (values: BusinessSettingsFormValues) => {
+      const payload = mapBusinessFormToPatchPayload(values);
+
+      if (!hasChanges(payload)) {
+        return Promise.resolve(true);
+      }
+
+      return new Promise<boolean>((resolve) => {
+        mutate(
+          {
+            establishmentId: establishment.id,
+            payload: getChangedPayload(payload),
+          },
+          {
+            onSuccess: (updatedEstablishment) => {
+              reset(mapEstablishmentToBusinessFormDefaults(updatedEstablishment));
+              resolve(true);
+            },
+            onError: () => resolve(false),
+          },
+        );
+      });
+    },
+    [establishment.id, getChangedPayload, hasChanges, mutate, reset],
+  );
+
   const onSubmit = (values: BusinessSettingsFormValues) => {
-    const payload = mapBusinessFormToPatchPayload(values);
-
-    if (!hasChanges(payload)) {
-      return;
-    }
-
-    mutate(
-      {
-        establishmentId: establishment.id,
-        payload: getChangedPayload(payload),
-      },
-      {
-        onSuccess: (updatedEstablishment) => {
-          reset(mapEstablishmentToBusinessFormDefaults(updatedEstablishment));
-        },
-      },
-    );
+    void persistBusiness(values);
   };
+
+  const saveFromTabGuard = useCallback(() => {
+    return new Promise<boolean>((resolve) => {
+      void handleSubmit(
+        async (values) => {
+          resolve(await persistBusiness(values));
+        },
+        () => resolve(false),
+      )();
+    });
+  }, [handleSubmit, persistBusiness]);
+
+  const discardFromTabGuard = useCallback(() => {
+    reset(mapEstablishmentToBusinessFormDefaults(establishment));
+  }, [establishment, reset]);
+
+  useRegisterSettingsUnsavedChanges("company", {
+    hasUnsavedChanges: Boolean(currentPayload && hasChanges(currentPayload)),
+    isSaving: isPending,
+    save: saveFromTabGuard,
+    discard: discardFromTabGuard,
+  });
 
   return (
     <Card>
