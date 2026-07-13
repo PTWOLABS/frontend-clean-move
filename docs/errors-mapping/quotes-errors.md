@@ -33,26 +33,26 @@ Para `POST /quotes`, quando o erro for de validação estrutural do body, a resp
 
 O objeto não inclui `issues`, mensagens do Zod nem valores enviados. `errors` contém todas as falhas encontradas, podendo haver mais de uma entrada para o mesmo campo.
 
-| Campo | Tipo | Valor |
-|---|---|---|
-| `statusCode` | número | Sempre `400` |
-| `code` | string | Sempre `VALIDATION_ERROR` |
-| `message` | string | Sempre `Validation failed` |
-| `errors` | array | Pelo menos uma falha de campo |
+| Campo            | Tipo   | Valor                                                       |
+| ---------------- | ------ | ----------------------------------------------------------- |
+| `statusCode`     | número | Sempre `400`                                                |
+| `code`           | string | Sempre `VALIDATION_ERROR`                                   |
+| `message`        | string | Sempre `Validation failed`                                  |
+| `errors`         | array  | Pelo menos uma falha de campo                               |
 | `errors[].field` | string | Caminho do campo no payload, usando `.` para objetos/arrays |
-| `errors[].code` | string | Código normalizado da falha |
+| `errors[].code`  | string | Código normalizado da falha                                 |
 
 Códigos possíveis em `errors[].code`:
 
-| Código | Significado |
-|---|---|
-| `REQUIRED` | Campo obrigatório não foi enviado. |
-| `INVALID_TYPE` | Tipo incompatível, como texto onde era esperado número ou booleano. |
-| `INVALID_FORMAT` | UUID, enum ou formato de data inválido. |
-| `OUT_OF_RANGE` | Número fora do limite permitido. |
-| `MIN_ITEMS` | String ou array vazio/quebrando o mínimo. |
-| `MAX_ITEMS` | String ou array acima do máximo. |
-| `INVALID_VALUE` | Regra condicional entre campos inválida. |
+| Código           | Significado                                                         |
+| ---------------- | ------------------------------------------------------------------- |
+| `REQUIRED`       | Campo obrigatório não foi enviado.                                  |
+| `INVALID_TYPE`   | Tipo incompatível, como texto onde era esperado número ou booleano. |
+| `INVALID_FORMAT` | UUID, enum ou formato de data inválido.                             |
+| `OUT_OF_RANGE`   | Número fora do limite permitido.                                    |
+| `MIN_ITEMS`      | String ou array vazio/quebrando o mínimo.                           |
+| `MAX_ITEMS`      | String ou array acima do máximo.                                    |
+| `INVALID_VALUE`  | Regra condicional entre campos inválida.                            |
 
 Exemplo com múltiplos problemas:
 
@@ -88,22 +88,22 @@ Exemplo com múltiplos problemas:
 
 Principais caminhos que podem aparecer em `errors`:
 
-| Área | Caminhos possíveis |
-|---|---|
-| Cliente | `customerId`, `customer`, `customer.name`, `customer.phone`, `customer.cpfCnpj`, `customer.address`, `customer.address.street`, `customer.address.country`, `customer.address.state`, `customer.address.zipCode`, `customer.address.city`, `customer.address.complement` |
-| Veículo | `vehicleId`, `vehicle`, `vehicle.plate`, `vehicle.brand`, `vehicle.model`, `vehicle.color`, `vehicle.year` |
-| Serviços | `serviceItems`, `serviceItems.{índice}`, `serviceItems.{índice}.serviceId`, `serviceItems.{índice}.serviceName`, `serviceItems.{índice}.priceInCents`, `serviceItems.{índice}.isCourtesy` |
-| Pagamentos | `paymentOptions`, `paymentOptions.{índice}`, `paymentOptions.{índice}.method`, `paymentOptions.{índice}.label`, `paymentOptions.{índice}.installments`, `paymentOptions.{índice}.interestFree`, `paymentOptions.{índice}.discountType`, `paymentOptions.{índice}.discountValue` |
-| Demais campos | `description`, `termsAndConditions`, `expiresAt` |
+| Área          | Caminhos possíveis                                                                                                                                                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cliente       | `customerId`, `customer`, `customer.name`, `customer.phone`, `customer.cpfCnpj`, `customer.address`, `customer.address.street`, `customer.address.country`, `customer.address.state`, `customer.address.zipCode`, `customer.address.city`, `customer.address.complement`        |
+| Veículo       | `vehicleId`, `vehicle`, `vehicle.plate`, `vehicle.brand`, `vehicle.model`, `vehicle.color`, `vehicle.year`                                                                                                                                                                      |
+| Serviços      | `serviceItems`, `serviceItems.{índice}`, `serviceItems.{índice}.serviceId`, `serviceItems.{índice}.serviceName`, `serviceItems.{índice}.priceInCents`, `serviceItems.{índice}.isCourtesy`                                                                                       |
+| Pagamentos    | `paymentOptions`, `paymentOptions.{índice}`, `paymentOptions.{índice}.method`, `paymentOptions.{índice}.label`, `paymentOptions.{índice}.installments`, `paymentOptions.{índice}.interestFree`, `paymentOptions.{índice}.discountType`, `paymentOptions.{índice}.discountValue` |
+| Demais campos | `description`, `termsAndConditions`, `expiresAt`                                                                                                                                                                                                                                |
 
 Há três regras condicionais que retornam `INVALID_VALUE`:
 
-| `field` | Regra |
-|---|---|
-| `customer` | Não pode enviar `customer` junto com `customerId`. |
-| `vehicle` | Não pode enviar `vehicle` preenchido junto com `vehicleId`. |
-| `serviceItems.{índice}.serviceName` | É obrigatório sem `serviceId`; também não pode ser enviado quando há `serviceId`. |
-| `serviceItems.{índice}.priceInCents` | É obrigatório quando não há `serviceId`. |
+| `field`                              | Regra                                                                             |
+| ------------------------------------ | --------------------------------------------------------------------------------- |
+| `customer`                           | Não pode enviar `customer` junto com `customerId`.                                |
+| `vehicle`                            | Não pode enviar `vehicle` preenchido junto com `vehicleId`.                       |
+| `serviceItems.{índice}.serviceName`  | É obrigatório sem `serviceId`; também não pode ser enviado quando há `serviceId`. |
+| `serviceItems.{índice}.priceInCents` | É obrigatório quando não há `serviceId`.                                          |
 
 Importante: erros de regras de negócio após a validação — por exemplo, serviço inativo ou pagamento comercial inválido — também retornam HTTP 400, mas usam outro `code` de topo, como `QUOTE_SERVICE_INACTIVE` ou `INVALID_QUOTE_INPUT`, e não incluem `errors`.
 
