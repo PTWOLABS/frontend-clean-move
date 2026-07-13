@@ -6,6 +6,7 @@ import { KpiCardsGrid, KpiCardsSkeleton, type KpiCardItem } from "@/shared/compo
 
 import { useListQuotes } from "../hooks/queries/use-list-quotes";
 import { quoteStatusConfig } from "../lib/quote-status-config";
+import { resolveListQuotesErrorFeedback } from "../lib/list-quotes-error-feedback";
 import type { QuotesApiFilters } from "../types/api-filters";
 import type { QuoteSummary } from "../types/quotes";
 
@@ -49,16 +50,23 @@ function buildQuoteKpis(summary: QuoteSummary): KpiCardItem[] {
 }
 
 export function QuotesMetrics() {
-  const { data, isError, isLoading } = useListQuotes(SUMMARY_QUERY);
+  const { data, error, isError, isLoading } = useListQuotes(SUMMARY_QUERY);
 
   if (isLoading) {
     return <KpiCardsSkeleton />;
   }
 
   if (isError || !data?.summary) {
+    const feedback = isError ? resolveListQuotesErrorFeedback(error) : null;
+
     return (
       <p className="rounded-lg border border-dashed border-danger/40 bg-danger-soft/40 px-4 py-8 text-center text-sm text-danger">
-        Não foi possível carregar os indicadores de orçamentos.
+        <strong className="block">
+          {feedback?.title ?? "Não foi possível carregar os indicadores."}
+        </strong>
+        <span className="mt-1 block">
+          {feedback?.description ?? "Tente novamente em alguns instantes."}
+        </span>
       </p>
     );
   }

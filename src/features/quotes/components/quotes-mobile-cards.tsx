@@ -25,6 +25,7 @@ import {
   type QuotesFiltersState,
 } from "../lib/build-quotes-api-filters";
 import { quoteStatusConfig } from "../lib/quote-status-config";
+import { resolveListQuotesErrorFeedback } from "../lib/list-quotes-error-feedback";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
@@ -143,11 +144,12 @@ export function QuotesCatalogContent({
     () => buildQuotesApiFilters(appliedFilters, { page, size: PAGE_SIZE }),
     [appliedFilters, page],
   );
-  const { data, isError, isPending, isPlaceholderData } = useListQuotes(apiFilters);
+  const { data, error, isError, isPending, isPlaceholderData } = useListQuotes(apiFilters);
   const quotes = data?.quotes ?? [];
   const totalItems = data?.totalItems ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const isFetchingPage = isPending || isPlaceholderData;
+  const errorFeedback = isError ? resolveListQuotesErrorFeedback(error) : null;
 
   function handleApplyFilters(nextFilters: QuotesFiltersState) {
     setAppliedFilters(nextFilters);
@@ -193,7 +195,8 @@ export function QuotesCatalogContent({
       emptyState={
         isError ? (
           <p className="rounded-lg border border-dashed border-danger/40 bg-danger-soft/40 px-4 py-8 text-center text-sm text-danger">
-            Não foi possível carregar os orçamentos. Tente novamente em instantes.
+            <strong className="block">{errorFeedback?.title}</strong>
+            <span className="mt-1 block">{errorFeedback?.description}</span>
           </p>
         ) : undefined
       }
