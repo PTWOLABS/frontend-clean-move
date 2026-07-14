@@ -173,7 +173,16 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
             </div>
           </CardContent>
 
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
+              className="w-full sm:w-auto"
+              onClick={discardFromTabGuard}
+            >
+              Descartar alterações
+            </Button>
             <Button
               type="submit"
               disabled={!currentPayload || !hasChanges(currentPayload) || isPending}

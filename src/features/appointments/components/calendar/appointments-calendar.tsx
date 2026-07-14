@@ -566,6 +566,7 @@ export function AppointmentsCalendar({
         }}
         isLoading={updatingAppointment}
         actionMessage={updatingAppointment ? "Atualizando..." : "Confirmar"}
+        confirmVariant="default"
         onCancel={() => {
           eventToDropUpdate?.revert();
           setOpenConfirmEventDropDialog(false);

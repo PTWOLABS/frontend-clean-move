@@ -89,13 +89,16 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     setValue,
   } as unknown as ZipCodeAutofillForm;
 
-  const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(zipCodeAutofillForm, {
-    zipCode: "address.zipCode",
-    street: "address.street",
-    city: "address.city",
-    state: "address.state",
-    complement: "address.complement",
-  });
+  const { isFetchingAddress, hasAddressFetchError, zipCodeNotFound } = useZipCodeAutofill(
+    zipCodeAutofillForm,
+    {
+      zipCode: "address.zipCode",
+      street: "address.street",
+      city: "address.city",
+      state: "address.state",
+      complement: "address.complement",
+    },
+  );
 
   useEffect(() => {
     reset(mapUserToProfileFormDefaults(user));
@@ -224,11 +227,13 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
               />
             </div>
 
-            {isFetchingAddress || hasAddressFetchError ? (
+            {isFetchingAddress || hasAddressFetchError || zipCodeNotFound ? (
               <p className="text-xs text-muted-foreground">
                 {isFetchingAddress
                   ? "Buscando endereço pelo CEP..."
-                  : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
+                  : zipCodeNotFound
+                    ? "CEP não encontrado. Preencha o endereço manualmente."
+                    : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
               </p>
             ) : null}
 
@@ -263,7 +268,16 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
             />
           </CardContent>
 
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!canSave || isPending}
+              className="w-full sm:w-auto"
+              onClick={discardFromTabGuard}
+            >
+              Descartar alterações
+            </Button>
             <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
               {isPending ? "Salvando..." : "Salvar alterações"}
             </Button>

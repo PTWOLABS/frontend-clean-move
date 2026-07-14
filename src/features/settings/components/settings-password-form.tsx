@@ -351,7 +351,16 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
               </p>
             </CardContent>
 
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!isDirty || isRequestPasswordChangeCodePending}
+                className="w-full sm:w-auto"
+                onClick={discardPasswordChanges}
+              >
+                Descartar alterações
+              </Button>
               <Button
                 type="submit"
                 disabled={isRequestPasswordChangeCodePending}

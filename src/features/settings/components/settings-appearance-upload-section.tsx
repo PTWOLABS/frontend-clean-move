@@ -297,15 +297,26 @@ export function SettingsAppearanceUploadSection({
               </FileListItem>
             </FileList>
 
-            <Button
-              type="button"
-              disabled={!hasPendingUpload || isPending || isRemovePending}
-              className="w-full gap-2 sm:w-auto"
-              onClick={handleSave}
-            >
-              <Save aria-hidden className="size-4" />
-              {isPending ? "Salvando..." : "Salvar alterações"}
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!hasPendingUpload || isPending || isRemovePending}
+                className="w-full sm:w-auto"
+                onClick={clearPendingFile}
+              >
+                Descartar alterações
+              </Button>
+              <Button
+                type="button"
+                disabled={!hasPendingUpload || isPending || isRemovePending}
+                className="w-full gap-2 sm:w-auto"
+                onClick={handleSave}
+              >
+                <Save aria-hidden className="size-4" />
+                {isPending ? "Salvando..." : "Salvar alterações"}
+              </Button>
+            </div>
           </div>
 
           <div

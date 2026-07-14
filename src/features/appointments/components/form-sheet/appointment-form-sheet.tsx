@@ -677,6 +677,24 @@ export function AppointmentFormSheet({
                 >
                   Cancelar
                 </Button>
+                {isEditing ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting || (!isDirty && !hasResolvedResourceChange)}
+                    className="h-10 w-full sm:w-auto"
+                    onClick={() => {
+                      reset(formDefaultValues);
+                      hydrateOptionState({
+                        customerLabel: appointment?.extendedProps.customer ?? "",
+                        vehicleLabel: appointment?.extendedProps.vehicle.displayName ?? "",
+                        selectedCustomerId: formDefaultValues.customerId || null,
+                      });
+                    }}
+                  >
+                    Descartar alterações
+                  </Button>
+                ) : null}
                 <Button
                   type="submit"
                   className="h-10 w-full sm:w-40"

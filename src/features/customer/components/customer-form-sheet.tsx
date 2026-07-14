@@ -130,7 +130,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const hasExistingPrimaryVehicle = isEditMode && Boolean(primaryVehicleFromCustomer?.id);
   const showVehicleSection = includeVehicle || hasExistingPrimaryVehicle;
 
-  const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(
+  const { isFetchingAddress, hasAddressFetchError, zipCodeNotFound } = useZipCodeAutofill(
     zipCodeAutofillForm,
     {
       zipCode: "address.zipCode",
@@ -408,11 +408,13 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                       ) : undefined
                     }
                   />
-                  {isFetchingAddress || hasAddressFetchError ? (
+                  {isFetchingAddress || hasAddressFetchError || zipCodeNotFound ? (
                     <p className="-mt-2 text-xs font-medium text-muted-foreground">
                       {isFetchingAddress
                         ? "Buscando endereço pelo CEP..."
-                        : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
+                        : zipCodeNotFound
+                          ? "CEP não encontrado. Preencha o endereço manualmente."
+                          : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
                     </p>
                   ) : null}
                   <InputField
@@ -553,6 +555,22 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
               >
                 Cancelar
               </Button>
+              {isEditMode ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  disabled={isPending || (!isDirty && !needsVehicleRecovery)}
+                  onClick={() => {
+                    if (!editingCustomer) return;
+                    const primaryVehicle =
+                      editingCustomer.vehicles?.[0] ?? editingCustomer.primaryVehicle ?? null;
+                    reset(customerToFormDefaults(editingCustomer, primaryVehicle));
+                  }}
+                >
+                  Descartar alterações
+                </Button>
+              ) : null}
               <Button
                 type="submit"
                 className="w-full sm:w-auto"

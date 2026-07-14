@@ -39,6 +39,7 @@ import {
   CREATE_NEW_VALUE,
   ServiceCategoryCreateInline,
 } from "@/features/service-category/components/service-category-create-inline";
+import { DURATION_HHMM_MASK } from "@/features/service/lib/duration-hhmm";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
 import { BrlMoneyInput } from "@/shared/money/brl-money-input";
 import { ApiError } from "@/shared/api/httpClient";
@@ -303,18 +304,18 @@ export function ServiceFormSheet({
                   <InputField
                     control={fieldControl}
                     name="minInMinutes"
-                    label="Duração mín. (min)"
-                    type="number"
-                    min={1}
+                    label="Duração mín."
+                    mask={DURATION_HHMM_MASK}
                     inputMode="numeric"
+                    placeholder="00:30"
                   />
                   <InputField
                     control={fieldControl}
                     name="maxInMinutes"
-                    label="Duração máx. (min)"
-                    type="number"
-                    min={1}
+                    label="Duração máx."
+                    mask={DURATION_HHMM_MASK}
                     inputMode="numeric"
+                    placeholder="01:00"
                   />
                 </div>
 
@@ -433,6 +434,20 @@ export function ServiceFormSheet({
                 >
                   Cancelar
                 </Button>
+                {isEditMode ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    disabled={isPending || !isDirty}
+                    onClick={() => {
+                      if (!editingService?.id) return;
+                      reset(serviceItemToFormDefaults(editingService));
+                    }}
+                  >
+                    Descartar alterações
+                  </Button>
+                ) : null}
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"

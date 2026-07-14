@@ -17,6 +17,7 @@ type AlertDialogProps = {
   isLoading?: boolean;
   actionMessage?: string;
   cancelMessage?: string;
+  confirmVariant?: "default" | "destructive";
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -29,6 +30,7 @@ export function AlertDialog({
   isLoading,
   actionMessage,
   cancelMessage = "Cancelar",
+  confirmVariant = "destructive",
   onOpenChange,
   onConfirm,
   onCancel,
@@ -46,7 +48,7 @@ export function AlertDialog({
           </AlertDialogCancel>
           <Button
             type="button"
-            variant="destructive"
+            variant={confirmVariant}
             disabled={isLoading}
             onClick={() => onConfirm()}
           >

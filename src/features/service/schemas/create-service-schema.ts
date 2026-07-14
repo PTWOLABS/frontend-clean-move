@@ -3,6 +3,7 @@ import { z } from "zod";
 import { formatReaisToBrlInput, parseBrlMoneyToReais } from "@/shared/money/format-brl-money";
 import type { ServiceCategoryRef } from "@/features/service-category/types";
 
+import { hhMmToMinutes, isValidDurationHhMm, minutesToHhMm } from "../lib/duration-hhmm";
 import type {
   CreateServicePayload,
   ServiceItem,
@@ -10,23 +11,12 @@ import type {
   UpdateServicePayload,
 } from "../types";
 
-function parseNumberFromInput(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string") {
-    const normalized = value.replace(",", ".").trim();
-    if (normalized === "") return Number.NaN;
-    return Number(normalized);
-  }
-  return Number.NaN;
-}
-
-const positiveIntField = (message: string) =>
+const durationHhMmField = (message: string) =>
   z
-    .union([z.string(), z.number()])
-    .transform(parseNumberFromInput)
-    .refine((n) => Number.isInteger(n) && n > 0, { message });
+    .string()
+    .trim()
+    .refine((value) => isValidDurationHhMm(value), { message })
+    .transform((value) => hhMmToMinutes(value) as number);
 
 const priceTypeField = z.enum(["FIXED", "STARTING_AT", "RANGE"]);
 
@@ -92,8 +82,8 @@ export const createServiceFormSchema = z
         message: "Selecione uma categoria válida.",
       })
       .transform((s) => (s === "" ? undefined : s)),
-    minInMinutes: positiveIntField("Duração mínima deve ser um número inteiro positivo."),
-    maxInMinutes: positiveIntField("Duração máxima deve ser um número inteiro positivo."),
+    minInMinutes: durationHhMmField("Informe uma duração mínima válida (ex.: 00:30)."),
+    maxInMinutes: durationHhMmField("Informe uma duração máxima válida (ex.: 01:00)."),
     priceType: priceTypeField,
     fixedPriceInReais: optionalBrlPriceString,
     minPriceInReais: optionalBrlPriceString,
@@ -158,8 +148,8 @@ export const createServiceDefaultValues: CreateServiceFormInput = {
   serviceName: "",
   description: "",
   categoryId: "",
-  minInMinutes: 30,
-  maxInMinutes: 60,
+  minInMinutes: "00:30",
+  maxInMinutes: "01:00",
   priceType: "FIXED",
   fixedPriceInReais: "30,00",
   minPriceInReais: "",
@@ -177,8 +167,8 @@ export function serviceItemToFormDefaults(item: ServiceItem): CreateServiceFormI
     serviceName: item.serviceName ?? "",
     description: item.description ?? "",
     categoryId: item.category?.id ?? "",
-    minInMinutes: min,
-    maxInMinutes: Math.max(min, max),
+    minInMinutes: minutesToHhMm(min),
+    maxInMinutes: minutesToHhMm(Math.max(min, max)),
     ...getPriceFormValues(item.priceSpecification),
     isActive: item.isActive,
   };

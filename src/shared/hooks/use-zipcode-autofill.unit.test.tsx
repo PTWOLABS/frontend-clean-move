@@ -156,7 +156,7 @@ describe("useZipCodeAutofill", () => {
     expect(result.current.form.getValues("address.complement")).toBe("Andar 5");
   });
 
-  it("should preserve persisted address fields when the form is hydrated with zipcode and street", async () => {
+  it("should preserve persisted address fields without calling viacep when hydrated", async () => {
     fetchAddressByZipCodeMock.mockResolvedValue({
       street: "Avenida Paulista",
       city: "São Paulo",
@@ -177,9 +177,11 @@ describe("useZipCodeAutofill", () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(result.current.form.getValues("address.street")).toBe("Av. Paulista, 100");
+    });
 
-    expect(result.current.form.getValues("address.street")).toBe("Av. Paulista, 100");
+    expect(fetchAddressByZipCodeMock).not.toHaveBeenCalled();
     expect(result.current.form.getValues("address.city")).toBe("São Paulo");
     expect(result.current.form.getValues("address.state")).toBe("SP");
   });
@@ -205,7 +207,9 @@ describe("useZipCodeAutofill", () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => {
+      expect(fetchAddressByZipCodeMock).not.toHaveBeenCalled();
+    });
 
     fetchAddressByZipCodeMock.mockResolvedValue({
       street: "Av. Brigadeiro Faria Lima",
@@ -218,7 +222,7 @@ describe("useZipCodeAutofill", () => {
       result.current.form.setValue("address.zipCode", "04538-133");
     });
 
-    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalledTimes(1));
     await waitFor(() => {
       expect(result.current.form.getValues("address.street")).toBe("Av. Brigadeiro Faria Lima");
       expect(result.current.form.getValues("address.city")).toBe("São Paulo");
@@ -226,7 +230,7 @@ describe("useZipCodeAutofill", () => {
     });
   });
 
-  it("should set 'cep não encontrado' error when the service returns null", async () => {
+  it("should allow manual fill when the service returns null", async () => {
     fetchAddressByZipCodeMock.mockResolvedValue(null);
     const { Wrapper } = buildWrapper();
     const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
@@ -237,11 +241,10 @@ describe("useZipCodeAutofill", () => {
       result.current.form.setValue("address.zipCode", "01310-100");
     });
 
-    await waitFor(() => {
-      expect(result.current.form.formState.errors.address?.zipCode?.message).toBe(
-        "CEP não encontrado.",
-      );
-    });
+    await waitFor(() => expect(result.current.autofill.zipCodeNotFound).toBe(true));
+
+    expect(result.current.form.formState.errors.address?.zipCode).toBeUndefined();
+    expect(result.current.autofill.hasAddressFetchError).toBe(false);
   });
 
   it("should expose hasAddressFetchError when the lookup fails", async () => {

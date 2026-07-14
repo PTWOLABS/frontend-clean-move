@@ -294,6 +294,20 @@ export function VehicleFormSheet({
               >
                 Cancelar
               </Button>
+              {isEditMode ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  disabled={isPending || !isDirty}
+                  onClick={() => {
+                    if (!editingVehicle?.id) return;
+                    reset(vehicleToFormDefaults(editingVehicle));
+                  }}
+                >
+                  Descartar alterações
+                </Button>
+              ) : null}
               <Button
                 type="submit"
                 className="w-full sm:w-auto"

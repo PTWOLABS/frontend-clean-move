@@ -12,8 +12,16 @@ type AddressStepProps = {
 };
 
 export function AddressStep({ onBack, registrationPending = false }: AddressStepProps) {
-  const { hasAddressFetchError, isFetchingAddress } = useZipCodeAutofill();
+  const { hasAddressFetchError, isFetchingAddress, zipCodeNotFound } = useZipCodeAutofill();
   const stepDisabled = isFetchingAddress || registrationPending;
+
+  const helperMessage = isFetchingAddress
+    ? "Buscando endereço pelo CEP..."
+    : zipCodeNotFound
+      ? "CEP não encontrado. Preencha o endereço manualmente."
+      : hasAddressFetchError
+        ? "Não foi possível consultar o CEP. Preencha o endereço manualmente."
+        : null;
 
   return (
     <>
@@ -36,11 +44,9 @@ export function AddressStep({ onBack, registrationPending = false }: AddressStep
           }
         />
 
-        {isFetchingAddress || hasAddressFetchError ? (
+        {helperMessage ? (
           <p className="-mt-1 text-[11px] font-medium leading-4 text-[#94A3B8] sm:col-span-2">
-            {isFetchingAddress
-              ? "Buscando endereço pelo CEP..."
-              : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
+            {helperMessage}
           </p>
         ) : null}
 

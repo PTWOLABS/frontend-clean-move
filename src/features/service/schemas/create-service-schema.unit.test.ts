@@ -52,8 +52,8 @@ describe("createServiceFormSchema categoryId", () => {
       serviceName: "Lavagem simples",
       description: "",
       categoryId: "",
-      minInMinutes: 30,
-      maxInMinutes: 60,
+      minInMinutes: "00:30",
+      maxInMinutes: "01:00",
       priceType: "FIXED",
       fixedPriceInReais: "30,00",
       minPriceInReais: "",
@@ -115,8 +115,8 @@ describe("formValuesToServiceItem", () => {
   it("omits maxInMinutes when equal to minInMinutes", () => {
     const parsed = createServiceFormSchema.parse({
       ...serviceItemToFormDefaults(baseItem),
-      minInMinutes: 45,
-      maxInMinutes: 45,
+      minInMinutes: "00:45",
+      maxInMinutes: "00:45",
     });
     const payload = mapCreateServiceFormToPayload(parsed);
 
@@ -137,8 +137,8 @@ describe("formValuesToServiceItem", () => {
   it("rejects invalid duration via schema before mapping", () => {
     const parsed = createServiceFormSchema.safeParse({
       ...serviceItemToFormDefaults(baseItem),
-      minInMinutes: 90,
-      maxInMinutes: 30,
+      minInMinutes: "01:30",
+      maxInMinutes: "00:30",
     });
     expect(parsed.success).toBe(false);
   });

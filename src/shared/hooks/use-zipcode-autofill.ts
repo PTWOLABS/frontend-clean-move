@@ -13,6 +13,7 @@ import {
 import { fetchAddressByZipCode } from "@/shared/api/viacep";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
+const ZIP_CACHE_MS = 1000 * 60 * 10;
 
 export type ZipCodeAutofillFieldPaths = {
   zipCode: string;
@@ -34,18 +35,56 @@ type UseZipCodeAutofillOptions = {
   enabled?: boolean;
 };
 
+function hasAddressContent(street: unknown, city: unknown, state: unknown): boolean {
+  return Boolean(String(street ?? "").trim() || String(city ?? "").trim() || String(state ?? "").trim());
+}
+
 export function useZipCodeAutofill(
   form: ZipCodeAutofillForm,
   fields: ZipCodeAutofillFieldPaths,
   options?: UseZipCodeAutofillOptions,
 ) {
-  const { clearErrors, control, getValues, setError, setValue } = form;
+  const { clearErrors, control, getValues, setValue } = form;
   const processedZipCodeRef = useRef<string | null>(null);
   const fetchedZipCodeRef = useRef<string | null>(null);
+  const filledForZipRef = useRef<string | null>(null);
   const initialNormalizedZipRef = useRef<string | null>(null);
+
   const zipCode = useWatch({ control, name: fields.zipCode });
+  const street = useWatch({ control, name: fields.street });
+  const city = useWatch({ control, name: fields.city });
+  const state = useWatch({ control, name: fields.state });
   const normalizedZipCode = onlyDigits(String(zipCode ?? ""));
-  const isEnabled = options?.enabled !== false && normalizedZipCode.length === 8;
+
+  if (initialNormalizedZipRef.current === null && normalizedZipCode.length === 8) {
+    initialNormalizedZipRef.current = normalizedZipCode;
+
+    if (hasAddressContent(street, city, state)) {
+      filledForZipRef.current = normalizedZipCode;
+      processedZipCodeRef.current = normalizedZipCode;
+    }
+  }
+
+  useEffect(() => {
+    if (normalizedZipCode.length !== 8) {
+      return;
+    }
+
+    if (filledForZipRef.current !== null && filledForZipRef.current !== normalizedZipCode) {
+      filledForZipRef.current = null;
+      processedZipCodeRef.current = null;
+    }
+  }, [normalizedZipCode]);
+
+  const addressAlreadyFilledForCurrentZip =
+    normalizedZipCode.length === 8 &&
+    hasAddressContent(street, city, state) &&
+    filledForZipRef.current === normalizedZipCode;
+
+  const isEnabled =
+    options?.enabled !== false &&
+    normalizedZipCode.length === 8 &&
+    !addressAlreadyFilledForCurrentZip;
 
   const {
     data: address,
@@ -62,23 +101,18 @@ export function useZipCodeAutofill(
       return result;
     },
     retry: false,
-    staleTime: 1000 * 60 * 10,
+    staleTime: ZIP_CACHE_MS,
+    gcTime: ZIP_CACHE_MS,
+    refetchOnMount: false,
   });
 
   useEffect(() => {
-    if (initialNormalizedZipRef.current === null && normalizedZipCode.length === 8) {
-      initialNormalizedZipRef.current = normalizedZipCode;
-    }
-
     if (!isSuccess) {
       return;
     }
 
     if (!address) {
-      setError(fields.zipCode, {
-        type: "manual",
-        message: "CEP não encontrado.",
-      });
+      clearErrors(fields.zipCode);
       return;
     }
 
@@ -100,9 +134,10 @@ export function useZipCodeAutofill(
       !userChangedZipCode &&
       processedZipCodeRef.current === null &&
       normalizedZipCode.length === 8 &&
-      Boolean(getValues(fields.street) || getValues(fields.city) || getValues(fields.state));
+      hasAddressContent(getValues(fields.street), getValues(fields.city), getValues(fields.state));
 
     processedZipCodeRef.current = normalizedZipCode;
+    filledForZipRef.current = normalizedZipCode;
 
     if (isHydration) {
       return;
@@ -143,12 +178,12 @@ export function useZipCodeAutofill(
     getValues,
     isSuccess,
     normalizedZipCode,
-    setError,
     setValue,
   ]);
 
   return {
     isFetchingAddress: isFetching,
     hasAddressFetchError: isError,
+    zipCodeNotFound: isSuccess && address == null,
   };
 }
