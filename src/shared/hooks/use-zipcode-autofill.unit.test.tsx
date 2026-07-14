@@ -260,4 +260,40 @@ describe("useZipCodeAutofill", () => {
 
     await waitFor(() => expect(result.current.autofill.hasAddressFetchError).toBe(true));
   });
+
+  it("should refill address when street/city/state are cleared for the same zipcode", async () => {
+    fetchAddressByZipCodeMock.mockResolvedValue({
+      street: "Av. Paulista",
+      city: "São Paulo",
+      state: "SP",
+      complement: "",
+    });
+
+    const { Wrapper } = buildWrapper();
+    const { result } = renderHook(() => useTestZipCodeHarness({ enabled: true }), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.form.setValue("address.zipCode", "01310-100");
+    });
+
+    await waitFor(() => expect(fetchAddressByZipCodeMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => {
+      expect(result.current.form.getValues("address.street")).toBe("Av. Paulista");
+    });
+
+    act(() => {
+      result.current.form.setValue("address.street", "");
+      result.current.form.setValue("address.city", "");
+      result.current.form.setValue("address.state", "");
+    });
+
+    // Cached ViaCEP result is reapplied without requiring a second network call.
+    await waitFor(() => {
+      expect(result.current.form.getValues("address.street")).toBe("Av. Paulista");
+      expect(result.current.form.getValues("address.city")).toBe("São Paulo");
+      expect(result.current.form.getValues("address.state")).toBe("SP");
+    });
+  });
 });

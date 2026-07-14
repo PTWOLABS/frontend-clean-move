@@ -140,9 +140,12 @@ export function SettingsAppearanceUploadSection({
   }, [clearPendingFile, onSaveFile, pendingFile]);
 
   const savePendingFileRef = useRef(savePendingFile);
-  savePendingFileRef.current = savePendingFile;
   const clearPendingFileRef = useRef(clearPendingFile);
-  clearPendingFileRef.current = clearPendingFile;
+
+  useEffect(() => {
+    savePendingFileRef.current = savePendingFile;
+    clearPendingFileRef.current = clearPendingFile;
+  }, [clearPendingFile, savePendingFile]);
 
   useEffect(() => {
     if (!onControllerChange) {

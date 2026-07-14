@@ -72,7 +72,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, clearErrors, getValues, setError, setValue } = methods;
+  const { control, handleSubmit, reset, clearErrors, getValues, setValue } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   const watchedValues = useWatch({ control });
@@ -85,7 +85,6 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     clearErrors,
     control: fieldControl,
     getValues,
-    setError,
     setValue,
   } as unknown as ZipCodeAutofillForm;
 

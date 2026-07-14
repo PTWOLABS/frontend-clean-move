@@ -74,7 +74,10 @@ export function useRegisterSettingsUnsavedChanges(
 ) {
   const { register, unregister } = useSettingsUnsavedChangesContext();
   const handlersRef = useRef(handlers);
-  handlersRef.current = handlers;
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
 
   useEffect(() => {
     const stableHandlers: SettingsUnsavedChangesHandlers = {

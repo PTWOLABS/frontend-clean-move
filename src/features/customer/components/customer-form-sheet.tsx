@@ -112,7 +112,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
     clearErrors,
     control: fieldControl,
     getValues,
-    setError,
     setValue,
   } as unknown as ZipCodeAutofillForm;
 
@@ -562,10 +561,10 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                   className="w-full sm:w-auto"
                   disabled={isPending || (!isDirty && !needsVehicleRecovery)}
                   onClick={() => {
-                    if (!editingCustomer) return;
+                    if (!activeCustomer) return;
                     const primaryVehicle =
-                      editingCustomer.vehicles?.[0] ?? editingCustomer.primaryVehicle ?? null;
-                    reset(customerToFormDefaults(editingCustomer, primaryVehicle));
+                      activeCustomer.vehicles?.[0] ?? activeCustomer.primaryVehicle ?? null;
+                    reset(customerToFormDefaults(activeCustomer, primaryVehicle));
                   }}
                 >
                   Descartar alterações

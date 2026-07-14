@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,7 @@ import {
   SettingsUnsavedChangesProvider,
   useSettingsUnsavedChangesLookup,
 } from "../context/settings-unsaved-changes-context";
+import { useSettingsTabLeaveGuard } from "../hooks/use-settings-tab-leave-guard";
 import {
   getVisibleSettingsTabIds,
   resolveSettingsTabId,
@@ -31,10 +32,6 @@ function SettingsTabsInner({ user }: SettingsTabsProps) {
   const searchParams = useSearchParams();
   const { getHandlers } = useSettingsUnsavedChangesLookup();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [pendingTab, setPendingTab] = useState<SettingsTabId | null>(null);
-  const [isSavingFromDialog, setIsSavingFromDialog] = useState(false);
-
   const showBusinessTab = user.role === "ESTABLISHMENT" && !!user.establishmentId;
   const visibleTabIds = useMemo(() => getVisibleSettingsTabIds(showBusinessTab), [showBusinessTab]);
 
@@ -47,94 +44,20 @@ function SettingsTabsInner({ user }: SettingsTabsProps) {
     [router],
   );
 
-  const closeDialog = useCallback(() => {
-    setDialogOpen(false);
-    setPendingTab(null);
-    setIsSavingFromDialog(false);
-  }, []);
-
-  const handleTabChange = useCallback(
-    (value: string) => {
-      const tab = resolveSettingsTabId(value, { showBusinessTab });
-
-      if (tab === activeTab) {
-        return;
-      }
-
-      const handlers = getHandlers(activeTab);
-
-      if (handlers?.hasUnsavedChanges) {
-        setPendingTab(tab);
-        setDialogOpen(true);
-        return;
-      }
-
-      navigateToTab(tab);
-    },
-    [activeTab, getHandlers, navigateToTab, showBusinessTab],
-  );
-
-  const handleCancel = useCallback(() => {
-    closeDialog();
-  }, [closeDialog]);
-
-  const handleDiscard = useCallback(() => {
-    const handlers = getHandlers(activeTab);
-    handlers?.discard();
-
-    if (pendingTab) {
-      navigateToTab(pendingTab);
-    }
-
-    closeDialog();
-  }, [activeTab, closeDialog, getHandlers, navigateToTab, pendingTab]);
-
-  const handleSave = useCallback(async () => {
-    const handlers = getHandlers(activeTab);
-
-    if (!handlers) {
-      closeDialog();
-      return;
-    }
-
-    setIsSavingFromDialog(true);
-
-    try {
-      const saved = await handlers.save();
-
-      if (saved && pendingTab) {
-        navigateToTab(pendingTab);
-        closeDialog();
-        return;
-      }
-
-      // Keep dialog open on validation/API failure so the user can retry.
-      // Security intentionally returns false after opening its own flow — close here.
-      if (!saved && activeTab === "security") {
-        closeDialog();
-      } else if (saved) {
-        closeDialog();
-      }
-    } finally {
-      setIsSavingFromDialog(false);
-    }
-  }, [activeTab, closeDialog, getHandlers, navigateToTab, pendingTab]);
-
-  const handleDialogOpenChange = useCallback(
-    (open: boolean) => {
-      if (isSavingFromDialog) {
-        return;
-      }
-
-      if (!open) {
-        closeDialog();
-      }
-    },
-    [closeDialog, isSavingFromDialog],
-  );
-
-  const activeHandlers = getHandlers(activeTab);
-  const dialogIsSaving = isSavingFromDialog || Boolean(activeHandlers?.isSaving);
+  const {
+    dialogOpen,
+    dialogIsSaving,
+    handleTabChange,
+    handleSave,
+    handleDiscard,
+    handleCancel,
+    handleDialogOpenChange,
+  } = useSettingsTabLeaveGuard({
+    activeTab,
+    showBusinessTab,
+    getHandlers,
+    navigateToTab,
+  });
 
   return (
     <>
