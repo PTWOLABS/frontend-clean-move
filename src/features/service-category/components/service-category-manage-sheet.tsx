@@ -249,6 +249,17 @@ export function ServiceCategoryManageSheet({
                   Cancelar
                 </Button>
                 <Button
+                  type="button"
+                  variant="outline"
+                  disabled={updateMutation.isPending || !renameForm.formState.isDirty}
+                  onClick={() => {
+                    if (!renameTarget) return;
+                    renameForm.reset({ name: renameTarget.name });
+                  }}
+                >
+                  Descartar alterações
+                </Button>
+                <Button
                   type="submit"
                   disabled={updateMutation.isPending || !renameForm.formState.isValid}
                 >
