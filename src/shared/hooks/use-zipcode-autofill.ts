@@ -68,8 +68,11 @@ export function useZipCodeAutofill(
   const normalizedZipCode = onlyDigits(String(zipCode ?? ""));
   const hasAddress = hasAddressContent(street, city, state);
 
-  // Adjust session markers when zip/address change (React "adjusting state during render").
-  if (normalizedZipCode.length === 8) {
+  useEffect(() => {
+    if (normalizedZipCode.length !== 8) {
+      return;
+    }
+
     if (initialZip === null) {
       setInitialZip(normalizedZipCode);
     }
@@ -80,33 +83,39 @@ export function useZipCodeAutofill(
         setFilledForZip(normalizedZipCode);
         setProcessedZip(normalizedZipCode);
       }
-    } else if (trackedZip !== normalizedZipCode) {
+      return;
+    }
+
+    if (trackedZip !== normalizedZipCode) {
       setTrackedZip(normalizedZipCode);
       setFilledForZip(null);
       setProcessedZip(null);
       setForceLookup(true);
+      return;
     }
-  }
 
-  if (
-    normalizedZipCode.length === 8 &&
-    hasAddress &&
-    !forceLookup &&
-    filledForZip === null &&
-    trackedZip === normalizedZipCode
-  ) {
-    setFilledForZip(normalizedZipCode);
-    setProcessedZip(normalizedZipCode);
-  }
+    if (hasAddress && !forceLookup && filledForZip === null) {
+      setFilledForZip(normalizedZipCode);
+      setProcessedZip(normalizedZipCode);
+      return;
+    }
 
-  if (
-    normalizedZipCode.length === 8 &&
-    !hasAddress &&
-    (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)
-  ) {
-    setFilledForZip(null);
-    setProcessedZip(null);
-  }
+    if (
+      !hasAddress &&
+      (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)
+    ) {
+      setFilledForZip(null);
+      setProcessedZip(null);
+    }
+  }, [
+    filledForZip,
+    forceLookup,
+    hasAddress,
+    initialZip,
+    normalizedZipCode,
+    processedZip,
+    trackedZip,
+  ]);
 
   const addressAlreadyFilledForCurrentZip =
     normalizedZipCode.length === 8 &&
@@ -150,7 +159,6 @@ export function useZipCodeAutofill(
 
     if (!address) {
       clearErrors(fields.zipCode);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza sessão após resposta ViaCEP (CEP não encontrado)
       setForceLookup(false);
       return;
     }

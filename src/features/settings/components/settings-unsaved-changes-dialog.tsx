@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { AlertDialog } from "@/components/ui/alert-dialog/alert-dialog";
 
 type SettingsUnsavedChangesDialogProps = {
   open: boolean;
@@ -29,26 +20,23 @@ export function SettingsUnsavedChangesDialog({
   onCancel,
 }: SettingsUnsavedChangesDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Alterações não salvas</AlertDialogTitle>
-          <AlertDialogDescription>
-            Você tem alterações por salvar nesta aba. Deseja salvá-las antes de sair?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSaving} onClick={onCancel}>
-            Cancelar
-          </AlertDialogCancel>
-          <Button type="button" variant="outline" disabled={isSaving} onClick={onDiscard}>
-            Descartar
-          </Button>
-          <Button type="button" disabled={isSaving} onClick={onSave}>
-            {isSaving ? "Salvando..." : "Salvar"}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <AlertDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Alterações não salvas"
+      descriptionContent="Você tem alterações para salvar nesta aba. Deseja salvá-las antes de sair?"
+      isLoading={isSaving}
+      cancelMessage="Cancelar"
+      actionMessage={isSaving ? "Salvando..." : "Salvar"}
+      confirmVariant="default"
+      middleAction={{
+        label: "Descartar",
+        onClick: onDiscard,
+        disabled: isSaving,
+        variant: "outline",
+      }}
+      onConfirm={onSave}
+      onCancel={onCancel}
+    />
   );
 }

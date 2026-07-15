@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { CNPJ_MASK } from "@/shared/constants/input-masks";
 import { useFormChanges } from "@/shared/hooks/use-form-changes";
 import { useUpdateEstablishment } from "@/features/establishment/hooks/use-update-establishment";
@@ -174,15 +175,10 @@ export function SettingsBusinessForm({ establishment }: SettingsBusinessFormProp
           </CardContent>
 
           <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
+            <DiscardChangesButton
               disabled={!currentPayload || !hasChanges(currentPayload) || isPending}
-              className="w-full sm:w-auto"
               onClick={discardFromTabGuard}
-            >
-              Descartar alterações
-            </Button>
+            />
             <Button
               type="submit"
               disabled={!currentPayload || !hasChanges(currentPayload) || isPending}

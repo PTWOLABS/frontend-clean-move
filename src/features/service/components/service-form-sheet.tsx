@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
 import {
@@ -435,18 +436,13 @@ export function ServiceFormSheet({
                   Cancelar
                 </Button>
                 {isEditMode ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full sm:w-auto"
+                  <DiscardChangesButton
                     disabled={isPending || !isDirty}
                     onClick={() => {
                       if (!editingService?.id) return;
                       reset(serviceItemToFormDefaults(editingService));
                     }}
-                  >
-                    Descartar alterações
-                  </Button>
+                  />
                 ) : null}
                 <Button
                   type="submit"

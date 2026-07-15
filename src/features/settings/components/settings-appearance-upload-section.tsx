@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import {
   Dropzone,
   DropzoneDescription,
@@ -46,8 +47,8 @@ import { validateBannerFile } from "../schemas/appearance-settings-schema";
 import { SettingsAppearancePreview } from "./settings-appearance-preview";
 
 export type SettingsAppearanceUploadController = {
-  hasUnsavedChanges: boolean;
-  isSaving: boolean;
+  get hasUnsavedChanges(): boolean;
+  get isSaving(): boolean;
   save: () => Promise<boolean>;
   discard: () => void;
 };
@@ -141,11 +142,15 @@ export function SettingsAppearanceUploadSection({
 
   const savePendingFileRef = useRef(savePendingFile);
   const clearPendingFileRef = useRef(clearPendingFile);
+  const pendingFileRef = useRef(pendingFile);
+  const isPendingRef = useRef(isPending);
 
   useEffect(() => {
     savePendingFileRef.current = savePendingFile;
     clearPendingFileRef.current = clearPendingFile;
-  }, [clearPendingFile, savePendingFile]);
+    pendingFileRef.current = pendingFile;
+    isPendingRef.current = isPending;
+  }, [clearPendingFile, isPending, pendingFile, savePendingFile]);
 
   useEffect(() => {
     if (!onControllerChange) {
@@ -158,12 +163,16 @@ export function SettingsAppearanceUploadSection({
     }
 
     onControllerChange({
-      hasUnsavedChanges: hasPendingUpload,
-      isSaving: isPending,
+      get hasUnsavedChanges() {
+        return pendingFileRef.current !== null;
+      },
+      get isSaving() {
+        return isPendingRef.current;
+      },
       save: () => savePendingFileRef.current(),
       discard: () => clearPendingFileRef.current(),
     });
-  }, [disabled, hasPendingUpload, isPending, onControllerChange]);
+  }, [disabled, onControllerChange]);
 
   useEffect(() => {
     return () => onControllerChange?.(null);
@@ -301,15 +310,10 @@ export function SettingsAppearanceUploadSection({
             </FileList>
 
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button
-                type="button"
-                variant="outline"
+              <DiscardChangesButton
                 disabled={!hasPendingUpload || isPending || isRemovePending}
-                className="w-full sm:w-auto"
                 onClick={clearPendingFile}
-              >
-                Descartar alterações
-              </Button>
+              />
               <Button
                 type="button"
                 disabled={!hasPendingUpload || isPending || isRemovePending}

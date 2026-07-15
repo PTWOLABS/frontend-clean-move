@@ -22,7 +22,12 @@ export function useSettingsTabLeaveGuard({
   const [pendingTab, setPendingTab] = useState<SettingsTabId | null>(null);
   const [isSavingFromDialog, setIsSavingFromDialog] = useState(false);
 
-  const closeDialog = useCallback(() => {
+  const dismissDialog = useCallback(() => {
+    setDialogOpen(false);
+    setIsSavingFromDialog(false);
+  }, []);
+
+  const resetGuard = useCallback(() => {
     setDialogOpen(false);
     setPendingTab(null);
     setIsSavingFromDialog(false);
@@ -50,8 +55,8 @@ export function useSettingsTabLeaveGuard({
   );
 
   const handleCancel = useCallback(() => {
-    closeDialog();
-  }, [closeDialog]);
+    resetGuard();
+  }, [resetGuard]);
 
   const handleDiscard = useCallback(() => {
     const handlers = getHandlers(activeTab);
@@ -61,14 +66,14 @@ export function useSettingsTabLeaveGuard({
       navigateToTab(pendingTab);
     }
 
-    closeDialog();
-  }, [activeTab, closeDialog, getHandlers, navigateToTab, pendingTab]);
+    resetGuard();
+  }, [activeTab, getHandlers, navigateToTab, pendingTab, resetGuard]);
 
   const handleSave = useCallback(async () => {
     const handlers = getHandlers(activeTab);
 
     if (!handlers) {
-      closeDialog();
+      resetGuard();
       return;
     }
 
@@ -77,23 +82,24 @@ export function useSettingsTabLeaveGuard({
     try {
       const saved = await handlers.save();
 
-      if (saved && pendingTab) {
-        navigateToTab(pendingTab);
-        closeDialog();
+      if (saved === true) {
+        if (pendingTab) {
+          navigateToTab(pendingTab);
+        }
+        resetGuard();
+        return;
+      }
+
+      if (saved === "deferred") {
+        dismissDialog();
         return;
       }
 
       // Keep dialog open on validation/API failure so the user can retry.
-      // Security intentionally returns false after opening its own flow — close here.
-      if (!saved && activeTab === "security") {
-        closeDialog();
-      } else if (saved) {
-        closeDialog();
-      }
     } finally {
       setIsSavingFromDialog(false);
     }
-  }, [activeTab, closeDialog, getHandlers, navigateToTab, pendingTab]);
+  }, [activeTab, dismissDialog, getHandlers, navigateToTab, pendingTab, resetGuard]);
 
   const handleDialogOpenChange = useCallback(
     (open: boolean) => {
@@ -102,10 +108,10 @@ export function useSettingsTabLeaveGuard({
       }
 
       if (!open) {
-        closeDialog();
+        resetGuard();
       }
     },
-    [closeDialog, isSavingFromDialog],
+    [isSavingFromDialog, resetGuard],
   );
 
   const activeHandlers = getHandlers(activeTab);
@@ -114,6 +120,7 @@ export function useSettingsTabLeaveGuard({
   return {
     dialogOpen,
     dialogIsSaving,
+    pendingTab,
     handleTabChange,
     handleSave,
     handleDiscard,

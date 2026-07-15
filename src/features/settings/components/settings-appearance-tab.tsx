@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 
 import { useEstablishment } from "@/features/establishment/hooks/use-establishment";
 import type { User } from "@/features/user/types";
@@ -33,16 +33,9 @@ export function SettingsAppearanceTab({ user, showBannerUpload }: SettingsAppear
   const profileControllerRef = useRef<SettingsAppearanceUploadController | null>(null);
   const bannerControllerRef = useRef<SettingsAppearanceUploadController | null>(null);
 
-  const [profileDirty, setProfileDirty] = useState(false);
-  const [bannerDirty, setBannerDirty] = useState(false);
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [bannerSaving, setBannerSaving] = useState(false);
-
   const handleProfileControllerChange = useCallback(
     (controller: SettingsAppearanceUploadController | null) => {
       profileControllerRef.current = controller;
-      setProfileDirty(controller?.hasUnsavedChanges ?? false);
-      setProfileSaving(controller?.isSaving ?? false);
     },
     [],
   );
@@ -50,8 +43,6 @@ export function SettingsAppearanceTab({ user, showBannerUpload }: SettingsAppear
   const handleBannerControllerChange = useCallback(
     (controller: SettingsAppearanceUploadController | null) => {
       bannerControllerRef.current = controller;
-      setBannerDirty(controller?.hasUnsavedChanges ?? false);
-      setBannerSaving(controller?.isSaving ?? false);
     },
     [],
   );
@@ -106,8 +97,18 @@ export function SettingsAppearanceTab({ user, showBannerUpload }: SettingsAppear
   }, []);
 
   useRegisterSettingsUnsavedChanges("appearance", {
-    hasUnsavedChanges: profileDirty || bannerDirty,
-    isSaving: profileSaving || bannerSaving,
+    get hasUnsavedChanges() {
+      return (
+        Boolean(profileControllerRef.current?.hasUnsavedChanges) ||
+        Boolean(bannerControllerRef.current?.hasUnsavedChanges)
+      );
+    },
+    get isSaving() {
+      return (
+        Boolean(profileControllerRef.current?.isSaving) ||
+        Boolean(bannerControllerRef.current?.isSaving)
+      );
+    },
     save: saveAppearance,
     discard: discardAppearance,
   });

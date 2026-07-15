@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { InputField } from "@/components/ui/form/input-field";
 import { PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
@@ -268,15 +269,10 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
+            <DiscardChangesButton
               disabled={!canSave || isPending}
-              className="w-full sm:w-auto"
               onClick={discardFromTabGuard}
-            >
-              Descartar alterações
-            </Button>
+            />
             <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
               {isPending ? "Salvando..." : "Salvar alterações"}
             </Button>

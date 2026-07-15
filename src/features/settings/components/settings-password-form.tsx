@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { handlePasswordUpdateError } from "@/features/user/lib/handle-password-update-error";
 import { useRequestPasswordChangeCode } from "@/features/user/hooks/use-request-password-change-code";
@@ -30,12 +31,7 @@ import { useUpdateUserPassword } from "@/features/user/hooks/use-update-user-pas
 import type { RequestPasswordChangeCodePayload, User } from "@/features/user/types";
 import { ApiError } from "@/shared/api/httpClient";
 
-import { useRegisterSettingsUnsavedChanges } from "../context/settings-unsaved-changes-context";
-import {
-  hasSecurityUnsavedChanges,
-  resolveSecurityTabSaveAction,
-  SECURITY_CONFIRMATION_TAB_LEAVE_TOAST,
-} from "../lib/settings-security-tab-guard";
+import { useSettingsPasswordTabGuard } from "../hooks/use-settings-password-tab-guard";
 import {
   buildConfirmPasswordChangePayload,
   createPasswordSettingsSchema,
@@ -239,32 +235,14 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
     setShowConfirmPassword(false);
   }, [hasPassword, reset]);
 
-  const savePasswordFromTabGuard = useCallback(async () => {
-    if (resolveSecurityTabSaveAction(step) === "block_on_confirmation") {
-      toast.info(SECURITY_CONFIRMATION_TAB_LEAVE_TOAST);
-      return false;
-    }
-
-    return new Promise<boolean>((resolve) => {
-      void handleSubmit(
-        () => {
-          setConfirmDialogOpen(true);
-          resolve(false);
-        },
-        () => resolve(false),
-      )();
-    });
-  }, [handleSubmit, step]);
-
-  useRegisterSettingsUnsavedChanges("security", {
-    hasUnsavedChanges: hasSecurityUnsavedChanges({
-      isDirty,
-      step,
-      confirmDialogOpen,
-    }),
+  useSettingsPasswordTabGuard({
+    isDirty,
+    step,
+    confirmDialogOpen,
     isSaving: isRequestPasswordChangeCodePending || isConfirmPasswordPending,
-    save: savePasswordFromTabGuard,
-    discard: discardPasswordChanges,
+    handleSubmit,
+    onOpenConfirmDialog: () => setConfirmDialogOpen(true),
+    onDiscard: discardPasswordChanges,
   });
 
   if (step === "confirmation" && pendingPayload) {
@@ -352,15 +330,10 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
             </CardContent>
 
             <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
+              <DiscardChangesButton
                 disabled={!isDirty || isRequestPasswordChangeCodePending}
-                className="w-full sm:w-auto"
                 onClick={discardPasswordChanges}
-              >
-                Descartar alterações
-              </Button>
+              />
               <Button
                 type="submit"
                 disabled={isRequestPasswordChangeCodePending}

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { FormControl, FormDescription } from "@/components/ui/form/form-primitives";
 import { Input } from "@/components/ui/input";
@@ -678,11 +679,9 @@ export function AppointmentFormSheet({
                   Cancelar
                 </Button>
                 {isEditing ? (
-                  <Button
-                    type="button"
-                    variant="outline"
+                  <DiscardChangesButton
                     disabled={isSubmitting || (!isDirty && !hasResolvedResourceChange)}
-                    className="h-10 w-full sm:w-auto"
+                    className="h-10"
                     onClick={() => {
                       reset(formDefaultValues);
                       hydrateOptionState({
@@ -691,9 +690,7 @@ export function AppointmentFormSheet({
                         selectedCustomerId: formDefaultValues.customerId || null,
                       });
                     }}
-                  >
-                    Descartar alterações
-                  </Button>
+                  />
                 ) : null}
                 <Button
                   type="submit"

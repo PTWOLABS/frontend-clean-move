@@ -11,11 +11,12 @@ import {
 } from "react";
 
 import type { SettingsTabId } from "../lib/settings-tabs-config";
+import type { SettingsSaveResult } from "../types/settings-save-result";
 
 export type SettingsUnsavedChangesHandlers = {
   hasUnsavedChanges: boolean;
   isSaving: boolean;
-  save: () => Promise<boolean>;
+  save: () => Promise<SettingsSaveResult>;
   discard: () => void;
 };
 

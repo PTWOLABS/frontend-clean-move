@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
 import {
@@ -555,10 +556,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                 Cancelar
               </Button>
               {isEditMode ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full sm:w-auto"
+                <DiscardChangesButton
                   disabled={isPending || (!isDirty && !needsVehicleRecovery)}
                   onClick={() => {
                     if (!activeCustomer) return;
@@ -566,9 +564,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                       activeCustomer.vehicles?.[0] ?? activeCustomer.primaryVehicle ?? null;
                     reset(customerToFormDefaults(activeCustomer, primaryVehicle));
                   }}
-                >
-                  Descartar alterações
-                </Button>
+                />
               ) : null}
               <Button
                 type="submit"
