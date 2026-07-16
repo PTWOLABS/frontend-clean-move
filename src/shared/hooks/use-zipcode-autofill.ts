@@ -68,11 +68,11 @@ export function useZipCodeAutofill(
   const normalizedZipCode = onlyDigits(String(zipCode ?? ""));
   const hasAddress = hasAddressContent(street, city, state);
 
-  useEffect(() => {
-    if (normalizedZipCode.length !== 8) {
-      return;
-    }
-
+  // Session markers are synced with the React-endorsed "adjusting state during
+  // render" pattern (https://react.dev/learn/you-might-not-need-an-effect).
+  // The project lint config forbids the setState-in-effect alternative
+  // (react-hooks/set-state-in-effect), so keep this logic in the render body.
+  if (normalizedZipCode.length === 8) {
     if (initialZip === null) {
       setInitialZip(normalizedZipCode);
     }
@@ -83,36 +83,22 @@ export function useZipCodeAutofill(
         setFilledForZip(normalizedZipCode);
         setProcessedZip(normalizedZipCode);
       }
-      return;
-    }
-
-    if (trackedZip !== normalizedZipCode) {
+    } else if (trackedZip !== normalizedZipCode) {
       setTrackedZip(normalizedZipCode);
       setFilledForZip(null);
       setProcessedZip(null);
       setForceLookup(true);
-      return;
-    }
-
-    if (hasAddress && !forceLookup && filledForZip === null) {
+    } else if (hasAddress && !forceLookup && filledForZip === null) {
       setFilledForZip(normalizedZipCode);
       setProcessedZip(normalizedZipCode);
-      return;
-    }
-
-    if (!hasAddress && (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)) {
+    } else if (
+      !hasAddress &&
+      (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)
+    ) {
       setFilledForZip(null);
       setProcessedZip(null);
     }
-  }, [
-    filledForZip,
-    forceLookup,
-    hasAddress,
-    initialZip,
-    normalizedZipCode,
-    processedZip,
-    trackedZip,
-  ]);
+  }
 
   const addressAlreadyFilledForCurrentZip =
     normalizedZipCode.length === 8 &&
@@ -156,6 +142,7 @@ export function useZipCodeAutofill(
 
     if (!address) {
       clearErrors(fields.zipCode);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza sessão após resposta ViaCEP (CEP não encontrado)
       setForceLookup(false);
       return;
     }

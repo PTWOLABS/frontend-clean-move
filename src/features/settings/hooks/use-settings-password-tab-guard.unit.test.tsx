@@ -36,7 +36,7 @@ describe("useSettingsPasswordTabGuard", () => {
 
   it("returns deferred when credentials are valid and opens the confirm dialog", async () => {
     const onOpenConfirmDialog = vi.fn();
-    const handleSubmit = vi.fn((onValid, _onInvalid) => {
+    const handleSubmit = vi.fn((onValid) => {
       return async () => {
         onValid({} as PasswordSettingsFormValues);
       };
