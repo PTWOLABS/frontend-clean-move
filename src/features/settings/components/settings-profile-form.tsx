@@ -269,10 +269,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <DiscardChangesButton
-              disabled={!canSave || isPending}
-              onClick={discardFromTabGuard}
-            />
+            <DiscardChangesButton disabled={!canSave || isPending} onClick={discardFromTabGuard} />
             <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
               {isPending ? "Salvando..." : "Salvar alterações"}
             </Button>

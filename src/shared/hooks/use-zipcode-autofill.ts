@@ -100,10 +100,7 @@ export function useZipCodeAutofill(
       return;
     }
 
-    if (
-      !hasAddress &&
-      (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)
-    ) {
+    if (!hasAddress && (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)) {
       setFilledForZip(null);
       setProcessedZip(null);
     }
