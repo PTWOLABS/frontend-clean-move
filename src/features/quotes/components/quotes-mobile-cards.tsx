@@ -1,15 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Calendar,
-  CalendarDays,
-  CalendarX,
-  Check,
-  Eye,
-  MoreVertical,
-  TriangleAlert,
-} from "lucide-react";
+import { Calendar, CalendarDays, CalendarX, Check, Eye, TriangleAlert } from "lucide-react";
 
 import { CatalogContentShell } from "@/shared/components/catalog-content-shell";
 import { CatalogPagination } from "@/shared/components/catalog-pagination";
@@ -30,6 +22,7 @@ import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
+import { QuoteMoreOptions } from "./quote-more-options";
 
 const PAGE_SIZE = 5;
 
@@ -121,8 +114,7 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
           : []),
         {
           label: "Mais opções",
-          icon: MoreVertical,
-          onClick: noop,
+          render: <QuoteMoreOptions quote={quote} variant="mobile" />,
         },
       ]}
     />

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,14 +28,25 @@ export type DataCatalogTableColumn<TItem> = {
   align?: "left" | "center" | "right";
 };
 
-export type DataCatalogTableAction<TItem> = {
+type DataCatalogTableActionBase<TItem> = {
   label: string;
-  icon: LucideIcon;
-  onClick: (item: TItem) => void;
   visible?: (item: TItem) => boolean;
   disabled?: (item: TItem) => boolean;
   tone?: DataCatalogTone;
 };
+
+type DataCatalogTableButtonAction<TItem> = DataCatalogTableActionBase<TItem> & {
+  icon: LucideIcon;
+  onClick: (item: TItem) => void;
+};
+
+type DataCatalogTableCustomAction<TItem> = DataCatalogTableActionBase<TItem> & {
+  render: (item: TItem) => ReactNode;
+};
+
+export type DataCatalogTableAction<TItem> =
+  | DataCatalogTableButtonAction<TItem>
+  | DataCatalogTableCustomAction<TItem>;
 
 type DataCatalogTableProps<TItem> = {
   items: TItem[];
@@ -184,6 +195,10 @@ export function DataCatalogTable<TItem>({
                       {actions
                         .filter((action) => action.visible?.(item) ?? true)
                         .map((action) => {
+                          if ("render" in action) {
+                            return <Fragment key={action.label}>{action.render(item)}</Fragment>;
+                          }
+
                           const Icon = action.icon;
                           const disabled = action.disabled?.(item) ?? false;
                           const tone = action.tone ?? "neutral";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Eye, MoreVertical } from "lucide-react";
+import { Check, Eye } from "lucide-react";
 
 import {
   DataCatalogStatusBadge,
@@ -12,6 +12,7 @@ import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
+import { QuoteMoreOptions } from "./quote-more-options";
 
 type QuotesCatalogTableProps = {
   quotes: QuoteListItemDto[];
@@ -135,9 +136,7 @@ export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProp
         },
         {
           label: "Mais opções",
-          icon: MoreVertical,
-          onClick: noop,
-          tone: "neutral",
+          render: (quote) => <QuoteMoreOptions quote={quote} variant="table" />,
         },
       ]}
     />
