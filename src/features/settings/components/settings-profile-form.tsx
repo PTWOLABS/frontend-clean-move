@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, Hash, LoaderCircle, Mail, MapPin, Navigation, Phone, User } from "lucide-react";
@@ -22,12 +22,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { InputField } from "@/components/ui/form/input-field";
 import { PHONE_MASK, ZIP_CODE_MASK } from "@/shared/constants/input-masks";
 import { useZipCodeAutofill, type ZipCodeAutofillForm } from "@/shared/hooks/use-zipcode-autofill";
 import { useUpdateUserProfile } from "@/features/user/hooks/use-update-user-profile";
 import type { User as UserProfile } from "@/features/user/types";
 
+import { useRegisterSettingsUnsavedChanges } from "../context/settings-unsaved-changes-context";
 import {
   canSaveProfileSettings,
   createProfileSettingsSchema,
@@ -71,7 +73,7 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, clearErrors, getValues, setError, setValue } = methods;
+  const { control, handleSubmit, reset, clearErrors, getValues, setValue } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   const watchedValues = useWatch({ control });
@@ -84,35 +86,70 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
     clearErrors,
     control: fieldControl,
     getValues,
-    setError,
     setValue,
   } as unknown as ZipCodeAutofillForm;
 
-  const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(zipCodeAutofillForm, {
-    zipCode: "address.zipCode",
-    street: "address.street",
-    city: "address.city",
-    state: "address.state",
-    complement: "address.complement",
-  });
+  const { isFetchingAddress, hasAddressFetchError, zipCodeNotFound } = useZipCodeAutofill(
+    zipCodeAutofillForm,
+    {
+      zipCode: "address.zipCode",
+      street: "address.street",
+      city: "address.city",
+      state: "address.state",
+      complement: "address.complement",
+    },
+  );
 
   useEffect(() => {
     reset(mapUserToProfileFormDefaults(user));
   }, [user, reset]);
 
+  const persistProfile = useCallback(
+    (values: ProfileSettingsFormValues) => {
+      const payload = mapProfileFormToPatchPayload(values);
+
+      if (!hasProfileChanges(payload, initialPayload)) {
+        return Promise.resolve(true);
+      }
+
+      return new Promise<boolean>((resolve) => {
+        mutate(getProfileChangedPayload(payload, initialPayload), {
+          onSuccess: (updatedUser) => {
+            reset(mapUserToProfileFormDefaults(updatedUser));
+            resolve(true);
+          },
+          onError: () => resolve(false),
+        });
+      });
+    },
+    [initialPayload, mutate, reset],
+  );
+
   const onSubmit = (values: ProfileSettingsFormValues) => {
-    const payload = mapProfileFormToPatchPayload(values);
-
-    if (!hasProfileChanges(payload, initialPayload)) {
-      return;
-    }
-
-    mutate(getProfileChangedPayload(payload, initialPayload), {
-      onSuccess: (updatedUser) => {
-        reset(mapUserToProfileFormDefaults(updatedUser));
-      },
-    });
+    void persistProfile(values);
   };
+
+  const saveFromTabGuard = useCallback(() => {
+    return new Promise<boolean>((resolve) => {
+      void handleSubmit(
+        async (values) => {
+          resolve(await persistProfile(values));
+        },
+        () => resolve(false),
+      )();
+    });
+  }, [handleSubmit, persistProfile]);
+
+  const discardFromTabGuard = useCallback(() => {
+    reset(mapUserToProfileFormDefaults(user));
+  }, [reset, user]);
+
+  useRegisterSettingsUnsavedChanges("profile", {
+    hasUnsavedChanges: canSave,
+    isSaving: isPending,
+    save: saveFromTabGuard,
+    discard: discardFromTabGuard,
+  });
 
   return (
     <Card>
@@ -190,11 +227,13 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
               />
             </div>
 
-            {isFetchingAddress || hasAddressFetchError ? (
+            {isFetchingAddress || hasAddressFetchError || zipCodeNotFound ? (
               <p className="text-xs text-muted-foreground">
                 {isFetchingAddress
                   ? "Buscando endereço pelo CEP..."
-                  : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
+                  : zipCodeNotFound
+                    ? "CEP não encontrado. Preencha o endereço manualmente."
+                    : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
               </p>
             ) : null}
 
@@ -229,7 +268,8 @@ export function SettingsProfileForm({ user }: SettingsProfileFormProps) {
             />
           </CardContent>
 
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <DiscardChangesButton disabled={!canSave || isPending} onClick={discardFromTabGuard} />
             <Button type="submit" disabled={!canSave || isPending} className="w-full sm:w-auto">
               {isPending ? "Salvando..." : "Salvar alterações"}
             </Button>

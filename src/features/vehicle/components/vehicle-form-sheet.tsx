@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { Label } from "@/components/ui/label";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
 import {
@@ -294,6 +295,15 @@ export function VehicleFormSheet({
               >
                 Cancelar
               </Button>
+              {isEditMode ? (
+                <DiscardChangesButton
+                  disabled={isPending || !isDirty}
+                  onClick={() => {
+                    if (!editingVehicle?.id) return;
+                    reset(vehicleToFormDefaults(editingVehicle));
+                  }}
+                />
+              ) : null}
               <Button
                 type="submit"
                 className="w-full sm:w-auto"

@@ -77,18 +77,21 @@ describe("useCnpjAutofill", () => {
     expect(result.current.hasCompanyFetchError).toBe(false);
   });
 
-  it("should set 'cnpj não encontrado' error when the api returns null", async () => {
+  it("should allow manual fill when the api returns null", async () => {
     fetchCompanyByCnpjMock.mockResolvedValue(null);
     const { Wrapper, getMethods } = buildWrapper();
-    renderHook(() => useCnpjAutofill(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useCnpjAutofill(), { wrapper: Wrapper });
 
     act(() => {
       getMethods().setValue("cnpj", "12.345.678/0001-90");
     });
 
-    await waitFor(() => {
-      expect(getMethods().formState.errors.cnpj?.message).toBe("CNPJ não encontrado.");
-    });
+    await waitFor(() => expect(result.current.companyNotFound).toBe(true));
+
+    expect(getMethods().formState.errors.cnpj).toBeUndefined();
+    expect(getMethods().getValues("legalName")).toBe("");
+    expect(getMethods().getValues("tradeName")).toBe("");
+    expect(result.current.hasCompanyFetchError).toBe(false);
   });
 
   it("should expose hascompanyfetcherror when the lookup fails", async () => {

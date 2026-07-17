@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LockKeyhole } from "lucide-react";
@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { handlePasswordUpdateError } from "@/features/user/lib/handle-password-update-error";
 import { useRequestPasswordChangeCode } from "@/features/user/hooks/use-request-password-change-code";
@@ -30,6 +31,7 @@ import { useUpdateUserPassword } from "@/features/user/hooks/use-update-user-pas
 import type { RequestPasswordChangeCodePayload, User } from "@/features/user/types";
 import { ApiError } from "@/shared/api/httpClient";
 
+import { useSettingsPasswordTabGuard } from "../hooks/use-settings-password-tab-guard";
 import {
   buildConfirmPasswordChangePayload,
   createPasswordSettingsSchema,
@@ -95,7 +97,14 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
     reValidateMode: "onChange",
   });
 
-  const { control, getValues, handleSubmit, setError } = methods;
+  const {
+    control,
+    getValues,
+    handleSubmit,
+    setError,
+    reset,
+    formState: { isDirty },
+  } = methods;
   const fieldControl = control as unknown as Control<FieldValues>;
 
   const title = hasPassword ? "Alterar senha" : "Definir senha";
@@ -216,6 +225,26 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
     setConfirmDialogOpen(open);
   };
 
+  const discardPasswordChanges = useCallback(() => {
+    reset(getPasswordSettingsDefaultValues(hasPassword));
+    setPendingPayload(null);
+    setStep("credentials");
+    setConfirmDialogOpen(false);
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  }, [hasPassword, reset]);
+
+  useSettingsPasswordTabGuard({
+    isDirty,
+    step,
+    confirmDialogOpen,
+    isSaving: isRequestPasswordChangeCodePending || isConfirmPasswordPending,
+    handleSubmit,
+    onOpenConfirmDialog: () => setConfirmDialogOpen(true),
+    onDiscard: discardPasswordChanges,
+  });
+
   if (step === "confirmation" && pendingPayload) {
     return (
       <SettingsPasswordConfirmationStep
@@ -300,7 +329,11 @@ export function SettingsPasswordForm({ user }: SettingsPasswordFormProps) {
               </p>
             </CardContent>
 
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <DiscardChangesButton
+                disabled={!isDirty || isRequestPasswordChangeCodePending}
+                onClick={discardPasswordChanges}
+              />
               <Button
                 type="submit"
                 disabled={isRequestPasswordChangeCodePending}

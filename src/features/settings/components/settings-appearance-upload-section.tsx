@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import {
   Dropzone,
   DropzoneDescription,
@@ -45,6 +46,13 @@ import {
 import { validateBannerFile } from "../schemas/appearance-settings-schema";
 import { SettingsAppearancePreview } from "./settings-appearance-preview";
 
+export type SettingsAppearanceUploadController = {
+  get hasUnsavedChanges(): boolean;
+  get isSaving(): boolean;
+  save: () => Promise<boolean>;
+  discard: () => void;
+};
+
 type SettingsAppearanceUploadSectionProps = {
   variant: AppearanceUploadVariant;
   existingImageUrl: string | null;
@@ -53,7 +61,8 @@ type SettingsAppearanceUploadSectionProps = {
   isPending?: boolean;
   isRemovePending?: boolean;
   onRemoveExisting?: () => void;
-  onSaveFile: (file: File, options?: { onSuccess?: () => void }) => void;
+  onSaveFile: (file: File, options?: { onSuccess?: () => void; onError?: () => void }) => void;
+  onControllerChange?: (controller: SettingsAppearanceUploadController | null) => void;
 };
 
 export function SettingsAppearanceUploadSection({
@@ -65,6 +74,7 @@ export function SettingsAppearanceUploadSection({
   isRemovePending = false,
   onRemoveExisting,
   onSaveFile,
+  onControllerChange,
 }: SettingsAppearanceUploadSectionProps) {
   const config = APPEARANCE_UPLOAD_CONFIG[variant];
   const HeaderIcon = config.headerIcon;
@@ -106,13 +116,67 @@ export function SettingsAppearanceUploadSection({
     });
   }, []);
 
-  const clearPendingFile = () => {
+  const clearPendingFile = useCallback(() => {
     setPendingFile(null);
     setLocalPreviewUrl((previous) => {
       if (previous) URL.revokeObjectURL(previous);
       return null;
     });
-  };
+  }, []);
+
+  const savePendingFile = useCallback(() => {
+    if (!pendingFile) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise<boolean>((resolve) => {
+      onSaveFile(pendingFile, {
+        onSuccess: () => {
+          clearPendingFile();
+          resolve(true);
+        },
+        onError: () => resolve(false),
+      });
+    });
+  }, [clearPendingFile, onSaveFile, pendingFile]);
+
+  const savePendingFileRef = useRef(savePendingFile);
+  const clearPendingFileRef = useRef(clearPendingFile);
+  const pendingFileRef = useRef(pendingFile);
+  const isPendingRef = useRef(isPending);
+
+  useEffect(() => {
+    savePendingFileRef.current = savePendingFile;
+    clearPendingFileRef.current = clearPendingFile;
+    pendingFileRef.current = pendingFile;
+    isPendingRef.current = isPending;
+  }, [clearPendingFile, isPending, pendingFile, savePendingFile]);
+
+  useEffect(() => {
+    if (!onControllerChange) {
+      return;
+    }
+
+    if (disabled) {
+      onControllerChange(null);
+      return;
+    }
+
+    onControllerChange({
+      get hasUnsavedChanges() {
+        return pendingFileRef.current !== null;
+      },
+      get isSaving() {
+        return isPendingRef.current;
+      },
+      save: () => savePendingFileRef.current(),
+      discard: () => clearPendingFileRef.current(),
+    });
+  }, [disabled, onControllerChange]);
+
+  useEffect(() => {
+    return () => onControllerChange?.(null);
+  }, [onControllerChange]);
 
   const handleSave = () => {
     if (!pendingFile) {
@@ -120,7 +184,7 @@ export function SettingsAppearanceUploadSection({
       return;
     }
 
-    onSaveFile(pendingFile, { onSuccess: clearPendingFile });
+    void savePendingFile();
   };
 
   if (disabled) {
@@ -245,15 +309,21 @@ export function SettingsAppearanceUploadSection({
               </FileListItem>
             </FileList>
 
-            <Button
-              type="button"
-              disabled={!hasPendingUpload || isPending || isRemovePending}
-              className="w-full gap-2 sm:w-auto"
-              onClick={handleSave}
-            >
-              <Save aria-hidden className="size-4" />
-              {isPending ? "Salvando..." : "Salvar alterações"}
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <DiscardChangesButton
+                disabled={!hasPendingUpload || isPending || isRemovePending}
+                onClick={clearPendingFile}
+              />
+              <Button
+                type="button"
+                disabled={!hasPendingUpload || isPending || isRemovePending}
+                className="w-full gap-2 sm:w-auto"
+                onClick={handleSave}
+              >
+                <Save aria-hidden className="size-4" />
+                {isPending ? "Salvando..." : "Salvar alterações"}
+              </Button>
+            </div>
           </div>
 
           <div

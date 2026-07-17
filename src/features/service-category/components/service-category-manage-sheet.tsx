@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import {
   Dialog,
   DialogContent,
@@ -248,6 +249,13 @@ export function ServiceCategoryManageSheet({
                 <Button type="button" variant="outline" onClick={() => setRenameTarget(null)}>
                   Cancelar
                 </Button>
+                <DiscardChangesButton
+                  disabled={updateMutation.isPending || !renameForm.formState.isDirty}
+                  onClick={() => {
+                    if (!renameTarget) return;
+                    renameForm.reset({ name: renameTarget.name });
+                  }}
+                />
                 <Button
                   type="submit"
                   disabled={updateMutation.isPending || !renameForm.formState.isValid}

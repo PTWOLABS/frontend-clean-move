@@ -6,6 +6,7 @@ import {
   customerFullNameField,
   customerPhoneField,
 } from "@/features/customer/schemas/customer-form-schema";
+import { hhMmToMinutes, isValidDurationHhMm } from "@/features/service/lib/duration-hhmm";
 import { normalizePlate } from "@/features/vehicle/schemas/vehicle-form-schema";
 import z from "zod";
 import type { OnboardingPayload } from "../types/onboarding-types";
@@ -17,32 +18,17 @@ function emptyStringToUndefined(value: unknown) {
   return trimmedValue ? trimmedValue : undefined;
 }
 
-function parseNumberFromInput(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const normalizedValue = value.replace(",", ".").trim();
-    if (!normalizedValue) return Number.NaN;
-
-    return Number(normalizedValue);
-  }
-
-  return Number.NaN;
-}
-
 const optionalTrimmedText = z.preprocess(emptyStringToUndefined, z.string().optional());
 
 const optionalDateInput = z.union([z.date(), z.string(), z.number(), z.null(), z.undefined()]);
 
-const optionalPositiveIntegerField = (message: string) =>
+const optionalDurationHhMmField = (message: string) =>
   z.preprocess(
     emptyStringToUndefined,
     z
-      .union([z.string(), z.number()])
-      .transform(parseNumberFromInput)
-      .refine((value) => Number.isInteger(value) && value > 0, { message })
+      .string()
+      .refine((value) => isValidDurationHhMm(value), { message })
+      .transform((value) => hhMmToMinutes(value) as number)
       .optional(),
   );
 
@@ -78,11 +64,11 @@ export const onboardingServiceStepSchema = z
     serviceName: optionalTrimmedText,
     description: optionalTrimmedText,
     category: optionalTrimmedText,
-    minDurationInMinutes: optionalPositiveIntegerField(
-      "Duração mínima deve ser um número inteiro positivo.",
+    minDurationInMinutes: optionalDurationHhMmField(
+      "Informe uma duração mínima válida (ex.: 00:30).",
     ),
-    maxDurationInMinutes: optionalPositiveIntegerField(
-      "Duração máxima deve ser um número inteiro positivo.",
+    maxDurationInMinutes: optionalDurationHhMmField(
+      "Informe uma duração máxima válida (ex.: 01:00).",
     ),
     price: optionalBrlPriceField,
     isActive: z.boolean().optional(),

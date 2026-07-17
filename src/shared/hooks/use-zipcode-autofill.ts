@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useWatch,
@@ -6,13 +6,13 @@ import {
   type FieldValues,
   type UseFormClearErrors,
   type UseFormGetValues,
-  type UseFormSetError,
   type UseFormSetValue,
 } from "react-hook-form";
 
 import { fetchAddressByZipCode } from "@/shared/api/viacep";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
+const ZIP_CACHE_MS = 1000 * 60 * 10;
 
 export type ZipCodeAutofillFieldPaths = {
   zipCode: string;
@@ -26,7 +26,6 @@ export type ZipCodeAutofillForm = {
   clearErrors: UseFormClearErrors<FieldValues>;
   control: Control<FieldValues>;
   getValues: UseFormGetValues<FieldValues>;
-  setError: UseFormSetError<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
 };
 
@@ -34,18 +33,87 @@ type UseZipCodeAutofillOptions = {
   enabled?: boolean;
 };
 
+function hasAddressContent(street: unknown, city: unknown, state: unknown): boolean {
+  return Boolean(
+    String(street ?? "").trim() || String(city ?? "").trim() || String(state ?? "").trim(),
+  );
+}
+
+/**
+ * ViaCEP autofill contract:
+ * - Queries when CEP has 8 digits AND street/city/state are empty for that CEP.
+ * - Skips network when the form is hydrated (or already filled) for the current CEP.
+ * - Changing the CEP forces a new lookup even if address fields still have previous values.
+ * - Clearing the address fields for the same CEP also allows a refill (from cache or network).
+ * - Not found (null): clear field errors, expose zipCodeNotFound — do not block submit.
+ */
 export function useZipCodeAutofill(
   form: ZipCodeAutofillForm,
   fields: ZipCodeAutofillFieldPaths,
   options?: UseZipCodeAutofillOptions,
 ) {
-  const { clearErrors, control, getValues, setError, setValue } = form;
-  const processedZipCodeRef = useRef<string | null>(null);
-  const fetchedZipCodeRef = useRef<string | null>(null);
-  const initialNormalizedZipRef = useRef<string | null>(null);
+  const { clearErrors, control, getValues, setValue } = form;
+  const fetchedZipRef = useRef<string | null>(null);
+
+  const [filledForZip, setFilledForZip] = useState<string | null>(null);
+  const [processedZip, setProcessedZip] = useState<string | null>(null);
+  const [forceLookup, setForceLookup] = useState(false);
+  const [trackedZip, setTrackedZip] = useState<string | null>(null);
+  const [initialZip, setInitialZip] = useState<string | null>(null);
+
   const zipCode = useWatch({ control, name: fields.zipCode });
+  const street = useWatch({ control, name: fields.street });
+  const city = useWatch({ control, name: fields.city });
+  const state = useWatch({ control, name: fields.state });
   const normalizedZipCode = onlyDigits(String(zipCode ?? ""));
-  const isEnabled = options?.enabled !== false && normalizedZipCode.length === 8;
+  const hasAddress = hasAddressContent(street, city, state);
+
+  // Session markers are synced with the React-endorsed "adjusting state during
+  // render" pattern (https://react.dev/learn/you-might-not-need-an-effect).
+  // The project lint config forbids the setState-in-effect alternative
+  // (react-hooks/set-state-in-effect), so keep this logic in the render body.
+  if (normalizedZipCode.length === 8) {
+    if (initialZip === null) {
+      setInitialZip(normalizedZipCode);
+    }
+
+    if (trackedZip === null) {
+      setTrackedZip(normalizedZipCode);
+      if (hasAddress) {
+        setFilledForZip(normalizedZipCode);
+        setProcessedZip(normalizedZipCode);
+      }
+    } else if (trackedZip !== normalizedZipCode) {
+      setTrackedZip(normalizedZipCode);
+      setFilledForZip(null);
+      setProcessedZip(null);
+      setForceLookup(true);
+    } else if (hasAddress && !forceLookup && filledForZip === null) {
+      setFilledForZip(normalizedZipCode);
+      setProcessedZip(normalizedZipCode);
+    } else if (
+      !hasAddress &&
+      (filledForZip === normalizedZipCode || processedZip === normalizedZipCode)
+    ) {
+      setFilledForZip(null);
+      setProcessedZip(null);
+    }
+  }
+
+  const addressAlreadyFilledForCurrentZip =
+    normalizedZipCode.length === 8 &&
+    hasAddress &&
+    !forceLookup &&
+    (filledForZip === normalizedZipCode ||
+      (filledForZip === null && trackedZip === null) ||
+      (filledForZip === null &&
+        trackedZip === normalizedZipCode &&
+        processedZip === normalizedZipCode));
+
+  const isEnabled =
+    options?.enabled !== false &&
+    normalizedZipCode.length === 8 &&
+    !addressAlreadyFilledForCurrentZip;
 
   const {
     data: address,
@@ -58,51 +126,48 @@ export function useZipCodeAutofill(
     queryFn: async ({ queryKey, signal }) => {
       const zip = String(queryKey[1] ?? "");
       const result = await fetchAddressByZipCode(zip, signal);
-      fetchedZipCodeRef.current = zip;
+      fetchedZipRef.current = zip;
       return result;
     },
     retry: false,
-    staleTime: 1000 * 60 * 10,
+    staleTime: ZIP_CACHE_MS,
+    gcTime: ZIP_CACHE_MS,
+    refetchOnMount: false,
   });
 
   useEffect(() => {
-    if (initialNormalizedZipRef.current === null && normalizedZipCode.length === 8) {
-      initialNormalizedZipRef.current = normalizedZipCode;
-    }
-
     if (!isSuccess) {
       return;
     }
 
     if (!address) {
-      setError(fields.zipCode, {
-        type: "manual",
-        message: "CEP não encontrado.",
-      });
+      clearErrors(fields.zipCode);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza sessão após resposta ViaCEP (CEP não encontrado)
+      setForceLookup(false);
       return;
     }
 
-    if (fetchedZipCodeRef.current !== normalizedZipCode) {
+    if (fetchedZipRef.current !== normalizedZipCode) {
       return;
     }
 
-    if (processedZipCodeRef.current === normalizedZipCode) {
+    if (processedZip === normalizedZipCode && !forceLookup) {
       return;
     }
 
-    const initialZipCode = initialNormalizedZipRef.current;
     const userChangedZipCode =
-      initialZipCode !== null &&
-      normalizedZipCode.length === 8 &&
-      normalizedZipCode !== initialZipCode;
+      initialZip !== null && normalizedZipCode.length === 8 && normalizedZipCode !== initialZip;
 
     const isHydration =
       !userChangedZipCode &&
-      processedZipCodeRef.current === null &&
+      !forceLookup &&
+      processedZip === null &&
       normalizedZipCode.length === 8 &&
-      Boolean(getValues(fields.street) || getValues(fields.city) || getValues(fields.state));
+      hasAddressContent(getValues(fields.street), getValues(fields.city), getValues(fields.state));
 
-    processedZipCodeRef.current = normalizedZipCode;
+    setProcessedZip(normalizedZipCode);
+    setFilledForZip(normalizedZipCode);
+    setForceLookup(false);
 
     if (isHydration) {
       return;
@@ -140,15 +205,18 @@ export function useZipCodeAutofill(
     fields.state,
     fields.street,
     fields.zipCode,
+    forceLookup,
     getValues,
+    initialZip,
     isSuccess,
     normalizedZipCode,
-    setError,
+    processedZip,
     setValue,
   ]);
 
   return {
     isFetchingAddress: isFetching,
     hasAddressFetchError: isError,
+    zipCodeNotFound: isSuccess && address == null,
   };
 }

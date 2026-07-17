@@ -111,18 +111,19 @@ describe("useZipCodeAutofill", () => {
     expect(getMethods().getValues("complement")).toBe("Andar 5");
   });
 
-  it("should set 'cep não encontrado' error when the service returns null", async () => {
+  it("should allow manual fill when the service returns null", async () => {
     fetchAddressByZipCodeMock.mockResolvedValue(null);
     const { Wrapper, getMethods } = buildWrapper();
-    renderHook(() => useZipCodeAutofill(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useZipCodeAutofill(), { wrapper: Wrapper });
 
     act(() => {
       getMethods().setValue("zipCode", "01310-100");
     });
 
-    await waitFor(() => {
-      expect(getMethods().formState.errors.zipCode?.message).toBe("CEP não encontrado.");
-    });
+    await waitFor(() => expect(result.current.zipCodeNotFound).toBe(true));
+
+    expect(getMethods().formState.errors.zipCode).toBeUndefined();
+    expect(result.current.hasAddressFetchError).toBe(false);
   });
 
   it("should expose hasaddressfetcherror when the lookup fails", async () => {

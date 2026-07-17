@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select/select";
 import { StepHeader } from "./step-header";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
+import { DURATION_HHMM_MASK } from "@/features/service/lib/duration-hhmm";
 
 const NONE_CATEGORY_VALUE = "__none__";
 
@@ -100,22 +101,20 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
           <StandartInputField
             id="onboarding-service-min-duration"
             name="minDurationInMinutes"
-            label="Duração mín. (min)"
-            type="number"
+            label="Duração mín."
+            mask={DURATION_HHMM_MASK}
             inputMode="numeric"
-            min={1}
-            placeholder="30"
+            placeholder="00:30"
             className="shadow-xs"
           />
 
           <StandartInputField
             id="onboarding-service-max-duration"
             name="maxDurationInMinutes"
-            label="Duração máx. (min)"
-            type="number"
+            label="Duração máx."
+            mask={DURATION_HHMM_MASK}
             inputMode="numeric"
-            min={1}
-            placeholder="60"
+            placeholder="01:00"
             className="shadow-xs"
           />
           <StandartInputField

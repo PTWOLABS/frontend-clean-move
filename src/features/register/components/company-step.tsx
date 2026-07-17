@@ -11,7 +11,15 @@ type CompanyStepProps = {
 };
 
 export function CompanyStep({ onBack }: CompanyStepProps) {
-  const { hasCompanyFetchError, isFetchingCompany } = useCnpjAutofill();
+  const { companyNotFound, hasCompanyFetchError, isFetchingCompany } = useCnpjAutofill();
+
+  const helperMessage = isFetchingCompany
+    ? "Buscando dados da empresa pelo CNPJ..."
+    : companyNotFound
+      ? "CNPJ não encontrado. Preencha os dados manualmente."
+      : hasCompanyFetchError
+        ? "Não foi possível consultar o CNPJ. Preencha os dados manualmente."
+        : null;
 
   return (
     <>
@@ -33,12 +41,8 @@ export function CompanyStep({ onBack }: CompanyStepProps) {
           }
         />
 
-        {isFetchingCompany || hasCompanyFetchError ? (
-          <p className="-mt-1 text-[11px] font-medium leading-4 text-[#94A3B8]">
-            {isFetchingCompany
-              ? "Buscando dados da empresa pelo CNPJ..."
-              : "Não foi possível consultar o CNPJ. Preencha os dados manualmente."}
-          </p>
+        {helperMessage ? (
+          <p className="-mt-1 text-[11px] font-medium leading-4 text-[#94A3B8]">{helperMessage}</p>
         ) : null}
 
         <RegisterTextField

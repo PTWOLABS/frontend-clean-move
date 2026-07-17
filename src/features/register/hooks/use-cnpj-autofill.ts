@@ -8,7 +8,7 @@ import { type CompanyStepValues } from "../schemas/register-schema";
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
 export function useCnpjAutofill() {
-  const { clearErrors, control, setError, setValue } = useFormContext<CompanyStepValues>();
+  const { clearErrors, control, setValue } = useFormContext<CompanyStepValues>();
   const cnpj = useWatch({ control, name: "cnpj" });
   const normalizedCnpj = onlyDigits(cnpj ?? "");
 
@@ -31,10 +31,7 @@ export function useCnpjAutofill() {
     }
 
     if (!company) {
-      setError("cnpj", {
-        type: "manual",
-        message: "CNPJ não encontrado.",
-      });
+      clearErrors("cnpj");
       return;
     }
 
@@ -48,10 +45,11 @@ export function useCnpjAutofill() {
       shouldDirty: true,
       shouldValidate: true,
     });
-  }, [clearErrors, company, isSuccess, setError, setValue]);
+  }, [clearErrors, company, isSuccess, setValue]);
 
   return {
     hasCompanyFetchError: isError,
+    companyNotFound: isSuccess && company == null,
     isFetchingCompany: isFetching,
   };
 }

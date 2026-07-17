@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
 import {
@@ -112,7 +113,6 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
     clearErrors,
     control: fieldControl,
     getValues,
-    setError,
     setValue,
   } as unknown as ZipCodeAutofillForm;
 
@@ -130,7 +130,7 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
   const hasExistingPrimaryVehicle = isEditMode && Boolean(primaryVehicleFromCustomer?.id);
   const showVehicleSection = includeVehicle || hasExistingPrimaryVehicle;
 
-  const { isFetchingAddress, hasAddressFetchError } = useZipCodeAutofill(
+  const { isFetchingAddress, hasAddressFetchError, zipCodeNotFound } = useZipCodeAutofill(
     zipCodeAutofillForm,
     {
       zipCode: "address.zipCode",
@@ -408,11 +408,13 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
                       ) : undefined
                     }
                   />
-                  {isFetchingAddress || hasAddressFetchError ? (
+                  {isFetchingAddress || hasAddressFetchError || zipCodeNotFound ? (
                     <p className="-mt-2 text-xs font-medium text-muted-foreground">
                       {isFetchingAddress
                         ? "Buscando endereço pelo CEP..."
-                        : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
+                        : zipCodeNotFound
+                          ? "CEP não encontrado. Preencha o endereço manualmente."
+                          : "Não foi possível consultar o CEP. Preencha o endereço manualmente."}
                     </p>
                   ) : null}
                   <InputField
@@ -553,6 +555,17 @@ export function CustomerFormSheet({ open, onOpenChange, editingCustomer }: Custo
               >
                 Cancelar
               </Button>
+              {isEditMode ? (
+                <DiscardChangesButton
+                  disabled={isPending || (!isDirty && !needsVehicleRecovery)}
+                  onClick={() => {
+                    if (!activeCustomer) return;
+                    const primaryVehicle =
+                      activeCustomer.vehicles?.[0] ?? activeCustomer.primaryVehicle ?? null;
+                    reset(customerToFormDefaults(activeCustomer, primaryVehicle));
+                  }}
+                />
+              ) : null}
               <Button
                 type="submit"
                 className="w-full sm:w-auto"
