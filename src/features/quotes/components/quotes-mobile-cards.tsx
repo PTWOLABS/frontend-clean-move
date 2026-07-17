@@ -5,8 +5,8 @@ import {
   Calendar,
   CalendarDays,
   CalendarX,
+  Check,
   Eye,
-  FileText,
   MoreVertical,
   TriangleAlert,
 } from "lucide-react";
@@ -30,7 +30,6 @@ import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../
 import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
-import { useGenerateQuotePdf } from "../hooks/mutations/use-gerenate-quote-pdf";
 
 const PAGE_SIZE = 5;
 
@@ -62,8 +61,8 @@ function getQuoteFooterLabel(quote: QuoteListItemDto): string {
 }
 
 function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
-  const generateQuotePdf = useGenerateQuotePdf();
   const status = quoteStatusConfig[quote.status];
+  const canApprove = quote.status === "VALID" || quote.status === "EXPIRES_TODAY";
 
   return (
     <MobileDataCard
@@ -110,12 +109,16 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
           icon: Eye,
           onClick: noop,
         },
-        {
-          label: "Gerar PDF",
-          icon: FileText,
-          onClick: () => generateQuotePdf.mutate(quote.id),
-          disabled: generateQuotePdf.isPending,
-        },
+        ...(canApprove
+          ? [
+              {
+                label: "Aprovar orçamento",
+                icon: Check,
+                onClick: noop,
+                tone: "success" as const,
+              },
+            ]
+          : []),
         {
           label: "Mais opções",
           icon: MoreVertical,

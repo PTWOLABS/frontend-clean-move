@@ -32,6 +32,7 @@ export type DataCatalogTableAction<TItem> = {
   label: string;
   icon: LucideIcon;
   onClick: (item: TItem) => void;
+  visible?: (item: TItem) => boolean;
   disabled?: (item: TItem) => boolean;
   tone?: DataCatalogTone;
 };
@@ -180,30 +181,32 @@ export function DataCatalogTable<TItem>({
                 <TableCell className="h-20 px-6 text-right align-middle">
                   <HintTooltipProvider>
                     <div className="flex items-center justify-end gap-2">
-                      {actions.map((action) => {
-                        const Icon = action.icon;
-                        const disabled = action.disabled?.(item) ?? false;
-                        const tone = action.tone ?? "neutral";
+                      {actions
+                        .filter((action) => action.visible?.(item) ?? true)
+                        .map((action) => {
+                          const Icon = action.icon;
+                          const disabled = action.disabled?.(item) ?? false;
+                          const tone = action.tone ?? "neutral";
 
-                        return (
-                          <HintTooltip key={action.label} label={action.label}>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              disabled={disabled}
-                              aria-label={action.label}
-                              className={cn(
-                                "size-10 rounded-md border-border/80 bg-background/50 shadow-none transition-colors",
-                                toneClassNames[tone].action,
-                              )}
-                              onClick={() => action.onClick(item)}
-                            >
-                              <Icon className="size-4" aria-hidden="true" />
-                            </Button>
-                          </HintTooltip>
-                        );
-                      })}
+                          return (
+                            <HintTooltip key={action.label} label={action.label}>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                disabled={disabled}
+                                aria-label={action.label}
+                                className={cn(
+                                  "size-10 rounded-md border-border/80 bg-background/50 shadow-none transition-colors",
+                                  toneClassNames[tone].action,
+                                )}
+                                onClick={() => action.onClick(item)}
+                              >
+                                <Icon className="size-4" aria-hidden="true" />
+                              </Button>
+                            </HintTooltip>
+                          );
+                        })}
                     </div>
                   </HintTooltipProvider>
                 </TableCell>
