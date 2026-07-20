@@ -1,5 +1,5 @@
 import { onlyDigits } from "@/shared/utils/lib";
-import { requiredText } from "@/shared/utils/required-text";
+import { optionalText, requiredText } from "@/shared/utils/required-text";
 import { z } from "zod";
 
 export enum BrazilianState {
@@ -78,7 +78,7 @@ export const addressStepSchema = z.object({
       (value) => brazilianStateValues.includes(value as BrazilianState),
       "Informe uma UF válida.",
     ),
-  complement: requiredText("o complemento"),
+  complement: optionalText(),
 });
 
 export const registerSchema = accountStepSchema

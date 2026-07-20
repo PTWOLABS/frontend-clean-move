@@ -38,7 +38,7 @@ export function mapRegisterToEstablishmentPayload(
     phone: onlyDigits(values.phone),
     address: {
       street: `${values.street.trim()}, ${values.number.trim()}`,
-      complement: values.complement.trim(),
+      complement: values.complement?.trim() ?? "",
       country: "Brasil",
       state: values.state,
       zipCode: formatZipCode(zipDigits),

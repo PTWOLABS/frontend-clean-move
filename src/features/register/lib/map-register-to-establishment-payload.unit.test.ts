@@ -45,6 +45,20 @@ describe("mapRegisterToEstablishmentPayload", () => {
       slug: "empresa-cia",
     });
   });
+
+  it("should send an empty complement when the field is blank", () => {
+    expect(mapRegisterToEstablishmentPayload({ ...baseValues, complement: "" })).toMatchObject({
+      address: { complement: "" },
+    });
+  });
+
+  it("should send an empty complement when the field is undefined", () => {
+    expect(
+      mapRegisterToEstablishmentPayload({ ...baseValues, complement: undefined }),
+    ).toMatchObject({
+      address: { complement: "" },
+    });
+  });
 });
 
 describe("slugifyTradeName", () => {

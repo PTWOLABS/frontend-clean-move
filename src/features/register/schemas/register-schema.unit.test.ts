@@ -135,6 +135,17 @@ describe("addressStepSchema", () => {
       expect(message).toBe("Informe uma UF válida.");
     }
   });
+
+  it("should accept an empty complement", () => {
+    const result = addressStepSchema.safeParse({ ...validAddress, complement: "" });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept an address without complement", () => {
+    const { complement: _complement, ...addressWithoutComplement } = validAddress;
+    const result = addressStepSchema.safeParse(addressWithoutComplement);
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("registerSchema", () => {
