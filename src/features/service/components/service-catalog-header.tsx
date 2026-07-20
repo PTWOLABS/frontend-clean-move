@@ -24,12 +24,17 @@ export function ServiceCatalogHeader({
         </h1>
         <p className="text-sm text-muted-foreground">{countLabel}</p>
       </div>
-      <div className="flex shrink-0 flex-wrap gap-2">
-        <Button type="button" variant="outline" className="h-10 gap-2" onClick={onManageCategories}>
+      <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-10 w-full gap-2 sm:w-auto"
+          onClick={onManageCategories}
+        >
           <FolderTree aria-hidden />
           Gerir categorias
         </Button>
-        <Button type="button" className="h-10 gap-2" onClick={onAddService}>
+        <Button type="button" className="h-10 w-full gap-2 sm:w-auto" onClick={onAddService}>
           <Plus aria-hidden />
           Adicionar serviço
         </Button>
