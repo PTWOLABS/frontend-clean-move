@@ -1,9 +1,14 @@
 import { httpClient } from "@/shared/api/httpClient";
-import { OptionsFilters } from "../types/api-filters";
-import { ServiceOptionsDTO } from "../types/options-dto";
+import type { OptionsListParams } from "@/shared/types/options-query";
 
-export async function listServiceOptions(filters?: OptionsFilters) {
-  return await httpClient<ServiceOptionsDTO, OptionsFilters>("/services/options", {
+import type { ServiceOptionsDTO } from "../types/options-dto";
+
+export async function listServiceOptions(
+  filters?: OptionsListParams,
+  signal?: AbortSignal,
+) {
+  return await httpClient<ServiceOptionsDTO, OptionsListParams>("/services/options", {
     filters,
+    signal,
   });
 }

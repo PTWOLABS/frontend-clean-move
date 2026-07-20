@@ -130,6 +130,9 @@ export function AppointmentFormSheet({
     clearServiceSearch,
     clearVehicleSelection,
     customerEmptyMessage,
+    customerFetchNextPage,
+    customerHasMore,
+    customerIsFetchingNextPage,
     customerLabel,
     customerOptionsItems,
     customerVehicleOptionsItems,
@@ -137,7 +140,9 @@ export function AppointmentFormSheet({
     resetOptionState,
     selectedCustomerId,
     serviceEmptyMessage,
-    serviceOptions,
+    serviceFetchNextPage,
+    serviceHasMore,
+    serviceIsFetchingNextPage,
     serviceOptionsItems,
     servicePriceById,
     setCustomerLabel,
@@ -147,6 +152,9 @@ export function AppointmentFormSheet({
     setVehicleLabel,
     setVehicleSearch,
     vehicleEmptyMessage,
+    vehicleFetchNextPage,
+    vehicleHasMore,
+    vehicleIsFetchingNextPage,
     vehicleLabel,
   } = useAppointmentFormOptions({
     appointment,
@@ -189,7 +197,6 @@ export function AppointmentFormSheet({
     getValues,
     isEditing,
     open,
-    serviceOptions,
     servicePriceById,
     setValue,
   });
@@ -377,6 +384,11 @@ export function AppointmentFormSheet({
                         disabled={isSubmitting || Boolean(customerResourceStatus)}
                         required
                         className="w-full"
+                        hasMore={customerHasMore}
+                        isLoadingMore={customerIsFetchingNextPage}
+                        onLoadMore={() => {
+                          void customerFetchNextPage();
+                        }}
                       />
                     </FormControl>
                     <div className="flex flex-wrap items-center gap-2">
@@ -432,6 +444,11 @@ export function AppointmentFormSheet({
                           className: "text-sm",
                         }}
                         commandProps={{ shouldFilter: false }}
+                        hasMore={serviceHasMore}
+                        isLoadingMore={serviceIsFetchingNextPage}
+                        onLoadMore={() => {
+                          void serviceFetchNextPage();
+                        }}
                       />
                     </FormControl>
                     {hasLockedSnapshotService ? (
@@ -536,6 +553,11 @@ export function AppointmentFormSheet({
                         }
                         required
                         className="w-full"
+                        hasMore={vehicleHasMore}
+                        isLoadingMore={vehicleIsFetchingNextPage}
+                        onLoadMore={() => {
+                          void vehicleFetchNextPage();
+                        }}
                       />
                     </FormControl>
                     <div className="flex flex-wrap items-center gap-2">

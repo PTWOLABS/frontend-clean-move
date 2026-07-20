@@ -218,6 +218,7 @@ async function mockCleanMoveApi(page: Page) {
             { id: "category-wash", label: "Lavagem" },
             { id: "category-polish", label: "Polimento" },
           ],
+          totalItems: 2,
         },
       });
     },

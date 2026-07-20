@@ -25,6 +25,7 @@ export type AppointmentsCalendarFilters = {
   status?: AppointmentStatus[];
 };
 
+/** Filters da query key / hook (sem `page` — pageParam do infinite query). */
 export type OptionsFilters = OptionsQuery;
 
 export type VehicleOptionsFilters = VehicleOptionsQuery;

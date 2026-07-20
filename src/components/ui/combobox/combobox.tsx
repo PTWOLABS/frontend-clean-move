@@ -10,6 +10,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "./primitives";
+import { OptionsLoadMoreButton } from "@/components/ui/options-load-more-button";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { cn } from "@/shared/utils/cn";
 
@@ -31,6 +32,9 @@ type ComboboxProps = Omit<
   onSelectedItemChange?: (item: ComboboxItemOption | null) => void;
   onValueChange?: (value: string) => void;
   portalContainer?: React.ComponentProps<typeof ComboboxContent>["portalContainer"];
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
 };
 
 export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
@@ -47,6 +51,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
       onValueChange,
       portalContainer,
       showClear = true,
+      hasMore = false,
+      onLoadMore,
+      isLoadingMore = false,
       ...props
     },
     ref,
@@ -105,6 +112,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
               </ComboboxItem>
             )}
           </ComboboxList>
+          {hasMore && onLoadMore ? (
+            <OptionsLoadMoreButton onLoadMore={onLoadMore} isLoadingMore={isLoadingMore} />
+          ) : null}
         </ComboboxContent>
       </ComboboxPrimitive>
     );

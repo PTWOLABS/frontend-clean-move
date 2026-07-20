@@ -88,7 +88,7 @@ describe("services-query-cache", () => {
   it("ignores service options cache when mutating lists", () => {
     const client = new QueryClient();
     const listKey = QUERY_KEYS.services({ page: 1, size: 5 });
-    const optionsKey = QUERY_KEYS.serviceOptions({ limit: 1000 });
+    const optionsKey = QUERY_KEYS.serviceOptions({ size: 1000 });
     const serviceOptions = {
       services: [{ id: "a", label: "Lavagem A" }],
     };

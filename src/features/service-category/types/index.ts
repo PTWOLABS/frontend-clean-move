@@ -33,6 +33,7 @@ export type ServiceCategoryResponse = {
 
 export type ServiceCategoryOptionsResponse = {
   categories: ServiceCategoryOption[];
+  totalItems: number;
 };
 
 export type ServiceCategoryOptionsQuery = OptionsQuery;

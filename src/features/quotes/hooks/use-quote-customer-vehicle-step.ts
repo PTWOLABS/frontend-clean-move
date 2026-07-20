@@ -9,7 +9,7 @@ import { useListCustomerVehicleOptions } from "@/features/appointments/hooks/que
 import { useCustomer } from "@/features/customer/hooks/use-customer";
 import { formatCpfCnpj, formatPhone } from "@/features/customer/lib/format-customer-catalog";
 import { useVehicle } from "@/features/vehicle/hooks/use-vehicle";
-import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
+import { DEFAULT_OPTIONS_SIZE } from "@/shared/constants/options";
 
 import { createQuoteFormDefaultValues } from "../schemas/create-quote-schema";
 import type { CreateQuoteFormInput } from "../types/create-quote";
@@ -34,8 +34,8 @@ export function useQuoteCustomerVehicleStep() {
   const customerComboboxValue = hasSelectedCustomer ? selectedCustomerDisplayLabel : customerLabel;
   const vehicleComboboxValue = hasSelectedVehicle ? selectedVehicleDisplayLabel : vehicleLabel;
 
-  const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: DEFAULT_OPTIONS_LIMIT,
+  const customerOptionsQuery = useListCustomerOptions({
+    size: DEFAULT_OPTIONS_SIZE,
     search: customerSearch || undefined,
   });
 
@@ -44,12 +44,11 @@ export function useQuoteCustomerVehicleStep() {
     enabled: hasSelectedCustomer,
   });
 
-  const { data: vehicleOptions, isPending: isLoadingCustomerVehicleOptions } =
-    useListCustomerVehicleOptions({
-      customerId: selectedCustomerId ?? undefined,
-      limit: DEFAULT_OPTIONS_LIMIT,
-      search: vehicleSearch || undefined,
-    });
+  const vehicleOptionsQuery = useListCustomerVehicleOptions({
+    customerId: selectedCustomerId ?? undefined,
+    size: DEFAULT_OPTIONS_SIZE,
+    search: vehicleSearch || undefined,
+  });
 
   const { data: selectedVehicle, isFetching: isFetchingSelectedVehicle } = useVehicle({
     customerId: selectedCustomerId,
@@ -59,20 +58,20 @@ export function useQuoteCustomerVehicleStep() {
 
   const customerOptionsItems = useMemo(
     () =>
-      customerOptions?.customers?.map((option) => ({
+      customerOptionsQuery.items.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [customerOptions],
+      })),
+    [customerOptionsQuery.items],
   );
 
   const vehicleOptionsItems = useMemo(
     () =>
-      vehicleOptions?.vehicles?.map((option) => ({
+      vehicleOptionsQuery.items.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [vehicleOptions],
+      })),
+    [vehicleOptionsQuery.items],
   );
 
   const clearVehicleSelection = useCallback(() => {
@@ -220,18 +219,21 @@ export function useQuoteCustomerVehicleStep() {
     void trigger("stepOne");
   }, [clearErrors, selectedCustomerId, selectedVehicle, selectedVehicleId, setValue, trigger]);
 
-  const customerEmptyMessage = isLoadingCustomerOptions
+  const customerEmptyMessage = customerOptionsQuery.isPending
     ? "Buscando clientes..."
     : "Nenhum cliente encontrado.";
   const vehicleEmptyMessage = !selectedCustomerId
     ? "Selecione um cliente primeiro."
-    : isLoadingCustomerVehicleOptions
+    : vehicleOptionsQuery.isPending
       ? "Buscando veículos..."
       : "Nenhum veículo encontrado.";
 
   return {
     control,
     customerEmptyMessage,
+    customerFetchNextPage: customerOptionsQuery.fetchNextPage,
+    customerHasMore: customerOptionsQuery.hasMore,
+    customerIsFetchingNextPage: customerOptionsQuery.isFetchingNextPage,
     customerLabel: customerComboboxValue,
     customerOptionsItems,
     handleCustomerSelectedItemChange,
@@ -246,6 +248,9 @@ export function useQuoteCustomerVehicleStep() {
     setVehicleLabel,
     setVehicleSearch,
     vehicleEmptyMessage,
+    vehicleFetchNextPage: vehicleOptionsQuery.fetchNextPage,
+    vehicleHasMore: vehicleOptionsQuery.hasMore,
+    vehicleIsFetchingNextPage: vehicleOptionsQuery.isFetchingNextPage,
     vehicleLabel: vehicleComboboxValue,
     vehicleOptionsItems,
   };

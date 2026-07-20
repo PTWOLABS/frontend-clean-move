@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
@@ -21,7 +22,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select/primitives";
@@ -33,7 +33,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -44,6 +43,7 @@ import { DURATION_HHMM_MASK } from "@/features/service/lib/duration-hhmm";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
 import { BrlMoneyInput } from "@/shared/money/brl-money-input";
 import { ApiError } from "@/shared/api/httpClient";
+import { DEFAULT_OPTIONS_SIZE } from "@/shared/constants/options";
 
 import { useCreateService } from "../hooks/use-create-service";
 import { useUpdateService } from "../hooks/use-update-service";
@@ -101,15 +101,28 @@ export function ServiceFormSheet({
   const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateService();
 
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
+  const [categoryLabel, setCategoryLabel] = useState("Nenhuma");
+  const [categorySearch, setCategorySearch] = useState("");
+  const sheetContentRef = useRef<HTMLDivElement | null>(null);
 
   const categoryOptionsQuery = useServiceCategoryOptions({
-    limit: 100,
+    size: DEFAULT_OPTIONS_SIZE,
+    search: categorySearch || undefined,
     enabled: open,
   });
 
-  const categoryOptions = useMemo(
-    () => categoryOptionsQuery.data?.categories ?? [],
-    [categoryOptionsQuery.data?.categories],
+  const categoryOptions = categoryOptionsQuery.items;
+
+  const categoryComboboxItems = useMemo<ComboboxItemOption[]>(
+    () => [
+      { label: "Nenhuma", value: NONE_CATEGORY_VALUE },
+      ...categoryOptions.map((option) => ({
+        label: option.label,
+        value: option.id,
+      })),
+      { label: "Criar nova categoria…", value: CREATE_NEW_VALUE },
+    ],
+    [categoryOptions],
   );
 
   const isEditMode = Boolean(editingService?.id);
@@ -139,16 +152,22 @@ export function ServiceFormSheet({
     if (!open) return;
     if (editingService?.id) {
       reset(serviceItemToFormDefaults(editingService));
+      setCategoryLabel(editingService.category?.name ?? "Nenhuma");
     } else if (duplicateSource) {
       reset(serviceItemToDuplicateFormDefaults(duplicateSource));
+      setCategoryLabel(duplicateSource.category?.name ?? "Nenhuma");
     } else {
       reset(createServiceDefaultValues);
+      setCategoryLabel("Nenhuma");
     }
+    setCategorySearch("");
     // eslint-disable-next-line react-hooks/exhaustive-deps -- redefinir ao abrir ou ao mudar modo (editar / duplicar / criar)
   }, [open, editingService?.id, duplicateSource, reset]);
 
   const closeSheetAfterSave = () => {
     reset(createServiceDefaultValues);
+    setCategoryLabel("Nenhuma");
+    setCategorySearch("");
     onOpenChange(false);
   };
 
@@ -188,26 +207,37 @@ export function ServiceFormSheet({
     });
   };
 
-  const handleCategoryChange = (value: string) => {
-    if (value === CREATE_NEW_VALUE) {
+  const handleCategorySelectedItemChange = (option: ComboboxItemOption | null) => {
+    if (!option) return;
+
+    if (option.value === CREATE_NEW_VALUE) {
       setCreateCategoryOpen(true);
+      const currentId = methods.getValues("categoryId");
+      const current = categoryOptions.find((item) => item.id === currentId);
+      setCategoryLabel(current?.label ?? "Nenhuma");
       return;
     }
-    if (value === NONE_CATEGORY_VALUE) {
+
+    if (option.value === NONE_CATEGORY_VALUE) {
       setValue("categoryId", "", { shouldDirty: true, shouldValidate: true });
+      setCategoryLabel("Nenhuma");
       return;
     }
-    setValue("categoryId", value, { shouldDirty: true, shouldValidate: true });
+
+    setValue("categoryId", option.value, { shouldDirty: true, shouldValidate: true });
+    setCategoryLabel(option.label);
   };
 
   const handleCategoryCreated = (category: { id: string; name: string }) => {
     setValue("categoryId", category.id, { shouldDirty: true, shouldValidate: true });
+    setCategoryLabel(category.name);
   };
 
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
+          ref={sheetContentRef}
           side="right"
           className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
         >
@@ -263,30 +293,33 @@ export function ServiceFormSheet({
                     label="Categoria"
                     renderControl={false}
                   >
-                    {({ field }) =>
-                      categoryOptionsQuery.isLoading ? (
-                        <Skeleton className="h-10 w-full rounded-md" />
-                      ) : (
-                        <Select
-                          value={field.value || NONE_CATEGORY_VALUE}
-                          onValueChange={handleCategoryChange}
-                        >
-                          <SelectTrigger id={field.name} className="w-full">
-                            <SelectValue placeholder="Selecione a categoria" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={NONE_CATEGORY_VALUE}>Nenhuma</SelectItem>
-                            {categoryOptions.map((option) => (
-                              <SelectItem key={option.id} value={option.id}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                            <SelectSeparator />
-                            <SelectItem value={CREATE_NEW_VALUE}>Criar nova categoria…</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )
-                    }
+                    {({ field }) => (
+                      <Combobox
+                        id={field.name}
+                        name={field.name}
+                        value={categoryLabel}
+                        onValueChange={setCategoryLabel}
+                        onDebouncedValueChange={setCategorySearch}
+                        onSelectedItemChange={handleCategorySelectedItemChange}
+                        onBlur={field.onBlur}
+                        items={categoryComboboxItems}
+                        portalContainer={sheetContentRef}
+                        placeholder="Selecione a categoria"
+                        emptyMessage={
+                          categoryOptionsQuery.isPending
+                            ? "Buscando categorias..."
+                            : "Nenhuma categoria encontrada."
+                        }
+                        autoComplete="off"
+                        disabled={isPending}
+                        className="w-full"
+                        hasMore={categoryOptionsQuery.hasMore}
+                        isLoadingMore={categoryOptionsQuery.isFetchingNextPage}
+                        onLoadMore={() => {
+                          void categoryOptionsQuery.fetchNextPage();
+                        }}
+                      />
+                    )}
                   </FormField>
 
                   {onManageCategories ? (
@@ -441,13 +474,15 @@ export function ServiceFormSheet({
                     onClick={() => {
                       if (!editingService?.id) return;
                       reset(serviceItemToFormDefaults(editingService));
+                      setCategoryLabel(editingService.category?.name ?? "Nenhuma");
+                      setCategorySearch("");
                     }}
                   />
                 ) : null}
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"
-                  disabled={isPending || (isEditMode && !isDirty) || categoryOptionsQuery.isLoading}
+                  disabled={isPending || (isEditMode && !isDirty) || categoryOptionsQuery.isPending}
                 >
                   {isPending
                     ? "Salvando..."

@@ -6,7 +6,6 @@ import { formatServicePriceMetadataDescription } from "@/shared/services/service
 
 import { formatCentsToBrlInput, type ServiceOptionWithPrice } from "../lib/appointment-form-values";
 import type { CreateAppointmentFormInput } from "../schemas/create-appointment-schema";
-import type { ServiceOptionsDTO } from "../types/options-dto";
 
 type AppointmentFormService = NonNullable<CreateAppointmentFormInput["services"]>[number];
 
@@ -15,7 +14,6 @@ type UseAppointmentFormServicesParams = {
   getValues: UseFormGetValues<CreateAppointmentFormInput>;
   isEditing: boolean;
   open: boolean;
-  serviceOptions: ServiceOptionsDTO | undefined;
   servicePriceById: Map<string, ServiceOptionWithPrice>;
   setValue: UseFormSetValue<CreateAppointmentFormInput>;
 };
@@ -56,7 +54,6 @@ export function useAppointmentFormServices({
   getValues,
   isEditing,
   open,
-  serviceOptions,
   servicePriceById,
   setValue,
 }: UseAppointmentFormServicesParams) {
@@ -90,7 +87,7 @@ export function useAppointmentFormServices({
   );
 
   useEffect(() => {
-    if (!open || !isEditing || !serviceOptions) return;
+    if (!open || !isEditing || servicePriceById.size === 0) return;
 
     const currentServices = getValues("services") ?? [];
     if (currentServices.length === 0) return;
@@ -132,7 +129,7 @@ export function useAppointmentFormServices({
         shouldValidate: true,
       });
     }
-  }, [getValues, isEditing, open, serviceOptions, servicePriceById, setValue]);
+  }, [getValues, isEditing, open, servicePriceById, setValue]);
 
   return {
     getServicePriceDescription,

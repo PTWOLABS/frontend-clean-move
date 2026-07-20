@@ -33,6 +33,9 @@ export function QuoteCustomerVehicleStep({
   const {
     control,
     customerEmptyMessage,
+    customerFetchNextPage,
+    customerHasMore,
+    customerIsFetchingNextPage,
     customerLabel,
     customerOptionsItems,
     handleCustomerSelectedItemChange,
@@ -47,6 +50,9 @@ export function QuoteCustomerVehicleStep({
     setVehicleLabel,
     setVehicleSearch,
     vehicleEmptyMessage,
+    vehicleFetchNextPage,
+    vehicleHasMore,
+    vehicleIsFetchingNextPage,
     vehicleLabel,
     vehicleOptionsItems,
   } = useQuoteCustomerVehicleStep();
@@ -93,6 +99,11 @@ export function QuoteCustomerVehicleStep({
                     readOnly={hasSelectedCustomer}
                     showTrigger={!hasSelectedCustomer}
                     className={cn("w-full shadow-xs", hasSelectedCustomer && "bg-muted/50")}
+                    hasMore={!hasSelectedCustomer && customerHasMore}
+                    isLoadingMore={customerIsFetchingNextPage}
+                    onLoadMore={() => {
+                      void customerFetchNextPage();
+                    }}
                   />
                 </FormControl>
                 <FormDescription>
@@ -203,6 +214,11 @@ export function QuoteCustomerVehicleStep({
                     readOnly={hasSelectedVehicle}
                     showTrigger={!hasSelectedVehicle}
                     className={cn("w-full shadow-xs", hasSelectedVehicle && "bg-muted/50")}
+                    hasMore={!hasSelectedVehicle && vehicleHasMore}
+                    isLoadingMore={vehicleIsFetchingNextPage}
+                    onLoadMore={() => {
+                      void vehicleFetchNextPage();
+                    }}
                   />
                 </FormControl>
                 <FormDescription>
