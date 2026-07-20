@@ -142,7 +142,13 @@ describe("addressStepSchema", () => {
   });
 
   it("should accept an address without complement", () => {
-    const { complement: _complement, ...addressWithoutComplement } = validAddress;
+    const addressWithoutComplement = {
+      zipCode: validAddress.zipCode,
+      street: validAddress.street,
+      number: validAddress.number,
+      city: validAddress.city,
+      state: validAddress.state,
+    };
     const result = addressStepSchema.safeParse(addressWithoutComplement);
     expect(result.success).toBe(true);
   });
