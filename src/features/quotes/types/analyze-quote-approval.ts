@@ -1,6 +1,6 @@
 export type AnalyzeQuoteApprovalBody = {
   startsAt: string;
-  endsAt?: string;
+  endsAt?: string | null;
 };
 
 export type AnalyzeQuoteApprovalResponseDto = {
