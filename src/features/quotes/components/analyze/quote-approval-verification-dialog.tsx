@@ -1,0 +1,333 @@
+"use client";
+
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  LoaderCircle,
+  ShieldCheck,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/shared/utils/cn";
+import { QuoteListItemDto } from "../../types/quotes";
+import { QuoteApprovalAnalysisDto } from "../../types/analyze-quote-approval";
+import {
+  QuoteApprovalVerificationStep,
+  QuoteApprovalVerificationStepStatus,
+} from "../../types/quote-approval-analysis-feedback";
+import {
+  formatQuoteApprovalAnalysisCount,
+  getQuoteApprovalAnalysisIssues,
+  getQuoteApprovalVerificationOutcome,
+  getQuoteApprovalVerificationSteps,
+} from "../../lib/quote-approval-analysis-feedback";
+
+type QuoteApprovalVerificationDialogProps = {
+  quote: QuoteListItemDto;
+  analysis?: QuoteApprovalAnalysisDto | null;
+  isAnalyzing: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+function getStatusLabel(status: QuoteApprovalVerificationStepStatus) {
+  const labels: Record<QuoteApprovalVerificationStepStatus, string> = {
+    pending: "Aguardando",
+    running: "Analisando...",
+    complete: "Concluído",
+    attention: "Requer atenção",
+  };
+
+  return labels[status];
+}
+
+function VerificationStepItem({
+  step,
+  isLast,
+}: {
+  step: QuoteApprovalVerificationStep;
+  isLast: boolean;
+}) {
+  const StepIcon = step.icon;
+  const isComplete = step.status === "complete";
+  const isRunning = step.status === "running";
+  const needsAttention = step.status === "attention";
+
+  return (
+    <li className="relative grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 pb-5 last:pb-0">
+      <div className="relative flex justify-center">
+        {!isLast ? (
+          <span
+            className="absolute -bottom-1 top-10 w-px overflow-hidden bg-border"
+            aria-hidden="true"
+          >
+            <span
+              className={cn(
+                "block h-full w-full origin-top bg-success transition-transform duration-300 ease-out motion-reduce:transition-none",
+                isComplete ? "scale-y-100" : "scale-y-0",
+              )}
+            />
+          </span>
+        ) : null}
+
+        <span
+          className={cn(
+            "relative z-10 flex size-10 items-center justify-center rounded-full border bg-background transition-colors duration-300 motion-reduce:transition-none",
+            isComplete && "border-success bg-success-soft text-success-soft-foreground",
+            isRunning &&
+              "border-primary bg-primary/10 text-primary ring-4 ring-primary/10 motion-safe:animate-pulse",
+            needsAttention &&
+              "border-warning bg-warning-soft text-warning-soft-foreground ring-4 ring-warning/10",
+            step.status === "pending" && "border-border text-muted-foreground",
+          )}
+        >
+          {isComplete ? (
+            <Check className="size-4" aria-hidden="true" />
+          ) : isRunning ? (
+            <LoaderCircle
+              className="size-4 animate-spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+          ) : needsAttention ? (
+            <AlertTriangle className="size-4" aria-hidden="true" />
+          ) : (
+            <StepIcon className="size-4" aria-hidden="true" />
+          )}
+        </span>
+      </div>
+
+      <div
+        className={cn(
+          "min-w-0 rounded-lg border px-3.5 py-3 transition-colors duration-300 motion-reduce:transition-none",
+          isRunning && "border-primary/25 bg-primary/5",
+          needsAttention && "border-warning/35 bg-warning-soft/45",
+          !isRunning && !needsAttention && "border-transparent",
+        )}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+          <p className="text-sm font-semibold text-foreground">{step.label}</p>
+          <span
+            className={cn(
+              "text-xs font-medium",
+              isComplete && "text-success-soft-foreground",
+              isRunning && "text-primary",
+              needsAttention && "text-warning-soft-foreground",
+              step.status === "pending" && "text-muted-foreground",
+            )}
+          >
+            {getStatusLabel(step.status)}
+          </span>
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.description}</p>
+      </div>
+    </li>
+  );
+}
+
+export function QuoteApprovalVerificationDialog({
+  quote,
+  analysis,
+  isAnalyzing,
+  open,
+  onOpenChange,
+}: QuoteApprovalVerificationDialogProps) {
+  const outcome = getQuoteApprovalVerificationOutcome(isAnalyzing, analysis);
+  const isChecking = outcome === "checking";
+  const steps = getQuoteApprovalVerificationSteps(analysis, isAnalyzing);
+  const issues = getQuoteApprovalAnalysisIssues(analysis);
+  const checkedSteps = steps.filter(
+    (step) => step.status === "complete" || step.status === "attention",
+  ).length;
+  const progressValue = isChecking ? 25 : (checkedSteps / steps.length) * 100;
+  const automaticResolutionCount = analysis?.automaticResolutions.length ?? 0;
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (isChecking && !nextOpen) return;
+    onOpenChange(nextOpen);
+  }
+
+  const title =
+    outcome === "ready"
+      ? "Orçamento pronto para aprovação"
+      : outcome === "requires-resolution"
+        ? "Pendências antes da aprovação"
+        : "Verificando orçamento";
+  const description =
+    outcome === "ready"
+      ? "A análise não encontrou pendências que bloqueiem a aprovação."
+      : outcome === "requires-resolution"
+        ? "Resolva os pontos abaixo antes de continuar com a aprovação."
+        : `Estamos analisando cliente, veículo e serviços do orçamento de ${quote.customerName}.`;
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-xl border-border p-0 shadow-xl motion-reduce:animate-none sm:max-w-xl"
+        showCloseButton={!isChecking}
+        onEscapeKeyDown={(event) => {
+          if (isChecking) event.preventDefault();
+        }}
+        onPointerDownOutside={(event) => {
+          if (isChecking) event.preventDefault();
+        }}
+      >
+        <div className="border-b border-border bg-muted/20 px-5 py-5 sm:px-6">
+          <DialogHeader className="text-left">
+            <div className="mb-3 flex items-center justify-between gap-3 pr-8">
+              <span
+                className={cn(
+                  "flex size-11 items-center justify-center rounded-xl border",
+                  outcome === "ready" &&
+                    "border-success/25 bg-success-soft text-success-soft-foreground",
+                  outcome === "requires-resolution" &&
+                    "border-warning/30 bg-warning-soft text-warning-soft-foreground",
+                  isChecking && "border-primary/20 bg-primary/10 text-primary",
+                )}
+              >
+                {outcome === "ready" ? (
+                  <CheckCircle2 className="size-5" aria-hidden="true" />
+                ) : outcome === "requires-resolution" ? (
+                  <AlertTriangle className="size-5" aria-hidden="true" />
+                ) : (
+                  <ShieldCheck className="size-5" aria-hidden="true" />
+                )}
+              </span>
+              <Badge variant="outline" className="bg-background text-[11px] text-muted-foreground">
+                Análise
+              </Badge>
+            </div>
+            <DialogTitle className="text-xl">{title}</DialogTitle>
+            <DialogDescription className="leading-relaxed">{description}</DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between gap-4 text-xs font-medium text-muted-foreground">
+              <span>
+                {isChecking
+                  ? "Análise em andamento"
+                  : `${checkedSteps} de ${steps.length} verificações analisadas`}
+              </span>
+              <span className="tabular-nums">{Math.round(progressValue)}%</span>
+            </div>
+            <Progress
+              value={progressValue}
+              className="h-1.5 bg-muted"
+              aria-label="Progresso da análise de aprovação do orçamento"
+            />
+          </div>
+        </div>
+
+        <div className="px-5 py-5 sm:px-6">
+          <p className="sr-only" role="status" aria-live="polite">
+            {isChecking ? "Analisando orçamento para aprovação." : title}
+          </p>
+
+          <ol aria-label="Etapas da análise de aprovação do orçamento">
+            {steps.map((step, index) => (
+              <VerificationStepItem
+                key={step.label}
+                step={step}
+                isLast={index === steps.length - 1}
+              />
+            ))}
+          </ol>
+
+          {outcome === "ready" ? (
+            <div className="mt-5 animate-in rounded-xl border border-success/25 bg-success-soft/55 p-4 text-success-soft-foreground fade-in-0 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none">
+              <div className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold">Nenhuma pendência encontrada</p>
+                  <p className="mt-1 text-sm leading-relaxed">
+                    {automaticResolutionCount > 0
+                      ? `${formatQuoteApprovalAnalysisCount(
+                          automaticResolutionCount,
+                          "resolução automática foi aplicada",
+                          "resoluções automáticas foram aplicadas",
+                        )} durante a análise.`
+                      : "Cliente, veículo e serviços estão consistentes com os dados atuais."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {outcome === "requires-resolution" ? (
+            <div
+              className="mt-5 animate-in rounded-xl border border-warning/30 bg-warning-soft/55 p-4 text-warning-soft-foreground fade-in-0 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none"
+              role="alert"
+            >
+              <div className="flex gap-3">
+                <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">
+                    {formatQuoteApprovalAnalysisCount(
+                      issues.length,
+                      "pendência encontrada",
+                      "pendências encontradas",
+                    )}
+                  </p>
+                  <ul className="mt-3 space-y-3">
+                    {issues.map((issue) => (
+                      <li
+                        key={issue.id}
+                        className="rounded-lg border border-warning/25 bg-card/60 p-3"
+                      >
+                        <Badge
+                          variant="outline"
+                          className="mb-2 bg-background text-[11px] text-warning-soft-foreground"
+                        >
+                          {issue.area}
+                        </Badge>
+                        <p className="text-sm font-semibold">{issue.title}</p>
+                        <p className="mt-1 text-sm leading-relaxed">{issue.description}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <DialogFooter className="border-t border-border bg-muted/15 px-5 py-4 sm:px-6">
+          {isChecking ? (
+            <div className="flex w-full items-center justify-center gap-2 text-sm text-muted-foreground">
+              <LoaderCircle
+                className="size-4 animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+              Aguarde enquanto concluímos a análise
+            </div>
+          ) : (
+            <Button type="button" onClick={() => onOpenChange(false)}>
+              {outcome === "ready" ? (
+                <>
+                  <CheckCircle2 aria-hidden="true" />
+                  Fechar
+                </>
+              ) : (
+                <>
+                  <ArrowLeft aria-hidden="true" />
+                  Voltar ao orçamento
+                </>
+              )}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

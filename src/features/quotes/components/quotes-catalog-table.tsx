@@ -16,6 +16,8 @@ import { QuoteMoreOptions } from "./quote-more-options";
 
 type QuotesCatalogTableProps = {
   quotes: QuoteListItemDto[];
+  onApprove: (quote: QuoteListItemDto) => void;
+  isApprovalActionDisabled?: boolean;
   className?: string;
 };
 
@@ -112,7 +114,12 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
   },
 ];
 
-export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProps) {
+export function QuotesCatalogTable({
+  quotes,
+  onApprove,
+  isApprovalActionDisabled = false,
+  className,
+}: QuotesCatalogTableProps) {
   return (
     <DataCatalogTable
       className={className}
@@ -130,8 +137,9 @@ export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProp
         {
           label: "Aprovar orçamento",
           icon: Check,
-          onClick: noop,
+          onClick: onApprove,
           visible: (quote) => quote.status === "VALID" || quote.status === "EXPIRES_TODAY",
+          disabled: () => isApprovalActionDisabled,
           tone: "success",
         },
         {

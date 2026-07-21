@@ -23,6 +23,8 @@ import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
 import { QuoteMoreOptions } from "./quote-more-options";
+import { QuoteApprovalVerificationDialog } from "./analyze/quote-approval-verification-dialog";
+import { useAnalyzeQuoteApproval } from "../hooks/mutations/use-analyze-quote-approval";
 
 const PAGE_SIZE = 5;
 
@@ -53,7 +55,15 @@ function getQuoteFooterLabel(quote: QuoteListItemDto): string {
     : "Não expira";
 }
 
-function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
+function QuoteMobileCard({
+  quote,
+  onApprove,
+  isApprovalActionDisabled = false,
+}: {
+  quote: QuoteListItemDto;
+  onApprove: (quote: QuoteListItemDto) => void;
+  isApprovalActionDisabled?: boolean;
+}) {
   const status = quoteStatusConfig[quote.status];
   const canApprove = quote.status === "VALID" || quote.status === "EXPIRES_TODAY";
 
@@ -107,7 +117,8 @@ function QuoteMobileCard({ quote }: { quote: QuoteListItemDto }) {
               {
                 label: "Aprovar orçamento",
                 icon: Check,
-                onClick: noop,
+                onClick: () => onApprove(quote),
+                disabled: isApprovalActionDisabled,
                 tone: "success" as const,
               },
             ]
@@ -135,6 +146,7 @@ export function QuotesCatalogContent({
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<QuotesFiltersState>(DEFAULT_QUOTES_FILTERS);
+  const [approvalQuote, setApprovalQuote] = useState<QuoteListItemDto | null>(null);
   const apiFilters = useMemo(
     () => buildQuotesApiFilters(appliedFilters, { page, size: PAGE_SIZE }),
     [appliedFilters, page],
@@ -145,6 +157,13 @@ export function QuotesCatalogContent({
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const isFetchingPage = isPending || isPlaceholderData;
   const errorFeedback = isError ? resolveListQuotesErrorFeedback(error) : null;
+
+  const {
+    mutate: analyzeQuoteApproval,
+    data: analyzeQuoteApprovalResult,
+    isPending: analyzingQuoteApproval,
+    reset: resetAnalyzeQuoteApproval,
+  } = useAnalyzeQuoteApproval();
 
   function handleApplyFilters(nextFilters: QuotesFiltersState) {
     setAppliedFilters(nextFilters);
@@ -157,59 +176,102 @@ export function QuotesCatalogContent({
     setPage(1);
   }
 
+  function handleApproveQuote(quote: QuoteListItemDto) {
+    setApprovalQuote(quote);
+    resetAnalyzeQuoteApproval();
+    analyzeQuoteApproval(
+      { quoteId: quote.id, startsAt: new Date().toISOString() },
+      {
+        onError: () => {
+          setApprovalQuote(null);
+        },
+      },
+    );
+  }
+
+  function handleApprovalDialogOpenChange(open: boolean) {
+    if (open) return;
+
+    setApprovalQuote(null);
+    resetAnalyzeQuoteApproval();
+  }
+
   return (
-    <CatalogContentShell
-      className={className}
-      toolbar={
-        <QuotesCatalogToolbar
-          filters={filters}
-          appliedFilters={appliedFilters}
-          onFiltersChange={setFilters}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-        />
-      }
-      table={<QuotesCatalogTable quotes={quotes} className={tableClassName} />}
-      mobileCards={
-        <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
-          {quotes.map((quote) => (
-            <QuoteMobileCard key={quote.id} quote={quote} />
-          ))}
-        </div>
-      }
-      skeleton={
-        <>
-          <DataCatalogTableSkeleton className={tableClassName} columns={7} />
+    <>
+      <CatalogContentShell
+        className={className}
+        toolbar={
+          <QuotesCatalogToolbar
+            filters={filters}
+            appliedFilters={appliedFilters}
+            onFiltersChange={setFilters}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+          />
+        }
+        table={
+          <QuotesCatalogTable
+            quotes={quotes}
+            onApprove={handleApproveQuote}
+            isApprovalActionDisabled={analyzingQuoteApproval}
+            className={tableClassName}
+          />
+        }
+        mobileCards={
           <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
-            {Array.from({ length: PAGE_SIZE }, (_, index) => (
-              <MobileDataCardSkeleton key={index} />
+            {quotes.map((quote) => (
+              <QuoteMobileCard
+                key={quote.id}
+                quote={quote}
+                onApprove={handleApproveQuote}
+                isApprovalActionDisabled={analyzingQuoteApproval}
+              />
             ))}
           </div>
-        </>
-      }
-      emptyState={
-        isError ? (
-          <p className="rounded-lg border border-dashed border-danger/40 bg-danger-soft/40 px-4 py-8 text-center text-sm text-danger">
-            <strong className="block">{errorFeedback?.title}</strong>
-            <span className="mt-1 block">{errorFeedback?.description}</span>
-          </p>
-        ) : undefined
-      }
-      isLoading={isPending}
-      isFetching={isPlaceholderData}
-      isEmpty={!isFetchingPage && (isError || totalItems === 0)}
-      emptyMessage="Nenhum orçamento encontrado para os filtros atuais."
-      pagination={
-        <CatalogPagination
-          page={page}
-          totalPages={totalPages}
-          total={totalItems}
-          itemLabel={{ singular: "orçamento", plural: "orçamentos" }}
-          isFetching={isFetchingPage}
-          onPageChange={setPage}
+        }
+        skeleton={
+          <>
+            <DataCatalogTableSkeleton className={tableClassName} columns={7} />
+            <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
+              {Array.from({ length: PAGE_SIZE }, (_, index) => (
+                <MobileDataCardSkeleton key={index} />
+              ))}
+            </div>
+          </>
+        }
+        emptyState={
+          isError ? (
+            <p className="rounded-lg border border-dashed border-danger/40 bg-danger-soft/40 px-4 py-8 text-center text-sm text-danger">
+              <strong className="block">{errorFeedback?.title}</strong>
+              <span className="mt-1 block">{errorFeedback?.description}</span>
+            </p>
+          ) : undefined
+        }
+        isLoading={isPending}
+        isFetching={isPlaceholderData}
+        isEmpty={!isFetchingPage && (isError || totalItems === 0)}
+        emptyMessage="Nenhum orçamento encontrado para os filtros atuais."
+        pagination={
+          <CatalogPagination
+            page={page}
+            totalPages={totalPages}
+            total={totalItems}
+            itemLabel={{ singular: "orçamento", plural: "orçamentos" }}
+            isFetching={isFetchingPage}
+            onPageChange={setPage}
+          />
+        }
+      />
+      {approvalQuote ? (
+        <QuoteApprovalVerificationDialog
+          quote={approvalQuote}
+          analysis={analyzeQuoteApprovalResult?.analysis ?? null}
+          isAnalyzing={analyzingQuoteApproval}
+          open
+          onOpenChange={handleApprovalDialogOpenChange}
         />
-      }
-    />
+      ) : null}
+    </>
   );
 }
 
