@@ -673,12 +673,12 @@ describe("AppointmentFormSheet", () => {
 
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -765,12 +765,12 @@ describe("AppointmentFormSheet", () => {
 
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -996,12 +996,12 @@ describe("AppointmentFormSheet", () => {
     });
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem completa",
-            priceSpecification: { type: "FIXED", fixedPriceInCents: 9000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem completa",
+          priceSpecification: { type: "FIXED", fixedPriceInCents: 9000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -1172,12 +1172,12 @@ describe("AppointmentFormSheet", () => {
 
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "FIXED", fixedPriceInCents: 12000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "FIXED", fixedPriceInCents: 12000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -1245,12 +1245,12 @@ describe("AppointmentFormSheet", () => {
 
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem completa",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem completa",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -1305,12 +1305,12 @@ describe("AppointmentFormSheet", () => {
 
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -1387,12 +1387,12 @@ describe("AppointmentFormSheet", () => {
     });
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Lavagem completa",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
-          },
-        ],
+        {
+          id: "service-1",
+          label: "Lavagem completa",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),
@@ -1454,16 +1454,16 @@ describe("AppointmentFormSheet", () => {
     });
     useListServiceOptionsMock.mockReturnValue({
       items: [
-          {
-            id: "service-1",
-            label: "Polimento",
-            priceSpecification: {
-              type: "RANGE",
-              minPriceInCents: 5000,
-              maxPriceInCents: 10000,
-            },
+        {
+          id: "service-1",
+          label: "Polimento",
+          priceSpecification: {
+            type: "RANGE",
+            minPriceInCents: 5000,
+            maxPriceInCents: 10000,
           },
-        ],
+        },
+      ],
       totalItems: 1,
       hasMore: false,
       fetchNextPage: vi.fn(),

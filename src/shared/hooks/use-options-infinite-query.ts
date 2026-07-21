@@ -1,8 +1,4 @@
-import {
-  useInfiniteQuery,
-  type InfiniteData,
-  type QueryKey,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, type InfiniteData, type QueryKey } from "@tanstack/react-query";
 
 type UseOptionsInfiniteQueryArgs<TItem, TPage> = {
   queryKey: QueryKey;
