@@ -21,6 +21,8 @@ type QuoteApprovalVerificationStepProps = {
   quote: QuoteListItemDto;
   analysis?: QuoteApprovalAnalysisDto | null;
   isAnalyzing: boolean;
+  isApproving: boolean;
+  onApprove: () => void;
   onClose: () => void;
 };
 
@@ -28,6 +30,8 @@ export function QuoteApprovalVerificationStep({
   quote,
   analysis,
   isAnalyzing,
+  isApproving,
+  onApprove,
   onClose,
 }: QuoteApprovalVerificationStepProps) {
   const outcome = getQuoteApprovalVerificationOutcome(isAnalyzing, analysis);
@@ -183,19 +187,27 @@ export function QuoteApprovalVerificationStep({
             />
             Aguarde enquanto concluímos a análise
           </div>
-        ) : (
-          <Button type="button" onClick={onClose}>
-            {outcome === "ready" ? (
+        ) : outcome === "ready" ? (
+          <Button type="button" onClick={onApprove} disabled={isApproving}>
+            {isApproving ? (
               <>
-                <CheckCircle2 aria-hidden="true" />
-                Fechar
+                <LoaderCircle
+                  className="animate-spin motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+                Aprovando
               </>
             ) : (
               <>
-                <ArrowLeft aria-hidden="true" />
-                Voltar ao orçamento
+                <CheckCircle2 aria-hidden="true" />
+                Confirmar aprovação
               </>
             )}
+          </Button>
+        ) : (
+          <Button type="button" onClick={onClose}>
+            <ArrowLeft aria-hidden="true" />
+            Voltar ao orçamento
           </Button>
         )}
       </DialogFooter>

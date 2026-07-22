@@ -143,7 +143,14 @@ function renderStep(ui: React.ReactNode) {
 describe("QuoteApprovalVerificationStep", () => {
   it("presents the loading state while analysis is pending", () => {
     renderStep(
-      <QuoteApprovalVerificationStep quote={quote} analysis={null} isAnalyzing onClose={vi.fn()} />,
+      <QuoteApprovalVerificationStep
+        quote={quote}
+        analysis={null}
+        isAnalyzing
+        isApproving={false}
+        onApprove={vi.fn()}
+        onClose={vi.fn()}
+      />,
     );
 
     expect(screen.getByRole("heading", { name: "Verificando orçamento" })).toBeInTheDocument();
@@ -153,14 +160,16 @@ describe("QuoteApprovalVerificationStep", () => {
   });
 
   it("presents the ready state from the analysis response", () => {
-    const onClose = vi.fn();
+    const onApprove = vi.fn();
 
     renderStep(
       <QuoteApprovalVerificationStep
         quote={quote}
         analysis={readyAnalysis}
         isAnalyzing={false}
-        onClose={onClose}
+        isApproving={false}
+        onApprove={onApprove}
+        onClose={vi.fn()}
       />,
     );
 
@@ -175,8 +184,23 @@ describe("QuoteApprovalVerificationStep", () => {
       screen.getByRole("progressbar", { name: "Progresso da análise de aprovação do orçamento" }),
     ).toHaveAttribute("aria-valuenow", "100");
 
-    fireEvent.click(screen.getByRole("button", { name: "Fechar" }));
-    expect(onClose).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
+    expect(onApprove).toHaveBeenCalled();
+  });
+
+  it("disables the approval action while approval is pending", () => {
+    renderStep(
+      <QuoteApprovalVerificationStep
+        quote={quote}
+        analysis={readyAnalysis}
+        isAnalyzing={false}
+        isApproving
+        onApprove={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Aprovando" })).toBeDisabled();
   });
 
   it("lists customer, vehicle and service issues when resolution is required", () => {
@@ -185,6 +209,8 @@ describe("QuoteApprovalVerificationStep", () => {
         quote={quote}
         analysis={requiresResolutionAnalysis}
         isAnalyzing={false}
+        isApproving={false}
+        onApprove={vi.fn()}
         onClose={vi.fn()}
       />,
     );

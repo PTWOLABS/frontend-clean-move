@@ -1,19 +1,32 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { AnalyzeQuoteApprovalResponseDto } from "../../types/analyze-quote-approval";
 import type { QuoteListItemDto } from "../../types/quotes";
 
 const analyzeQuoteApprovalMock = vi.fn();
 const resetAnalyzeQuoteApprovalMock = vi.fn();
+const approveQuoteMock = vi.fn();
+const resetApproveQuoteMock = vi.fn();
 
 let isAnalyzing = false;
+let isApproving = false;
+let analyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto | null = null;
 
 vi.mock("../../hooks/mutations/use-analyze-quote-approval", () => ({
   useAnalyzeQuoteApproval: () => ({
     mutate: analyzeQuoteApprovalMock,
-    data: null,
+    data: analyzeQuoteApprovalData,
     isPending: isAnalyzing,
     reset: resetAnalyzeQuoteApprovalMock,
+  }),
+}));
+
+vi.mock("../../hooks/mutations/use-approve-quote", () => ({
+  useApproveQuote: () => ({
+    mutate: approveQuoteMock,
+    isPending: isApproving,
+    reset: resetApproveQuoteMock,
   }),
 }));
 
@@ -47,11 +60,36 @@ const quote: QuoteListItemDto = {
   servicesCount: 2,
 };
 
+const readyAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto = {
+  analysis: {
+    status: "READY",
+    automaticResolutions: [],
+    customer: {
+      status: "RESOLVED",
+      requiresResolution: false,
+      automaticCustomerId: null,
+      candidates: [],
+    },
+    vehicle: {
+      status: "NONE",
+      requiresResolution: false,
+      candidateVehicleId: null,
+      candidateCustomerId: null,
+      allowedActions: [],
+    },
+    services: [],
+  },
+};
+
 describe("QuoteApprovalFlowDialog", () => {
   beforeEach(() => {
     isAnalyzing = false;
+    isApproving = false;
+    analyzeQuoteApprovalData = null;
     analyzeQuoteApprovalMock.mockReset();
     resetAnalyzeQuoteApprovalMock.mockReset();
+    approveQuoteMock.mockReset();
+    resetApproveQuoteMock.mockReset();
   });
 
   it("keeps the same dialog while moving from schedule to analysis", () => {
@@ -95,5 +133,26 @@ describe("QuoteApprovalFlowDialog", () => {
 
     expect(resetAnalyzeQuoteApprovalMock).toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("approves the quote with the schedule selected before the analysis", () => {
+    analyzeQuoteApprovalData = readyAnalyzeQuoteApprovalData;
+
+    render(<QuoteApprovalFlowDialog quote={quote} open onOpenChange={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecione data e horário" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
+
+    expect(approveQuoteMock).toHaveBeenCalledWith(
+      {
+        quoteId: "quote-id",
+        startsAt: "2026-08-01T10:00:00.000Z",
+        endsAt: null,
+      },
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+      }),
+    );
   });
 });
