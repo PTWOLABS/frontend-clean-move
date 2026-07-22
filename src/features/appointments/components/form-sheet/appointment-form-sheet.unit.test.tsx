@@ -260,15 +260,27 @@ describe("AppointmentFormSheet", () => {
   beforeEach(() => {
     toastInfoMock.mockClear();
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [] },
+      items: [],
+      totalItems: 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [] },
+      items: [],
+      totalItems: 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListServiceOptionsMock.mockReturnValue({
-      data: { services: [] },
+      items: [],
+      totalItems: 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useCreateAppointmentMock.mockReturnValue({
@@ -390,7 +402,11 @@ describe("AppointmentFormSheet", () => {
     const user = userEvent.setup();
 
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [] },
+      items: [],
+      totalItems: 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
 
@@ -431,7 +447,11 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [{ id: "vehicle-2", label: "XYZ-9876" }] },
+      items: [{ id: "vehicle-2", label: "XYZ-9876" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -495,7 +515,11 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [] },
+      items: [],
+      totalItems: 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -544,14 +568,19 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [{ id: "customer-2", label: "Anael" }] },
+      items: [{ id: "customer-2", label: "Anael" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListCustomerVehicleOptionsMock.mockImplementation((filters?: { customerId?: string }) => ({
-      data: {
-        vehicles:
-          filters?.customerId === "customer-1" ? [{ id: "vehicle-1", label: "ABC-1234" }] : [],
-      },
+      items: filters?.customerId === "customer-1" ? [{ id: "vehicle-1", label: "ABC-1234" }] : [],
+      totalItems: filters?.customerId === "customer-1" ? 1 : 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     }));
     useUpdateAppointmentMock.mockReturnValue({
@@ -585,7 +614,11 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [{ id: "vehicle-1", label: "Honda Civic atualizado" }] },
+      items: [{ id: "vehicle-1", label: "Honda Civic atualizado" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -639,15 +672,17 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -729,15 +764,17 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -799,7 +836,11 @@ describe("AppointmentFormSheet", () => {
     const user = userEvent.setup();
 
     useListServiceOptionsMock.mockReturnValue({
-      data: { services: [] },
+      items: [],
+      totalItems: 0,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
 
@@ -864,7 +905,11 @@ describe("AppointmentFormSheet", () => {
     const user = userEvent.setup();
 
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [{ id: "customer-1", label: "Cliente Teste" }] },
+      items: [{ id: "customer-1", label: "Cliente Teste" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
 
@@ -934,23 +979,33 @@ describe("AppointmentFormSheet", () => {
     const onOpenChange = vi.fn();
 
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [{ id: "customer-1", label: "Cliente Teste" }] },
+      items: [{ id: "customer-1", label: "Cliente Teste" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [{ id: "vehicle-1", label: "ABC-1234" }] },
+      items: [{ id: "vehicle-1", label: "ABC-1234" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem completa",
-            priceSpecification: { type: "FIXED", fixedPriceInCents: 9000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem completa",
+          priceSpecification: { type: "FIXED", fixedPriceInCents: 9000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useCreateAppointmentMock.mockReturnValue({
@@ -1116,15 +1171,17 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "FIXED", fixedPriceInCents: 12000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "FIXED", fixedPriceInCents: 12000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -1187,15 +1244,17 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem completa",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem completa",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useUpdateAppointmentMock.mockReturnValue({
@@ -1245,15 +1304,17 @@ describe("AppointmentFormSheet", () => {
     const user = userEvent.setup();
 
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem detalhada",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem detalhada",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 4000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
 
@@ -1309,23 +1370,33 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [{ id: "customer-1", label: "Cliente Teste" }] },
+      items: [{ id: "customer-1", label: "Cliente Teste" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [{ id: "vehicle-1", label: "ABC-1234" }] },
+      items: [{ id: "vehicle-1", label: "ABC-1234" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Lavagem completa",
-            priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
-          },
-        ],
-      },
+      items: [
+        {
+          id: "service-1",
+          label: "Lavagem completa",
+          priceSpecification: { type: "STARTING_AT", minPriceInCents: 9000 },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useCreateAppointmentMock.mockReturnValue({
@@ -1366,27 +1437,37 @@ describe("AppointmentFormSheet", () => {
     const mutate = vi.fn();
 
     useListCustomerOptionsMock.mockReturnValue({
-      data: { customers: [{ id: "customer-1", label: "Cliente Teste" }] },
+      items: [{ id: "customer-1", label: "Cliente Teste" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListCustomerVehicleOptionsMock.mockReturnValue({
-      data: { vehicles: [{ id: "vehicle-1", label: "ABC-1234" }] },
+      items: [{ id: "vehicle-1", label: "ABC-1234" }],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useListServiceOptionsMock.mockReturnValue({
-      data: {
-        services: [
-          {
-            id: "service-1",
-            label: "Polimento",
-            priceSpecification: {
-              type: "RANGE",
-              minPriceInCents: 5000,
-              maxPriceInCents: 10000,
-            },
+      items: [
+        {
+          id: "service-1",
+          label: "Polimento",
+          priceSpecification: {
+            type: "RANGE",
+            minPriceInCents: 5000,
+            maxPriceInCents: 10000,
           },
-        ],
-      },
+        },
+      ],
+      totalItems: 1,
+      hasMore: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
       isPending: false,
     });
     useCreateAppointmentMock.mockReturnValue({

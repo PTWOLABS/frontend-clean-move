@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { DiscardChangesButton } from "@/components/ui/form/discard-changes-button";
 import { FormField } from "@/components/ui/form/field";
 import { InputField } from "@/components/ui/form/input-field";
@@ -21,7 +22,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select/primitives";
@@ -33,7 +33,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -44,6 +43,7 @@ import { DURATION_HHMM_MASK } from "@/features/service/lib/duration-hhmm";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
 import { BrlMoneyInput } from "@/shared/money/brl-money-input";
 import { ApiError } from "@/shared/api/httpClient";
+import { DEFAULT_OPTIONS_SIZE } from "@/shared/constants/options";
 
 import { useCreateService } from "../hooks/use-create-service";
 import { useUpdateService } from "../hooks/use-update-service";
@@ -80,6 +80,104 @@ function applyServiceApiFieldErrors(
   }
 }
 
+type ServiceFormCategoryComboboxProps = {
+  disabled: boolean;
+  enabled?: boolean;
+  fieldControl: Control<FieldValues>;
+  getCategoryId: () => string | undefined;
+  initialLabel: string;
+  onRequestCreateCategory: () => void;
+  portalContainer: React.RefObject<HTMLDivElement | null>;
+  setCategoryId: (categoryId: string, label: string) => void;
+};
+
+function ServiceFormCategoryCombobox({
+  disabled,
+  enabled = true,
+  fieldControl,
+  getCategoryId,
+  initialLabel,
+  onRequestCreateCategory,
+  portalContainer,
+  setCategoryId,
+}: ServiceFormCategoryComboboxProps) {
+  const [categoryLabel, setCategoryLabel] = useState(initialLabel);
+  const [categorySearch, setCategorySearch] = useState("");
+
+  const categoryOptionsQuery = useServiceCategoryOptions({
+    size: DEFAULT_OPTIONS_SIZE,
+    search: categorySearch || undefined,
+    enabled,
+  });
+
+  const categoryOptions = categoryOptionsQuery.items;
+
+  const categoryComboboxItems = useMemo<ComboboxItemOption[]>(
+    () => [
+      { label: "Nenhuma", value: NONE_CATEGORY_VALUE },
+      ...categoryOptions.map((option) => ({
+        label: option.label,
+        value: option.id,
+      })),
+      { label: "Criar nova categoria…", value: CREATE_NEW_VALUE },
+    ],
+    [categoryOptions],
+  );
+
+  const handleCategorySelectedItemChange = (option: ComboboxItemOption | null) => {
+    if (!option) return;
+
+    if (option.value === CREATE_NEW_VALUE) {
+      onRequestCreateCategory();
+      const currentId = getCategoryId();
+      const current = categoryOptions.find((item) => item.id === currentId);
+      setCategoryLabel(current?.label ?? "Nenhuma");
+      return;
+    }
+
+    if (option.value === NONE_CATEGORY_VALUE) {
+      setCategoryId("", "Nenhuma");
+      setCategoryLabel("Nenhuma");
+      return;
+    }
+
+    setCategoryId(option.value, option.label);
+    setCategoryLabel(option.label);
+  };
+
+  return (
+    <FormField control={fieldControl} name="categoryId" label="Categoria" renderControl={false}>
+      {({ field }) => (
+        <Combobox
+          id={field.name}
+          name={field.name}
+          value={categoryLabel}
+          onValueChange={setCategoryLabel}
+          onDebouncedValueChange={setCategorySearch}
+          onSelectedItemChange={handleCategorySelectedItemChange}
+          onBlur={field.onBlur}
+          items={categoryComboboxItems}
+          portalContainer={portalContainer}
+          placeholder="Selecione a categoria"
+          emptyMessage={
+            categoryOptionsQuery.isPending
+              ? "Buscando categorias..."
+              : "Nenhuma categoria encontrada."
+          }
+          autoComplete="off"
+          disabled={disabled}
+          className="w-full"
+          hasMore={categoryOptionsQuery.hasMore}
+          isLoadingMore={categoryOptionsQuery.isFetchingNextPage}
+          onLoadMore={() => {
+            void categoryOptionsQuery.fetchNextPage();
+          }}
+        />
+      )}
+    </FormField>
+  );
+}
+
 type ServiceFormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -101,16 +199,9 @@ export function ServiceFormSheet({
   const { mutate: updateMutate, isPending: isUpdatePending } = useUpdateService();
 
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
-
-  const categoryOptionsQuery = useServiceCategoryOptions({
-    limit: 100,
-    enabled: open,
-  });
-
-  const categoryOptions = useMemo(
-    () => categoryOptionsQuery.data?.categories ?? [],
-    [categoryOptionsQuery.data?.categories],
-  );
+  const [categoryFieldNonce, setCategoryFieldNonce] = useState(0);
+  const [categoryLabelOverride, setCategoryLabelOverride] = useState<string | null>(null);
+  const sheetContentRef = useRef<HTMLDivElement | null>(null);
 
   const isEditMode = Boolean(editingService?.id);
   const isDuplicateMode = Boolean(duplicateSource) && !isEditMode;
@@ -127,13 +218,20 @@ export function ServiceFormSheet({
     reValidateMode: "onChange",
   });
 
-  const { control, handleSubmit, reset, setValue, setError, formState } = methods;
+  const { control, handleSubmit, reset, setValue, setError, getValues, formState } = methods;
   const { isDirty } = formState;
   const fieldControl = control as unknown as Control<FieldValues>;
   const priceType = useWatch({
     control,
     name: "priceType",
   });
+
+  const categoryFieldKey = `${open ? "open" : "closed"}-${editingService?.id ?? "new"}-${duplicateSource?.id ?? "none"}-${categoryFieldNonce}`;
+  const initialCategoryLabel =
+    categoryLabelOverride ??
+    editingService?.category?.name ??
+    duplicateSource?.category?.name ??
+    "Nenhuma";
 
   useEffect(() => {
     if (!open) return;
@@ -149,6 +247,8 @@ export function ServiceFormSheet({
 
   const closeSheetAfterSave = () => {
     reset(createServiceDefaultValues);
+    setCategoryLabelOverride(null);
+    setCategoryFieldNonce((current) => current + 1);
     onOpenChange(false);
   };
 
@@ -164,14 +264,23 @@ export function ServiceFormSheet({
         toast.info("Nenhuma alteração para salvar.");
         return;
       }
-      const selectedOption = values.categoryId
-        ? categoryOptions.find((option) => option.id === values.categoryId)
-        : null;
+      const categoryName =
+        categoryLabelOverride ||
+        (previousService.category?.id === values.categoryId
+          ? (previousService.category?.name ?? "")
+          : "");
+      const category =
+        values.categoryId != null && values.categoryId !== ""
+          ? {
+              id: values.categoryId,
+              name: categoryName,
+            }
+          : null;
       updateMutate(
         {
           serviceId,
           values,
-          category: selectedOption ? { id: selectedOption.id, name: selectedOption.label } : null,
+          category,
           previousService,
         },
         {
@@ -188,26 +297,17 @@ export function ServiceFormSheet({
     });
   };
 
-  const handleCategoryChange = (value: string) => {
-    if (value === CREATE_NEW_VALUE) {
-      setCreateCategoryOpen(true);
-      return;
-    }
-    if (value === NONE_CATEGORY_VALUE) {
-      setValue("categoryId", "", { shouldDirty: true, shouldValidate: true });
-      return;
-    }
-    setValue("categoryId", value, { shouldDirty: true, shouldValidate: true });
-  };
-
   const handleCategoryCreated = (category: { id: string; name: string }) => {
     setValue("categoryId", category.id, { shouldDirty: true, shouldValidate: true });
+    setCategoryLabelOverride(category.name);
+    setCategoryFieldNonce((current) => current + 1);
   };
 
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
+          ref={sheetContentRef}
           side="right"
           className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg"
         >
@@ -257,37 +357,23 @@ export function ServiceFormSheet({
                 </FormField>
 
                 <div className="space-y-2">
-                  <FormField
-                    control={fieldControl}
-                    name="categoryId"
-                    label="Categoria"
-                    renderControl={false}
-                  >
-                    {({ field }) =>
-                      categoryOptionsQuery.isLoading ? (
-                        <Skeleton className="h-10 w-full rounded-md" />
-                      ) : (
-                        <Select
-                          value={field.value || NONE_CATEGORY_VALUE}
-                          onValueChange={handleCategoryChange}
-                        >
-                          <SelectTrigger id={field.name} className="w-full">
-                            <SelectValue placeholder="Selecione a categoria" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={NONE_CATEGORY_VALUE}>Nenhuma</SelectItem>
-                            {categoryOptions.map((option) => (
-                              <SelectItem key={option.id} value={option.id}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                            <SelectSeparator />
-                            <SelectItem value={CREATE_NEW_VALUE}>Criar nova categoria…</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )
-                    }
-                  </FormField>
+                  <ServiceFormCategoryCombobox
+                    key={categoryFieldKey}
+                    disabled={isPending}
+                    enabled={open}
+                    fieldControl={fieldControl}
+                    getCategoryId={() => getValues("categoryId")}
+                    initialLabel={initialCategoryLabel}
+                    onRequestCreateCategory={() => setCreateCategoryOpen(true)}
+                    portalContainer={sheetContentRef}
+                    setCategoryId={(categoryId, label) => {
+                      setValue("categoryId", categoryId, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                      setCategoryLabelOverride(label === "Nenhuma" ? null : label);
+                    }}
+                  />
 
                   {onManageCategories ? (
                     <Button
@@ -441,13 +527,15 @@ export function ServiceFormSheet({
                     onClick={() => {
                       if (!editingService?.id) return;
                       reset(serviceItemToFormDefaults(editingService));
+                      setCategoryLabelOverride(null);
+                      setCategoryFieldNonce((current) => current + 1);
                     }}
                   />
                 ) : null}
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"
-                  disabled={isPending || (isEditMode && !isDirty) || categoryOptionsQuery.isLoading}
+                  disabled={isPending || (isEditMode && !isDirty)}
                 >
                   {isPending
                     ? "Salvando..."

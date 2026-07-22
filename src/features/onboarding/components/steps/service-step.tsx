@@ -1,19 +1,21 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Droplets, ListChecks, Power } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Combobox, type ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { FormControl } from "@/components/ui/form/form-primitives";
 import { FormField } from "@/components/ui/form/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/shared/utils/cn";
-import { Select } from "@/components/ui/select/select";
 import { StepHeader } from "./step-header";
 import { StandartInputField } from "@/components/ui/form/standart-input-field";
 import { useServiceCategoryOptions } from "@/features/service-category/hooks/use-service-category-options";
 import { DURATION_HHMM_MASK } from "@/features/service/lib/duration-hhmm";
+import { DEFAULT_OPTIONS_SIZE } from "@/shared/constants/options";
 
 const NONE_CATEGORY_VALUE = "__none__";
 
@@ -25,14 +27,33 @@ type ServiceStepProps = {
 
 export function ServiceStep({ title, description, className }: ServiceStepProps) {
   const { control } = useFormContext();
-  const { data, isLoading } = useServiceCategoryOptions({ limit: 100 });
-  const serviceCategoryOptions = [
-    { label: "Nenhuma", value: NONE_CATEGORY_VALUE },
-    ...(data?.categories.map((category) => ({
-      label: category.label,
-      value: category.id,
-    })) ?? []),
-  ];
+  const [categoryLabel, setCategoryLabel] = useState("Nenhuma");
+  const [categorySearch, setCategorySearch] = useState("");
+
+  const categoryOptionsQuery = useServiceCategoryOptions({
+    size: DEFAULT_OPTIONS_SIZE,
+    search: categorySearch || undefined,
+  });
+
+  const serviceCategoryOptions = useMemo<ComboboxItemOption[]>(
+    () => [
+      { label: "Nenhuma", value: NONE_CATEGORY_VALUE },
+      ...categoryOptionsQuery.items.map((category) => ({
+        label: category.label,
+        value: category.id,
+      })),
+    ],
+    [categoryOptionsQuery.items],
+  );
+
+  const handleCategorySelectedItemChange = (option: ComboboxItemOption | null) => {
+    if (!option) return;
+    if (option.value === NONE_CATEGORY_VALUE) {
+      setCategoryLabel("Nenhuma");
+    } else {
+      setCategoryLabel(option.label);
+    }
+  };
 
   return (
     <Card className={cn("border-border/70 bg-card/60 shadow-sm backdrop-blur-xl", className)}>
@@ -59,17 +80,35 @@ export function ServiceStep({ title, description, className }: ServiceStepProps)
           >
             {({ field }) => (
               <FormControl>
-                <Select
+                <Combobox
                   id="onboarding-service-category"
                   className="shadow-xs w-full"
-                  options={serviceCategoryOptions}
-                  placeholder={isLoading ? "Carregando categorias" : "Selecione a categoria"}
-                  value={field.value || NONE_CATEGORY_VALUE}
-                  onChange={(value) =>
-                    field.onChange(value === NONE_CATEGORY_VALUE ? undefined : value)
+                  items={serviceCategoryOptions}
+                  placeholder={
+                    categoryOptionsQuery.isPending
+                      ? "Carregando categorias"
+                      : "Selecione a categoria"
                   }
+                  value={categoryLabel}
+                  onValueChange={setCategoryLabel}
+                  onDebouncedValueChange={setCategorySearch}
+                  onSelectedItemChange={(option) => {
+                    handleCategorySelectedItemChange(option);
+                    field.onChange(
+                      !option || option.value === NONE_CATEGORY_VALUE ? undefined : option.value,
+                    );
+                  }}
                   onBlur={field.onBlur}
-                  disabled={isLoading}
+                  emptyMessage={
+                    categoryOptionsQuery.isPending
+                      ? "Buscando categorias..."
+                      : "Nenhuma categoria encontrada."
+                  }
+                  hasMore={categoryOptionsQuery.hasMore}
+                  isLoadingMore={categoryOptionsQuery.isFetchingNextPage}
+                  onLoadMore={() => {
+                    void categoryOptionsQuery.fetchNextPage();
+                  }}
                 />
               </FormControl>
             )}

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
-import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
+import { DEFAULT_OPTIONS_SIZE } from "@/shared/constants/options";
 import { mergeOptionItems } from "@/shared/utils/multiple-selector-merge-option-items";
 
 import {
@@ -41,29 +41,27 @@ export function useAppointmentFormOptions({
   const serviceSearch = useDebouncedValue(serviceInputValue, 500);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: DEFAULT_OPTIONS_LIMIT,
+  const customerOptionsQuery = useListCustomerOptions({
+    size: DEFAULT_OPTIONS_SIZE,
     search: customerSearch || undefined,
   });
 
-  const { data: vehicleOptions, isPending: isLoadingCustomerVehicleOptions } =
-    useListCustomerVehicleOptions({
-      customerId: selectedCustomerId ?? undefined,
-      limit: DEFAULT_OPTIONS_LIMIT,
-      search: vehicleSearch || undefined,
-    });
+  const vehicleOptionsQuery = useListCustomerVehicleOptions({
+    customerId: selectedCustomerId ?? undefined,
+    size: DEFAULT_OPTIONS_SIZE,
+    search: vehicleSearch || undefined,
+  });
 
-  const { data: serviceOptions, isPending: isLoadingServiceOptions } = useListServiceOptions({
-    limit: DEFAULT_OPTIONS_LIMIT,
+  const serviceOptionsQuery = useListServiceOptions({
+    size: DEFAULT_OPTIONS_SIZE,
     search: serviceSearch || undefined,
   });
 
   const customerOptionsItems = useMemo(() => {
-    const options =
-      customerOptions?.customers?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [];
+    const options = customerOptionsQuery.items.map((option) => ({
+      label: option.label,
+      value: option.id,
+    }));
     const shouldKeepSnapshotCustomer =
       appointment?.extendedProps.customerId &&
       selectedCustomerFormId === appointment.extendedProps.customerId;
@@ -80,14 +78,13 @@ export function useAppointmentFormOptions({
     return mergeOptionItems(options, selectedOptions, {
       preferFetchedOptions: customerSearch.trim().length > 0,
     });
-  }, [appointment, customerOptions, customerSearch, selectedCustomerFormId]);
+  }, [appointment, customerOptionsQuery.items, customerSearch, selectedCustomerFormId]);
 
   const customerVehicleOptionsItems = useMemo(() => {
-    const options =
-      vehicleOptions?.vehicles?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [];
+    const options = vehicleOptionsQuery.items.map((option) => ({
+      label: option.label,
+      value: option.id,
+    }));
     const shouldKeepSnapshotVehicle =
       appointment?.extendedProps.vehicleId &&
       selectedCustomerFormId === appointment.extendedProps.customerId &&
@@ -105,14 +102,19 @@ export function useAppointmentFormOptions({
     return mergeOptionItems(options, selectedOptions, {
       preferFetchedOptions: vehicleSearch.trim().length > 0,
     });
-  }, [appointment, selectedCustomerFormId, selectedVehicleFormId, vehicleOptions, vehicleSearch]);
+  }, [
+    appointment,
+    selectedCustomerFormId,
+    selectedVehicleFormId,
+    vehicleOptionsQuery.items,
+    vehicleSearch,
+  ]);
 
   const serviceOptionsItems = useMemo(() => {
-    const options =
-      serviceOptions?.services?.map((option) => ({
-        label: option.label,
-        value: option.id,
-      })) ?? [];
+    const options = serviceOptionsQuery.items.map((option) => ({
+      label: option.label,
+      value: option.id,
+    }));
 
     const hasSelectedServiceOptions =
       Array.isArray(selectedServiceOptions) && selectedServiceOptions.length > 0;
@@ -127,11 +129,11 @@ export function useAppointmentFormOptions({
     return mergeOptionItems(options, selectedSnapshotServiceOptions, {
       preferFetchedOptions: serviceInputValue.trim().length > 0 || !hasSelectedServiceOptions,
     });
-  }, [appointment, selectedServiceOptions, serviceInputValue, serviceOptions]);
+  }, [appointment, selectedServiceOptions, serviceInputValue, serviceOptionsQuery.items]);
 
   const serviceOptionsWithPrice = useMemo<ServiceOptionWithPrice[]>(
     () =>
-      serviceOptions?.services?.map((option) => {
+      serviceOptionsQuery.items.map((option) => {
         const metadata = resolveServicePriceMetadata(option);
 
         return {
@@ -139,8 +141,8 @@ export function useAppointmentFormOptions({
           label: option.label,
           ...metadata,
         };
-      }) ?? [],
-    [serviceOptions],
+      }),
+    [serviceOptionsQuery.items],
   );
 
   const servicePriceById = useMemo(() => {
@@ -199,15 +201,15 @@ export function useAppointmentFormOptions({
     [],
   );
 
-  const customerEmptyMessage = isLoadingCustomerOptions
+  const customerEmptyMessage = customerOptionsQuery.isPending
     ? "Buscando clientes..."
     : "Nenhum cliente encontrado.";
   const vehicleEmptyMessage = !selectedCustomerId
     ? "Selecione um cliente primeiro."
-    : isLoadingCustomerVehicleOptions
+    : vehicleOptionsQuery.isPending
       ? "Buscando veículos..."
       : "Nenhum veículo encontrado.";
-  const serviceEmptyMessage = isLoadingServiceOptions
+  const serviceEmptyMessage = serviceOptionsQuery.isPending
     ? "Buscando serviços..."
     : "Nenhum serviço encontrado.";
 
@@ -216,6 +218,9 @@ export function useAppointmentFormOptions({
     clearServiceSearch,
     clearVehicleSelection,
     customerEmptyMessage,
+    customerHasMore: customerOptionsQuery.hasMore,
+    customerIsFetchingNextPage: customerOptionsQuery.isFetchingNextPage,
+    customerFetchNextPage: customerOptionsQuery.fetchNextPage,
     customerLabel,
     customerOptionsItems,
     customerVehicleOptionsItems,
@@ -223,8 +228,10 @@ export function useAppointmentFormOptions({
     resetOptionState,
     selectedCustomerId,
     serviceEmptyMessage,
+    serviceFetchNextPage: serviceOptionsQuery.fetchNextPage,
+    serviceHasMore: serviceOptionsQuery.hasMore,
     serviceInputValue,
-    serviceOptions,
+    serviceIsFetchingNextPage: serviceOptionsQuery.isFetchingNextPage,
     serviceOptionsItems,
     servicePriceById,
     setCustomerLabel,
@@ -234,6 +241,9 @@ export function useAppointmentFormOptions({
     setVehicleLabel,
     setVehicleSearch,
     vehicleEmptyMessage,
+    vehicleFetchNextPage: vehicleOptionsQuery.fetchNextPage,
+    vehicleHasMore: vehicleOptionsQuery.hasMore,
+    vehicleIsFetchingNextPage: vehicleOptionsQuery.isFetchingNextPage,
     vehicleLabel,
   };
 }

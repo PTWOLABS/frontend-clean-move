@@ -30,6 +30,9 @@ export function QuoteServicesStep({ title, description, className }: QuoteServic
     hasSelectedServiceInList,
     removeService,
     serviceEmptyMessage,
+    serviceFetchNextPage,
+    serviceHasMore,
+    serviceIsFetchingNextPage,
     serviceLabel,
     serviceOptionsItems,
     serviceRows,
@@ -70,6 +73,11 @@ export function QuoteServicesStep({ title, description, className }: QuoteServic
                 emptyMessage={serviceEmptyMessage}
                 autoComplete="off"
                 className="w-full shadow-xs"
+                hasMore={serviceHasMore}
+                isLoadingMore={serviceIsFetchingNextPage}
+                onLoadMore={() => {
+                  void serviceFetchNextPage();
+                }}
               />
               {hasSelectedServiceInList && (
                 <p className="text-xs text-muted-foreground">Este serviço já está na lista.</p>

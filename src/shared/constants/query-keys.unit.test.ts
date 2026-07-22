@@ -61,10 +61,10 @@ describe("QUERY_KEYS services", () => {
     expect(QUERY_KEYS.services()).toEqual(["services", "list"]);
     expect(QUERY_KEYS.services(filters)).toEqual(["services", "list", filters]);
     expect(QUERY_KEYS.serviceOptions()).toEqual(["services", "options"]);
-    expect(QUERY_KEYS.serviceOptions({ limit: 1000 })).toEqual([
+    expect(QUERY_KEYS.serviceOptions({ size: 1000 })).toEqual([
       "services",
       "options",
-      { limit: 1000 },
+      { size: 1000 },
     ]);
   });
 });

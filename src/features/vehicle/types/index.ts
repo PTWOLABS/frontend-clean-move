@@ -62,7 +62,11 @@ export type UpdateVehiclePayload = Partial<CreateVehiclePayload>;
 export type VehicleOptionsQuery = {
   search?: string;
   customerId?: string;
-  limit?: number;
+  size?: number;
+};
+
+export type VehicleOptionsListParams = VehicleOptionsQuery & {
+  page?: number;
 };
 
 export type VehicleOption = {
@@ -72,4 +76,5 @@ export type VehicleOption = {
 
 export type VehicleOptionsResponse = {
   vehicles: VehicleOption[];
+  totalItems: number;
 };

@@ -5,7 +5,7 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 import type { ComboboxItemOption } from "@/components/ui/combobox/combobox";
 import { useListServiceOptions } from "@/features/appointments/hooks/queries/use-list-service-options";
-import { DEFAULT_OPTIONS_LIMIT } from "@/shared/constants/options";
+import { DEFAULT_OPTIONS_SIZE } from "@/shared/constants/options";
 import {
   resolveServicePriceMetadata,
   type ServicePriceMetadata,
@@ -25,30 +25,30 @@ export function useQuoteServicesStep() {
   });
 
   const services = useWatch({ control, name: "stepTwo.services" }) ?? [];
-  const { data: serviceOptions, isPending: isLoadingServiceOptions } = useListServiceOptions({
-    limit: DEFAULT_OPTIONS_LIMIT,
+  const serviceOptionsQuery = useListServiceOptions({
+    size: DEFAULT_OPTIONS_SIZE,
     search: serviceSearch || undefined,
   });
 
   const serviceOptionsItems = useMemo(
     () =>
-      serviceOptions?.services?.map((option) => ({
+      serviceOptionsQuery.items.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [serviceOptions],
+      })),
+    [serviceOptionsQuery.items],
   );
 
   const servicePriceMetadataById = useMemo(() => {
     const priceMetadataById = new Map<string, ServicePriceMetadata>();
 
-    serviceOptions?.services?.forEach((option) => {
+    serviceOptionsQuery.items.forEach((option) => {
       const metadata = resolveServicePriceMetadata(option);
       priceMetadataById.set(option.id, metadata);
     });
 
     return priceMetadataById;
-  }, [serviceOptions]);
+  }, [serviceOptionsQuery.items]);
 
   const hasSelectedServiceInList = services.some(
     (service) => service.serviceId === selectedService?.value,
@@ -122,7 +122,7 @@ export function useQuoteServicesStep() {
     service: services[index],
   }));
 
-  const serviceEmptyMessage = isLoadingServiceOptions
+  const serviceEmptyMessage = serviceOptionsQuery.isPending
     ? "Buscando serviços..."
     : "Nenhum serviço encontrado.";
 
@@ -136,6 +136,9 @@ export function useQuoteServicesStep() {
     hasSelectedServiceInList,
     removeService,
     serviceEmptyMessage,
+    serviceFetchNextPage: serviceOptionsQuery.fetchNextPage,
+    serviceHasMore: serviceOptionsQuery.hasMore,
+    serviceIsFetchingNextPage: serviceOptionsQuery.isFetchingNextPage,
     serviceLabel,
     serviceOptionsItems,
     serviceRows,

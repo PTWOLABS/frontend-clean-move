@@ -1,9 +1,14 @@
 import { httpClient } from "@/shared/api/httpClient";
-import { VehicleOptionsFilters } from "../types/api-filters";
-import { VehicleOptionsDTO } from "../types/options-dto";
+import type { VehicleOptionsListParams } from "@/features/vehicle/types";
 
-export async function listCustomerVehicleOptions(filters?: VehicleOptionsFilters) {
-  return await httpClient<VehicleOptionsDTO, VehicleOptionsFilters>("/vehicles/options", {
+import type { VehicleOptionsDTO } from "../types/options-dto";
+
+export async function listCustomerVehicleOptions(
+  filters?: VehicleOptionsListParams,
+  signal?: AbortSignal,
+) {
+  return await httpClient<VehicleOptionsDTO, VehicleOptionsListParams>("/vehicles/options", {
     filters,
+    signal,
   });
 }

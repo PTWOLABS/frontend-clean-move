@@ -220,6 +220,7 @@ function stubAppointmentFormOptions() {
     statusCode: 200,
     body: {
       customers: [customerOption],
+      totalItems: 1,
     },
   }).as("customerOptionsRequest");
 
@@ -235,6 +236,7 @@ function stubAppointmentFormOptions() {
       statusCode: 200,
       body: {
         vehicles: [vehicleOption],
+        totalItems: 1,
       },
     });
   }).as("vehicleOptionsRequest");
@@ -251,6 +253,7 @@ function stubAppointmentFormOptions() {
           },
         },
       ],
+      totalItems: 1,
     },
   }).as("serviceOptionsRequest");
 }

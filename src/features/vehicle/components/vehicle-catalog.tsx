@@ -78,14 +78,14 @@ export function VehicleCatalog() {
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
 
-  const { data: customerLookupOptions } = useListCustomerOptions({
-    limit: CUSTOMER_LOOKUP_LIMIT,
+  const { items: customerLookupOptions } = useListCustomerOptions({
+    size: CUSTOMER_LOOKUP_LIMIT,
   });
 
   const customerLabelById = useMemo(() => {
     const map = new Map<string, string>();
 
-    for (const option of customerLookupOptions?.customers ?? []) {
+    for (const option of customerLookupOptions) {
       map.set(option.id, option.label);
     }
 

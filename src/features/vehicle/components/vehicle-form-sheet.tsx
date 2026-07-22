@@ -39,7 +39,7 @@ import {
 } from "../schemas/vehicle-form-schema";
 import type { VehicleDto } from "../types";
 
-const CUSTOMER_OPTIONS_LIMIT = 20;
+const CUSTOMER_OPTIONS_SIZE = 20;
 
 type VehicleFormCustomerPickerProps = {
   disabled: boolean;
@@ -55,25 +55,25 @@ function VehicleFormCustomerPicker({
   const [customerLabel, setCustomerLabel] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
 
-  const { data: customerOptions, isPending: isLoadingCustomerOptions } = useListCustomerOptions({
-    limit: CUSTOMER_OPTIONS_LIMIT,
+  const customerOptionsQuery = useListCustomerOptions({
+    size: CUSTOMER_OPTIONS_SIZE,
     search: customerSearch || undefined,
   });
 
   const customerOptionsItems = useMemo(
     () =>
-      customerOptions?.customers?.map((option) => ({
+      customerOptionsQuery.items.map((option) => ({
         label: option.label,
         value: option.id,
-      })) ?? [],
-    [customerOptions],
+      })),
+    [customerOptionsQuery.items],
   );
 
   const handleCustomerSelect = (option: ComboboxItemOption | null) => {
     onSelectionChange(option?.value ?? "");
   };
 
-  const emptyMessage = isLoadingCustomerOptions
+  const emptyMessage = customerOptionsQuery.isPending
     ? "Buscando clientes..."
     : "Nenhum cliente encontrado.";
 
@@ -92,6 +92,11 @@ function VehicleFormCustomerPicker({
       required
       aria-label="Selecionar cliente"
       className="w-full"
+      hasMore={customerOptionsQuery.hasMore}
+      isLoadingMore={customerOptionsQuery.isFetchingNextPage}
+      onLoadMore={() => {
+        void customerOptionsQuery.fetchNextPage();
+      }}
     />
   );
 }

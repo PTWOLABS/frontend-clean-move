@@ -1,1 +1,1 @@
-export const DEFAULT_OPTIONS_LIMIT = 30;
+export const DEFAULT_OPTIONS_SIZE = 20;

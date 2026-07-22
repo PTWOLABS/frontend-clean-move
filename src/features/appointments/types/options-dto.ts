@@ -5,10 +5,12 @@ export type OptionsDTO = {
 
 export type CustomerOptionsDTO = {
   customers: OptionsDTO;
+  totalItems: number;
 };
 
 export type VehicleOptionsDTO = {
   vehicles: OptionsDTO;
+  totalItems: number;
 };
 
 export type ServiceOptionsDTO = {
@@ -31,4 +33,5 @@ export type ServiceOptionsDTO = {
           maxPriceInCents: number;
         };
   }>;
+  totalItems: number;
 };

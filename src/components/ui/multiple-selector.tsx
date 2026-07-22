@@ -7,6 +7,7 @@ import { forwardRef, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { OptionsLoadMoreButton } from "@/components/ui/options-load-more-button";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { cn } from "@/shared/utils/cn";
 import { useDebounce } from "@/shared/hooks/use-debounced-value";
@@ -80,6 +81,9 @@ interface MultipleSelectorProps {
   portalContainer?: React.ComponentProps<typeof PopoverContent>["portalContainer"];
   /** hide the clear all button. */
   hideClearAllButton?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
 }
 
 export interface MultipleSelectorRef {
@@ -182,6 +186,9 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
       inputProps,
       portalContainer,
       hideClearAllButton = false,
+      hasMore = false,
+      onLoadMore,
+      isLoadingMore = false,
     }: MultipleSelectorProps,
     ref: React.Ref<MultipleSelectorRef>,
   ) => {
@@ -596,6 +603,9 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                       </>
                     </CommandGroup>
                   ))}
+                  {hasMore && onLoadMore ? (
+                    <OptionsLoadMoreButton onLoadMore={onLoadMore} isLoadingMore={isLoadingMore} />
+                  ) : null}
                 </>
               )}
             </CommandList>
