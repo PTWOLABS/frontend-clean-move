@@ -23,8 +23,7 @@ import type { QuoteListItemDto } from "../types/quotes";
 import { QuotesCatalogToolbar } from "./quotes-catalog-toolbar";
 import { QuotesCatalogTable } from "./quotes-catalog-table";
 import { QuoteMoreOptions } from "./quote-more-options";
-import { QuoteApprovalVerificationDialog } from "./analyze/quote-approval-verification-dialog";
-import { useAnalyzeQuoteApproval } from "../hooks/mutations/use-analyze-quote-approval";
+import { QuoteApprovalFlowDialog } from "./approve/quote-approval-flow-dialog";
 
 const PAGE_SIZE = 5;
 
@@ -158,13 +157,6 @@ export function QuotesCatalogContent({
   const isFetchingPage = isPending || isPlaceholderData;
   const errorFeedback = isError ? resolveListQuotesErrorFeedback(error) : null;
 
-  const {
-    mutate: analyzeQuoteApproval,
-    data: analyzeQuoteApprovalResult,
-    isPending: analyzingQuoteApproval,
-    reset: resetAnalyzeQuoteApproval,
-  } = useAnalyzeQuoteApproval();
-
   function handleApplyFilters(nextFilters: QuotesFiltersState) {
     setAppliedFilters(nextFilters);
     setPage(1);
@@ -178,22 +170,12 @@ export function QuotesCatalogContent({
 
   function handleApproveQuote(quote: QuoteListItemDto) {
     setApprovalQuote(quote);
-    resetAnalyzeQuoteApproval();
-    analyzeQuoteApproval(
-      { quoteId: quote.id, startsAt: new Date().toISOString() },
-      {
-        onError: () => {
-          setApprovalQuote(null);
-        },
-      },
-    );
   }
 
-  function handleApprovalDialogOpenChange(open: boolean) {
+  function handleApprovalFlowOpenChange(open: boolean) {
     if (open) return;
 
     setApprovalQuote(null);
-    resetAnalyzeQuoteApproval();
   }
 
   return (
@@ -213,19 +195,13 @@ export function QuotesCatalogContent({
           <QuotesCatalogTable
             quotes={quotes}
             onApprove={handleApproveQuote}
-            isApprovalActionDisabled={analyzingQuoteApproval}
             className={tableClassName}
           />
         }
         mobileCards={
           <div className={cn("flex flex-col gap-3", mobileCardsClassName)}>
             {quotes.map((quote) => (
-              <QuoteMobileCard
-                key={quote.id}
-                quote={quote}
-                onApprove={handleApproveQuote}
-                isApprovalActionDisabled={analyzingQuoteApproval}
-              />
+              <QuoteMobileCard key={quote.id} quote={quote} onApprove={handleApproveQuote} />
             ))}
           </div>
         }
@@ -263,12 +239,10 @@ export function QuotesCatalogContent({
         }
       />
       {approvalQuote ? (
-        <QuoteApprovalVerificationDialog
+        <QuoteApprovalFlowDialog
           quote={approvalQuote}
-          analysis={analyzeQuoteApprovalResult?.analysis ?? null}
-          isAnalyzing={analyzingQuoteApproval}
           open
-          onOpenChange={handleApprovalDialogOpenChange}
+          onOpenChange={handleApprovalFlowOpenChange}
         />
       ) : null}
     </>
