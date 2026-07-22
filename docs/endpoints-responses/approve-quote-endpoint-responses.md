@@ -16,15 +16,15 @@ Alguns erros podem incluir `errors` ou `analysis`, conforme descrito abaixo.
 
 ## Resumo por status
 
-| Status | Quando acontece | Formato principal |
-| --- | --- | --- |
-| `201 Created` | Orcamento aprovado e agendamento criado. | `{ "appointment": AppointmentItem, "quote": QuoteItem }` |
-| `400 Bad Request` | Payload invalido, intervalo invalido, quote ja convertida, resolucao invalida ou snapshot insuficiente. | `QuoteErrorResponse` |
-| `401 Unauthorized` | Token ausente, invalido, expirado ou sessao invalida. | Erro padrao do NestJS |
-| `403 Forbidden` | Usuario autenticado sem role/feature exigida, ou regra de dominio negou acesso. | Erro padrao do NestJS ou `QuoteErrorResponse` |
-| `404 Not Found` | Quote, estabelecimento ou dependencia do agendamento nao encontrada no escopo atual. | `QuoteErrorResponse` |
-| `409 Conflict` | Resolucao obrigatoria ausente ou conflitos mudaram desde a analise. | `QuoteErrorResponse` com `analysis` |
-| `500 Internal Server Error` | Falha inesperada. | `QuoteErrorResponse` |
+| Status                      | Quando acontece                                                                                         | Formato principal                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `201 Created`               | Orcamento aprovado e agendamento criado.                                                                | `{ "appointment": AppointmentItem, "quote": QuoteItem }` |
+| `400 Bad Request`           | Payload invalido, intervalo invalido, quote ja convertida, resolucao invalida ou snapshot insuficiente. | `QuoteErrorResponse`                                     |
+| `401 Unauthorized`          | Token ausente, invalido, expirado ou sessao invalida.                                                   | Erro padrao do NestJS                                    |
+| `403 Forbidden`             | Usuario autenticado sem role/feature exigida, ou regra de dominio negou acesso.                         | Erro padrao do NestJS ou `QuoteErrorResponse`            |
+| `404 Not Found`             | Quote, estabelecimento ou dependencia do agendamento nao encontrada no escopo atual.                    | `QuoteErrorResponse`                                     |
+| `409 Conflict`              | Resolucao obrigatoria ausente ou conflitos mudaram desde a analise.                                     | `QuoteErrorResponse` com `analysis`                      |
+| `500 Internal Server Error` | Falha inesperada.                                                                                       | `QuoteErrorResponse`                                     |
 
 ## 201 Created
 

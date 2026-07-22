@@ -1,5 +1,8 @@
 import { cn } from "@/shared/utils/cn";
-import { QuoteApprovalVerificationStep, QuoteApprovalVerificationStepStatus } from "../../types/quote-approval-analysis-feedback";
+import {
+  QuoteApprovalVerificationStep,
+  QuoteApprovalVerificationStepStatus,
+} from "../../types/quote-approval-analysis-feedback";
 import { AlertTriangle, Check, LoaderCircle } from "lucide-react";
 
 function getStatusLabel(status: QuoteApprovalVerificationStepStatus) {
