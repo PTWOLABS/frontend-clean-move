@@ -19,6 +19,9 @@ type DatePickerTimeProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   placeholder?: string;
   disabled?: boolean;
   invalid?: boolean;
+  dateButtonId?: string;
+  timeInputId?: string;
+  timeInputAriaLabel?: string;
   timeInputClassName?: string;
   portalContainer?: React.ComponentProps<typeof PopoverContent>["portalContainer"];
 };
@@ -46,8 +49,12 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
       placeholder = "Selecione data e horário",
       disabled = false,
       invalid = false,
+      dateButtonId,
+      timeInputId,
+      timeInputAriaLabel = "Horário",
       timeInputClassName,
       portalContainer,
+      "aria-describedby": ariaDescribedBy,
       ...props
     },
     ref,
@@ -69,9 +76,11 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
+              id={dateButtonId}
               type="button"
               variant="outline"
               disabled={disabled}
+              aria-describedby={ariaDescribedBy}
               className={cn(
                 "h-10 w-full min-w-0 justify-start overflow-hidden rounded-md border-border/80 bg-background/40 px-3 text-left font-normal shadow-sm hover:bg-muted/40",
                 !selectedDate && "text-muted-foreground",
@@ -105,10 +114,12 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
         </Popover>
 
         <Input
+          id={timeInputId}
           type="time"
           value={timeValue}
           disabled={disabled}
-          aria-label="Horário"
+          aria-describedby={ariaDescribedBy}
+          aria-label={timeInputAriaLabel}
           step="60"
           className={cn(
             "h-10 w-28 shrink-0 border-border/80 bg-background/40 shadow-sm",
