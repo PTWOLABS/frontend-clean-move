@@ -131,6 +131,7 @@ export function QuoteApprovalScheduleStep({
             placeholder="Opcional"
             portalContainer={portalContainer}
             aria-describedby={`${endsAtId}-description`}
+            side="top"
           />
           <p id={`${endsAtId}-description`} className="text-xs text-muted-foreground">
             Informe apenas se já souber o horário previsto de término.

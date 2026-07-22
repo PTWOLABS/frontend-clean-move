@@ -24,6 +24,7 @@ type DatePickerTimeProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   timeInputAriaLabel?: string;
   timeInputClassName?: string;
   portalContainer?: React.ComponentProps<typeof PopoverContent>["portalContainer"];
+  side?: "bottom" | "top" | "left" | "right";
 };
 
 function formatTimeValue(date: Date | undefined) {
@@ -54,6 +55,7 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
       timeInputAriaLabel = "Horário",
       timeInputClassName,
       portalContainer,
+      side = "bottom",
       "aria-describedby": ariaDescribedBy,
       ...props
     },
@@ -96,6 +98,7 @@ export const DatePickerTime = React.forwardRef<HTMLDivElement, DatePickerTimePro
           </PopoverTrigger>
 
           <PopoverContent
+            side={side}
             align="start"
             portalContainer={portalContainer}
             className="w-auto rounded-xl border-border/80 p-0"
