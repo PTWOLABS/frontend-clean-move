@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { QuoteListItemDto } from "../../types/quotes";
 
 vi.mock("@/components/ui/calendar/date-picker-time", () => ({
@@ -17,7 +18,7 @@ vi.mock("@/components/ui/calendar/date-picker-time", () => ({
   ),
 }));
 
-import { QuoteApprovalScheduleDialog } from "./quote-approval-schedule-dialog";
+import { QuoteApprovalScheduleStep } from "./quote-approval-schedule-step";
 
 const quote: QuoteListItemDto = {
   id: "quote-id",
@@ -33,9 +34,17 @@ const quote: QuoteListItemDto = {
   servicesCount: 2,
 };
 
-describe("QuoteApprovalScheduleDialog", () => {
+function renderStep(ui: React.ReactNode) {
+  return render(
+    <Dialog open>
+      <DialogContent showCloseButton={false}>{ui}</DialogContent>
+    </Dialog>,
+  );
+}
+
+describe("QuoteApprovalScheduleStep", () => {
   it("presents the schedule step before approval analysis", () => {
-    render(<QuoteApprovalScheduleDialog quote={quote} open onOpenChange={vi.fn()} />);
+    renderStep(<QuoteApprovalScheduleStep quote={quote} onCancel={vi.fn()} />);
 
     expect(screen.getByRole("heading", { name: "Aprovar e agendar" })).toBeInTheDocument();
     expect(screen.getByText("Marina Oliveira")).toBeInTheDocument();
@@ -46,13 +55,8 @@ describe("QuoteApprovalScheduleDialog", () => {
   it("emits the selected schedule when the start date is defined", () => {
     const onContinue = vi.fn();
 
-    render(
-      <QuoteApprovalScheduleDialog
-        quote={quote}
-        open
-        onOpenChange={vi.fn()}
-        onContinue={onContinue}
-      />,
+    renderStep(
+      <QuoteApprovalScheduleStep quote={quote} onCancel={vi.fn()} onContinue={onContinue} />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Selecione data e horário" }));
@@ -65,12 +69,12 @@ describe("QuoteApprovalScheduleDialog", () => {
   });
 
   it("allows cancelling the schedule step", () => {
-    const onOpenChange = vi.fn();
+    const onCancel = vi.fn();
 
-    render(<QuoteApprovalScheduleDialog quote={quote} open onOpenChange={onOpenChange} />);
+    renderStep(<QuoteApprovalScheduleStep quote={quote} onCancel={onCancel} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onCancel).toHaveBeenCalled();
   });
 });
