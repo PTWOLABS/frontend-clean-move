@@ -81,6 +81,27 @@ const readyAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto = {
   },
 };
 
+const requiresResolutionAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto = {
+  analysis: {
+    status: "REQUIRES_RESOLUTION",
+    automaticResolutions: [],
+    customer: {
+      status: "CREATE_REQUIRED",
+      requiresResolution: true,
+      automaticCustomerId: null,
+      candidates: [],
+    },
+    vehicle: {
+      status: "NONE",
+      requiresResolution: false,
+      candidateVehicleId: null,
+      candidateCustomerId: null,
+      allowedActions: [],
+    },
+    services: [],
+  },
+};
+
 describe("QuoteApprovalFlowDialog", () => {
   beforeEach(() => {
     isAnalyzing = false;
@@ -154,5 +175,20 @@ describe("QuoteApprovalFlowDialog", () => {
         onSuccess: expect.any(Function),
       }),
     );
+  });
+
+  it("closes the flow when resolving approval issues from the analysis", () => {
+    const onOpenChange = vi.fn();
+    analyzeQuoteApprovalData = requiresResolutionAnalyzeQuoteApprovalData;
+
+    render(<QuoteApprovalFlowDialog quote={quote} open onOpenChange={onOpenChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecione data e horário" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolver pendências" }));
+
+    expect(resetAnalyzeQuoteApprovalMock).toHaveBeenCalled();
+    expect(resetApproveQuoteMock).toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

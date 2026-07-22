@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, CheckCircle2, LoaderCircle, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, LoaderCircle, ShieldCheck, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ type QuoteApprovalVerificationStepProps = {
   isAnalyzing: boolean;
   isApproving: boolean;
   onApprove: () => void;
-  onClose: () => void;
+  onResolveRequired: () => void;
 };
 
 export function QuoteApprovalVerificationStep({
@@ -32,7 +32,7 @@ export function QuoteApprovalVerificationStep({
   isAnalyzing,
   isApproving,
   onApprove,
-  onClose,
+  onResolveRequired,
 }: QuoteApprovalVerificationStepProps) {
   const outcome = getQuoteApprovalVerificationOutcome(isAnalyzing, analysis);
   const isChecking = outcome === "checking";
@@ -205,9 +205,9 @@ export function QuoteApprovalVerificationStep({
             )}
           </Button>
         ) : (
-          <Button type="button" onClick={onClose}>
-            <ArrowLeft aria-hidden="true" />
-            Voltar ao orçamento
+          <Button type="button" onClick={onResolveRequired}>
+            <Wrench aria-hidden="true" />
+            Resolver pendências
           </Button>
         )}
       </DialogFooter>

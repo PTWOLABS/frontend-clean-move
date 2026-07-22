@@ -122,7 +122,7 @@ export function QuoteApprovalFlowDialog({
             isAnalyzing={analyzingQuoteApproval}
             isApproving={approvingQuote}
             onApprove={handleApprove}
-            onClose={closeFlow}
+            onResolveRequired={closeFlow}
           />
         )}
       </DialogContent>

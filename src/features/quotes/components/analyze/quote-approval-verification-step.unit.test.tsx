@@ -149,7 +149,7 @@ describe("QuoteApprovalVerificationStep", () => {
         isAnalyzing
         isApproving={false}
         onApprove={vi.fn()}
-        onClose={vi.fn()}
+        onResolveRequired={vi.fn()}
       />,
     );
 
@@ -169,7 +169,7 @@ describe("QuoteApprovalVerificationStep", () => {
         isAnalyzing={false}
         isApproving={false}
         onApprove={onApprove}
-        onClose={vi.fn()}
+        onResolveRequired={vi.fn()}
       />,
     );
 
@@ -196,7 +196,7 @@ describe("QuoteApprovalVerificationStep", () => {
         isAnalyzing={false}
         isApproving
         onApprove={vi.fn()}
-        onClose={vi.fn()}
+        onResolveRequired={vi.fn()}
       />,
     );
 
@@ -204,6 +204,8 @@ describe("QuoteApprovalVerificationStep", () => {
   });
 
   it("lists customer, vehicle and service issues when resolution is required", () => {
+    const onResolveRequired = vi.fn();
+
     renderStep(
       <QuoteApprovalVerificationStep
         quote={quote}
@@ -211,7 +213,7 @@ describe("QuoteApprovalVerificationStep", () => {
         isAnalyzing={false}
         isApproving={false}
         onApprove={vi.fn()}
-        onClose={vi.fn()}
+        onResolveRequired={onResolveRequired}
       />,
     );
 
@@ -229,6 +231,7 @@ describe("QuoteApprovalVerificationStep", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Serviço com correspondência: Polimento tecnico")).toBeInTheDocument();
     expect(screen.getByText(/Diferenças: preço/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Voltar ao orçamento/i })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: /Resolver pendências/i }));
+    expect(onResolveRequired).toHaveBeenCalled();
   });
 });
