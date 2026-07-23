@@ -8,12 +8,13 @@ import type { QuoteListItemDto } from "../../types/quotes";
 import { useAnalyzeQuoteApproval } from "../../hooks/mutations/use-analyze-quote-approval";
 import { useApproveQuote } from "../../hooks/mutations/use-approve-quote";
 import { QuoteApprovalVerificationStep } from "../analyze/quote-approval-verification-step";
+import { QuoteApprovalResolutionStep } from "./quote-approval-resolution-step";
 import {
   QuoteApprovalScheduleStep,
   type QuoteApprovalScheduleValues,
 } from "./quote-approval-schedule-step";
 
-type QuoteApprovalFlowStep = "schedule" | "analysis";
+type QuoteApprovalFlowStep = "schedule" | "analysis" | "resolution";
 
 type QuoteApprovalFlowDialogProps = {
   quote: QuoteListItemDto;
@@ -95,6 +96,12 @@ export function QuoteApprovalFlowDialog({
     );
   }
 
+  function handleResolveRequired() {
+    if (!analysis) return;
+
+    setStep("resolution");
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
@@ -115,6 +122,8 @@ export function QuoteApprovalFlowDialog({
             onContinue={handleScheduleContinue}
             portalContainer={dialogContentElement}
           />
+        ) : step === "resolution" && analysis ? (
+          <QuoteApprovalResolutionStep analysis={analysis} onBack={() => setStep("analysis")} />
         ) : (
           <QuoteApprovalVerificationStep
             quote={quote}
@@ -122,7 +131,7 @@ export function QuoteApprovalFlowDialog({
             isAnalyzing={analyzingQuoteApproval}
             isApproving={approvingQuote}
             onApprove={handleApprove}
-            onResolveRequired={closeFlow}
+            onResolveRequired={handleResolveRequired}
           />
         )}
       </DialogContent>

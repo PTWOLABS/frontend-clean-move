@@ -177,7 +177,7 @@ describe("QuoteApprovalFlowDialog", () => {
     );
   });
 
-  it("closes the flow when resolving approval issues from the analysis", () => {
+  it("moves to the resolution step when approval issues need action", () => {
     const onOpenChange = vi.fn();
     analyzeQuoteApprovalData = requiresResolutionAnalyzeQuoteApprovalData;
 
@@ -187,8 +187,15 @@ describe("QuoteApprovalFlowDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
     fireEvent.click(screen.getByRole("button", { name: "Resolver pendências" }));
 
-    expect(resetAnalyzeQuoteApprovalMock).toHaveBeenCalled();
-    expect(resetApproveQuoteMock).toHaveBeenCalled();
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(screen.getByRole("heading", { name: "Resolver pendências" })).toBeInTheDocument();
+    expect(screen.getByText("1 pendência precisa de resolução")).toBeInTheDocument();
+    expect(screen.getByText("criar novo cliente")).toBeInTheDocument();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "Voltar à análise" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Pendências antes da aprovação" }),
+    ).toBeInTheDocument();
   });
 });
