@@ -304,4 +304,24 @@ describe("quote approval resolution helpers", () => {
     expect(isQuoteApprovalResolutionSelected(values, pendingSelection)).toBe(true);
     expect(hasPendingQuoteApprovalResolutionDetails(values)).toBe(true);
   });
+
+  it("detects a pending customer link action after a candidate is selected", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      customer: candidatesFoundCustomer,
+    });
+    const pendingSelection = cards[0].actions[0].selection;
+
+    const values = {
+      pendingSelections: [],
+      serviceResolutions: [],
+      customerResolution: {
+        action: "LINK_EXISTING" as const,
+        customerId: "second-candidate-customer-id",
+      },
+    };
+
+    expect(isQuoteApprovalResolutionSelected(values, pendingSelection)).toBe(true);
+    expect(hasPendingQuoteApprovalResolutionDetails(values)).toBe(false);
+  });
 });

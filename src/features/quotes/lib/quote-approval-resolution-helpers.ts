@@ -82,6 +82,8 @@ export const CUSTOMER_RESOLUTION_ACTION_LABELS = {
   CREATE_NEW: "criar novo cliente",
 };
 
+export const CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID = "customer-LINK_EXISTING";
+
 export function createEmptyQuoteApprovalResolutionValues(): QuoteApprovalResolutionValues {
   return {
     pendingSelections: [],
@@ -169,10 +171,10 @@ function getCustomerActionOptions(customer: QuoteCustomerAnalysisDto): Resolutio
     }
 
     return {
-      id: "customer-LINK_EXISTING",
+      id: CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID,
       label,
       selection: {
-        id: "customer-LINK_EXISTING",
+        id: CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID,
         target: "customer",
         requiresDetails: true,
       },
@@ -404,6 +406,13 @@ export function isQuoteApprovalResolutionSelected(
   selection: ResolutionSelection,
 ) {
   if ("requiresDetails" in selection) {
+    if (
+      selection.id === CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID &&
+      values.customerResolution?.action === "LINK_EXISTING"
+    ) {
+      return true;
+    }
+
     return values.pendingSelections?.some(
       (pendingSelection) => pendingSelection.id === selection.id,
     );

@@ -7,15 +7,21 @@ import { getQuoteApprovalVerificationOutcome } from "../../lib/quote-approval-an
 import type { QuoteListItemDto } from "../../types/quotes";
 import { useAnalyzeQuoteApproval } from "../../hooks/mutations/use-analyze-quote-approval";
 import { useApproveQuote } from "../../hooks/mutations/use-approve-quote";
-import { createEmptyQuoteApprovalResolutionValues } from "../../lib/quote-approval-resolution-helpers";
+import {
+  applyQuoteApprovalResolutionSelection,
+  createEmptyQuoteApprovalResolutionValues,
+  CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID,
+  type QuoteApprovalResolutionValues,
+} from "../../lib/quote-approval-resolution-helpers";
 import { QuoteApprovalVerificationStep } from "../analyze/quote-approval-verification-step";
+import { QuoteApprovalCustomerCandidateStep } from "./quote-approval-customer-candidate-step";
 import { QuoteApprovalResolutionStep } from "./quote-approval-resolution-step";
 import {
   QuoteApprovalScheduleStep,
   type QuoteApprovalScheduleValues,
 } from "./quote-approval-schedule-step";
 
-type QuoteApprovalFlowStep = "schedule" | "analysis" | "resolution";
+type QuoteApprovalFlowStep = "schedule" | "analysis" | "resolution" | "customer-candidate";
 
 type QuoteApprovalFlowDialogProps = {
   quote: QuoteListItemDto;
@@ -111,6 +117,33 @@ export function QuoteApprovalFlowDialog({
     setStep("resolution");
   }
 
+  function handleResolutionChange(values: QuoteApprovalResolutionValues) {
+    setResolutionValues(values);
+
+    if (
+      analysis &&
+      analysis.customer.candidates.length > 1 &&
+      values.pendingSelections?.some(
+        (selection) => selection.id === CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID,
+      )
+    ) {
+      setStep("customer-candidate");
+    }
+  }
+
+  function handleCustomerCandidateSelect(customerId: string) {
+    setResolutionValues((currentValues) =>
+      applyQuoteApprovalResolutionSelection(currentValues, {
+        target: "customer",
+        resolution: {
+          action: "LINK_EXISTING",
+          customerId,
+        },
+      }),
+    );
+    setStep("resolution");
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
@@ -136,9 +169,20 @@ export function QuoteApprovalFlowDialog({
             analysis={analysis}
             values={resolutionValues}
             isApproving={approvingQuote}
-            onChange={setResolutionValues}
+            onChange={handleResolutionChange}
             onApprove={handleApprove}
             onBack={() => setStep("analysis")}
+          />
+        ) : step === "customer-candidate" && analysis ? (
+          <QuoteApprovalCustomerCandidateStep
+            candidates={analysis.customer.candidates}
+            selectedCustomerId={
+              resolutionValues.customerResolution?.action === "LINK_EXISTING"
+                ? resolutionValues.customerResolution.customerId
+                : undefined
+            }
+            onSelect={handleCustomerCandidateSelect}
+            onBack={() => setStep("resolution")}
           />
         ) : (
           <QuoteApprovalVerificationStep

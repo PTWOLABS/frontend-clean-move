@@ -102,6 +102,40 @@ const requiresResolutionAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDt
   },
 };
 
+const multipleCustomerCandidatesAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto = {
+  analysis: {
+    status: "REQUIRES_RESOLUTION",
+    automaticResolutions: [],
+    customer: {
+      status: "CANDIDATES_FOUND",
+      requiresResolution: true,
+      automaticCustomerId: null,
+      candidates: [
+        {
+          customerId: "first-candidate-customer-id",
+          matchedBy: ["PHONE"],
+          conflictingFields: ["NAME"],
+          advisoryOnly: false,
+        },
+        {
+          customerId: "second-candidate-customer-id",
+          matchedBy: ["EMAIL"],
+          conflictingFields: [],
+          advisoryOnly: false,
+        },
+      ],
+    },
+    vehicle: {
+      status: "NONE",
+      requiresResolution: false,
+      candidateVehicleId: null,
+      candidateCustomerId: null,
+      allowedActions: [],
+    },
+    services: [],
+  },
+};
+
 describe("QuoteApprovalFlowDialog", () => {
   beforeEach(() => {
     isAnalyzing = false;
@@ -214,5 +248,43 @@ describe("QuoteApprovalFlowDialog", () => {
     expect(
       screen.getByRole("heading", { name: "Pendências antes da aprovação" }),
     ).toBeInTheDocument();
+  });
+
+  it("asks which customer candidate should be linked before approval", () => {
+    analyzeQuoteApprovalData = multipleCustomerCandidatesAnalyzeQuoteApprovalData;
+
+    render(<QuoteApprovalFlowDialog quote={quote} open onOpenChange={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecione data e horário" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolver pendências" }));
+    fireEvent.click(screen.getByRole("button", { name: "vincular cliente existente" }));
+
+    expect(screen.getByRole("heading", { name: "Escolher cliente" })).toBeInTheDocument();
+    expect(screen.getByText("first-candidate-customer-id")).toBeInTheDocument();
+    expect(screen.getByText("second-candidate-customer-id")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar cliente candidato 2" }));
+
+    expect(screen.getByRole("heading", { name: "Resolver pendências" })).toBeInTheDocument();
+    expect(screen.getByText("1 de 1 pendência com resolução selecionada")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
+
+    expect(approveQuoteMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        quoteId: "quote-id",
+        startsAt: "2026-08-01T10:00:00.000Z",
+        endsAt: null,
+        customerResolution: {
+          action: "LINK_EXISTING",
+          customerId: "second-candidate-customer-id",
+        },
+        serviceResolutions: [],
+      }),
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+      }),
+    );
   });
 });
