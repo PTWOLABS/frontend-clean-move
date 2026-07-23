@@ -95,6 +95,9 @@ export function QuoteApprovalFlowDialog({
         quoteId: quote.id,
         startsAt: scheduleValues.startsAt,
         endsAt: scheduleValues.endsAt,
+        customerResolution: resolutionValues.customerResolution,
+        vehicleResolution: resolutionValues.vehicleResolution,
+        serviceResolutions: resolutionValues.serviceResolutions,
       },
       {
         onSuccess: closeFlow,
@@ -132,7 +135,9 @@ export function QuoteApprovalFlowDialog({
           <QuoteApprovalResolutionStep
             analysis={analysis}
             values={resolutionValues}
+            isApproving={approvingQuote}
             onChange={setResolutionValues}
+            onApprove={handleApprove}
             onBack={() => setStep("analysis")}
           />
         ) : (

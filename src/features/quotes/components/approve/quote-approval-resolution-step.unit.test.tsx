@@ -68,10 +68,14 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
 function renderStep({
   values = createEmptyQuoteApprovalResolutionValues(),
   onChange = vi.fn(),
+  isApproving = false,
+  onApprove = vi.fn(),
   onBack = vi.fn(),
 }: {
   values?: QuoteApprovalResolutionValues;
   onChange?: (values: QuoteApprovalResolutionValues) => void;
+  isApproving?: boolean;
+  onApprove?: () => void;
   onBack?: () => void;
 } = {}) {
   return render(
@@ -80,7 +84,9 @@ function renderStep({
         <QuoteApprovalResolutionStep
           analysis={requiresResolutionAnalysis}
           values={values}
+          isApproving={isApproving}
           onChange={onChange}
+          onApprove={onApprove}
           onBack={onBack}
         />
       </DialogContent>
@@ -107,6 +113,7 @@ describe("QuoteApprovalResolutionStep", () => {
     expect(screen.getByText("Serviço com correspondência: Polimento tecnico")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "associar serviço existente" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "renomear serviço avulso" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Confirmar aprovação" })).toBeDisabled();
   });
 
   it("emits typed resolution values when selecting an action", () => {
@@ -138,6 +145,56 @@ describe("QuoteApprovalResolutionStep", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("enables final approval when all pending items have selected resolutions", () => {
+    const onApprove = vi.fn();
+
+    renderStep({
+      values: {
+        customerResolution: {
+          action: "CREATE_NEW",
+        },
+        vehicleResolution: {
+          action: "CREATE_FROM_SNAPSHOT",
+        },
+        serviceResolutions: [
+          {
+            quoteServiceId: "quote-service-id",
+            action: "ASSOCIATE_EXISTING",
+            serviceId: "candidate-service-id",
+          },
+        ],
+      },
+      onApprove,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
+
+    expect(onApprove).toHaveBeenCalled();
+  });
+
+  it("disables final approval while approval is pending", () => {
+    renderStep({
+      values: {
+        customerResolution: {
+          action: "CREATE_NEW",
+        },
+        vehicleResolution: {
+          action: "CREATE_FROM_SNAPSHOT",
+        },
+        serviceResolutions: [
+          {
+            quoteServiceId: "quote-service-id",
+            action: "ASSOCIATE_EXISTING",
+            serviceId: "candidate-service-id",
+          },
+        ],
+      },
+      isApproving: true,
+    });
+
+    expect(screen.getByRole("button", { name: "Aprovando" })).toBeDisabled();
   });
 
   it("returns to the analysis step from the footer action", () => {

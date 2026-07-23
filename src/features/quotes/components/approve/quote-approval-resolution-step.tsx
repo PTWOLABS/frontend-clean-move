@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, LoaderCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,18 @@ import type { QuoteApprovalAnalysisDto } from "../../types/analyze-quote-approva
 type QuoteApprovalResolutionStepProps = {
   analysis: QuoteApprovalAnalysisDto;
   values: QuoteApprovalResolutionValues;
+  isApproving: boolean;
   onChange: (values: QuoteApprovalResolutionValues) => void;
+  onApprove: () => void;
   onBack: () => void;
 };
 
 export function QuoteApprovalResolutionStep({
   analysis,
   values,
+  isApproving,
   onChange,
+  onApprove,
   onBack,
 }: QuoteApprovalResolutionStepProps) {
   const cards = getResolutionCards(analysis);
@@ -33,6 +37,7 @@ export function QuoteApprovalResolutionStep({
       (action) => action.selection && isQuoteApprovalResolutionSelected(values, action.selection),
     ),
   ).length;
+  const canApprove = selectedCount === cards.length;
 
   return (
     <>
@@ -120,10 +125,32 @@ export function QuoteApprovalResolutionStep({
         </ul>
       </div>
 
-      <DialogFooter className="border-t border-border bg-muted/15 px-5 py-4 sm:px-6">
-        <Button type="button" variant="outline" onClick={onBack}>
+      <DialogFooter className="gap-2 border-t border-border bg-muted/15 px-5 py-4 sm:justify-between sm:space-x-0 sm:px-6">
+        <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onBack}>
           <ArrowLeft aria-hidden="true" />
           Voltar à análise
+        </Button>
+        <Button
+          type="button"
+          className="w-full sm:w-auto"
+          disabled={!canApprove || isApproving}
+          title={canApprove ? undefined : "Selecione uma resolução para cada pendência."}
+          onClick={onApprove}
+        >
+          {isApproving ? (
+            <>
+              <LoaderCircle
+                className="animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+              Aprovando
+            </>
+          ) : (
+            <>
+              <CheckCircle2 aria-hidden="true" />
+              Confirmar aprovação
+            </>
+          )}
         </Button>
       </DialogFooter>
     </>
