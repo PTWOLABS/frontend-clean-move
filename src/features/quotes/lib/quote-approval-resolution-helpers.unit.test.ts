@@ -11,11 +11,14 @@ import type {
   QuoteVehicleAnalysisDto,
 } from "../types/analyze-quote-approval";
 import {
+  applyQuoteApprovalResolutionSelection,
+  createEmptyQuoteApprovalResolutionValues,
   CUSTOMER_RESOLUTION_ACTION_LABELS,
   getCustomerActions,
   getCustomerDescription,
   getResolutionCards,
   getVehicleDescription,
+  isQuoteApprovalResolutionSelected,
 } from "./quote-approval-resolution-helpers";
 
 const resolvedCustomer: QuoteCustomerAnalysisDto = {
@@ -52,6 +55,11 @@ const candidatesFoundCustomer: QuoteCustomerAnalysisDto = {
   ],
 };
 
+const singleCandidateCustomer: QuoteCustomerAnalysisDto = {
+  ...candidatesFoundCustomer,
+  candidates: [candidatesFoundCustomer.candidates[0]],
+};
+
 const vehicleWithCandidate: QuoteVehicleAnalysisDto = {
   status: "CANDIDATE_FOUND",
   requiresResolution: true,
@@ -71,7 +79,7 @@ const vehicleWithOwnershipConflict: QuoteVehicleAnalysisDto = {
 const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
   status: "REQUIRES_RESOLUTION",
   automaticResolutions: [],
-  customer: candidatesFoundCustomer,
+  customer: singleCandidateCustomer,
   vehicle: {
     status: "SNAPSHOT_ONLY",
     requiresResolution: true,
@@ -163,39 +171,109 @@ describe("quote approval resolution helpers", () => {
     );
   });
 
-  it("builds resolution cards only for items that require resolution", () => {
-    expect(getResolutionCards(requiresResolutionAnalysis)).toEqual([
-      expect.objectContaining({
-        id: "customer",
-        area: "Cliente",
-        title: "Cliente com correspondências",
-        actions: [
-          CUSTOMER_RESOLUTION_ACTION_LABELS.LINK_EXISTING,
-          CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW,
-        ],
-        icon: UserRoundCheck,
-      }),
-      expect.objectContaining({
-        id: "vehicle",
-        area: "Veículo",
-        title: "Veículo precisa ser definido",
-        actions: [
-          QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS.CREATE_FROM_SNAPSHOT,
-          QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS.KEEP_SNAPSHOT_ONLY,
-        ],
-        icon: CarFront,
-      }),
-      expect.objectContaining({
-        id: "service-quote-service-id",
-        area: "Serviço",
-        title: "Serviço com correspondência: Polimento tecnico",
-        description: "Candidato encontrado: Polimento tecnico cadastrado. Diferenças: preço.",
-        actions: [
-          QUOTE_SERVICE_RESOLUTION_ACTION_LABELS.ASSOCIATE_EXISTING,
-          QUOTE_SERVICE_RESOLUTION_ACTION_LABELS.RENAME_DETACHED,
-        ],
-        icon: Wrench,
-      }),
+  it("builds resolution cards with selectable action options", () => {
+    const cards = getResolutionCards(requiresResolutionAnalysis);
+
+    expect(cards).toHaveLength(3);
+    expect(cards[0]).toMatchObject({
+      id: "customer",
+      area: "Cliente",
+      title: "Cliente com correspondências",
+      icon: UserRoundCheck,
+    });
+    expect(cards[0].actions).toMatchObject([
+      {
+        id: "customer-LINK_EXISTING",
+        label: CUSTOMER_RESOLUTION_ACTION_LABELS.LINK_EXISTING,
+        selection: {
+          target: "customer",
+          resolution: {
+            action: "LINK_EXISTING",
+            customerId: "candidate-customer-id",
+          },
+        },
+      },
+      {
+        id: "customer-CREATE_NEW",
+        label: CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW,
+        selection: {
+          target: "customer",
+          resolution: {
+            action: "CREATE_NEW",
+          },
+        },
+      },
     ]);
+
+    expect(cards[1]).toMatchObject({
+      id: "vehicle",
+      area: "Veículo",
+      title: "Veículo precisa ser definido",
+      icon: CarFront,
+    });
+    expect(cards[1].actions.map((action) => action.label)).toEqual([
+      QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS.CREATE_FROM_SNAPSHOT,
+      QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS.KEEP_SNAPSHOT_ONLY,
+    ]);
+
+    expect(cards[2]).toMatchObject({
+      id: "service-quote-service-id",
+      area: "Serviço",
+      title: "Serviço com correspondência: Polimento tecnico",
+      description: "Candidato encontrado: Polimento tecnico cadastrado. Diferenças: preço.",
+      icon: Wrench,
+    });
+    expect(cards[2].actions.map((action) => action.label)).toEqual([
+      QUOTE_SERVICE_RESOLUTION_ACTION_LABELS.ASSOCIATE_EXISTING,
+      QUOTE_SERVICE_RESOLUTION_ACTION_LABELS.RENAME_DETACHED,
+    ]);
+  });
+
+  it("disables link existing customer when there is more than one candidate", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      customer: candidatesFoundCustomer,
+    });
+
+    expect(cards[0].actions[0]).toMatchObject({
+      id: "customer-LINK_EXISTING",
+      selection: null,
+      disabledReason: expect.any(String),
+    });
+  });
+
+  it("applies and detects selected resolution values", () => {
+    const cards = getResolutionCards(requiresResolutionAnalysis);
+    const customerSelection = cards[0].actions[1].selection;
+    const vehicleSelection = cards[1].actions[0].selection;
+    const serviceSelection = cards[2].actions[0].selection;
+
+    expect(customerSelection).not.toBeNull();
+    expect(vehicleSelection).not.toBeNull();
+    expect(serviceSelection).not.toBeNull();
+
+    let values = createEmptyQuoteApprovalResolutionValues();
+    values = applyQuoteApprovalResolutionSelection(values, customerSelection!);
+    values = applyQuoteApprovalResolutionSelection(values, vehicleSelection!);
+    values = applyQuoteApprovalResolutionSelection(values, serviceSelection!);
+
+    expect(values).toEqual({
+      customerResolution: {
+        action: "CREATE_NEW",
+      },
+      vehicleResolution: {
+        action: "CREATE_FROM_SNAPSHOT",
+      },
+      serviceResolutions: [
+        {
+          quoteServiceId: "quote-service-id",
+          action: "ASSOCIATE_EXISTING",
+          serviceId: "candidate-service-id",
+        },
+      ],
+    });
+    expect(isQuoteApprovalResolutionSelected(values, customerSelection!)).toBe(true);
+    expect(isQuoteApprovalResolutionSelected(values, vehicleSelection!)).toBe(true);
+    expect(isQuoteApprovalResolutionSelected(values, serviceSelection!)).toBe(true);
   });
 });
