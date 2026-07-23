@@ -29,10 +29,19 @@ import {
   formatQuoteApprovalAnalysisList,
 } from "./quote-approval-analysis-feedback";
 
+type ResolutionSelectionTarget = "customer" | "vehicle" | "service";
+
+export type PendingResolutionSelection = {
+  id: string;
+  target: ResolutionSelectionTarget;
+};
+
 export type QuoteApprovalResolutionValues = Pick<
   ApproveQuoteBody,
   "customerResolution" | "vehicleResolution" | "serviceResolutions"
->;
+> & {
+  pendingSelections?: PendingResolutionSelection[];
+};
 
 export type ResolutionSelection =
   | {
@@ -46,13 +55,17 @@ export type ResolutionSelection =
   | {
       target: "service";
       resolution: ApproveQuoteServiceResolution;
+    }
+  | {
+      id: string;
+      target: ResolutionSelectionTarget;
+      requiresDetails: true;
     };
 
 export type ResolutionActionOption = {
   id: string;
   label: string;
-  selection: ResolutionSelection | null;
-  disabledReason?: string;
+  selection: ResolutionSelection;
 };
 
 export type ResolutionCard = {
@@ -71,6 +84,7 @@ export const CUSTOMER_RESOLUTION_ACTION_LABELS = {
 
 export function createEmptyQuoteApprovalResolutionValues(): QuoteApprovalResolutionValues {
   return {
+    pendingSelections: [],
     serviceResolutions: [],
   };
 }
@@ -157,8 +171,11 @@ function getCustomerActionOptions(customer: QuoteCustomerAnalysisDto): Resolutio
     return {
       id: "customer-LINK_EXISTING",
       label,
-      selection: null,
-      disabledReason: "Escolha do cliente candidato será adicionada no próximo passo.",
+      selection: {
+        id: "customer-LINK_EXISTING",
+        target: "customer",
+        requiresDetails: true,
+      },
     };
   });
 }
@@ -178,7 +195,7 @@ export function getVehicleDescription(vehicle: QuoteVehicleAnalysisDto) {
 function getVehicleActionSelection(
   vehicle: QuoteVehicleAnalysisDto,
   action: QuoteVehicleResolutionAction,
-): ResolutionSelection | null {
+): ResolutionSelection {
   if (action === "CREATE_FROM_SNAPSHOT" || action === "KEEP_SNAPSHOT_ONLY") {
     return {
       target: "vehicle",
@@ -198,20 +215,19 @@ function getVehicleActionSelection(
     };
   }
 
-  return null;
+  return {
+    id: `vehicle-${action}`,
+    target: "vehicle",
+    requiresDetails: true,
+  };
 }
 
 function getVehicleActionOptions(vehicle: QuoteVehicleAnalysisDto): ResolutionActionOption[] {
-  return vehicle.allowedActions.map((action) => {
-    const selection = getVehicleActionSelection(vehicle, action);
-
-    return {
-      id: `vehicle-${action}`,
-      label: QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS[action],
-      selection,
-      disabledReason: selection ? undefined : "Esta resolução precisa de dados adicionais.",
-    };
-  });
+  return vehicle.allowedActions.map((action) => ({
+    id: `vehicle-${action}`,
+    label: QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS[action],
+    selection: getVehicleActionSelection(vehicle, action),
+  }));
 }
 
 function getServiceDescription(service: QuoteServiceAnalysisDto) {
@@ -232,7 +248,7 @@ function getServiceDescription(service: QuoteServiceAnalysisDto) {
 function getServiceActionSelection(
   service: QuoteServiceAnalysisDto,
   action: QuoteServiceResolutionAction,
-): ResolutionSelection | null {
+): ResolutionSelection {
   if (action === "KEEP_INACTIVE_LINK" || action === "RECREATE_FROM_SNAPSHOT") {
     return {
       target: "service",
@@ -265,20 +281,19 @@ function getServiceActionSelection(
     };
   }
 
-  return null;
+  return {
+    id: `service-${service.quoteServiceId}-${action}`,
+    target: "service",
+    requiresDetails: true,
+  };
 }
 
 function getServiceActionOptions(service: QuoteServiceAnalysisDto): ResolutionActionOption[] {
-  return service.allowedActions.map((action) => {
-    const selection = getServiceActionSelection(service, action);
-
-    return {
-      id: `service-${service.quoteServiceId}-${action}`,
-      label: QUOTE_SERVICE_RESOLUTION_ACTION_LABELS[action],
-      selection,
-      disabledReason: selection ? undefined : "Esta resolução precisa de dados adicionais.",
-    };
-  });
+  return service.allowedActions.map((action) => ({
+    id: `service-${service.quoteServiceId}-${action}`,
+    label: QUOTE_SERVICE_RESOLUTION_ACTION_LABELS[action],
+    selection: getServiceActionSelection(service, action),
+  }));
 }
 
 export function getResolutionCards(analysis: QuoteApprovalAnalysisDto): ResolutionCard[] {
@@ -326,9 +341,14 @@ export function applyQuoteApprovalResolutionSelection(
   values: QuoteApprovalResolutionValues,
   selection: ResolutionSelection,
 ): QuoteApprovalResolutionValues {
+  if ("requiresDetails" in selection) {
+    return applyPendingResolutionSelection(values, selection);
+  }
+
   if (selection.target === "customer") {
     return {
       ...values,
+      pendingSelections: removePendingSelections(values.pendingSelections, "customer"),
       customerResolution: selection.resolution,
     };
   }
@@ -336,12 +356,14 @@ export function applyQuoteApprovalResolutionSelection(
   if (selection.target === "vehicle") {
     return {
       ...values,
+      pendingSelections: removePendingSelections(values.pendingSelections, "vehicle"),
       vehicleResolution: selection.resolution,
     };
   }
 
   return {
     ...values,
+    pendingSelections: removePendingSelections(values.pendingSelections, "service"),
     serviceResolutions: [
       ...(values.serviceResolutions ?? []).filter(
         (resolution) => resolution.quoteServiceId !== selection.resolution.quoteServiceId,
@@ -351,10 +373,42 @@ export function applyQuoteApprovalResolutionSelection(
   };
 }
 
+function applyPendingResolutionSelection(
+  values: QuoteApprovalResolutionValues,
+  selection: Extract<ResolutionSelection, { requiresDetails: true }>,
+): QuoteApprovalResolutionValues {
+  return {
+    ...values,
+    pendingSelections: [
+      ...removePendingSelections(values.pendingSelections, selection.target),
+      {
+        id: selection.id,
+        target: selection.target,
+      },
+    ],
+    customerResolution: selection.target === "customer" ? undefined : values.customerResolution,
+    vehicleResolution: selection.target === "vehicle" ? undefined : values.vehicleResolution,
+    serviceResolutions: values.serviceResolutions ?? [],
+  };
+}
+
+function removePendingSelections(
+  pendingSelections: PendingResolutionSelection[] | undefined,
+  target: ResolutionSelectionTarget,
+) {
+  return (pendingSelections ?? []).filter((selection) => selection.target !== target);
+}
+
 export function isQuoteApprovalResolutionSelected(
   values: QuoteApprovalResolutionValues,
   selection: ResolutionSelection,
 ) {
+  if ("requiresDetails" in selection) {
+    return values.pendingSelections?.some(
+      (pendingSelection) => pendingSelection.id === selection.id,
+    );
+  }
+
   if (selection.target === "customer") {
     return values.customerResolution?.action === selection.resolution.action;
   }
@@ -368,4 +422,8 @@ export function isQuoteApprovalResolutionSelected(
       resolution.quoteServiceId === selection.resolution.quoteServiceId &&
       resolution.action === selection.resolution.action,
   );
+}
+
+export function hasPendingQuoteApprovalResolutionDetails(values: QuoteApprovalResolutionValues) {
+  return (values.pendingSelections?.length ?? 0) > 0;
 }

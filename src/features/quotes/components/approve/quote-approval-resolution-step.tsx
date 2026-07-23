@@ -9,6 +9,7 @@ import { formatQuoteApprovalAnalysisCount } from "../../lib/quote-approval-analy
 import {
   applyQuoteApprovalResolutionSelection,
   getResolutionCards,
+  hasPendingQuoteApprovalResolutionDetails,
   isQuoteApprovalResolutionSelected,
   type QuoteApprovalResolutionValues,
 } from "../../lib/quote-approval-resolution-helpers";
@@ -37,7 +38,8 @@ export function QuoteApprovalResolutionStep({
       (action) => action.selection && isQuoteApprovalResolutionSelected(values, action.selection),
     ),
   ).length;
-  const canApprove = selectedCount === cards.length;
+  const canApprove =
+    selectedCount === cards.length && !hasPendingQuoteApprovalResolutionDetails(values);
 
   return (
     <>
@@ -90,9 +92,10 @@ export function QuoteApprovalResolutionStep({
                       aria-label={`Ações para ${card.area}`}
                     >
                       {card.actions.map((action) => {
-                        const isSelected = action.selection
-                          ? isQuoteApprovalResolutionSelected(values, action.selection)
-                          : false;
+                        const isSelected = isQuoteApprovalResolutionSelected(
+                          values,
+                          action.selection,
+                        );
 
                         return (
                           <Button
@@ -101,12 +104,8 @@ export function QuoteApprovalResolutionStep({
                             variant={isSelected ? "default" : "outline"}
                             size="sm"
                             className="h-auto min-h-8 whitespace-normal px-3 py-1.5 text-left text-xs"
-                            disabled={!action.selection}
-                            title={action.disabledReason}
                             aria-pressed={isSelected}
                             onClick={() => {
-                              if (!action.selection) return;
-
                               onChange(
                                 applyQuoteApprovalResolutionSelection(values, action.selection),
                               );

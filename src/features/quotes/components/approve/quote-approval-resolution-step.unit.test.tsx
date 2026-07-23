@@ -65,13 +65,37 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
   ],
 };
 
+const multipleCustomerCandidatesAnalysis: QuoteApprovalAnalysisDto = {
+  ...requiresResolutionAnalysis,
+  customer: {
+    ...requiresResolutionAnalysis.customer,
+    candidates: [
+      requiresResolutionAnalysis.customer.candidates[0],
+      {
+        customerId: "second-candidate-customer-id",
+        matchedBy: ["PHONE"],
+        conflictingFields: ["EMAIL"],
+        advisoryOnly: false,
+      },
+    ],
+  },
+  vehicle: {
+    ...requiresResolutionAnalysis.vehicle,
+    requiresResolution: false,
+    allowedActions: [],
+  },
+  services: [],
+};
+
 function renderStep({
+  analysis = requiresResolutionAnalysis,
   values = createEmptyQuoteApprovalResolutionValues(),
   onChange = vi.fn(),
   isApproving = false,
   onApprove = vi.fn(),
   onBack = vi.fn(),
 }: {
+  analysis?: QuoteApprovalAnalysisDto;
   values?: QuoteApprovalResolutionValues;
   onChange?: (values: QuoteApprovalResolutionValues) => void;
   isApproving?: boolean;
@@ -82,7 +106,7 @@ function renderStep({
     <Dialog open>
       <DialogContent showCloseButton={false}>
         <QuoteApprovalResolutionStep
-          analysis={requiresResolutionAnalysis}
+          analysis={analysis}
           values={values}
           isApproving={isApproving}
           onChange={onChange}
@@ -116,7 +140,7 @@ describe("QuoteApprovalResolutionStep", () => {
     expect(screen.getByRole("button", { name: "Confirmar aprovação" })).toBeDisabled();
   });
 
-  it("emits typed resolution values when selecting an action", () => {
+  it("emits typed resolution values when selecting an action with complete data", () => {
     const onChange = vi.fn();
 
     renderStep({ onChange });
@@ -124,6 +148,7 @@ describe("QuoteApprovalResolutionStep", () => {
     fireEvent.click(screen.getByRole("button", { name: "criar novo cliente" }));
 
     expect(onChange).toHaveBeenCalledWith({
+      pendingSelections: [],
       serviceResolutions: [],
       customerResolution: {
         action: "CREATE_NEW",
@@ -131,9 +156,28 @@ describe("QuoteApprovalResolutionStep", () => {
     });
   });
 
+  it("allows selecting an action that will need details in the next step", () => {
+    const onChange = vi.fn();
+
+    renderStep({ analysis: multipleCustomerCandidatesAnalysis, onChange });
+
+    fireEvent.click(screen.getByRole("button", { name: "vincular cliente existente" }));
+
+    expect(onChange).toHaveBeenCalledWith({
+      pendingSelections: [
+        {
+          id: "customer-LINK_EXISTING",
+          target: "customer",
+        },
+      ],
+      serviceResolutions: [],
+    });
+  });
+
   it("marks already selected resolution actions", () => {
     renderStep({
       values: {
+        pendingSelections: [],
         serviceResolutions: [],
         customerResolution: {
           action: "CREATE_NEW",
@@ -147,11 +191,32 @@ describe("QuoteApprovalResolutionStep", () => {
     );
   });
 
-  it("enables final approval when all pending items have selected resolutions", () => {
+  it("marks pending detail selections", () => {
+    renderStep({
+      analysis: multipleCustomerCandidatesAnalysis,
+      values: {
+        pendingSelections: [
+          {
+            id: "customer-LINK_EXISTING",
+            target: "customer",
+          },
+        ],
+        serviceResolutions: [],
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "vincular cliente existente" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("enables final approval when all pending items have complete selected resolutions", () => {
     const onApprove = vi.fn();
 
     renderStep({
       values: {
+        pendingSelections: [],
         customerResolution: {
           action: "CREATE_NEW",
         },
@@ -174,9 +239,27 @@ describe("QuoteApprovalResolutionStep", () => {
     expect(onApprove).toHaveBeenCalled();
   });
 
+  it("keeps final approval disabled while selected actions still need details", () => {
+    renderStep({
+      analysis: multipleCustomerCandidatesAnalysis,
+      values: {
+        pendingSelections: [
+          {
+            id: "customer-LINK_EXISTING",
+            target: "customer",
+          },
+        ],
+        serviceResolutions: [],
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "Confirmar aprovação" })).toBeDisabled();
+  });
+
   it("disables final approval while approval is pending", () => {
     renderStep({
       values: {
+        pendingSelections: [],
         customerResolution: {
           action: "CREATE_NEW",
         },

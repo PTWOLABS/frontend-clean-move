@@ -18,6 +18,7 @@ import {
   getCustomerDescription,
   getResolutionCards,
   getVehicleDescription,
+  hasPendingQuoteApprovalResolutionDetails,
   isQuoteApprovalResolutionSelected,
 } from "./quote-approval-resolution-helpers";
 
@@ -229,7 +230,7 @@ describe("quote approval resolution helpers", () => {
     ]);
   });
 
-  it("disables link existing customer when there is more than one candidate", () => {
+  it("builds pending detail selection when link existing customer needs candidate choice", () => {
     const cards = getResolutionCards({
       ...requiresResolutionAnalysis,
       customer: candidatesFoundCustomer,
@@ -237,8 +238,11 @@ describe("quote approval resolution helpers", () => {
 
     expect(cards[0].actions[0]).toMatchObject({
       id: "customer-LINK_EXISTING",
-      selection: null,
-      disabledReason: expect.any(String),
+      selection: {
+        id: "customer-LINK_EXISTING",
+        target: "customer",
+        requiresDetails: true,
+      },
     });
   });
 
@@ -248,16 +252,13 @@ describe("quote approval resolution helpers", () => {
     const vehicleSelection = cards[1].actions[0].selection;
     const serviceSelection = cards[2].actions[0].selection;
 
-    expect(customerSelection).not.toBeNull();
-    expect(vehicleSelection).not.toBeNull();
-    expect(serviceSelection).not.toBeNull();
-
     let values = createEmptyQuoteApprovalResolutionValues();
-    values = applyQuoteApprovalResolutionSelection(values, customerSelection!);
-    values = applyQuoteApprovalResolutionSelection(values, vehicleSelection!);
-    values = applyQuoteApprovalResolutionSelection(values, serviceSelection!);
+    values = applyQuoteApprovalResolutionSelection(values, customerSelection);
+    values = applyQuoteApprovalResolutionSelection(values, vehicleSelection);
+    values = applyQuoteApprovalResolutionSelection(values, serviceSelection);
 
     expect(values).toEqual({
+      pendingSelections: [],
       customerResolution: {
         action: "CREATE_NEW",
       },
@@ -272,8 +273,35 @@ describe("quote approval resolution helpers", () => {
         },
       ],
     });
-    expect(isQuoteApprovalResolutionSelected(values, customerSelection!)).toBe(true);
-    expect(isQuoteApprovalResolutionSelected(values, vehicleSelection!)).toBe(true);
-    expect(isQuoteApprovalResolutionSelected(values, serviceSelection!)).toBe(true);
+    expect(isQuoteApprovalResolutionSelected(values, customerSelection)).toBe(true);
+    expect(isQuoteApprovalResolutionSelected(values, vehicleSelection)).toBe(true);
+    expect(isQuoteApprovalResolutionSelected(values, serviceSelection)).toBe(true);
+    expect(hasPendingQuoteApprovalResolutionDetails(values)).toBe(false);
+  });
+
+  it("applies and detects selections that still need details", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      customer: candidatesFoundCustomer,
+    });
+    const pendingSelection = cards[0].actions[0].selection;
+
+    const values = applyQuoteApprovalResolutionSelection(
+      createEmptyQuoteApprovalResolutionValues(),
+      pendingSelection,
+    );
+
+    expect(values).toEqual({
+      pendingSelections: [
+        {
+          id: "customer-LINK_EXISTING",
+          target: "customer",
+        },
+      ],
+      serviceResolutions: [],
+      customerResolution: undefined,
+    });
+    expect(isQuoteApprovalResolutionSelected(values, pendingSelection)).toBe(true);
+    expect(hasPendingQuoteApprovalResolutionDetails(values)).toBe(true);
   });
 });
