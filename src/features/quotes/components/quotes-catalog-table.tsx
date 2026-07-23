@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, FileText, MoreVertical } from "lucide-react";
+import { Check, Eye } from "lucide-react";
 
 import {
   DataCatalogStatusBadge,
@@ -12,10 +12,12 @@ import { formatBrlFromCents } from "@/shared/money/format-brl-money";
 import { quoteStatusConfig } from "../lib/quote-status-config";
 import { formatShortDate, getQuoteVehicleLabel, getQuoteVehiclePlate } from "../lib/utils";
 import type { QuoteListItemDto } from "../types/quotes";
-import { useGenerateQuotePdf } from "../hooks/mutations/use-gerenate-quote-pdf";
+import { QuoteMoreOptions } from "./quote-more-options";
 
 type QuotesCatalogTableProps = {
   quotes: QuoteListItemDto[];
+  onApprove: (quote: QuoteListItemDto) => void;
+  isApprovalActionDisabled?: boolean;
   className?: string;
 };
 
@@ -112,9 +114,12 @@ const columns: DataCatalogTableColumn<QuoteListItemDto>[] = [
   },
 ];
 
-export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProps) {
-  const generateQuotePdf = useGenerateQuotePdf();
-
+export function QuotesCatalogTable({
+  quotes,
+  onApprove,
+  isApprovalActionDisabled = false,
+  className,
+}: QuotesCatalogTableProps) {
   return (
     <DataCatalogTable
       className={className}
@@ -130,17 +135,16 @@ export function QuotesCatalogTable({ quotes, className }: QuotesCatalogTableProp
           tone: "neutral",
         },
         {
-          label: "Gerar PDF",
-          icon: FileText,
-          onClick: (item) => generateQuotePdf.mutate(item.id),
-          disabled: () => generateQuotePdf.isPending,
-          tone: "neutral",
+          label: "Aprovar orçamento",
+          icon: Check,
+          onClick: onApprove,
+          visible: (quote) => quote.status === "VALID" || quote.status === "EXPIRES_TODAY",
+          disabled: () => isApprovalActionDisabled,
+          tone: "success",
         },
         {
           label: "Mais opções",
-          icon: MoreVertical,
-          onClick: noop,
-          tone: "neutral",
+          render: (quote) => <QuoteMoreOptions quote={quote} variant="table" />,
         },
       ]}
     />

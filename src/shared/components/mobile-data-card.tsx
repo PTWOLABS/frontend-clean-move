@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from "react";
+import { Fragment, type KeyboardEvent, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +16,22 @@ export type MobileDataCardBadge = {
   className?: string;
 };
 
-export type MobileDataCardAction = {
+type MobileDataCardActionBase = {
   label: string;
+  tone?: MobileDataCardTone;
+};
+
+type MobileDataCardButtonAction = MobileDataCardActionBase & {
   icon: LucideIcon;
   onClick: () => void;
   disabled?: boolean;
-  tone?: MobileDataCardTone;
 };
+
+type MobileDataCardCustomAction = MobileDataCardActionBase & {
+  render: ReactNode;
+};
+
+export type MobileDataCardAction = MobileDataCardButtonAction | MobileDataCardCustomAction;
 
 export type MobileDataCardFooter = {
   icon: LucideIcon;
@@ -203,23 +212,31 @@ export function MobileDataCard({
 
             {actions.length > 0 && (
               <div className="flex shrink-0 items-center gap-1 min-[400px]:gap-1.5">
-                {actions.map(({ label, icon: Icon, onClick, disabled, tone = "neutral" }) => (
-                  <Button
-                    key={label}
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={cn("size-10 rounded-full", toneClassNames[tone].action)}
-                    disabled={disabled}
-                    aria-label={label}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onClick();
-                    }}
-                  >
-                    <Icon className="size-4" aria-hidden="true" />
-                  </Button>
-                ))}
+                {actions.map((action) => {
+                  if ("render" in action) {
+                    return <Fragment key={action.label}>{action.render}</Fragment>;
+                  }
+
+                  const { label, icon: Icon, onClick, disabled, tone = "neutral" } = action;
+
+                  return (
+                    <Button
+                      key={label}
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={cn("size-10 rounded-full", toneClassNames[tone].action)}
+                      disabled={disabled}
+                      aria-label={label}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onClick();
+                      }}
+                    >
+                      <Icon className="size-4" aria-hidden="true" />
+                    </Button>
+                  );
+                })}
               </div>
             )}
           </div>
