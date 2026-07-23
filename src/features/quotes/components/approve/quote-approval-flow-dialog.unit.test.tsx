@@ -188,8 +188,9 @@ describe("QuoteApprovalFlowDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Resolver pendências" }));
 
     expect(screen.getByRole("heading", { name: "Resolver pendências" })).toBeInTheDocument();
-    expect(screen.getByText("1 pendência precisa de resolução")).toBeInTheDocument();
-    expect(screen.getByText("criar novo cliente")).toBeInTheDocument();
+    expect(screen.getByText("0 de 1 pendência com resolução selecionada")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "criar novo cliente" }));
+    expect(screen.getByText("1 de 1 pendência com resolução selecionada")).toBeInTheDocument();
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
 
     fireEvent.click(screen.getByRole("button", { name: "Voltar à análise" }));

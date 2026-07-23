@@ -2,6 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  createEmptyQuoteApprovalResolutionValues,
+  type QuoteApprovalResolutionValues,
+} from "../../lib/quote-approval-resolution-helpers";
 import type { QuoteApprovalAnalysisDto } from "../../types/analyze-quote-approval";
 import { QuoteApprovalResolutionStep } from "./quote-approval-resolution-step";
 
@@ -61,39 +65,85 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
   ],
 };
 
-function renderStep(ui: React.ReactNode) {
+function renderStep({
+  values = createEmptyQuoteApprovalResolutionValues(),
+  onChange = vi.fn(),
+  onBack = vi.fn(),
+}: {
+  values?: QuoteApprovalResolutionValues;
+  onChange?: (values: QuoteApprovalResolutionValues) => void;
+  onBack?: () => void;
+} = {}) {
   return render(
     <Dialog open>
-      <DialogContent showCloseButton={false}>{ui}</DialogContent>
+      <DialogContent showCloseButton={false}>
+        <QuoteApprovalResolutionStep
+          analysis={requiresResolutionAnalysis}
+          values={values}
+          onChange={onChange}
+          onBack={onBack}
+        />
+      </DialogContent>
     </Dialog>,
   );
 }
 
 describe("QuoteApprovalResolutionStep", () => {
-  it("lists pending approval items with their available actions", () => {
-    renderStep(
-      <QuoteApprovalResolutionStep analysis={requiresResolutionAnalysis} onBack={vi.fn()} />,
-    );
+  it("lists pending approval items with selectable actions", () => {
+    renderStep();
 
     expect(screen.getByRole("heading", { name: "Resolver pendências" })).toBeInTheDocument();
-    expect(screen.getByText("3 pendências precisam de resolução")).toBeInTheDocument();
+    expect(screen.getByText("0 de 3 pendências com resolução selecionada")).toBeInTheDocument();
     expect(screen.getByText("Cliente com correspondências")).toBeInTheDocument();
-    expect(screen.getByText("vincular cliente existente")).toBeInTheDocument();
-    expect(screen.getByText("criar novo cliente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "vincular cliente existente" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "criar novo cliente" })).toBeEnabled();
     expect(screen.getByText("Veículo precisa ser definido")).toBeInTheDocument();
-    expect(screen.getByText("criar veículo pelos dados do orçamento")).toBeInTheDocument();
-    expect(screen.getByText("manter apenas os dados do orçamento")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "criar veículo pelos dados do orçamento" }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "manter apenas os dados do orçamento" }),
+    ).toBeEnabled();
     expect(screen.getByText("Serviço com correspondência: Polimento tecnico")).toBeInTheDocument();
-    expect(screen.getByText("associar serviço existente")).toBeInTheDocument();
-    expect(screen.getByText("renomear serviço avulso")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "associar serviço existente" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "renomear serviço avulso" })).toBeEnabled();
+  });
+
+  it("emits typed resolution values when selecting an action", () => {
+    const onChange = vi.fn();
+
+    renderStep({ onChange });
+
+    fireEvent.click(screen.getByRole("button", { name: "criar novo cliente" }));
+
+    expect(onChange).toHaveBeenCalledWith({
+      serviceResolutions: [],
+      customerResolution: {
+        action: "CREATE_NEW",
+      },
+    });
+  });
+
+  it("marks already selected resolution actions", () => {
+    renderStep({
+      values: {
+        serviceResolutions: [],
+        customerResolution: {
+          action: "CREATE_NEW",
+        },
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "criar novo cliente" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("returns to the analysis step from the footer action", () => {
     const onBack = vi.fn();
 
-    renderStep(
-      <QuoteApprovalResolutionStep analysis={requiresResolutionAnalysis} onBack={onBack} />,
-    );
+    renderStep({ onBack });
 
     fireEvent.click(screen.getByRole("button", { name: "Voltar à análise" }));
 

@@ -7,6 +7,7 @@ import { getQuoteApprovalVerificationOutcome } from "../../lib/quote-approval-an
 import type { QuoteListItemDto } from "../../types/quotes";
 import { useAnalyzeQuoteApproval } from "../../hooks/mutations/use-analyze-quote-approval";
 import { useApproveQuote } from "../../hooks/mutations/use-approve-quote";
+import { createEmptyQuoteApprovalResolutionValues } from "../../lib/quote-approval-resolution-helpers";
 import { QuoteApprovalVerificationStep } from "../analyze/quote-approval-verification-step";
 import { QuoteApprovalResolutionStep } from "./quote-approval-resolution-step";
 import {
@@ -29,6 +30,9 @@ export function QuoteApprovalFlowDialog({
 }: QuoteApprovalFlowDialogProps) {
   const [step, setStep] = useState<QuoteApprovalFlowStep>("schedule");
   const [scheduleValues, setScheduleValues] = useState<QuoteApprovalScheduleValues | null>(null);
+  const [resolutionValues, setResolutionValues] = useState(
+    createEmptyQuoteApprovalResolutionValues,
+  );
   const [dialogContentElement, setDialogContentElement] = useState<HTMLDivElement | null>(null);
   const {
     mutate: analyzeQuoteApproval,
@@ -49,6 +53,7 @@ export function QuoteApprovalFlowDialog({
   function closeFlow() {
     setStep("schedule");
     setScheduleValues(null);
+    setResolutionValues(createEmptyQuoteApprovalResolutionValues());
     resetAnalyzeQuoteApproval();
     resetApproveQuote();
     onOpenChange(false);
@@ -68,6 +73,7 @@ export function QuoteApprovalFlowDialog({
   function handleScheduleContinue(values: QuoteApprovalScheduleValues) {
     setStep("analysis");
     setScheduleValues(values);
+    setResolutionValues(createEmptyQuoteApprovalResolutionValues());
     resetAnalyzeQuoteApproval();
     analyzeQuoteApproval(
       {
@@ -123,7 +129,12 @@ export function QuoteApprovalFlowDialog({
             portalContainer={dialogContentElement}
           />
         ) : step === "resolution" && analysis ? (
-          <QuoteApprovalResolutionStep analysis={analysis} onBack={() => setStep("analysis")} />
+          <QuoteApprovalResolutionStep
+            analysis={analysis}
+            values={resolutionValues}
+            onChange={setResolutionValues}
+            onBack={() => setStep("analysis")}
+          />
         ) : (
           <QuoteApprovalVerificationStep
             quote={quote}

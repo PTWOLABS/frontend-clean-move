@@ -6,19 +6,33 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatQuoteApprovalAnalysisCount } from "../../lib/quote-approval-analysis-feedback";
+import {
+  applyQuoteApprovalResolutionSelection,
+  getResolutionCards,
+  isQuoteApprovalResolutionSelected,
+  type QuoteApprovalResolutionValues,
+} from "../../lib/quote-approval-resolution-helpers";
 import type { QuoteApprovalAnalysisDto } from "../../types/analyze-quote-approval";
-import { getResolutionCards } from "../../lib/quote-approval-resolution-helpers";
 
 type QuoteApprovalResolutionStepProps = {
   analysis: QuoteApprovalAnalysisDto;
+  values: QuoteApprovalResolutionValues;
+  onChange: (values: QuoteApprovalResolutionValues) => void;
   onBack: () => void;
 };
 
 export function QuoteApprovalResolutionStep({
   analysis,
+  values,
+  onChange,
   onBack,
 }: QuoteApprovalResolutionStepProps) {
   const cards = getResolutionCards(analysis);
+  const selectedCount = cards.filter((card) =>
+    card.actions.some(
+      (action) => action.selection && isQuoteApprovalResolutionSelected(values, action.selection),
+    ),
+  ).length;
 
   return (
     <>
@@ -41,10 +55,11 @@ export function QuoteApprovalResolutionStep({
 
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div className="rounded-lg border border-warning/30 bg-warning-soft/40 p-3 text-sm text-warning-soft-foreground">
+          {selectedCount} de{" "}
           {formatQuoteApprovalAnalysisCount(
             cards.length,
-            "pendência precisa de resolução",
-            "pendências precisam de resolução",
+            "pendência com resolução selecionada",
+            "pendências com resolução selecionada",
           )}
         </div>
 
@@ -69,15 +84,33 @@ export function QuoteApprovalResolutionStep({
                       className="mt-3 flex flex-wrap gap-2"
                       aria-label={`Ações para ${card.area}`}
                     >
-                      {card.actions.map((action) => (
-                        <Badge
-                          key={action}
-                          variant="outline"
-                          className="bg-background text-[11px] text-foreground"
-                        >
-                          {action}
-                        </Badge>
-                      ))}
+                      {card.actions.map((action) => {
+                        const isSelected = action.selection
+                          ? isQuoteApprovalResolutionSelected(values, action.selection)
+                          : false;
+
+                        return (
+                          <Button
+                            key={action.id}
+                            type="button"
+                            variant={isSelected ? "default" : "outline"}
+                            size="sm"
+                            className="h-auto min-h-8 whitespace-normal px-3 py-1.5 text-left text-xs"
+                            disabled={!action.selection}
+                            title={action.disabledReason}
+                            aria-pressed={isSelected}
+                            onClick={() => {
+                              if (!action.selection) return;
+
+                              onChange(
+                                applyQuoteApprovalResolutionSelection(values, action.selection),
+                              );
+                            }}
+                          >
+                            {action.label}
+                          </Button>
+                        );
+                      })}
                     </div>
                   ) : null}
                 </div>
