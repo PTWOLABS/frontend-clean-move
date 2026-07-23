@@ -86,6 +86,10 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
     candidates: [
       {
         customerId: "candidate-customer-id",
+        name: "Marina Oliveira",
+        phone: "(11) 99999-0000",
+        email: "marina@example.com",
+        cpfCnpj: null,
         matchedBy: ["PHONE", "EMAIL"],
         conflictingFields: ["NAME"],
         advisoryOnly: false,

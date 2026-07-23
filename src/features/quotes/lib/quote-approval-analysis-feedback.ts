@@ -2,7 +2,7 @@ import { CarFront, ClipboardCheck, UserRoundCheck, Wrench } from "lucide-react";
 
 import {
   QUOTE_CUSTOMER_ANALYSIS_STATUS_LABELS,
-  QUOTE_CUSTOMER_CONFLICT_LABELS,
+  QUOTE_CUSTOMER_DIVERGENT_FIELD_LABELS,
   QUOTE_CUSTOMER_MATCHED_BY_LABELS,
   QUOTE_SERVICE_ANALYSIS_STATUS_LABELS,
   QUOTE_SERVICE_DIFFERENCE_LABELS,
@@ -123,7 +123,7 @@ function getCustomerIssue(analysis: QuoteApprovalAnalysisDto): QuoteApprovalAnal
   const conflicts = [
     ...new Set(
       analysis.customer.candidates.flatMap((candidate) =>
-        candidate.conflictingFields.map((field) => QUOTE_CUSTOMER_CONFLICT_LABELS[field]),
+        candidate.conflictingFields.map((field) => QUOTE_CUSTOMER_DIVERGENT_FIELD_LABELS[field]),
       ),
     ),
   ];
@@ -141,7 +141,7 @@ function getCustomerIssue(analysis: QuoteApprovalAnalysisDto): QuoteApprovalAnal
         ? `Correspondências por ${formatQuoteApprovalAnalysisList(matchedBy)}.`
         : "",
       conflicts.length > 0
-        ? `Campos conflitantes: ${formatQuoteApprovalAnalysisList(conflicts)}.`
+        ? `Dados divergentes encontrados: ${formatQuoteApprovalAnalysisList(conflicts)}.`
         : "",
     ]
       .filter(Boolean)

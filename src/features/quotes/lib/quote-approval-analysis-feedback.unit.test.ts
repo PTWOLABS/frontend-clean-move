@@ -57,6 +57,10 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
     candidates: [
       {
         customerId: "candidate-customer-id",
+        name: "Marina Oliveira",
+        phone: "(11) 99999-0000",
+        email: "marina@example.com",
+        cpfCnpj: null,
         matchedBy: ["PHONE", "EMAIL"],
         conflictingFields: ["NAME"],
         advisoryOnly: false,
@@ -149,7 +153,7 @@ describe("quote approval analysis feedback", () => {
         area: "Cliente",
         title: "Cliente com correspondências",
         description:
-          "Encontramos 1 possível cliente. Correspondências por telefone e e-mail. Campos conflitantes: nome.",
+          "Encontramos 1 possível cliente. Correspondências por telefone e e-mail. Dados divergentes encontrados: nome.",
       },
       {
         id: "vehicle",

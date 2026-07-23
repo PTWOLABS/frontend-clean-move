@@ -24,7 +24,7 @@ export const QUOTE_CUSTOMER_MATCHED_BY_LABELS = {
   NAME: "nome",
 } satisfies Record<QuoteCustomerMatchedBy, string>;
 
-export const QUOTE_CUSTOMER_CONFLICT_LABELS = {
+export const QUOTE_CUSTOMER_DIVERGENT_FIELD_LABELS = {
   NAME: "nome",
   PHONE: "telefone",
   EMAIL: "e-mail",

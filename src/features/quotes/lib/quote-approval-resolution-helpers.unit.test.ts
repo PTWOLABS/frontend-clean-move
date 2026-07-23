@@ -43,12 +43,20 @@ const candidatesFoundCustomer: QuoteCustomerAnalysisDto = {
   candidates: [
     {
       customerId: "candidate-customer-id",
+      name: "Marina Oliveira",
+      phone: "(11) 99999-0000",
+      email: "marina@example.com",
+      cpfCnpj: null,
       matchedBy: ["PHONE", "EMAIL"],
       conflictingFields: ["NAME"],
       advisoryOnly: false,
     },
     {
       customerId: "second-candidate-customer-id",
+      name: "Marina O.",
+      phone: "(11) 99999-0000",
+      email: null,
+      cpfCnpj: null,
       matchedBy: ["PHONE"],
       conflictingFields: ["EMAIL"],
       advisoryOnly: false,
@@ -151,7 +159,7 @@ describe("quote approval resolution helpers", () => {
     ]);
   });
 
-  it("builds customer descriptions from candidates, matches and conflicts", () => {
+  it("builds customer descriptions from candidates, matches and divergent fields", () => {
     expect(getCustomerDescription(createRequiredCustomer)).toBe(
       "Defina como o cliente do orçamento deve ser tratado na aprovação.",
     );

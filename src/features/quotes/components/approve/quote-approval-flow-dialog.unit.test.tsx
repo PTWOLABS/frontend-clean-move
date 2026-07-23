@@ -113,12 +113,20 @@ const multipleCustomerCandidatesAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalRe
       candidates: [
         {
           customerId: "first-candidate-customer-id",
+          name: "Marina Oliveira",
+          phone: "(11) 99999-0000",
+          email: null,
+          cpfCnpj: null,
           matchedBy: ["PHONE"],
           conflictingFields: ["NAME"],
           advisoryOnly: false,
         },
         {
           customerId: "second-candidate-customer-id",
+          name: "Marina O.",
+          phone: null,
+          email: "marina@example.com",
+          cpfCnpj: null,
           matchedBy: ["EMAIL"],
           conflictingFields: [],
           advisoryOnly: false,
@@ -261,10 +269,12 @@ describe("QuoteApprovalFlowDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "vincular cliente existente" }));
 
     expect(screen.getByRole("heading", { name: "Escolher cliente" })).toBeInTheDocument();
-    expect(screen.getByText("first-candidate-customer-id")).toBeInTheDocument();
-    expect(screen.getByText("second-candidate-customer-id")).toBeInTheDocument();
+    expect(screen.getByText("Marina Oliveira")).toBeInTheDocument();
+    expect(screen.getByText("(11) 99999-0000")).toBeInTheDocument();
+    expect(screen.getByText("Marina O.")).toBeInTheDocument();
+    expect(screen.getByText("marina@example.com")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Selecionar cliente candidato 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar cliente Marina O." }));
 
     expect(screen.getByRole("heading", { name: "Resolver pendências" })).toBeInTheDocument();
     expect(screen.getByText("1 de 1 pendência com resolução selecionada")).toBeInTheDocument();

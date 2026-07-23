@@ -19,6 +19,10 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
     candidates: [
       {
         customerId: "candidate-customer-id",
+        name: "Marina Oliveira",
+        phone: "(11) 99999-0000",
+        email: "marina@example.com",
+        cpfCnpj: null,
         matchedBy: ["PHONE", "EMAIL"],
         conflictingFields: ["NAME"],
         advisoryOnly: false,
@@ -73,6 +77,10 @@ const multipleCustomerCandidatesAnalysis: QuoteApprovalAnalysisDto = {
       requiresResolutionAnalysis.customer.candidates[0],
       {
         customerId: "second-candidate-customer-id",
+        name: "Marina O.",
+        phone: "(11) 99999-0000",
+        email: null,
+        cpfCnpj: null,
         matchedBy: ["PHONE"],
         conflictingFields: ["EMAIL"],
         advisoryOnly: false,
