@@ -254,6 +254,24 @@ describe("quote approval resolution helpers", () => {
     });
   });
 
+  it("builds a complete link selection when a vehicle candidate exists", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      vehicle: vehicleWithCandidate,
+    });
+
+    expect(cards[1].actions[0]).toMatchObject({
+      id: "vehicle-LINK_EXISTING",
+      selection: {
+        target: "vehicle",
+        resolution: {
+          action: "LINK_EXISTING",
+          vehicleId: "candidate-vehicle-id",
+        },
+      },
+    });
+  });
+
   it("applies and detects selected resolution values", () => {
     const cards = getResolutionCards(requiresResolutionAnalysis);
     const customerSelection = cards[0].actions[1].selection;

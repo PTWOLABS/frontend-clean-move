@@ -169,7 +169,8 @@ describe("QuoteApprovalResolutionStep", () => {
 
     renderStep({ analysis: multipleCustomerCandidatesAnalysis, onChange });
 
-    fireEvent.click(screen.getByRole("button", { name: "vincular cliente existente" }));
+    expect(screen.getByText("Escolher")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /vincular cliente existente/i }));
 
     expect(onChange).toHaveBeenCalledWith({
       pendingSelections: [
@@ -213,7 +214,7 @@ describe("QuoteApprovalResolutionStep", () => {
       },
     });
 
-    expect(screen.getByRole("button", { name: "vincular cliente existente" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /vincular cliente existente/i })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

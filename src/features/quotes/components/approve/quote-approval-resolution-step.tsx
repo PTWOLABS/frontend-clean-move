@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, CheckCircle2, LoaderCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   hasPendingQuoteApprovalResolutionDetails,
   isQuoteApprovalResolutionSelected,
   type QuoteApprovalResolutionValues,
+  type ResolutionSelection,
 } from "../../lib/quote-approval-resolution-helpers";
 import type { QuoteApprovalAnalysisDto } from "../../types/analyze-quote-approval";
 
@@ -23,6 +24,10 @@ type QuoteApprovalResolutionStepProps = {
   onApprove: () => void;
   onBack: () => void;
 };
+
+function requiresResolutionDetails(selection: ResolutionSelection) {
+  return "requiresDetails" in selection;
+}
 
 export function QuoteApprovalResolutionStep({
   analysis,
@@ -96,6 +101,7 @@ export function QuoteApprovalResolutionStep({
                           values,
                           action.selection,
                         );
+                        const opensNextStep = requiresResolutionDetails(action.selection);
 
                         return (
                           <Button
@@ -111,7 +117,15 @@ export function QuoteApprovalResolutionStep({
                               );
                             }}
                           >
-                            {action.label}
+                            <span className="min-w-0">{action.label}</span>
+                            {isSelected ? (
+                              <CheckCircle2 className="ml-0.5 size-3.5" aria-hidden="true" />
+                            ) : opensNextStep ? (
+                              <span className="ml-0.5 inline-flex items-center gap-1 rounded-sm border border-current/20 px-1.5 py-0.5 text-[10px] leading-none opacity-80">
+                                Escolher
+                                <ArrowRight className="size-3" aria-hidden="true" />
+                              </span>
+                            ) : null}
                           </Button>
                         );
                       })}
