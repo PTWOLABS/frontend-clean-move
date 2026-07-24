@@ -11,6 +11,7 @@ import {
   applyQuoteApprovalResolutionSelection,
   createEmptyQuoteApprovalResolutionValues,
   CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID,
+  VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID,
   type QuoteApprovalResolutionValues,
 } from "../../lib/quote-approval-resolution-helpers";
 import { QuoteApprovalVerificationStep } from "../analyze/quote-approval-verification-step";
@@ -20,8 +21,14 @@ import {
   QuoteApprovalScheduleStep,
   type QuoteApprovalScheduleValues,
 } from "./quote-approval-schedule-step";
+import { QuoteApprovalVehiclePlateStep } from "./quote-approval-vehicle-plate-step";
 
-type QuoteApprovalFlowStep = "schedule" | "analysis" | "resolution" | "customer-candidate";
+type QuoteApprovalFlowStep =
+  | "schedule"
+  | "analysis"
+  | "resolution"
+  | "customer-candidate"
+  | "vehicle-plate";
 
 type QuoteApprovalFlowDialogProps = {
   quote: QuoteListItemDto;
@@ -118,16 +125,21 @@ export function QuoteApprovalFlowDialog({
   }
 
   function handleResolutionChange(values: QuoteApprovalResolutionValues) {
+    const selectedPending = getSelectedPendingResolution(values, resolutionValues);
+
     setResolutionValues(values);
 
     if (
       analysis &&
       analysis.customer.candidates.length > 1 &&
-      values.pendingSelections?.some(
-        (selection) => selection.id === CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID,
-      )
+      selectedPending?.id === CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID
     ) {
       setStep("customer-candidate");
+      return;
+    }
+
+    if (selectedPending?.id === VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID) {
+      setStep("vehicle-plate");
     }
   }
 
@@ -138,6 +150,19 @@ export function QuoteApprovalFlowDialog({
         resolution: {
           action: "LINK_EXISTING",
           customerId,
+        },
+      }),
+    );
+    setStep("resolution");
+  }
+
+  function handleVehiclePlateSubmit(plate: string) {
+    setResolutionValues((currentValues) =>
+      applyQuoteApprovalResolutionSelection(currentValues, {
+        target: "vehicle",
+        resolution: {
+          action: "EDIT_SNAPSHOT_PLATE",
+          plate,
         },
       }),
     );
@@ -184,6 +209,16 @@ export function QuoteApprovalFlowDialog({
             onSelect={handleCustomerCandidateSelect}
             onBack={() => setStep("resolution")}
           />
+        ) : step === "vehicle-plate" && analysis ? (
+          <QuoteApprovalVehiclePlateStep
+            initialPlate={
+              resolutionValues.vehicleResolution?.action === "EDIT_SNAPSHOT_PLATE"
+                ? resolutionValues.vehicleResolution.plate
+                : quote.vehiclePlate
+            }
+            onSubmit={handleVehiclePlateSubmit}
+            onBack={() => setStep("resolution")}
+          />
         ) : (
           <QuoteApprovalVerificationStep
             quote={quote}
@@ -196,5 +231,20 @@ export function QuoteApprovalFlowDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function getSelectedPendingResolution(
+  nextValues: QuoteApprovalResolutionValues,
+  previousValues: QuoteApprovalResolutionValues,
+) {
+  const nextPendingSelections = nextValues.pendingSelections ?? [];
+  const previousPendingIds = new Set(
+    (previousValues.pendingSelections ?? []).map((selection) => selection.id),
+  );
+
+  return (
+    nextPendingSelections.find((selection) => !previousPendingIds.has(selection.id)) ??
+    nextPendingSelections[nextPendingSelections.length - 1]
   );
 }

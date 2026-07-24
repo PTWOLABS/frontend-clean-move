@@ -37,6 +37,13 @@ const createRequiredCustomer: QuoteCustomerAnalysisDto = {
   candidates: [],
 };
 
+const linkedResourceDeletedCustomer: QuoteCustomerAnalysisDto = {
+  status: "LINKED_RESOURCE_DELETED",
+  requiresResolution: true,
+  automaticCustomerId: null,
+  candidates: [],
+};
+
 const candidatesFoundCustomer: QuoteCustomerAnalysisDto = {
   status: "CANDIDATES_FOUND",
   requiresResolution: true,
@@ -154,6 +161,9 @@ describe("quote approval resolution helpers", () => {
     expect(getCustomerActions(createRequiredCustomer)).toEqual([
       CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW,
     ]);
+    expect(getCustomerActions(linkedResourceDeletedCustomer)).toEqual([
+      CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW,
+    ]);
     expect(getCustomerActions(candidatesFoundCustomer)).toEqual([
       CUSTOMER_RESOLUTION_ACTION_LABELS.LINK_EXISTING,
       CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW,
@@ -253,6 +263,26 @@ describe("quote approval resolution helpers", () => {
         requiresDetails: true,
       },
     });
+  });
+
+  it("builds only the create customer action when the linked customer was deleted", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      customer: linkedResourceDeletedCustomer,
+    });
+
+    expect(cards[0].actions).toMatchObject([
+      {
+        id: "customer-CREATE_NEW",
+        label: CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW,
+        selection: {
+          target: "customer",
+          resolution: {
+            action: "CREATE_NEW",
+          },
+        },
+      },
+    ]);
   });
 
   it("builds a complete link selection when a vehicle candidate exists", () => {

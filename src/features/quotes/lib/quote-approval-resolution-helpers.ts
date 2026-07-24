@@ -95,7 +95,7 @@ export function createEmptyQuoteApprovalResolutionValues(): QuoteApprovalResolut
 export function getCustomerActions(customer: QuoteCustomerAnalysisDto) {
   if (!customer.requiresResolution) return [];
 
-  if (customer.status === "CREATE_REQUIRED") {
+  if (customer.status === "CREATE_REQUIRED" || customer.status === "LINKED_RESOURCE_DELETED") {
     return [CUSTOMER_RESOLUTION_ACTION_LABELS.CREATE_NEW];
   }
 
