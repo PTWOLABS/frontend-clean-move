@@ -145,6 +145,55 @@ describe("quoteCustomerVehicleStepSchema", () => {
     expect(nonDigitResult.success).toBe(false);
     expect(longYearResult.success).toBe(false);
   });
+
+  it("normalizes formatted vehicle plate values", () => {
+    const result = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        vehicle: {
+          plate: " abc-1d23 ",
+          brand: "Honda",
+          model: "Civic",
+          color: null,
+          year: null,
+        },
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error("Expected vehicle plate validation to pass.");
+    }
+
+    expect(result.data.vehicle.plate).toBe("ABC1D23");
+  });
+
+  it("rejects vehicle plate values with invalid length", () => {
+    const result = quoteCustomerVehicleStepSchema.safeParse(
+      makeCustomerVehicleStepInput({
+        vehicle: {
+          plate: "ABC12",
+          brand: "Honda",
+          model: "Civic",
+          color: null,
+          year: null,
+        },
+      }),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected vehicle plate validation to fail.");
+    }
+
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: expect.stringContaining("Placa"),
+          path: ["vehicle", "plate"],
+        }),
+      ]),
+    );
+  });
 });
 
 describe("quoteServicesStepSchema", () => {
