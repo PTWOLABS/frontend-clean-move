@@ -8,6 +8,7 @@ import {
 import { isValidCnpj, isValidCpf } from "@/shared/lib/validate-cpf-cnpj";
 import { getServicePriceValidationIssue } from "@/shared/services/service-price-metadata";
 import { onlyDigits } from "@/shared/utils/lib";
+import { normalizeVehiclePlate } from "@/shared/utils/vehicle-plate";
 
 const nullableTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? null : value),
@@ -165,6 +166,20 @@ const optionalNullableEmail = optionalNullableTrimmedString.superRefine((value, 
   }
 });
 
+const optionalNullableVehiclePlate = optionalNullableTrimmedString
+  .superRefine((value, context) => {
+    const plate = normalizeVehiclePlate(value);
+    if (!plate) return;
+
+    if (plate.length !== 7) {
+      context.addIssue({
+        code: "custom",
+        message: "Placa inválida. Informe 7 caracteres.",
+      });
+    }
+  })
+  .transform((value) => (value ? normalizeVehiclePlate(value) : value));
+
 const optionalPriceInCents = z.preprocess((value) => {
   if (value === "" || value == null) return undefined;
   return value;
@@ -194,7 +209,7 @@ export const quoteCustomerVehicleStepSchema = z
     vehicleId: z.string().trim().optional().nullable(),
     vehicleLabel: optionalNullableTrimmedString,
     vehicle: z.object({
-      plate: optionalNullableTrimmedString,
+      plate: optionalNullableVehiclePlate,
       brand: optionalNullableTrimmedString,
       model: optionalNullableTrimmedString,
       color: optionalNullableTrimmedString,

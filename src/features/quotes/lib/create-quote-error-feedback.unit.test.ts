@@ -18,6 +18,7 @@ const documentedCodes = [
   "VEHICLE_NOT_FOUND",
   "SERVICE_NOT_FOUND",
   "RESOURCE_NOT_FOUND",
+  "QUOTE_SERVICE_NAME_ALREADY_EXISTS",
   "INTERNAL_ERROR",
 ] satisfies CreateQuoteErrorCode[];
 
@@ -31,6 +32,7 @@ const statusByCode: Record<CreateQuoteErrorCode, number> = {
   VEHICLE_NOT_FOUND: 404,
   SERVICE_NOT_FOUND: 404,
   RESOURCE_NOT_FOUND: 404,
+  QUOTE_SERVICE_NAME_ALREADY_EXISTS: 409,
   INTERNAL_ERROR: 500,
 };
 
@@ -75,6 +77,10 @@ const expectedFeedbackByCode: Record<CreateQuoteErrorCode, { title: string; desc
     RESOURCE_NOT_FOUND: {
       title: "Responsável pelo estabelecimento não encontrado.",
       description: "Entre em contato com o suporte para verificar os dados do estabelecimento.",
+    },
+    QUOTE_SERVICE_NAME_ALREADY_EXISTS: {
+      title: "Nome de serviço já cadastrado",
+      description: "Use o serviço existente no catálogo ou informe um nome diferente.",
     },
     INTERNAL_ERROR: {
       title: "Não foi possível criar o orçamento.",

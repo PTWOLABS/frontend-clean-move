@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { QuoteApprovalVerificationDialog } from "./quote-approval-verification-dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { QuoteApprovalVerificationStep } from "./quote-approval-verification-step";
 import { QuoteListItemDto } from "../../types/quotes";
 import { QuoteApprovalAnalysisDto } from "../../types/analyze-quote-approval";
 
@@ -85,6 +86,10 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
     candidates: [
       {
         customerId: "candidate-customer-id",
+        name: "Marina Oliveira",
+        phone: "(11) 99999-0000",
+        email: "marina@example.com",
+        cpfCnpj: null,
         matchedBy: ["PHONE", "EMAIL"],
         conflictingFields: ["NAME"],
         advisoryOnly: false,
@@ -131,17 +136,24 @@ const requiresResolutionAnalysis: QuoteApprovalAnalysisDto = {
   ],
 };
 
-describe("QuoteApprovalVerificationDialog", () => {
-  it("presents the loading state while analysis is pending and blocks closing", () => {
-    const onOpenChange = vi.fn();
+function renderStep(ui: React.ReactNode) {
+  return render(
+    <Dialog open>
+      <DialogContent showCloseButton={false}>{ui}</DialogContent>
+    </Dialog>,
+  );
+}
 
-    render(
-      <QuoteApprovalVerificationDialog
+describe("QuoteApprovalVerificationStep", () => {
+  it("presents the loading state while analysis is pending", () => {
+    renderStep(
+      <QuoteApprovalVerificationStep
         quote={quote}
         analysis={null}
         isAnalyzing
-        open
-        onOpenChange={onOpenChange}
+        isApproving={false}
+        onApprove={vi.fn()}
+        onResolveRequired={vi.fn()}
       />,
     );
 
@@ -149,22 +161,19 @@ describe("QuoteApprovalVerificationDialog", () => {
     expect(screen.getByText("Analisando cliente")).toBeInTheDocument();
     expect(screen.getByText("Aguarde enquanto concluímos a análise")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Fechar" })).not.toBeInTheDocument();
-
-    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
-
-    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it("presents the ready state from the analysis response", () => {
-    const onOpenChange = vi.fn();
+    const onApprove = vi.fn();
 
-    render(
-      <QuoteApprovalVerificationDialog
+    renderStep(
+      <QuoteApprovalVerificationStep
         quote={quote}
         analysis={readyAnalysis}
         isAnalyzing={false}
-        open
-        onOpenChange={onOpenChange}
+        isApproving={false}
+        onApprove={onApprove}
+        onResolveRequired={vi.fn()}
       />,
     );
 
@@ -179,18 +188,36 @@ describe("QuoteApprovalVerificationDialog", () => {
       screen.getByRole("progressbar", { name: "Progresso da análise de aprovação do orçamento" }),
     ).toHaveAttribute("aria-valuenow", "100");
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Fechar" })[0]);
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar aprovação" }));
+    expect(onApprove).toHaveBeenCalled();
+  });
+
+  it("disables the approval action while approval is pending", () => {
+    renderStep(
+      <QuoteApprovalVerificationStep
+        quote={quote}
+        analysis={readyAnalysis}
+        isAnalyzing={false}
+        isApproving
+        onApprove={vi.fn()}
+        onResolveRequired={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Aprovando" })).toBeDisabled();
   });
 
   it("lists customer, vehicle and service issues when resolution is required", () => {
-    render(
-      <QuoteApprovalVerificationDialog
+    const onResolveRequired = vi.fn();
+
+    renderStep(
+      <QuoteApprovalVerificationStep
         quote={quote}
         analysis={requiresResolutionAnalysis}
         isAnalyzing={false}
-        open
-        onOpenChange={vi.fn()}
+        isApproving={false}
+        onApprove={vi.fn()}
+        onResolveRequired={onResolveRequired}
       />,
     );
 
@@ -208,6 +235,7 @@ describe("QuoteApprovalVerificationDialog", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Serviço com correspondência: Polimento tecnico")).toBeInTheDocument();
     expect(screen.getByText(/Diferenças: preço/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Voltar ao orçamento/i })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: /Resolver pendências/i }));
+    expect(onResolveRequired).toHaveBeenCalled();
   });
 });

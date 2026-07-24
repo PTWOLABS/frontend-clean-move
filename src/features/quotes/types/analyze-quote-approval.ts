@@ -40,6 +40,10 @@ export type QuoteCustomerAnalysisStatus =
 
 export type QuoteCustomerCandidateDto = {
   customerId: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  cpfCnpj: string | null;
   matchedBy: QuoteCustomerMatchedBy[];
   conflictingFields: QuoteCustomerConflictingField[];
   advisoryOnly: boolean;

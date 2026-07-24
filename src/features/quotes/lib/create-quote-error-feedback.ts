@@ -13,7 +13,8 @@ export type CreateQuoteErrorCode =
   | "VEHICLE_NOT_FOUND"
   | "SERVICE_NOT_FOUND"
   | "RESOURCE_NOT_FOUND"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  | "QUOTE_SERVICE_NAME_ALREADY_EXISTS";
 
 export const CREATE_QUOTE_ERROR_FEEDBACK = {
   VALIDATION_ERROR: {
@@ -55,6 +56,10 @@ export const CREATE_QUOTE_ERROR_FEEDBACK = {
   RESOURCE_NOT_FOUND: {
     title: "Responsável pelo estabelecimento não encontrado.",
     description: "Entre em contato com o suporte para verificar os dados do estabelecimento.",
+  },
+  QUOTE_SERVICE_NAME_ALREADY_EXISTS: {
+    title: "Nome de serviço já cadastrado",
+    description: "Use o serviço existente no catálogo ou informe um nome diferente.",
   },
   INTERNAL_ERROR: {
     title: "Não foi possível criar o orçamento.",

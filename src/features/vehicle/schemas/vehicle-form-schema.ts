@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { normalizeVehiclePlate } from "@/shared/utils/vehicle-plate";
+
 import type { CreateVehiclePayload, VehicleDto } from "../types";
 
 export const vehicleFieldsSchema = z.object({
@@ -64,9 +66,7 @@ export const vehicleFormDefaultValues: VehicleFormInput = {
 export const emptyVehicleFormValues = vehicleFormDefaultValues;
 
 export function normalizePlate(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  const normalized = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  return normalized || undefined;
+  return normalizeVehiclePlate(value);
 }
 
 export function parseVehicleYear(value: string | number | undefined): number | undefined {
