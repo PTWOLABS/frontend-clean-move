@@ -194,7 +194,10 @@ export const quoteCustomerVehicleStepSchema = z
     vehicleId: z.string().trim().optional().nullable(),
     vehicleLabel: optionalNullableTrimmedString,
     vehicle: z.object({
-      plate: optionalNullableTrimmedString,
+      plate: z.preprocess(
+        (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+        z.string().length(7).trim().nullable().optional(),
+      ),
       brand: optionalNullableTrimmedString,
       model: optionalNullableTrimmedString,
       color: optionalNullableTrimmedString,

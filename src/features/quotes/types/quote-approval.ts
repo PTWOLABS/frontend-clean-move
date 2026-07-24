@@ -187,7 +187,8 @@ export type ApproveQuoteCreateCustomerResolution = {
 export type ApproveQuoteVehicleResolution =
   | ApproveQuoteLinkExistingVehicleResolution
   | ApproveQuoteCreateVehicleFromSnapshotResolution
-  | ApproveQuoteKeepVehicleSnapshotOnlyResolution;
+  | ApproveQuoteKeepVehicleSnapshotOnlyResolution
+  | ApproveQuoteEditVehicleSnapshotPlateResolution;
 
 export type ApproveQuoteVehicleResolutionAction = ApproveQuoteVehicleResolution["action"];
 
@@ -203,6 +204,12 @@ export type ApproveQuoteCreateVehicleFromSnapshotResolution = {
 
 export type ApproveQuoteKeepVehicleSnapshotOnlyResolution = {
   action: "KEEP_SNAPSHOT_ONLY";
+  vehicleId?: never;
+};
+
+export type ApproveQuoteEditVehicleSnapshotPlateResolution = {
+  action: "EDIT_SNAPSHOT_PLATE";
+  plate: string;
   vehicleId?: never;
 };
 

@@ -20,6 +20,7 @@ import {
   getVehicleDescription,
   hasPendingQuoteApprovalResolutionDetails,
   isQuoteApprovalResolutionSelected,
+  VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID,
 } from "./quote-approval-resolution-helpers";
 
 const resolvedCustomer: QuoteCustomerAnalysisDto = {
@@ -272,6 +273,29 @@ describe("quote approval resolution helpers", () => {
     });
   });
 
+  it("builds pending detail selection when vehicle plate needs editing", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      vehicle: {
+        status: "SNAPSHOT_ONLY",
+        requiresResolution: true,
+        candidateVehicleId: null,
+        candidateCustomerId: null,
+        allowedActions: ["EDIT_SNAPSHOT_PLATE"],
+      },
+    });
+
+    expect(cards[1].actions[0]).toMatchObject({
+      id: VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID,
+      label: QUOTE_VEHICLE_RESOLUTION_ACTION_LABELS.EDIT_SNAPSHOT_PLATE,
+      selection: {
+        id: VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID,
+        target: "vehicle",
+        requiresDetails: true,
+      },
+    });
+  });
+
   it("applies and detects selected resolution values", () => {
     const cards = getResolutionCards(requiresResolutionAnalysis);
     const customerSelection = cards[0].actions[1].selection;
@@ -344,6 +368,32 @@ describe("quote approval resolution helpers", () => {
       customerResolution: {
         action: "LINK_EXISTING" as const,
         customerId: "second-candidate-customer-id",
+      },
+    };
+
+    expect(isQuoteApprovalResolutionSelected(values, pendingSelection)).toBe(true);
+    expect(hasPendingQuoteApprovalResolutionDetails(values)).toBe(false);
+  });
+
+  it("detects a pending vehicle plate edit action after the plate is submitted", () => {
+    const cards = getResolutionCards({
+      ...requiresResolutionAnalysis,
+      vehicle: {
+        status: "SNAPSHOT_ONLY",
+        requiresResolution: true,
+        candidateVehicleId: null,
+        candidateCustomerId: null,
+        allowedActions: ["EDIT_SNAPSHOT_PLATE"],
+      },
+    });
+    const pendingSelection = cards[1].actions[0].selection;
+
+    const values = {
+      pendingSelections: [],
+      serviceResolutions: [],
+      vehicleResolution: {
+        action: "EDIT_SNAPSHOT_PLATE" as const,
+        plate: "ABC1D23",
       },
     };
 

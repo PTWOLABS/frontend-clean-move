@@ -83,6 +83,7 @@ export const CUSTOMER_RESOLUTION_ACTION_LABELS = {
 };
 
 export const CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID = "customer-LINK_EXISTING";
+export const VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID = "vehicle-EDIT_SNAPSHOT_PLATE";
 
 export function createEmptyQuoteApprovalResolutionValues(): QuoteApprovalResolutionValues {
   return {
@@ -198,6 +199,14 @@ function getVehicleActionSelection(
   vehicle: QuoteVehicleAnalysisDto,
   action: QuoteVehicleResolutionAction,
 ): ResolutionSelection {
+  if (action === "EDIT_SNAPSHOT_PLATE") {
+    return {
+      id: VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID,
+      target: "vehicle",
+      requiresDetails: true,
+    };
+  }
+
   if (action === "CREATE_FROM_SNAPSHOT" || action === "KEEP_SNAPSHOT_ONLY") {
     return {
       target: "vehicle",
@@ -409,6 +418,13 @@ export function isQuoteApprovalResolutionSelected(
     if (
       selection.id === CUSTOMER_LINK_EXISTING_PENDING_SELECTION_ID &&
       values.customerResolution?.action === "LINK_EXISTING"
+    ) {
+      return true;
+    }
+
+    if (
+      selection.id === VEHICLE_EDIT_SNAPSHOT_PLATE_PENDING_SELECTION_ID &&
+      values.vehicleResolution?.action === "EDIT_SNAPSHOT_PLATE"
     ) {
       return true;
     }

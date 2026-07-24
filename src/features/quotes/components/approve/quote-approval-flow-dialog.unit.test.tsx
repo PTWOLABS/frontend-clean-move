@@ -165,6 +165,40 @@ const vehicleCandidateAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto 
   },
 };
 
+const vehiclePlateEditAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto = {
+  analysis: {
+    status: "REQUIRES_RESOLUTION",
+    automaticResolutions: [],
+    customer: {
+      status: "RESOLVED",
+      requiresResolution: false,
+      automaticCustomerId: "customer-id",
+      candidates: [],
+    },
+    vehicle: {
+      status: "SNAPSHOT_ONLY",
+      requiresResolution: true,
+      candidateVehicleId: null,
+      candidateCustomerId: null,
+      allowedActions: ["EDIT_SNAPSHOT_PLATE"],
+    },
+    services: [],
+  },
+};
+
+const customerAndVehicleDetailAnalyzeQuoteApprovalData: AnalyzeQuoteApprovalResponseDto = {
+  analysis: {
+    ...multipleCustomerCandidatesAnalyzeQuoteApprovalData.analysis,
+    vehicle: {
+      status: "SNAPSHOT_ONLY",
+      requiresResolution: true,
+      candidateVehicleId: null,
+      candidateCustomerId: null,
+      allowedActions: ["EDIT_SNAPSHOT_PLATE"],
+    },
+  },
+};
+
 describe("QuoteApprovalFlowDialog", () => {
   beforeEach(() => {
     isAnalyzing = false;
@@ -349,5 +383,62 @@ describe("QuoteApprovalFlowDialog", () => {
         onSuccess: expect.any(Function),
       }),
     );
+  });
+
+  it("asks for the edited vehicle plate before approval", () => {
+    analyzeQuoteApprovalData = vehiclePlateEditAnalyzeQuoteApprovalData;
+
+    render(<QuoteApprovalFlowDialog quote={quote} open onOpenChange={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Selecione data e hor.rio/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Resolver pend.ncias/i }));
+    fireEvent.click(screen.getByRole("button", { name: /editar a placa antes de continuar/i }));
+
+    expect(screen.getByRole("heading", { name: "Editar placa" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("textbox", { name: /Placa do ve.culo/i }), {
+      target: { value: "xyz-9876" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar placa" }));
+
+    expect(screen.getByRole("heading", { name: /Resolver pend.ncias/i })).toBeInTheDocument();
+    expect(screen.getByText(/1 de 1 pend.ncia com resolu..o selecionada/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Confirmar aprova..o/i }));
+
+    expect(approveQuoteMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        quoteId: "quote-id",
+        startsAt: "2026-08-01T10:00:00.000Z",
+        endsAt: null,
+        vehicleResolution: {
+          action: "EDIT_SNAPSHOT_PLATE",
+          plate: "XYZ9876",
+        },
+        serviceResolutions: [],
+      }),
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+      }),
+    );
+  });
+
+  it("opens the vehicle plate step when a previous customer detail selection is still pending", () => {
+    analyzeQuoteApprovalData = customerAndVehicleDetailAnalyzeQuoteApprovalData;
+
+    render(<QuoteApprovalFlowDialog quote={quote} open onOpenChange={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Selecione data e hor.rio/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Resolver pend.ncias/i }));
+    fireEvent.click(screen.getByRole("button", { name: /vincular cliente existente/i }));
+
+    expect(screen.getByRole("heading", { name: "Escolher cliente" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Voltar .s pend.ncias/i }));
+    fireEvent.click(screen.getByRole("button", { name: /editar a placa antes de continuar/i }));
+
+    expect(screen.getByRole("heading", { name: "Editar placa" })).toBeInTheDocument();
   });
 });
